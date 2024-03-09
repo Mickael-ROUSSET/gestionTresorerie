@@ -45,6 +45,8 @@ Public Class FrmSaisie
         Call chargeFichierTexte(Me.lstTiers, My.Settings.ficTiers)
         'Chargement du fichier contenant la liste des événements
         Call chargeFichierTexte(Me.lstEvénement, My.Settings.ficEvénement)
+        'Chargement du fichier contenant la liste des types
+        Call chargeFichierTexte(Me.lstType, My.Settings.ficType)
     End Sub
 
     Private Sub chargeFichierTexte(lstBox As ListBox, fichierTexte As String)
@@ -53,11 +55,11 @@ Public Class FrmSaisie
         Try
             Dim monStreamReader As New StreamReader(fichierTexte) 'Stream pour la lecture
             Dim ligne As String ' Variable contenant le texte de la ligne
-            Do
-                ligne = monStreamReader.ReadLine
+            ligne = monStreamReader.ReadLine
+            While Not ligne Is Nothing
                 lstBox.Items.Add(ligne)
-                'MsgBox(ligne)
-            Loop Until ligne Is Nothing
+                ligne = monStreamReader.ReadLine
+            End While
             monStreamReader.Close()
         Catch ex As Exception
             MsgBox("Une erreur est survenue au cours de l'accès en lecture du fichier de configuration du logiciel." & vbCrLf & vbCrLf & "Veuillez vérifier l'emplacement : " & fichierTexte, MsgBoxStyle.Critical, "Erreur lors e l'ouverture du fichier conf...")
@@ -102,19 +104,8 @@ Public Class FrmSaisie
             myCmd = New SqlCommand
             Call CreeConnexion()
             myCmd.Connection = myConn
-            'Call LectureBase()
-            'myCmd.CommandText = "INSERT INTO [dbo].[Mouvements] ([categorie],[montant]) values (@Catégorie, @montant)"
-            'myCmd.CommandText = "INSERT INTO [dbo].[Mouvements] ([Id],[categorie]) values (@Id,@Catégorie)"
-            'myCmd.CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie) VALUES (@note, @categorie);"
-            'myCmd.CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie) VALUES (@note, @categorie, @sousCategorie);"
-            'myCmd.CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers) VALUES (@note, @categorie, @sousCategorie, @tiers);"
-            'myCmd.CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers,dateCréation) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation);"
-            'myCmd.CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers,dateCréation,dateMvt) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt);"
-            'myCmd.CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers,dateCréation,dateMvt,montant) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant);"
-            'myCmd.CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers,dateCréation,dateMvt,montant,sens) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens);"
-            'myCmd.CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers,dateCréation,dateMvt,montant,sens,etat) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @senst, @etat);"
-            myCmd.CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers,dateCréation,dateMvt,montant,sens,etat,événement) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement);"
-            'myCmd.CommandText = "INSERT INTO [dbo].[Mouvements] (Id) VALUES ('h');"
+            'Call LectureBase() 
+            myCmd.CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers,dateCréation,dateMvt,montant,sens,etat,événement,type) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type);"
             myCmd.Parameters.Clear()
             myCmd.Parameters.Add("@note", SqlDbType.NVarChar)
             myCmd.Parameters(0).Value = "Note de test"
@@ -123,8 +114,7 @@ Public Class FrmSaisie
             myCmd.Parameters.Add("@sousCategorie", SqlDbType.VarChar)
             myCmd.Parameters(2).Value = lstSousCategorie.SelectedItem
             myCmd.Parameters.Add("@tiers", SqlDbType.VarChar)
-            'myCmd.Parameters(3).Value = lstTiers.SelectedItem
-            myCmd.Parameters(3).Value = "Tiers de test"
+            myCmd.Parameters(3).Value = lstTiers.SelectedItem
             myCmd.Parameters.Add("@dateCréation", SqlDbType.Date)
             myCmd.Parameters(4).Value = Now.Date
             myCmd.Parameters.Add("@dateMvt", SqlDbType.Date)
@@ -137,15 +127,9 @@ Public Class FrmSaisie
             myCmd.Parameters(8).Value = IIf(rbRapproche.Checked, 1, 0)
             myCmd.Parameters.Add("@événement", SqlDbType.VarChar)
             myCmd.Parameters(9).Value = lstEvénement.SelectedItem
+            myCmd.Parameters.Add("@type", SqlDbType.VarChar)
+            myCmd.Parameters(10).Value = lstType.SelectedItem
 
-            'myCmd.Parameters.Add("@Catégorie", SqlDbType.NVarChar)
-            'myCmd.Parameters(1).Value = lstCategorie.SelectedItem
-            'myCmd.Parameters.Add("@Montant", SqlDbType.Decimal)
-            'myCmd.Parameters(1).Value = txtMontant.Text
-            'For i As Integer = 0 To dgvElementSalaire.Rows.Count - 1
-            '    cmd.Parameters(0).Value = dgvElementSalaire.Rows(i).Cells(5).Value
-            '    cmd.ExecuteNonQuery()
-            'Next
             myCmd.ExecuteNonQuery()
             MsgBox("Ajout effectué avec succès")
         Catch ex As Exception
@@ -194,4 +178,7 @@ Public Class FrmSaisie
         End If
     End Sub
 
+    Private Sub btnOuvreFichier_Click(sender As Object, e As EventArgs) Handles btnOuvreFichier.Click
+        Call ouvreFichier()
+    End Sub
 End Class

@@ -42,6 +42,7 @@ Partial Class frmSaisie
         GroupBox1 = New GroupBox()
         rbCree = New RadioButton()
         rbRapproche = New RadioButton()
+        btnOuvreFichier = New Button()
         grpSens.SuspendLayout()
         GroupBox1.SuspendLayout()
         SuspendLayout()
@@ -131,7 +132,7 @@ Partial Class frmSaisie
         ' rbCredit
         ' 
         rbCredit.AutoSize = True
-        rbCredit.Location = New Point(92, 17)
+        rbCredit.Location = New Point(91, 22)
         rbCredit.Name = "rbCredit"
         rbCredit.Size = New Size(57, 19)
         rbCredit.TabIndex = 10
@@ -142,7 +143,7 @@ Partial Class frmSaisie
         ' rbDebit
         ' 
         rbDebit.AutoSize = True
-        rbDebit.Location = New Point(20, 17)
+        rbDebit.Location = New Point(19, 22)
         rbDebit.Name = "rbDebit"
         rbDebit.Size = New Size(53, 19)
         rbDebit.TabIndex = 11
@@ -157,7 +158,7 @@ Partial Class frmSaisie
         grpSens.Controls.Add(rbCredit)
         grpSens.Location = New Point(45, 65)
         grpSens.Name = "grpSens"
-        grpSens.Size = New Size(176, 58)
+        grpSens.Size = New Size(176, 63)
         grpSens.TabIndex = 12
         grpSens.TabStop = False
         grpSens.Text = "Sens"
@@ -215,7 +216,7 @@ Partial Class frmSaisie
         GroupBox1.Controls.Add(rbRapproche)
         GroupBox1.Location = New Point(285, 65)
         GroupBox1.Name = "GroupBox1"
-        GroupBox1.Size = New Size(180, 58)
+        GroupBox1.Size = New Size(180, 63)
         GroupBox1.TabIndex = 13
         GroupBox1.TabStop = False
         GroupBox1.Text = "Etat"
@@ -223,7 +224,7 @@ Partial Class frmSaisie
         ' rbCree
         ' 
         rbCree.AutoSize = True
-        rbCree.Location = New Point(20, 17)
+        rbCree.Location = New Point(12, 22)
         rbCree.Name = "rbCree"
         rbCree.Size = New Size(49, 19)
         rbCree.TabIndex = 11
@@ -234,7 +235,7 @@ Partial Class frmSaisie
         ' rbRapproche
         ' 
         rbRapproche.AutoSize = True
-        rbRapproche.Location = New Point(92, 17)
+        rbRapproche.Location = New Point(84, 22)
         rbRapproche.Name = "rbRapproche"
         rbRapproche.Size = New Size(82, 19)
         rbRapproche.TabIndex = 10
@@ -242,11 +243,21 @@ Partial Class frmSaisie
         rbRapproche.Text = "Rapproché"
         rbRapproche.UseVisualStyleBackColor = True
         ' 
+        ' btnOuvreFichier
+        ' 
+        btnOuvreFichier.Location = New Point(426, 373)
+        btnOuvreFichier.Name = "btnOuvreFichier"
+        btnOuvreFichier.Size = New Size(75, 23)
+        btnOuvreFichier.TabIndex = 18
+        btnOuvreFichier.Text = "Ouvrir"
+        btnOuvreFichier.UseVisualStyleBackColor = True
+        ' 
         ' FrmSaisie
         ' 
         AutoScaleDimensions = New SizeF(7.0F, 15.0F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(800, 450)
+        Controls.Add(btnOuvreFichier)
         Controls.Add(GroupBox1)
         Controls.Add(lblEvénement)
         Controls.Add(lstEvénement)
@@ -293,5 +304,6 @@ Partial Class frmSaisie
     Friend WithEvents GroupBox1 As GroupBox
     Friend WithEvents rbCree As RadioButton
     Friend WithEvents rbRapproche As RadioButton
+    Friend WithEvents btnOuvreFichier As Button
 
 End Class

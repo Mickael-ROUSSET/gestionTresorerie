@@ -101,6 +101,18 @@ Namespace My
                 Me("ficEvénement") = value
             End Set
         End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\source\repos\gestionTresorerie\ressources\type.ini")>  _
+        Public Property ficType() As String
+            Get
+                Return CType(Me("ficType"),String)
+            End Get
+            Set
+                Me("ficType") = value
+            End Set
+        End Property
     End Class
 End Namespace
 

@@ -18,5 +18,4 @@ CREATE TABLE [dbo].[Mouvements]
     [Banque] NVARCHAR(50) NULL
 )*/
 --CREATE SEQUENCE Mouvements     START WITH 1  INCREMENT BY 1 ;
-insert into Mouvements ( Id) values ( 1);
 select * from Mouvements;
