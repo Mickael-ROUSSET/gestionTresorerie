@@ -6,10 +6,16 @@
       <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\ressources\categories.ini</Value>
     </Setting>
     <Setting Name="ficTiers" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\ressources\tiers.xml</Value>
+      <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\ressources\tiers.ini</Value>
     </Setting>
     <Setting Name="repDonnées" Type="System.String" Scope="Application">
       <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\Données</Value>
+    </Setting>
+    <Setting Name="ficBddDonnees" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf</Value>
+    </Setting>
+    <Setting Name="ficEvénement" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\ressources\événement.ini</Value>
     </Setting>
   </Settings>
 </SettingsFile>

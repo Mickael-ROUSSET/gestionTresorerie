@@ -62,7 +62,7 @@ Public Class GestionFichierIni
 
     'Détecte si section spécifiée existe
     Public Shared Function SectionExists(INIPath As String, SectionName As String) As Boolean
-        Return SectionNames(INIPath).Any(Function(s) s.ToLower = SectionName.ToLower)
+        Return SectionNames(INIPath).Any(Function(s) String.Equals(s.ToLower, SectionName.ToLower))
     End Function
 
     'Retourne tous les noms des sections existantes dans le fichier de configuration

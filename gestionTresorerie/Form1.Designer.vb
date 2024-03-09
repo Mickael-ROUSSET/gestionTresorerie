@@ -37,7 +37,13 @@ Partial Class frmSaisie
         btnValider = New Button()
         lblMontant = New Label()
         txtMontant = New TextBox()
+        lblEvénement = New Label()
+        lstEvénement = New ListBox()
+        GroupBox1 = New GroupBox()
+        rbCree = New RadioButton()
+        rbRapproche = New RadioButton()
         grpSens.SuspendLayout()
+        GroupBox1.SuspendLayout()
         SuspendLayout()
         ' 
         ' lblType
@@ -151,7 +157,7 @@ Partial Class frmSaisie
         grpSens.Controls.Add(rbCredit)
         grpSens.Location = New Point(45, 65)
         grpSens.Name = "grpSens"
-        grpSens.Size = New Size(166, 58)
+        grpSens.Size = New Size(176, 58)
         grpSens.TabIndex = 12
         grpSens.TabStop = False
         grpSens.Text = "Sens"
@@ -181,12 +187,69 @@ Partial Class frmSaisie
         txtMontant.Name = "txtMontant"
         txtMontant.Size = New Size(128, 23)
         txtMontant.TabIndex = 15
+        txtMontant.Text = "123"
+        ' 
+        ' lblEvénement
+        ' 
+        lblEvénement.AutoSize = True
+        lblEvénement.Location = New Point(12, 311)
+        lblEvénement.Name = "lblEvénement"
+        lblEvénement.Size = New Size(66, 15)
+        lblEvénement.TabIndex = 17
+        lblEvénement.Text = "Evénement"
+        ' 
+        ' lstEvénement
+        ' 
+        lstEvénement.AllowDrop = True
+        lstEvénement.FormattingEnabled = True
+        lstEvénement.ItemHeight = 15
+        lstEvénement.Location = New Point(123, 311)
+        lstEvénement.Name = "lstEvénement"
+        lstEvénement.Size = New Size(328, 34)
+        lstEvénement.TabIndex = 16
+        ' 
+        ' GroupBox1
+        ' 
+        GroupBox1.AutoSize = True
+        GroupBox1.Controls.Add(rbCree)
+        GroupBox1.Controls.Add(rbRapproche)
+        GroupBox1.Location = New Point(285, 65)
+        GroupBox1.Name = "GroupBox1"
+        GroupBox1.Size = New Size(180, 58)
+        GroupBox1.TabIndex = 13
+        GroupBox1.TabStop = False
+        GroupBox1.Text = "Etat"
+        ' 
+        ' rbCree
+        ' 
+        rbCree.AutoSize = True
+        rbCree.Location = New Point(20, 17)
+        rbCree.Name = "rbCree"
+        rbCree.Size = New Size(49, 19)
+        rbCree.TabIndex = 11
+        rbCree.TabStop = True
+        rbCree.Text = "Créé"
+        rbCree.UseVisualStyleBackColor = True
+        ' 
+        ' rbRapproche
+        ' 
+        rbRapproche.AutoSize = True
+        rbRapproche.Location = New Point(92, 17)
+        rbRapproche.Name = "rbRapproche"
+        rbRapproche.Size = New Size(82, 19)
+        rbRapproche.TabIndex = 10
+        rbRapproche.TabStop = True
+        rbRapproche.Text = "Rapproché"
+        rbRapproche.UseVisualStyleBackColor = True
         ' 
         ' FrmSaisie
         ' 
-        AutoScaleDimensions = New SizeF(7F, 15F)
+        AutoScaleDimensions = New SizeF(7.0F, 15.0F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(800, 450)
+        Controls.Add(GroupBox1)
+        Controls.Add(lblEvénement)
+        Controls.Add(lstEvénement)
         Controls.Add(txtMontant)
         Controls.Add(lblMontant)
         Controls.Add(btnValider)
@@ -204,6 +267,8 @@ Partial Class frmSaisie
         Text = "Saisie d'un mouvement"
         grpSens.ResumeLayout(False)
         grpSens.PerformLayout()
+        GroupBox1.ResumeLayout(False)
+        GroupBox1.PerformLayout()
         ResumeLayout(False)
         PerformLayout()
     End Sub
@@ -223,5 +288,10 @@ Partial Class frmSaisie
     Friend WithEvents btnValider As Button
     Friend WithEvents lblMontant As Label
     Friend WithEvents txtMontant As TextBox
+    Friend WithEvents lblEvénement As Label
+    Friend WithEvents lstEvénement As ListBox
+    Friend WithEvents GroupBox1 As GroupBox
+    Friend WithEvents rbCree As RadioButton
+    Friend WithEvents rbRapproche As RadioButton
 
 End Class
