@@ -43,8 +43,14 @@ Partial Class frmSaisie
         rbCree = New RadioButton()
         rbRapproche = New RadioButton()
         btnOuvreFichier = New Button()
+        btnDessin = New Button()
+        picGraph1 = New PictureBox()
+        btnHistogramme = New Button()
+        lblRemise = New Label()
+        txtRemise = New TextBox()
         grpSens.SuspendLayout()
         GroupBox1.SuspendLayout()
+        CType(picGraph1, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
         ' 
         ' lblType
@@ -136,13 +142,13 @@ Partial Class frmSaisie
         rbCredit.Name = "rbCredit"
         rbCredit.Size = New Size(57, 19)
         rbCredit.TabIndex = 10
-        rbCredit.TabStop = True
         rbCredit.Text = "Crédit"
         rbCredit.UseVisualStyleBackColor = True
         ' 
         ' rbDebit
         ' 
         rbDebit.AutoSize = True
+        rbDebit.Checked = True
         rbDebit.Location = New Point(19, 22)
         rbDebit.Name = "rbDebit"
         rbDebit.Size = New Size(53, 19)
@@ -166,7 +172,7 @@ Partial Class frmSaisie
         ' btnValider
         ' 
         btnValider.AutoSize = True
-        btnValider.Location = New Point(146, 371)
+        btnValider.Location = New Point(146, 388)
         btnValider.Name = "btnValider"
         btnValider.Size = New Size(75, 25)
         btnValider.TabIndex = 13
@@ -224,6 +230,7 @@ Partial Class frmSaisie
         ' rbCree
         ' 
         rbCree.AutoSize = True
+        rbCree.Checked = True
         rbCree.Location = New Point(12, 22)
         rbCree.Name = "rbCree"
         rbCree.Size = New Size(49, 19)
@@ -239,24 +246,71 @@ Partial Class frmSaisie
         rbRapproche.Name = "rbRapproche"
         rbRapproche.Size = New Size(82, 19)
         rbRapproche.TabIndex = 10
-        rbRapproche.TabStop = True
         rbRapproche.Text = "Rapproché"
         rbRapproche.UseVisualStyleBackColor = True
         ' 
         ' btnOuvreFichier
         ' 
-        btnOuvreFichier.Location = New Point(426, 373)
+        btnOuvreFichier.Location = New Point(426, 390)
         btnOuvreFichier.Name = "btnOuvreFichier"
         btnOuvreFichier.Size = New Size(75, 23)
         btnOuvreFichier.TabIndex = 18
         btnOuvreFichier.Text = "Ouvrir"
         btnOuvreFichier.UseVisualStyleBackColor = True
         ' 
+        ' btnDessin
+        ' 
+        btnDessin.Location = New Point(632, 398)
+        btnDessin.Name = "btnDessin"
+        btnDessin.Size = New Size(75, 23)
+        btnDessin.TabIndex = 19
+        btnDessin.Text = "Dessin"
+        btnDessin.UseVisualStyleBackColor = True
+        ' 
+        ' picGraph1
+        ' 
+        picGraph1.Location = New Point(522, 141)
+        picGraph1.Name = "picGraph1"
+        picGraph1.Size = New Size(200, 145)
+        picGraph1.TabIndex = 20
+        picGraph1.TabStop = False
+        ' 
+        ' btnHistogramme
+        ' 
+        btnHistogramme.AutoSize = True
+        btnHistogramme.Location = New Point(632, 322)
+        btnHistogramme.Name = "btnHistogramme"
+        btnHistogramme.Size = New Size(90, 25)
+        btnHistogramme.TabIndex = 21
+        btnHistogramme.Text = "Histogramme"
+        btnHistogramme.UseVisualStyleBackColor = True
+        ' 
+        ' lblRemise
+        ' 
+        lblRemise.AutoSize = True
+        lblRemise.Location = New Point(12, 351)
+        lblRemise.Name = "lblRemise"
+        lblRemise.Size = New Size(45, 15)
+        lblRemise.TabIndex = 23
+        lblRemise.Text = "Remise"
+        ' 
+        ' txtRemise
+        ' 
+        txtRemise.Location = New Point(123, 351)
+        txtRemise.Name = "txtRemise"
+        txtRemise.Size = New Size(328, 23)
+        txtRemise.TabIndex = 24
+        ' 
         ' FrmSaisie
         ' 
-        AutoScaleDimensions = New SizeF(7.0F, 15.0F)
+        AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(800, 450)
+        Controls.Add(txtRemise)
+        Controls.Add(lblRemise)
+        Controls.Add(btnHistogramme)
+        Controls.Add(picGraph1)
+        Controls.Add(btnDessin)
         Controls.Add(btnOuvreFichier)
         Controls.Add(GroupBox1)
         Controls.Add(lblEvénement)
@@ -280,6 +334,7 @@ Partial Class frmSaisie
         grpSens.PerformLayout()
         GroupBox1.ResumeLayout(False)
         GroupBox1.PerformLayout()
+        CType(picGraph1, ComponentModel.ISupportInitialize).EndInit()
         ResumeLayout(False)
         PerformLayout()
     End Sub
@@ -305,5 +360,10 @@ Partial Class frmSaisie
     Friend WithEvents rbCree As RadioButton
     Friend WithEvents rbRapproche As RadioButton
     Friend WithEvents btnOuvreFichier As Button
+    Friend WithEvents btnDessin As Button
+    Friend WithEvents picGraph1 As PictureBox
+    Friend WithEvents btnHistogramme As Button
+    Friend WithEvents lblRemise As Label
+    Friend WithEvents txtRemise As TextBox
 
 End Class

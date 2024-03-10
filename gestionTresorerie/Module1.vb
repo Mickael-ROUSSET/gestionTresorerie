@@ -28,7 +28,7 @@ Module LitExcel
         selectButton = New Button() With {.Text = "Select file"}
     End Sub
 
-    Public Sub ouvreFichier()
+    Public Sub OuvreFichier()
         If openFileDialog1.ShowDialog() = DialogResult.OK Then
             Try
                 Dim filePath = openFileDialog1.FileName
@@ -37,7 +37,7 @@ Module LitExcel
                 'End Using
                 'Using str = openFileDialog1.OpenFile()
                 '    Process.Start("notepad.exe", filePath)
-                Call traiteFichier(openFileDialog1.FileName)
+                Call TraiteFichier(openFileDialog1.FileName)
                 'End Using
             Catch SecEx As SecurityException
                 MessageBox.Show($"Security error:{vbCrLf}{vbCrLf}{SecEx.Message}{vbCrLf}{vbCrLf}" &
@@ -45,7 +45,7 @@ Module LitExcel
             End Try
         End If
     End Sub
-    Private Sub traiteFichier(sFichier As String)
+    Private Sub TraiteFichier(sFichier As String)
         Dim sLigneEntiere As String = ""
         Dim bLigne1 As Boolean = True
         Try
@@ -55,7 +55,7 @@ Module LitExcel
             file = My.Computer.FileSystem.OpenTextFileWriter("C:\Users\User\Downloads\test.txt", True)
 
             ligne = monStreamReader.ReadLine
-            While Not ligne Is Nothing
+            While ligne IsNot Nothing
                 ' Match ignoring case of letters.
                 Dim match As Match = Regex.Match(ligne, "^[0-3][0-9]/[0-9]{2}/[0-9]{4};", RegexOptions.IgnoreCase)
                 If match.Success Then
