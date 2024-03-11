@@ -183,9 +183,9 @@ TODO:       'passer une connexion en paramètre
         End If
     End Sub
 
-    Private Sub btnOuvreFichier_Click(sender As Object, e As EventArgs) Handles btnOuvreFichier.Click
-        Call OuvreFichier()
-    End Sub
+    'Private Sub btnOuvreFichier_Click(sender As Object, e As EventArgs) Handles btnOuvreFichier.Click
+    '    Call OuvreFichier()
+    'End Sub
 
     'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnDessin.Click
 

@@ -57,7 +57,7 @@ Public Class frmPrincipale
             End Try
             i += 1
         Loop
-        Call frmHistogramme.Histo_PourCent("Montant par id", tabValeurs, tabLegendes, 20, 40, 300, 30, 10)
+        Call frmHistogramme.Histogramme("Montant par id", tabValeurs, tabLegendes, 20, 40, 300, 30, 10)
         frmHistogramme.Show()
         myReader.Close()
     End Sub
@@ -78,5 +78,9 @@ Public Class frmPrincipale
     End Sub
     Private Sub btnSaisie_Click(sender As Object, e As EventArgs) Handles btnSaisie.Click
         FrmSaisie.Show()
+    End Sub
+
+    Private Sub btnChargeRelevé_Click(sender As Object, e As EventArgs) Handles btnChargeRelevé.Click
+        frmChargeRelevé.Show()
     End Sub
 End Class

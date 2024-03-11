@@ -5,7 +5,7 @@ Imports System.Diagnostics
 Imports System.IO
 Imports System.Windows.Forms
 Imports System.Text.RegularExpressions
-Module LitExcel
+Module LitRelevé
 
     Dim WithEvents selectButton As Button
     Dim openFileDialog1 As OpenFileDialog
