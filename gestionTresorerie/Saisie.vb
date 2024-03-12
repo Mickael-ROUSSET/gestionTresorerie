@@ -21,22 +21,6 @@ Public Class FrmSaisie
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Dim sFicParam As String
 
-        'Create a Connection object.
-        'myConn = New SqlConnection("Initial Catalog=Northwind;" & "Data Source=localhost;Integrated Security=SSPI;")
-        'myConn = New SqlConnection("Data Source=G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf;Integrated Security=True;Connect Timeout=30")
-        'chConnection = "Data Source = (LocalDB) \ MSSQLLocalDB;AttachDbFilename=" 
-        'myConn = New SqlConnection(GetConnectionString())
-        'Create a Command object.
-        'myCmd = myConn.CreateCommand
-        'myCmd.CommandText = "SELECT FirstName, LastName FROM Employees"
-
-        ''Open the connection.
-        'myConn.Open()
-        'myReader = myCmd.ExecuteReader() 
-        ''Close the reader and the database connection.
-        'myReader.Close()
-        'myConn.Close()
-
         sFicParam = My.Settings.ficRessources
         For Each Section In GestionFichierIni.SectionNames(sFicParam)
             Me.lstCategorie.Items.Add(Section)
@@ -65,24 +49,6 @@ Public Class FrmSaisie
             MsgBox("Une erreur est survenue au cours de l'accès en lecture du fichier de configuration du logiciel." & vbCrLf & vbCrLf & "Veuillez vérifier l'emplacement : " & fichierTexte, MsgBoxStyle.Critical, "Erreur lors e l'ouverture du fichier conf...")
         End Try
     End Sub
-
-    'Private Sub FrmMain_Closing(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
-    '    Try
-    '        Call SuprimeConnexion()
-    '    Catch
-    '    End Try
-    'End Sub
-    'Private Sub CreeConnexion()
-    '    'Open the connection.
-    '    myConn.Open()
-
-    'End Sub
-    'Private Sub SuprimeConnexion()
-    '    'Close the reader and the database connection.
-    '    myReader.Close()
-    '    myConn.Close()
-
-    'End Sub
     Private Sub LstCategorie_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstCategorie.SelectedIndexChanged
         Me.lstSousCategorie.Items.Clear()
         ChargeListBox(Me.lstSousCategorie, Me.lstCategorie.SelectedItem)
@@ -143,36 +109,6 @@ TODO:       'passer une connexion en paramètre
         End Try
 
     End Sub
-    'Private Sub LectureBase()
-    '    Dim myReader As SqlDataReader
-    '    'Create a Command object.  
-    '    'Dim results As String
-
-    '    'myCmd.ExecuteNonQuery()
-    '    myCmd.CommandText = "SELECT Id FROM Mouvements;"
-
-    '    myReader = myCmd.ExecuteReader()
-    '    'Concatenate the query result into a string.
-    '    Do While myReader.Read()
-    '        'results = results & myReader.GetString(0) & vbTab & myReader.GetString(1) & vbLf
-    '        'results = results & myReader.GetString(0)
-    '        MsgBox(myReader.GetString(0))
-    '    Loop
-    '    myReader.Close()
-    'End Sub
-    'Private Function GetConnectionString() As String
-    '    ' To avoid storing the connection string in your code,
-    '    ' you can retrieve it from a configuration file.
-    '    'Return "Data Source=MSSQL1;Initial Catalog=AdventureWorks;" & "Integrated Security=true;"
-    '    'Return "Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf";Integrated Security=True;Connect Timeout=30"
-    '    Dim builder As New System.Data.SqlClient.SqlConnectionStringBuilder
-    '    builder("Data Source") = "(LocalDB)\MSSQLLocalDB"
-    '    builder("AttachDbFilename") = My.Settings.ficBddDonnees
-    '    builder("Integrated Security") = True
-    '    builder("Connect Timeout") = 30
-    '    Return builder.ConnectionString
-    'End Function
-
     Private Sub TxtMontant_TextChanged(sender As Object, e As EventArgs) Handles txtMontant.Leave
 
         'If Not Regex.Match(txtMontant.Text, "^[0-9]*$", RegexOptions.IgnoreCase).Success Then
@@ -182,31 +118,6 @@ TODO:       'passer une connexion en paramètre
             txtMontant.Focus()
         End If
     End Sub
-
-    'Private Sub btnOuvreFichier_Click(sender As Object, e As EventArgs) Handles btnOuvreFichier.Click
-    '    Call OuvreFichier()
-    'End Sub
-
-    'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnDessin.Click
-
-    '    Dim tabX(100) As Integer, tabY(100) As Integer
-    '    Dim newBitmap As Bitmap = New Bitmap(150, 150)
-    '    Dim g As Graphics = Graphics.FromImage(newBitmap)
-    '    Dim PF(499) As PointF
-    '    Dim i As Integer
-    '    For i = 0 To 100
-    '        tabX(i) = i
-    '        tabY(i) = 100 - i
-    '    Next i
-    '    ' je remplis mon tableau de pointF avec les valeurs de mes tableaux
-    '    For i = 0 To 10
-    '        Dim point As New PointF(CSng(tabX(i)), CSng(tabY(i)))
-    '        PF(i) = point
-    '    Next
-    '    g.DrawLines(Pens.Blue, PF)
-    '    picGraph1.Image = newBitmap
-    'End Sub
-
     Private Sub btnHistogramme_Click(sender As Object, e As EventArgs) Handles btnHistogramme.Click
         frmHistogramme.ShowDialog()
     End Sub

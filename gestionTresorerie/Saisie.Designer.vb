@@ -48,6 +48,8 @@ Partial Class frmSaisie
         btnHistogramme = New Button()
         lblRemise = New Label()
         txtRemise = New TextBox()
+        txtNote = New TextBox()
+        lblNote = New Label()
         grpSens.SuspendLayout()
         GroupBox1.SuspendLayout()
         CType(picGraph1, ComponentModel.ISupportInitialize).BeginInit()
@@ -172,7 +174,7 @@ Partial Class frmSaisie
         ' btnValider
         ' 
         btnValider.AutoSize = True
-        btnValider.Location = New Point(146, 388)
+        btnValider.Location = New Point(146, 418)
         btnValider.Name = "btnValider"
         btnValider.Size = New Size(75, 25)
         btnValider.TabIndex = 13
@@ -194,7 +196,6 @@ Partial Class frmSaisie
         txtMontant.Name = "txtMontant"
         txtMontant.Size = New Size(128, 23)
         txtMontant.TabIndex = 15
-        txtMontant.Text = "123"
         ' 
         ' lblEvénement
         ' 
@@ -251,7 +252,7 @@ Partial Class frmSaisie
         ' 
         ' btnOuvreFichier
         ' 
-        btnOuvreFichier.Location = New Point(426, 390)
+        btnOuvreFichier.Location = New Point(426, 420)
         btnOuvreFichier.Name = "btnOuvreFichier"
         btnOuvreFichier.Size = New Size(75, 23)
         btnOuvreFichier.TabIndex = 18
@@ -260,7 +261,7 @@ Partial Class frmSaisie
         ' 
         ' btnDessin
         ' 
-        btnDessin.Location = New Point(632, 398)
+        btnDessin.Location = New Point(632, 428)
         btnDessin.Name = "btnDessin"
         btnDessin.Size = New Size(75, 23)
         btnDessin.TabIndex = 19
@@ -301,11 +302,29 @@ Partial Class frmSaisie
         txtRemise.Size = New Size(328, 23)
         txtRemise.TabIndex = 24
         ' 
+        ' txtNote
+        ' 
+        txtNote.Location = New Point(123, 389)
+        txtNote.Name = "txtNote"
+        txtNote.Size = New Size(328, 23)
+        txtNote.TabIndex = 26
+        ' 
+        ' lblNote
+        ' 
+        lblNote.AutoSize = True
+        lblNote.Location = New Point(12, 389)
+        lblNote.Name = "lblNote"
+        lblNote.Size = New Size(33, 15)
+        lblNote.TabIndex = 25
+        lblNote.Text = "Note"
+        ' 
         ' FrmSaisie
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(800, 450)
+        ClientSize = New Size(814, 495)
+        Controls.Add(txtNote)
+        Controls.Add(lblNote)
         Controls.Add(txtRemise)
         Controls.Add(lblRemise)
         Controls.Add(btnHistogramme)
@@ -365,5 +384,7 @@ Partial Class frmSaisie
     Friend WithEvents btnHistogramme As Button
     Friend WithEvents lblRemise As Label
     Friend WithEvents txtRemise As TextBox
+    Friend WithEvents txtNote As TextBox
+    Friend WithEvents lblNote As Label
 
 End Class

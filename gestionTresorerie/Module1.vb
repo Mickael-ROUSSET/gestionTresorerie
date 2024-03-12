@@ -10,13 +10,6 @@ Module LitRelevé
     Dim WithEvents selectButton As Button
     Dim openFileDialog1 As OpenFileDialog
 
-    'Public Sub Main()
-    '    Application.SetCompatibleTextRenderingDefault(False)
-    '    Application.EnableVisualStyles()
-    '    Dim frm As New OpenFileDialogForm()
-    '    Application.Run(frm)
-    'End Sub
-
     Sub New()
         openFileDialog1 = New OpenFileDialog() With
         {
@@ -34,11 +27,8 @@ Module LitRelevé
                 Dim filePath = openFileDialog1.FileName
                 'Using str = openFileDialog1.OpenFile()
                 '    Process.Start("notepad.exe", filePath)
-                'End Using
-                'Using str = openFileDialog1.OpenFile()
-                '    Process.Start("notepad.exe", filePath)
+                'End Using 
                 Call TraiteFichier(openFileDialog1.FileName)
-                'End Using
             Catch SecEx As SecurityException
                 MessageBox.Show($"Security error:{vbCrLf}{vbCrLf}{SecEx.Message}{vbCrLf}{vbCrLf}" &
                 $"Details:{vbCrLf}{vbCrLf}{SecEx.StackTrace}")

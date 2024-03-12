@@ -32,6 +32,7 @@ Partial Class frmChargeRelevé
         ' 
         lstMouvements.Location = New Point(100, 140)
         lstMouvements.Name = "lstMouvements"
+        lstMouvements.ShowItemToolTips = True
         lstMouvements.Size = New Size(641, 275)
         lstMouvements.TabIndex = 1
         lstMouvements.UseCompatibleStateImageBehavior = False
