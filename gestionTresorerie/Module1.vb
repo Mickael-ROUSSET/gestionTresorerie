@@ -21,28 +21,35 @@ Module LitRelevé
         selectButton = New Button() With {.Text = "Select file"}
     End Sub
 
-    Public Sub OuvreFichier()
+    Public Function OuvreFichier() As String
+        Dim sFicTemp As String = ""
+        'Un seul fichier peut être sélectionné
+        openFileDialog1.Multiselect = False
         If openFileDialog1.ShowDialog() = DialogResult.OK Then
             Try
                 Dim filePath = openFileDialog1.FileName
                 'Using str = openFileDialog1.OpenFile()
                 '    Process.Start("notepad.exe", filePath)
                 'End Using 
-                Call TraiteFichier(openFileDialog1.FileName)
+                sFicTemp = TraiteFichier(openFileDialog1.FileName)
             Catch SecEx As SecurityException
                 MessageBox.Show($"Security error:{vbCrLf}{vbCrLf}{SecEx.Message}{vbCrLf}{vbCrLf}" &
                 $"Details:{vbCrLf}{vbCrLf}{SecEx.StackTrace}")
             End Try
         End If
-    End Sub
-    Private Sub TraiteFichier(sFichier As String)
+        Return sFicTemp
+    End Function
+    Private Function TraiteFichier(sFichier As String) As String
         Dim sLigneEntiere As String = ""
         Dim bLigne1 As Boolean = True
+        Dim sFicTemp As String = Path.GetTempPath() & "test.txt"
         Try
             Dim monStreamReader As New StreamReader(sFichier) 'Stream pour la lecture
             Dim ligne As String ' Variable contenant le texte de la ligne
             Dim file As System.IO.StreamWriter
-            file = My.Computer.FileSystem.OpenTextFileWriter("C:\Users\User\Downloads\test.txt", True)
+            'TODO : générer un fichier temporaire
+            'file = My.Computer.FileSystem.OpenTextFileWriter("C:\Users\User\Downloads\test.txt", True) 
+            file = My.Computer.FileSystem.OpenTextFileWriter(sFicTemp, True)
 
             ligne = monStreamReader.ReadLine
             While ligne IsNot Nothing
@@ -67,5 +74,7 @@ Module LitRelevé
         Catch ex As Exception
             MsgBox("Une erreur est survenue sur a lecture du relevé : " & sFichier, MsgBoxStyle.Critical)
         End Try
-    End Sub
+        Return sFicTemp
+    End Function
+
 End Module

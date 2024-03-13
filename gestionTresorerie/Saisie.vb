@@ -5,6 +5,7 @@ Imports System.Data.SqlClient
 Imports System.Data.Common
 Imports System.Configuration
 Imports System.IO
+Imports System.Windows.Forms.VisualStyles.VisualStyleElement
 
 
 Public Class FrmSaisie
@@ -121,4 +122,5 @@ TODO:       'passer une connexion en paramètre
     Private Sub btnHistogramme_Click(sender As Object, e As EventArgs) Handles btnHistogramme.Click
         frmHistogramme.ShowDialog()
     End Sub
+
 End Class

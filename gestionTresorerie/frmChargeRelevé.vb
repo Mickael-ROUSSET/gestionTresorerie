@@ -8,11 +8,10 @@ Public Class frmChargeRelevé
     End Sub
 
     Private Sub btnOuvreFichier_Click(sender As Object, e As EventArgs) Handles btnOuvreFichier.Click
-        Call OuvreFichier()
-        Call alimentLst()
+        Call alimentLst(OuvreFichier())
     End Sub
-    Private Sub alimentLst()
-        Dim sFichier As String = "C:\Users\User\Downloads\test2.txt"
+    Private Sub alimentLst(sFichier As String)
+        'Dim sFichier As String = "C:\Users\User\Downloads\test2.txt"
 
         Dim sLigne As String = ""
         Try
@@ -60,7 +59,6 @@ Public Class frmChargeRelevé
 
     Private Sub lstMouvements_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstMouvements.SelectedIndexChanged
         'ListView1.Items(j).SubItems(11).Text <> ""
-        Dim s As String
         Dim n As Integer
         Dim sLibelle As String
         Dim sMontant As String

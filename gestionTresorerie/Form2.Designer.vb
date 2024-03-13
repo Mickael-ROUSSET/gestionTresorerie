@@ -61,25 +61,25 @@ Partial Class frmGraphiques
 
     Friend WithEvents CheckBox1 As CheckBox
 
-    Private Sub frmGraphiques_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        Dim tabX As Integer(), tabY As Integer()
-        Dim newBitmap As Bitmap = New Bitmap(150, 150)
-        Dim g As Graphics = Graphics.FromImage(newBitmap)
-        Dim PF(499) As PointF
-        Dim i As Integer
+    'Private Sub frmGraphiques_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+    '    Dim tabX As Integer(), tabY As Integer()
+    '    Dim newBitmap As Bitmap = New Bitmap(150, 150)
+    '    Dim g As Graphics = Graphics.FromImage(newBitmap)
+    '    Dim PF(499) As PointF
+    '    Dim i As Integer
 
-        For i = 1 To 100
-            tabX(i) = i
-            tabY(i) = 100 - i
-        Next i
-        ' je remplis mon tableau de pointF avec les valeurs de mes tableaux
-        For i = 0 To 499
-            Dim point As New PointF(CSng(tabX(i)), CSng(tabY(i)))
-            PF(i) = point
-        Next
-        g.DrawLines(Pens.Blue, PF)
-        picGraph1.Image = newBitmap
-    End Sub
+    '    For i = 1 To 100
+    '        tabX(i) = i
+    '        tabY(i) = 100 - i
+    '    Next i
+    '    ' je remplis mon tableau de pointF avec les valeurs de mes tableaux
+    '    For i = 0 To 499
+    '        Dim point As New PointF(CSng(tabX(i)), CSng(tabY(i)))
+    '        PF(i) = point
+    '    Next
+    '    g.DrawLines(Pens.Blue, PF)
+    '    picGraph1.Image = newBitmap
+    'End Sub
 
     Friend WithEvents picGraph1 As PictureBox
 End Class
