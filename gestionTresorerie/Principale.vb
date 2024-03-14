@@ -1,6 +1,7 @@
 ﻿Imports System.Data.Common
 Imports System.Data.SqlClient
 Imports System.IO
+Imports System.Windows.Forms.VisualStyles.VisualStyleElement
 
 Public Class frmPrincipale
 
@@ -82,5 +83,40 @@ Public Class frmPrincipale
 
     Private Sub btnChargeRelevé_Click(sender As Object, e As EventArgs) Handles btnChargeRelevé.Click
         frmChargeRelevé.Show()
+    End Sub
+
+    Private Sub BindingSource1_CurrentChanged(sender As Object, e As EventArgs) Handles BindingSource1.CurrentChanged
+
+    End Sub
+
+    Private Sub btnConsultation_Click(sender As Object, e As EventArgs) Handles btnConsultation.Click
+        ' Evite de définir la chaine de connexion à chaque endroit où tu l'utilises : si tu dois la changer,
+        ' ça fait autant d'endroits à modifier, et ça force à recompiler. Il vaut mieux la définir dans les
+        ' paramètres de l'application, comme ça si tu dois la changer tu n'auras qu'un seul endroit à modifier.
+
+        'TODO : bonne idée
+        'Dim connectString As String = My.Settings.ChaineDeConnection
+        'Dim connection As New System.Data.SqlClient.SqlConnection(connectString)
+
+        ' Essaie de taper une apostrophe (') dans TextBox1, et observe le résultat ;)
+        ' Ensuite, va faire un tour ici pour apprendre à régler le problème :
+        ' http://johannblais.developpez.com/tutoriel/dotnet/bonnes-pratiques-acces-donnees/#LIV
+        Dim command As New System.Data.SqlClient.SqlCommand("SELECT * FROM Mouvements", myConn)
+
+        Dim dt As New DataTable
+        Dim adpt As New Data.SqlClient.SqlDataAdapter(command)
+
+        Try
+            ' Place la connection dans le bloc try : c'est typiquement le genre d'instruction qui peut lever une exception. 
+            adpt.Fill(dt)
+            DataGridView1.DataSource = dt
+        Catch ex As SqlException
+            ' On informe l'utilisateur qu'il y a eu un problème :
+            MessageBox.Show("Une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
+        Finally
+            ' Le code du bloc Finally est toujours exécuté, même en cas d'erreur dans le Try
+            ' On y place donc la fermeture de la connection :
+            'myConn.Close()
+        End Try
     End Sub
 End Class
