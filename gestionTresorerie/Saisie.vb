@@ -12,7 +12,7 @@ Public Class FrmSaisie
 
     Inherits System.Windows.Forms.Form
     'Create ADO.NET objects.
-    Private myConn As SqlConnection
+    'Private myConn As SqlConnection
     Private myCmd As SqlCommand
     Private myReader As SqlDataReader
     Private results As String
@@ -64,19 +64,15 @@ Public Class FrmSaisie
     End Sub
 
     Private Sub BtnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
-        'Enregistre les informations sur le mouvement saisies
-        'myCmd.CommandText = "insert into Mouvements (categorie) values "
+        'Enregistre les informations sur le mouvement saisies 
         Try
-            'Dim myCmd As New SqlCommand
             myCmd = New SqlCommand
-            'Call CreeConnexion()
-TODO:       'passer une connexion en paramètre
-            myCmd.Connection = myConn
-            'Call LectureBase() 
+            'todo : vérifier que toutes les zones sont présentes ou l'absence gérée
+            myCmd.Connection = frmPrincipale.myConn
             myCmd.CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers,dateCréation,dateMvt,montant,sens,etat,événement,type, modifiable,numeroRemise) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable,@numeroRemise);"
             myCmd.Parameters.Clear()
             myCmd.Parameters.Add("@note", SqlDbType.NVarChar)
-            myCmd.Parameters(0).Value = "Note de test"
+            myCmd.Parameters(0).Value = txtNote.Text
             myCmd.Parameters.Add("@categorie", SqlDbType.VarChar)
             myCmd.Parameters(1).Value = lstCategorie.SelectedItem
             myCmd.Parameters.Add("@sousCategorie", SqlDbType.VarChar)
@@ -100,7 +96,12 @@ TODO:       'passer une connexion en paramètre
             myCmd.Parameters.Add("@modifiable", SqlDbType.Bit)
             myCmd.Parameters(11).Value = 0
             myCmd.Parameters.Add("@numeroRemise", SqlDbType.Int)
-            myCmd.Parameters(12).Value = IIf(txtRemise.Text > "", CInt(txtRemise.Text), 0)
+            'myCmd.Parameters(12).Value = IIf(txtRemise.Text > "", CInt(txtRemise.Text), 0)
+            If txtRemise.Text > "" Then
+                myCmd.Parameters(12).Value = CInt(txtRemise.Text)
+            Else
+                myCmd.Parameters(12).Value = 0
+            End If
 
             myCmd.ExecuteNonQuery()
             MsgBox("Ajout effectué avec succès")
@@ -108,6 +109,7 @@ TODO:       'passer une connexion en paramètre
             Console.WriteLine(ex.Message)
             End
         End Try
+        Me.Hide()
 
     End Sub
     Private Sub TxtMontant_TextChanged(sender As Object, e As EventArgs) Handles txtMontant.Leave
@@ -123,4 +125,7 @@ TODO:       'passer une connexion en paramètre
         frmHistogramme.ShowDialog()
     End Sub
 
+    Private Sub DataGridView1_CellContentClick(sender As Object, e As DataGridViewCellEventArgs)
+
+    End Sub
 End Class

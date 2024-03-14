@@ -6,7 +6,7 @@ Public Class frmPrincipale
 
     Inherits System.Windows.Forms.Form
     'Create ADO.NET objects.
-    Private myConn As SqlConnection
+    Public myConn As SqlConnection
     Private myCmd As SqlCommand
     Private myReader As SqlDataReader
     Private results As String

@@ -42,7 +42,6 @@ Partial Class frmSaisie
         GroupBox1 = New GroupBox()
         rbCree = New RadioButton()
         rbRapproche = New RadioButton()
-        btnOuvreFichier = New Button()
         btnDessin = New Button()
         picGraph1 = New PictureBox()
         btnHistogramme = New Button()
@@ -250,15 +249,6 @@ Partial Class frmSaisie
         rbRapproche.Text = "Rapproché"
         rbRapproche.UseVisualStyleBackColor = True
         ' 
-        ' btnOuvreFichier
-        ' 
-        btnOuvreFichier.Location = New Point(426, 420)
-        btnOuvreFichier.Name = "btnOuvreFichier"
-        btnOuvreFichier.Size = New Size(75, 23)
-        btnOuvreFichier.TabIndex = 18
-        btnOuvreFichier.Text = "Ouvrir"
-        btnOuvreFichier.UseVisualStyleBackColor = True
-        ' 
         ' btnDessin
         ' 
         btnDessin.Location = New Point(632, 428)
@@ -322,7 +312,7 @@ Partial Class frmSaisie
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(814, 495)
+        ClientSize = New Size(873, 494)
         Controls.Add(txtNote)
         Controls.Add(lblNote)
         Controls.Add(txtRemise)
@@ -330,7 +320,6 @@ Partial Class frmSaisie
         Controls.Add(btnHistogramme)
         Controls.Add(picGraph1)
         Controls.Add(btnDessin)
-        Controls.Add(btnOuvreFichier)
         Controls.Add(GroupBox1)
         Controls.Add(lblEvénement)
         Controls.Add(lstEvénement)
@@ -378,7 +367,6 @@ Partial Class frmSaisie
     Friend WithEvents GroupBox1 As GroupBox
     Friend WithEvents rbCree As RadioButton
     Friend WithEvents rbRapproche As RadioButton
-    Friend WithEvents btnOuvreFichier As Button
     Friend WithEvents btnDessin As Button
     Friend WithEvents picGraph1 As PictureBox
     Friend WithEvents btnHistogramme As Button
