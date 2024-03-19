@@ -44,6 +44,7 @@ Partial Class frmPrincipale
         NumeroRemiseDataGridViewTextBoxColumn = New DataGridViewTextBoxColumn()
         MouvementsBindingSource = New BindingSource(components)
         BindingSource1 = New BindingSource(components)
+        btnCreeBilans = New Button()
         CType(DataGridView1, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -185,11 +186,21 @@ Partial Class frmPrincipale
         ' BindingSource1
         ' 
         ' 
+        ' btnCreeBilans
+        ' 
+        btnCreeBilans.Location = New Point(45, 259)
+        btnCreeBilans.Name = "btnCreeBilans"
+        btnCreeBilans.Size = New Size(75, 23)
+        btnCreeBilans.TabIndex = 5
+        btnCreeBilans.Text = "Crée Bilans"
+        btnCreeBilans.UseVisualStyleBackColor = True
+        ' 
         ' frmPrincipale
         ' 
-        AutoScaleDimensions = New SizeF(7.0F, 15.0F)
+        AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(966, 541)
+        Controls.Add(btnCreeBilans)
         Controls.Add(DataGridView1)
         Controls.Add(btnConsultation)
         Controls.Add(btnHistogramme)
@@ -223,4 +234,5 @@ Partial Class frmPrincipale
     Friend WithEvents NumeroRemiseDataGridViewTextBoxColumn As DataGridViewTextBoxColumn
     Friend WithEvents MouvementsBindingSource As BindingSource
     Friend WithEvents BindingSource1 As BindingSource
+    Friend WithEvents btnCreeBilans As Button
 End Class

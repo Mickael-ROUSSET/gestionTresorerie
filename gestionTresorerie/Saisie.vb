@@ -65,43 +65,47 @@ Public Class FrmSaisie
 
     Private Sub BtnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
         'Enregistre les informations sur le mouvement saisies 
+        Dim unMvt As New Mouvements(txtNote.Text, lstCategorie.SelectedItem, lstSousCategorie.SelectedItem, lstTiers.SelectedItem, dateMvt.Value, txtMontant.Text, rbCredit.Checked, rbRapproche.Checked, lstEvénement.SelectedItem, lstType.SelectedItem, False, txtRemise.Text)
+
         Try
             myCmd = New SqlCommand
-            'todo : vérifier que toutes les zones sont présentes ou l'absence gérée
-            myCmd.Connection = frmPrincipale.myConn
-            myCmd.CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers,dateCréation,dateMvt,montant,sens,etat,événement,type, modifiable,numeroRemise) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable,@numeroRemise);"
-            myCmd.Parameters.Clear()
-            myCmd.Parameters.Add("@note", SqlDbType.NVarChar)
-            myCmd.Parameters(0).Value = txtNote.Text
-            myCmd.Parameters.Add("@categorie", SqlDbType.VarChar)
-            myCmd.Parameters(1).Value = lstCategorie.SelectedItem
-            myCmd.Parameters.Add("@sousCategorie", SqlDbType.VarChar)
-            myCmd.Parameters(2).Value = lstSousCategorie.SelectedItem
-            myCmd.Parameters.Add("@tiers", SqlDbType.VarChar)
-            myCmd.Parameters(3).Value = lstTiers.SelectedItem
-            myCmd.Parameters.Add("@dateCréation", SqlDbType.Date)
-            myCmd.Parameters(4).Value = Now.Date
-            myCmd.Parameters.Add("@dateMvt", SqlDbType.Date)
-            myCmd.Parameters(5).Value = dateMvt.Value
-            myCmd.Parameters.Add("@montant", SqlDbType.Decimal)
-            myCmd.Parameters(6).Value = txtMontant.Text
-            myCmd.Parameters.Add("@sens", SqlDbType.Bit)
-            myCmd.Parameters(7).Value = IIf(rbCredit.Checked, 1, 0)
-            myCmd.Parameters.Add("@etat", SqlDbType.Bit)
-            myCmd.Parameters(8).Value = IIf(rbRapproche.Checked, 1, 0)
-            myCmd.Parameters.Add("@événement", SqlDbType.VarChar)
-            myCmd.Parameters(9).Value = lstEvénement.SelectedItem
-            myCmd.Parameters.Add("@type", SqlDbType.VarChar)
-            myCmd.Parameters(10).Value = lstType.SelectedItem
-            myCmd.Parameters.Add("@modifiable", SqlDbType.Bit)
-            myCmd.Parameters(11).Value = 0
-            myCmd.Parameters.Add("@numeroRemise", SqlDbType.Int)
-            'myCmd.Parameters(12).Value = IIf(txtRemise.Text > "", CInt(txtRemise.Text), 0)
-            If txtRemise.Text > "" Then
-                myCmd.Parameters(12).Value = CInt(txtRemise.Text)
-            Else
-                myCmd.Parameters(12).Value = 0
-            End If
+            With myCmd
+                .Connection = frmPrincipale.myConn
+                .CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers,dateCréation,dateMvt,montant,sens,etat,événement,type, modifiable,numeroRemise) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable,@numeroRemise);"
+            End With
+            myCmd = ajouteParam(myCmd, unMvt)
+            'myCmd.Parameters.Clear()
+            'myCmd.Parameters.Add("@note", SqlDbType.NVarChar)
+            'myCmd.Parameters(0).Value = txtNote.Text
+            'myCmd.Parameters.Add("@categorie", SqlDbType.VarChar)
+            'myCmd.Parameters(1).Value = lstCategorie.SelectedItem
+            'myCmd.Parameters.Add("@sousCategorie", SqlDbType.VarChar)
+            'myCmd.Parameters(2).Value = lstSousCategorie.SelectedItem
+            'myCmd.Parameters.Add("@tiers", SqlDbType.VarChar)
+            'myCmd.Parameters(3).Value = lstTiers.SelectedItem
+            'myCmd.Parameters.Add("@dateCréation", SqlDbType.Date)
+            'myCmd.Parameters(4).Value = Now.Date
+            'myCmd.Parameters.Add("@dateMvt", SqlDbType.Date)
+            'myCmd.Parameters(5).Value = dateMvt.Value
+            'myCmd.Parameters.Add("@montant", SqlDbType.Decimal)
+            'myCmd.Parameters(6).Value = txtMontant.Text
+            'myCmd.Parameters.Add("@sens", SqlDbType.Bit)
+            'myCmd.Parameters(7).Value = IIf(rbCredit.Checked, 1, 0)
+            'myCmd.Parameters.Add("@etat", SqlDbType.Bit)
+            'myCmd.Parameters(8).Value = IIf(rbRapproche.Checked, 1, 0)
+            'myCmd.Parameters.Add("@événement", SqlDbType.VarChar)
+            'myCmd.Parameters(9).Value = lstEvénement.SelectedItem
+            'myCmd.Parameters.Add("@type", SqlDbType.VarChar)
+            'myCmd.Parameters(10).Value = lstType.SelectedItem
+            'myCmd.Parameters.Add("@modifiable", SqlDbType.Bit)
+            'myCmd.Parameters(11).Value = 0
+            'myCmd.Parameters.Add("@numeroRemise", SqlDbType.Int)
+            ''myCmd.Parameters(12).Value = IIf(txtRemise.Text > "", CInt(txtRemise.Text), 0)
+            'If txtRemise.Text > "" Then
+            '    myCmd.Parameters(12).Value = CInt(txtRemise.Text)
+            'Else
+            '    myCmd.Parameters(12).Value = 0
+            'End If
 
             myCmd.ExecuteNonQuery()
             MsgBox("Ajout effectué avec succès")
@@ -112,6 +116,38 @@ Public Class FrmSaisie
         Me.Hide()
 
     End Sub
+    Private Function ajouteParam(myCmd As SqlCommand, unMvt As Mouvements) As SqlCommand
+        With myCmd
+            .Parameters.Clear()
+            .Parameters.Add("@note", SqlDbType.NVarChar)
+            .Parameters(0).Value = unMvt.note
+            .Parameters.Add("@categorie", SqlDbType.VarChar)
+            .Parameters(1).Value = unMvt.categorie
+            .Parameters.Add("@sousCategorie", SqlDbType.VarChar)
+            .Parameters(2).Value = unMvt.sousCategorie
+            .Parameters.Add("@tiers", SqlDbType.VarChar)
+            .Parameters(3).Value = unMvt.tiers
+            .Parameters.Add("@dateCréation", SqlDbType.Date)
+            .Parameters(4).Value = Now.Date
+            .Parameters.Add("@dateMvt", SqlDbType.Date)
+            .Parameters(5).Value = unMvt.dateMvt
+            .Parameters.Add("@montant", SqlDbType.Decimal)
+            .Parameters(6).Value = unMvt.montant
+            .Parameters.Add("@sens", SqlDbType.Bit)
+            .Parameters(7).Value = unMvt.sens
+            .Parameters.Add("@etat", SqlDbType.Bit)
+            .Parameters(8).Value = unMvt.etat
+            .Parameters.Add("@événement", SqlDbType.VarChar)
+            .Parameters(9).Value = unMvt.événement
+            .Parameters.Add("@type", SqlDbType.VarChar)
+            .Parameters(10).Value = unMvt.type
+            .Parameters.Add("@modifiable", SqlDbType.Bit)
+            .Parameters(11).Value = unMvt.modifiable
+            .Parameters.Add("@numeroRemise", SqlDbType.Int)
+            .Parameters(12).Value = unMvt.numeroRemise
+        End With
+        Return myCmd
+    End Function
     Private Sub TxtMontant_TextChanged(sender As Object, e As EventArgs) Handles txtMontant.Leave
 
         'If Not Regex.Match(txtMontant.Text, "^[0-9]*$", RegexOptions.IgnoreCase).Success Then

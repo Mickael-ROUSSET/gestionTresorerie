@@ -34,33 +34,43 @@ Public Class frmPrincipale
         Return builder.ConnectionString
     End Function
     Private Sub LectureBase()
-        Dim myReader As SqlDataReader
+        Dim myReaderCategorie As SqlDataReader
+        Dim myReaderSousCategorie As SqlDataReader
         Dim tabLegendes() As String = {}
+        Dim tabCatégorie() As String = {}
         Dim tabValeurs() As Decimal = {}
-        Dim i As Integer = 0
-        'Create a Command object.  
-        'Dim results As String
+        Dim myCmdCategorie As SqlCommand
+        Dim myCmdSousCategorie As SqlCommand
+        Dim i As Integer
+        myCmdCategorie = New SqlCommand("SELECT distinct catégorie FROM Mouvements ;", myConn)
+        'myCmd = New SqlCommand("SELECT catégorie, sousCatégorie,montant,count(*) FROM Mouvements group by catégorie, sousCatégorie,montant;", myConn)
 
-        'myCmd.ExecuteNonQuery()
-        'myCmd.CommandText = "SELECT id,montant FROM Mouvements;"
-        myCmd = New SqlCommand("SELECT id,montant FROM Mouvements;", myConn)
-
-        myReader = myCmd.ExecuteReader()
+        myReaderCategorie = myCmdCategorie.ExecuteReader()
         'Concatenate the query result into a string.
-        Do While myReader.Read()
-            Try
-                ReDim Preserve tabLegendes(UBound(tabLegendes) + 1)
-                tabLegendes(i) = CStr(myReader.GetInt32(0))
-                ReDim Preserve tabValeurs(UBound(tabValeurs) + 1)
-                tabValeurs(i) = myReader.GetDecimal(1)
-            Catch ex As Exception
-                Console.WriteLine(ex.Message)
-            End Try
-            i += 1
+        Do While myReaderCategorie.Read()
+            ReDim Preserve tabCatégorie(UBound(tabCatégorie) + 1)
+            tabCatégorie(i) = myReaderCategorie.GetSqlString(0)
         Loop
-        Call frmHistogramme.Histogramme("Montant par id", tabValeurs, tabLegendes, 20, 40, 300, 30, 10)
+        myReaderCategorie.Close()
+
+        For i = 0 To UBound(tabCatégorie)
+            myCmdSousCategorie = New SqlCommand("SELECT sousCatégorie, montant FROM Mouvements where catégorie = '" & tabCatégorie(i) & "';", myConn)
+            myReaderSousCategorie = myCmdSousCategorie.ExecuteReader()
+            Do While myReaderSousCategorie.Read()
+                Try
+                    ReDim Preserve tabLegendes(UBound(tabLegendes) + 1)
+                    tabLegendes(i) = CStr(myReaderSousCategorie.GetSqlString(0))
+                    ReDim Preserve tabValeurs(UBound(tabValeurs) + 1)
+                    tabValeurs(i) = myReaderSousCategorie.GetDecimal(1)
+                Catch ex As Exception
+                    Console.WriteLine(ex.Message)
+                End Try
+                i += 1
+            Loop
+            Call frmHistogramme.Histogramme("Montant par id", tabValeurs, tabLegendes, 20, 40, 300, 30, 10)
+        Next
+        myReaderCategorie.Close()
         frmHistogramme.Show()
-        myReader.Close()
     End Sub
     Private Sub FrmMain_Closing(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
         Try
@@ -118,5 +128,9 @@ Public Class frmPrincipale
             ' On y place donc la fermeture de la connection :
             'myConn.Close()
         End Try
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
+        Call creeBilans()
     End Sub
 End Class
