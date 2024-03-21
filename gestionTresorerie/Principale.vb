@@ -3,7 +3,7 @@ Imports System.Data.SqlClient
 Imports System.IO
 Imports System.Windows.Forms.VisualStyles.VisualStyleElement
 
-Public Class frmPrincipale
+Public Class FrmPrincipale
 
     Inherits System.Windows.Forms.Form
     'Create ADO.NET objects.
@@ -14,10 +14,10 @@ Public Class frmPrincipale
 
     Public Property Properties As Object
 
-    Private Sub btnHistogramme_Click(sender As Object, e As EventArgs) Handles btnHistogramme.Click
+    Private Sub BtnHistogramme_Click(sender As Object, e As EventArgs) Handles btnHistogramme.Click
         Call LectureBase()
     End Sub
-    Private Sub frmPrincipale_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+    Private Sub FrmPrincipale_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         myConn = New SqlConnection(GetConnectionString())
         Call CreeConnexion()
     End Sub
@@ -36,9 +36,9 @@ Public Class frmPrincipale
     Private Sub LectureBase()
         Dim myReaderCategorie As SqlDataReader
         Dim myReaderSousCategorie As SqlDataReader
-        Dim tabLegendes() As String = {}
-        Dim tabCatégorie() As String = {}
-        Dim tabValeurs() As Decimal = {}
+        Dim tabLegendes() As String = Array.Empty(Of String)()
+        Dim tabCatégorie() As String = Array.Empty(Of String)()
+        Dim tabValeurs() As Decimal = Array.Empty(Of Decimal)()
         Dim myCmdCategorie As SqlCommand
         Dim myCmdSousCategorie As SqlCommand
         Dim i As Integer
@@ -87,11 +87,11 @@ Public Class frmPrincipale
         'myReader.Close()
         myConn.Close()
     End Sub
-    Private Sub btnSaisie_Click(sender As Object, e As EventArgs) Handles btnSaisie.Click
+    Private Sub BtnSaisie_Click(sender As Object, e As EventArgs) Handles btnSaisie.Click
         FrmSaisie.Show()
     End Sub
 
-    Private Sub btnChargeRelevé_Click(sender As Object, e As EventArgs) Handles btnChargeRelevé.Click
+    Private Sub BtnChargeRelevé_Click(sender As Object, e As EventArgs) Handles btnChargeRelevé.Click
         frmChargeRelevé.Show()
     End Sub
 
@@ -99,7 +99,7 @@ Public Class frmPrincipale
 
     End Sub
 
-    Private Sub btnConsultation_Click(sender As Object, e As EventArgs) Handles btnConsultation.Click
+    Private Sub BtnConsultation_Click(sender As Object, e As EventArgs) Handles btnConsultation.Click
         ' Evite de définir la chaine de connexion à chaque endroit où tu l'utilises : si tu dois la changer,
         ' ça fait autant d'endroits à modifier, et ça force à recompiler. Il vaut mieux la définir dans les
         ' paramètres de l'application, comme ça si tu dois la changer tu n'auras qu'un seul endroit à modifier.
@@ -131,6 +131,6 @@ Public Class frmPrincipale
     End Sub
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
-        Call creeBilans()
+        Call CreeBilans()
     End Sub
 End Class

@@ -7,8 +7,8 @@ Imports System.Windows.Forms
 Imports System.Text.RegularExpressions
 Module LitRelevé
 
-    Dim WithEvents selectButton As Button
-    Dim openFileDialog1 As OpenFileDialog
+    Dim WithEvents SelectButton As Button
+    ReadOnly openFileDialog1 As OpenFileDialog
 
     Sub New()
         openFileDialog1 = New OpenFileDialog() With
@@ -18,7 +18,7 @@ Module LitRelevé
            .Title = "Open csv file"
         }
 
-        selectButton = New Button() With {.Text = "Select file"}
+        SelectButton = New Button() With {.Text = "Select file"}
     End Sub
 
     Public Function OuvreFichier() As String
@@ -47,8 +47,6 @@ Module LitRelevé
             Dim monStreamReader As New StreamReader(sFichier) 'Stream pour la lecture
             Dim ligne As String ' Variable contenant le texte de la ligne
             Dim file As System.IO.StreamWriter
-            'TODO : générer un fichier temporaire
-            'file = My.Computer.FileSystem.OpenTextFileWriter("C:\Users\User\Downloads\test.txt", True) 
             file = My.Computer.FileSystem.OpenTextFileWriter(sFicTemp, True)
 
             ligne = monStreamReader.ReadLine
@@ -65,7 +63,7 @@ Module LitRelevé
                     End If
                     sLigneEntiere = ligne
                 Else
-                    sLigneEntiere = sLigneEntiere & ligne
+                    sLigneEntiere &= ligne
                 End If
                 ligne = monStreamReader.ReadLine
             End While

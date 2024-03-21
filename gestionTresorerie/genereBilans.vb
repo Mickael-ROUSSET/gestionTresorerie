@@ -6,9 +6,9 @@ Imports System.IO.Packaging
 Imports DocumentFormat.OpenXml.Presentation
 Module genereBilans
     'Utilisation du NameSpace WordprocessingML
-    Dim WordprocessingML As String = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+    ReadOnly WordprocessingML As String = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
     'https://badger.developpez.com/tutoriels/dotnet/creer-fichier-word-openxml/#LIX
-    Public Sub creeBilans()
+    Public Sub CreeBilans()
 
         ' Création du WordML
         Dim xmlStartPart = New XmlDocument()
@@ -56,7 +56,7 @@ Module genereBilans
         ' Fermeture du package
         pkgOutputDoc.Close()
     End Sub
-    Private Sub creeStyle(sNomStyle As String, sAlignement As String, colCouleur As Color)
+    Private Sub CreeStyle(sNomStyle As String, sAlignement As String, colCouleur As Color)
         ' Création du style
         Dim xmlStylePart As XmlDocument
         xmlStylePart = New XmlDocument()

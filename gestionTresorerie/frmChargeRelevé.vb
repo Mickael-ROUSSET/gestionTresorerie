@@ -3,23 +3,20 @@ Imports System.Text.RegularExpressions
 Imports System.Windows.Forms.VisualStyles.VisualStyleElement
 
 Public Class frmChargeRelevé
-    Private Sub frmChargeRelevé_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        Call initListView()
+    Private Sub FrmChargeRelevé_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Call InitListView()
     End Sub
 
-    Private Sub btnOuvreFichier_Click(sender As Object, e As EventArgs) Handles btnOuvreFichier.Click
-        Call alimentLst(OuvreFichier())
+    Private Sub BtnOuvreFichier_Click(sender As Object, e As EventArgs) Handles btnOuvreFichier.Click
+        Call AlimentLst(OuvreFichier())
     End Sub
-    Private Sub alimentLst(sFichier As String)
-        'Dim sFichier As String = "C:\Users\User\Downloads\test2.txt"
-
-        Dim sLigne As String = ""
+    Private Sub AlimentLst(sFichier As String)
         Try
-            Dim monStreamReader As New StreamReader(sFichier) 'Stream pour la lecture  
+            Dim monStreamReader As New StreamReader(sFichier) 'Stream pour la lecture   
 
-            sLigne = monStreamReader.ReadLine
+            Dim sLigne As String = monStreamReader.ReadLine
             While sLigne IsNot Nothing
-                ajouteLigne(sLigne)
+                AjouteLigne(sLigne)
                 sLigne = monStreamReader.ReadLine
             End While
             monStreamReader.Close()
@@ -27,7 +24,7 @@ Public Class frmChargeRelevé
             MsgBox("Une erreur est survenue sur a lecture du relevé : " & sFichier, MsgBoxStyle.Critical)
         End Try
     End Sub
-    Private Sub initListView()
+    Private Sub InitListView()
         'Set to details view.
         lstMouvements.View = View.Details
         lstMouvements.AllowColumnReorder = True
@@ -39,7 +36,7 @@ Public Class frmChargeRelevé
         lstMouvements.Columns.Add("Débit", 75, HorizontalAlignment.Left)
         lstMouvements.Columns.Add("Crédit", 75, HorizontalAlignment.Left)
     End Sub
-    Private Sub ajouteLigne(sligne As String)
+    Private Sub AjouteLigne(sligne As String)
         Dim monElem As New ListViewItem
         'Dim sMontant As String
         'Dim iNumLigne As Integer
@@ -67,7 +64,7 @@ Public Class frmChargeRelevé
         'End If
     End Sub
 
-    Private Sub lstMouvements_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstMouvements.SelectedIndexChanged
+    Private Sub LstMouvements_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstMouvements.SelectedIndexChanged
         'ListView1.Items(j).SubItems(11).Text <> ""
         'Dim n As Integer
         'Dim sLibelle As String
@@ -96,7 +93,6 @@ Public Class frmChargeRelevé
     End Sub
 
     Private Sub DataGridView1_SelectionChanged(sender As Object, e As DataGridViewCellEventArgs) Handles dgvRelevé.CellContentClick
-        Dim n As Integer = 0
         Dim sLibelle As String
         Dim sMontant As String
         Dim posRemise As Integer
@@ -107,7 +103,6 @@ Public Class frmChargeRelevé
         posRemise = InStr(sLibelle, "REMISE DE CHEQUE", CompareMethod.Text)
         If posRemise > 0 Then
             FrmSaisie.txtRemise.Text = Trim(Mid(sLibelle, posRemise + Len("REMISE DE CHEQUE") + 1, Len(sLibelle) - 1))
-            'TODO ; supprimer la quote finale proprement
         End If
         If dgvRelevé.CurrentRow.Cells.Item(2).FormattedValue <> "" Then
             sMontant = dgvRelevé.CurrentRow.Cells.Item(2).FormattedValue

@@ -40,8 +40,6 @@ Public Class frmHistogramme
         'Définition des marges gauche et bas
         Dim cpt_Left As Integer = IIf(_left < 10, 10, _left)
         Dim ctl_Bas As Integer = IIf(_top < 10, 10, _top) + IIf(_hauteur < 20, 20, _hauteur)
-        Dim ctl_Top As Integer = 0
-        Dim cpt_Hauteur As Integer = 0                          '
         Dim lbl_Hauteur As Integer = maFont.Size / maFont.FontFamily.GetCellAscent(0) * maFont.FontFamily.GetEmHeight(0) * 1.8
         Dim lbl_Largeur As Integer = 0
         Dim nbCouleursDisponibles As Integer = UBound(arrColor) - 1
@@ -54,8 +52,8 @@ Public Class frmHistogramme
             'cpt_Hauteur = _hauteur / 100 * _valeurs(i)
             'todo : gérer le cas MaxTableau = 0
             'cpt_Hauteur = MaxTableau(_valeurs) * _top / MaxTableau(_valeurs)
-            cpt_Hauteur = MaxTableau(_valeurs)
-            ctl_Top = _top + _hauteur - cpt_Hauteur
+            Dim cpt_Hauteur As Integer = MaxTableau(_valeurs)
+            Dim ctl_Top As Integer = _top + _hauteur - cpt_Hauteur
             If _valeurs(i) <= 2 Then
                 ctl_Top -= 1        ' on triche juste ce qu'il faut, c'est pour capter le ToolTip !
                 cpt_Hauteur += 1

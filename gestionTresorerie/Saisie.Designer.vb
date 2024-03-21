@@ -24,12 +24,8 @@ Partial Class frmSaisie
     Private Sub InitializeComponent()
         lblType = New Label()
         dateMvt = New DateTimePicker()
-        lstType = New ListBox()
-        lstTiers = New ListBox()
         lblTiers = New Label()
         lblCategorie = New Label()
-        lstCategorie = New ListBox()
-        lstSousCategorie = New ListBox()
         lblSousCategorie = New Label()
         rbCredit = New RadioButton()
         rbDebit = New RadioButton()
@@ -38,7 +34,6 @@ Partial Class frmSaisie
         lblMontant = New Label()
         txtMontant = New TextBox()
         lblEvénement = New Label()
-        lstEvénement = New ListBox()
         GroupBox1 = New GroupBox()
         rbCree = New RadioButton()
         rbRapproche = New RadioButton()
@@ -49,6 +44,11 @@ Partial Class frmSaisie
         txtRemise = New TextBox()
         txtNote = New TextBox()
         lblNote = New Label()
+        cbType = New ComboBox()
+        cbTiers = New ComboBox()
+        cbCategorie = New ComboBox()
+        cbSousCategorie = New ComboBox()
+        cbEvénement = New ComboBox()
         grpSens.SuspendLayout()
         GroupBox1.SuspendLayout()
         CType(picGraph1, ComponentModel.ISupportInitialize).BeginInit()
@@ -57,7 +57,7 @@ Partial Class frmSaisie
         ' lblType
         ' 
         lblType.AutoSize = True
-        lblType.Location = New Point(12, 141)
+        lblType.Location = New Point(12, 158)
         lblType.Name = "lblType"
         lblType.Size = New Size(31, 15)
         lblType.TabIndex = 0
@@ -71,28 +71,10 @@ Partial Class frmSaisie
         dateMvt.Size = New Size(194, 23)
         dateMvt.TabIndex = 1
         ' 
-        ' lstType
-        ' 
-        lstType.FormattingEnabled = True
-        lstType.ItemHeight = 15
-        lstType.Location = New Point(123, 136)
-        lstType.Name = "lstType"
-        lstType.Size = New Size(328, 34)
-        lstType.TabIndex = 2
-        ' 
-        ' lstTiers
-        ' 
-        lstTiers.FormattingEnabled = True
-        lstTiers.ItemHeight = 15
-        lstTiers.Location = New Point(123, 181)
-        lstTiers.Name = "lstTiers"
-        lstTiers.Size = New Size(328, 34)
-        lstTiers.TabIndex = 3
-        ' 
         ' lblTiers
         ' 
         lblTiers.AutoSize = True
-        lblTiers.Location = New Point(12, 184)
+        lblTiers.Location = New Point(12, 196)
         lblTiers.Name = "lblTiers"
         lblTiers.Size = New Size(31, 15)
         lblTiers.TabIndex = 4
@@ -101,36 +83,16 @@ Partial Class frmSaisie
         ' lblCategorie
         ' 
         lblCategorie.AutoSize = True
-        lblCategorie.Location = New Point(12, 227)
+        lblCategorie.Location = New Point(12, 234)
         lblCategorie.Name = "lblCategorie"
         lblCategorie.Size = New Size(58, 15)
         lblCategorie.TabIndex = 5
         lblCategorie.Text = "Catégorie"
         ' 
-        ' lstCategorie
-        ' 
-        lstCategorie.AllowDrop = True
-        lstCategorie.FormattingEnabled = True
-        lstCategorie.ItemHeight = 15
-        lstCategorie.Location = New Point(123, 226)
-        lstCategorie.Name = "lstCategorie"
-        lstCategorie.Size = New Size(328, 34)
-        lstCategorie.TabIndex = 6
-        ' 
-        ' lstSousCategorie
-        ' 
-        lstSousCategorie.AllowDrop = True
-        lstSousCategorie.FormattingEnabled = True
-        lstSousCategorie.ItemHeight = 15
-        lstSousCategorie.Location = New Point(123, 271)
-        lstSousCategorie.Name = "lstSousCategorie"
-        lstSousCategorie.Size = New Size(328, 34)
-        lstSousCategorie.TabIndex = 7
-        ' 
         ' lblSousCategorie
         ' 
         lblSousCategorie.AutoSize = True
-        lblSousCategorie.Location = New Point(12, 270)
+        lblSousCategorie.Location = New Point(12, 272)
         lblSousCategorie.Name = "lblSousCategorie"
         lblSousCategorie.Size = New Size(86, 15)
         lblSousCategorie.TabIndex = 8
@@ -199,21 +161,11 @@ Partial Class frmSaisie
         ' lblEvénement
         ' 
         lblEvénement.AutoSize = True
-        lblEvénement.Location = New Point(12, 311)
+        lblEvénement.Location = New Point(12, 310)
         lblEvénement.Name = "lblEvénement"
         lblEvénement.Size = New Size(66, 15)
         lblEvénement.TabIndex = 17
         lblEvénement.Text = "Evénement"
-        ' 
-        ' lstEvénement
-        ' 
-        lstEvénement.AllowDrop = True
-        lstEvénement.FormattingEnabled = True
-        lstEvénement.ItemHeight = 15
-        lstEvénement.Location = New Point(123, 311)
-        lstEvénement.Name = "lstEvénement"
-        lstEvénement.Size = New Size(328, 34)
-        lstEvénement.TabIndex = 16
         ' 
         ' GroupBox1
         ' 
@@ -279,7 +231,7 @@ Partial Class frmSaisie
         ' lblRemise
         ' 
         lblRemise.AutoSize = True
-        lblRemise.Location = New Point(12, 351)
+        lblRemise.Location = New Point(12, 348)
         lblRemise.Name = "lblRemise"
         lblRemise.Size = New Size(45, 15)
         lblRemise.TabIndex = 23
@@ -287,14 +239,14 @@ Partial Class frmSaisie
         ' 
         ' txtRemise
         ' 
-        txtRemise.Location = New Point(123, 351)
+        txtRemise.Location = New Point(123, 348)
         txtRemise.Name = "txtRemise"
         txtRemise.Size = New Size(328, 23)
         txtRemise.TabIndex = 24
         ' 
         ' txtNote
         ' 
-        txtNote.Location = New Point(123, 389)
+        txtNote.Location = New Point(123, 386)
         txtNote.Name = "txtNote"
         txtNote.Size = New Size(328, 23)
         txtNote.TabIndex = 26
@@ -302,17 +254,63 @@ Partial Class frmSaisie
         ' lblNote
         ' 
         lblNote.AutoSize = True
-        lblNote.Location = New Point(12, 389)
+        lblNote.Location = New Point(12, 386)
         lblNote.Name = "lblNote"
         lblNote.Size = New Size(33, 15)
         lblNote.TabIndex = 25
         lblNote.Text = "Note"
+        ' 
+        ' cbType
+        ' 
+        cbType.DropDownStyle = ComboBoxStyle.DropDownList
+        cbType.FormattingEnabled = True
+        cbType.Location = New Point(123, 158)
+        cbType.Name = "cbType"
+        cbType.Size = New Size(328, 23)
+        cbType.TabIndex = 27
+        ' 
+        ' cbTiers
+        ' 
+        cbTiers.FormattingEnabled = True
+        cbTiers.Location = New Point(123, 196)
+        cbTiers.Name = "cbTiers"
+        cbTiers.Size = New Size(328, 23)
+        cbTiers.TabIndex = 28
+        ' 
+        ' cbCategorie
+        ' 
+        cbCategorie.FormattingEnabled = True
+        cbCategorie.Location = New Point(123, 234)
+        cbCategorie.Name = "cbCategorie"
+        cbCategorie.Size = New Size(328, 23)
+        cbCategorie.TabIndex = 29
+        ' 
+        ' cbSousCategorie
+        ' 
+        cbSousCategorie.FormattingEnabled = True
+        cbSousCategorie.Location = New Point(123, 272)
+        cbSousCategorie.Name = "cbSousCategorie"
+        cbSousCategorie.Size = New Size(328, 23)
+        cbSousCategorie.TabIndex = 30
+        ' 
+        ' cbEvénement
+        ' 
+        cbEvénement.FormattingEnabled = True
+        cbEvénement.Location = New Point(123, 310)
+        cbEvénement.Name = "cbEvénement"
+        cbEvénement.Size = New Size(328, 23)
+        cbEvénement.TabIndex = 31
         ' 
         ' FrmSaisie
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(873, 494)
+        Controls.Add(cbEvénement)
+        Controls.Add(cbSousCategorie)
+        Controls.Add(cbCategorie)
+        Controls.Add(cbTiers)
+        Controls.Add(cbType)
         Controls.Add(txtNote)
         Controls.Add(lblNote)
         Controls.Add(txtRemise)
@@ -322,18 +320,13 @@ Partial Class frmSaisie
         Controls.Add(btnDessin)
         Controls.Add(GroupBox1)
         Controls.Add(lblEvénement)
-        Controls.Add(lstEvénement)
         Controls.Add(txtMontant)
         Controls.Add(lblMontant)
         Controls.Add(btnValider)
         Controls.Add(grpSens)
         Controls.Add(lblSousCategorie)
-        Controls.Add(lstSousCategorie)
-        Controls.Add(lstCategorie)
         Controls.Add(lblCategorie)
         Controls.Add(lblTiers)
-        Controls.Add(lstTiers)
-        Controls.Add(lstType)
         Controls.Add(dateMvt)
         Controls.Add(lblType)
         Name = "FrmSaisie"
@@ -349,12 +342,8 @@ Partial Class frmSaisie
 
     Friend WithEvents lblType As Label
     Friend WithEvents dateMvt As DateTimePicker
-    Friend WithEvents lstType As ListBox
-    Friend WithEvents lstTiers As ListBox
     Friend WithEvents lblTiers As Label
     Friend WithEvents lblCategorie As Label
-    Friend WithEvents lstCategorie As ListBox
-    Friend WithEvents lstSousCategorie As ListBox
     Friend WithEvents lblSousCategorie As Label
     Friend WithEvents rbCredit As RadioButton
     Friend WithEvents rbDebit As RadioButton
@@ -363,7 +352,6 @@ Partial Class frmSaisie
     Friend WithEvents lblMontant As Label
     Friend WithEvents txtMontant As TextBox
     Friend WithEvents lblEvénement As Label
-    Friend WithEvents lstEvénement As ListBox
     Friend WithEvents GroupBox1 As GroupBox
     Friend WithEvents rbCree As RadioButton
     Friend WithEvents rbRapproche As RadioButton
@@ -374,5 +362,10 @@ Partial Class frmSaisie
     Friend WithEvents txtRemise As TextBox
     Friend WithEvents txtNote As TextBox
     Friend WithEvents lblNote As Label
+    Friend WithEvents cbType As ComboBox
+    Friend WithEvents cbTiers As ComboBox
+    Friend WithEvents cbCategorie As ComboBox
+    Friend WithEvents cbSousCategorie As ComboBox
+    Friend WithEvents cbEvénement As ComboBox
 
 End Class
