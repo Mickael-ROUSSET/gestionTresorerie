@@ -2,40 +2,43 @@
 <listeTiers>
 	<tiers>
 		<raisonSociale>ADMR</raisonSociale>
-		<catégorieDéfaut>Entretien et reparation</catégorieDéfaut>
-		<sousCatégorieDéfaut>Ménage : ADMR	Intervention de l'ADMR lors d'une absence d'Amandine</sousCatégorieDéfaut>
+		<categorieDefaut>Entretien et reparation</categorieDefaut>
+		<sousCategorieDefaut>Menage : intervention de l'ADMR lors d'une absence d'Amandine</sousCategorieDefaut>
 	</tiers>
 	<tiers>
-		<raisonSociale>AFC Hygiène</raisonSociale>
-		<catégorieDéfaut>Entretien et reparation</catégorieDéfaut>
-		<sousCatégorieDéfaut>Matériel : AFC</sousCatégorieDéfaut>
+		<raisonSociale>AFC Hygiene</raisonSociale>
+		<categorieDefaut>Entretien et reparation</categorieDefaut>
+		<sousCategorieDefaut>Materiel : AFC</sousCategorieDefaut>
 	</tiers>
 		<raisonSociale>AGUMAAA</raisonSociale>
 	<tiers>
 		<raisonSociale>AIST 43</raisonSociale>
-		<catégorieDéfaut>Cotisations sociales</catégorieDéfaut>
-		<sousCatégorieDéfaut>AIST43	A décrire</sousCatégorieDéfaut>
+		<categorieDefaut>Cotisations sociales</categorieDefaut>
+		<sousCategorieDefaut>AIST43	A decrire</sousCategorieDefaut>
 	</tiers>
 	<tiers>
-		<raisonSociale>Allègre Festivités</raisonSociale>
+		<raisonSociale>Allegre Festivites</raisonSociale>
 	</tiers>
 	<tiers>
 		<nom>Amandine</nom>
-		<prénom>Loubarèche</prénom>
-		<catégorieDéfaut>Frais de personnel interne</catégorieDéfaut>
-		<sousCatégorieDéfaut>Frais de personnel interne</sousCatégorieDéfaut>
+		<prenom>Loubareche</prenom>
+		<categorieDefaut>Frais de personnel interne</categorieDefaut>
+		<sousCategorieDefaut>Frais de personnel interne</sousCategorieDefaut>
 	</tiers>
 	<tiers>
-		<raisonSociale>Amicale Laïque</raisonSociale>
+		<raisonSociale>Klesia</raisonSociale>
+	</tiers>
+	<tiers>
+		<raisonSociale>Amicale La�que</raisonSociale>
 	</tiers>
 	<tiers>
 		<nom>Antoine</nom>
-		<prénom>Petiot</prénom>
+		<prenom>Petiot</prenom>
 	</tiers>
 	<tiers>
-		<nraisonSociale>Association Germaine Tillion</raisonSociale>
-		<catégorieDéfaut>Frais de personnel interne</catégorieDéfaut>
-		<sousCatégorieDéfaut>Frais de personnel interne</sousCatégorieDéfaut>
+		<raisonSociale>Association Germaine Tillion</raisonSociale>
+		<categorieDefaut>Frais de personnel interne</categorieDefaut>
+		<sousCategorieDefaut>Frais de personnel interne</sousCategorieDefaut>
 	</tiers>
 	<tiers>
 		<raisonSociale>Assurance des locaux</raisonSociale>
@@ -43,114 +46,114 @@
 	<tiers>
 		<raisonSociale>Au bon pain (Montagnon)</raisonSociale>
 	</tiers>
-
+	<tiers>
 		<raisonSociale>Auchan</raisonSociale>
-		<catégorieDéfaut>Achats</catégorieDéfaut>
-		<sousCatégorieDéfaut>Achats de marchandises (pour revente)</sousCatégorieDéfaut>
+		<categorieDefaut>Achats</categorieDefaut>
+		<sousCategorieDefaut>Achats de marchandises (pour revente)</sousCategorieDefaut>
 	</tiers>
 	<tiers>
 		<raisonSociale>BRASSERIE DE L'ARZON</raisonSociale>
 	</tiers>
 	<tiers>
 		<raisonSociale>Casino</raisonSociale>
-		<catégorieDéfaut>Achats</catégorieDéfaut>
-		<sousCatégorieDéfaut>Achats de marchandises (pour revente)</sousCatégorieDéfaut>
+		<categorieDefaut>Achats</categorieDefaut>
+		<sousCategorieDefaut>Achats de marchandises (pour revente)</sousCategorieDefaut>
 	</tiers>
 	<tiers>
-		<nom>Cécilia</nom>
-		<prénom>Cathaud</prénom>
+		<nom>Cecilia</nom>
+		<prenom>Cathaud</prenom>
 	</tiers>
 	<tiers>
 		<raisonSociale>Centrakor</raisonSociale>
-		<catégorieDéfaut>Achats</catégorieDéfaut>
-		<sousCatégorieDéfaut>Achats de marchandises (pour revente)</sousCatégorieDéfaut>
+		<categorieDefaut>Achats</categorieDefaut>
+		<sousCategorieDefaut>Achats de marchandises (pour revente)</sousCategorieDefaut>
 	</tiers>
 	<tiers>
 		<raisonSociale>CER France</raisonSociale>
-		<catégorieDéfaut>Cotisations et licence versees</catégorieDéfaut>
-		<sousCatégorieDéfaut>Cotisations et licences versées (à préciser)</sousCatégorieDéfaut>
+		<categorieDefaut>Cotisations et licence versees</categorieDefaut>
+		<sousCategorieDefaut>Cotisations et licences versees (a preciser)</sousCategorieDefaut>
 	</tiers>
 	<tiers>
 		<nom>Chantal</nom>
-		<prénom>Meynadier</prénom>
+		<prenom>Meynadier</prenom>
 	</tiers>
 	<tiers>
 		<nom>Christelle</nom>
-		<prénom>Dalmasso-Pfileger</prénom>
+		<prenom>Dalmasso-Pfileger</prenom>
 	</tiers>
 	<tiers>
 		<nom>Christine</nom>
-		<prénom>Becouze</prénom>
+		<prenom>Becouze</prenom>
 	</tiers>
 	<tiers>
 		<nom>Christine</nom>
-		<prénom>Becouze</prénom>
+		<prenom>Becouze</prenom>
 	</tiers>
 	<tiers>
 		<nom>Christophe</nom>
-		<prénom>Pubellier</prénom>
+		<prenom>Pubellier</prenom>
 	</tiers>
 	<tiers>
-		<raisonSociale>Cinéma</raisonSociale>
-		<prénom>AGUMAAA</prénom>
+		<raisonSociale>Cinema</raisonSociale>
+		<prenom>AGUMAAA</prenom>
 	</tiers>
 	<tiers>
-		<raisonSociale>Cinévasion</raisonSociale>
-		<catégorieDéfaut>Cotisations et licence versees</catégorieDéfaut>
-		<sousCatégorieDéfaut>Cotisations à l'instance Nationale</sousCatégorieDéfaut>
+		<raisonSociale>Cinevasion</raisonSociale>
+		<categorieDefaut>Cotisations et licence versees</categorieDefaut>
+		<sousCategorieDefaut>Cotisations a l'instance Nationale</sousCategorieDefaut>
 	</tiers>
 	<tiers>
 		<nom>Claire</nom>
-		<prénom>Badiou</prénom>
+		<prenom>Badiou</prenom>
 	</tiers>
 	<tiers>
 		<nom>Claude</nom>
-		<prénom>Lefort</prénom>
+		<prenom>Lefort</prenom>
 	</tiers>
 	<tiers>
-		<raisonSociale>Colporteuses de Légendes</raisonSociale>
+		<raisonSociale>Colporteuses de Legendes</raisonSociale>
 	</tiers>
 	<tiers>
-		<raisonSociale>Comédie Saint-Etienne</raisonSociale>
+		<raisonSociale>Comedie Saint-Etienne</raisonSociale>
 	</tiers>
 	<tiers>
-		<raisonSociale>Comité de jumelage</raisonSociale>
+		<raisonSociale>Comite de jumelage</raisonSociale>
 	</tiers>
 	<tiers>
-		<raisonSociale>Commerçants</raisonSociale>
-		<catégorieDéfaut>Cotisations et licence versees</catégorieDéfaut>
-		<sousCatégorieDéfaut>Cotisations et licences versées (à préciser)</sousCatégorieDéfaut>
+		<raisonSociale>Commer�ants</raisonSociale>
+		<categorieDefaut>Cotisations et licence versees</categorieDefaut>
+		<sousCategorieDefaut>Cotisations et licences versees (a preciser)</sousCategorieDefaut>
 	</tiers>
 
 	<tiers>
-		<raisonSociale>Crédit Agricole</raisonSociale>
-		<catégorieDéfaut>Cotisations et licence versees</catégorieDéfaut>
-		<sousCatégorieDéfaut>Cotisations et licences versées (à préciser)</sousCatégorieDéfaut>
+		<raisonSociale>Credit Agricole</raisonSociale>
+		<categorieDefaut>Cotisations et licence versees</categorieDefaut>
+		<sousCategorieDefaut>Cotisations et licences versees (a preciser)</sousCategorieDefaut>
 	</tiers>
 	<tiers>
 		<raisonSociale>Cultura</raisonSociale>
 	</tiers>
 	<tiers>
 		<nom>Daniel</nom>
-		<prénom>Falgon</prénom>
+		<prenom>Falgon</prenom>
 	</tiers>
 	<tiers>
 		<nom>Defix</nom>
-		<prénom>Yves</prénom>
+		<prenom>Yves</prenom>
 	</tiers>
 	<tiers>
 		<nom>Defoy  / Giron</nom>
-		<prénom>Mélina / Jérémy</prénom>
+		<prenom>Melina / Jeremy</prenom>
 	</tiers>
 
 	<tiers>
 		<raisonSociale>Equip Bureau - Fournitures diverses</raisonSociale>
-		<catégorieDéfaut>Achats</catégorieDéfaut>
-		<sousCatégorieDéfaut>Fournitures diverses</sousCatégorieDéfaut>
+		<categorieDefaut>Achats</categorieDefaut>
+		<sousCategorieDefaut>Fournitures diverses</sousCategorieDefaut>
 	</tiers>
 	<tiers>
 		<nom>Fabienne</nom>
-		<prénom>Carle-Moute</prénom>
+		<prenom>Carle-Moute</prenom>
 	</tiers>
 
 	<tiers>
@@ -160,65 +163,62 @@
 		<raisonSociale>Fonds de caisse</raisonSociale>
 	</tiers>
 	<tiers>
-		<nom> Maurin / Théodore</nom>
-		<prénom>Francis / Sandra</prénom>
+		<nom> Maurin / Theodore</nom>
+		<prenom>Francis / Sandra</prenom>
 	</tiers>
 	<tiers>
 		<nom>Francis</nom>
-		<prénom>Tissandier</prénom>
-		<catégorieDéfaut>Achats</catégorieDéfaut>
-		<sousCatégorieDéfaut>Achats de marchandises (pour revente)</sousCatégorieDéfaut>
+		<prenom>Tissandier</prenom>
+		<categorieDefaut>Achats</categorieDefaut>
+		<sousCategorieDefaut>Achats de marchandises (pour revente)</sousCategorieDefaut>
 	</tiers>
 	<tiers>
-		<nom>Frédérique</nom>
-		<prénom>Gobet</prénom>
+		<nom>Frederique</nom>
+		<prenom>Gobet</prenom>
 	</tiers>
 	<tiers>
 		<nom>Giraud</nom>
-		<prénom>Michel</prénom>
+		<prenom>Michel</prenom>
 	</tiers>
 	<tiers>
 		<nom>Guilloux</nom>
-		<prénom>Marie-Thérèse</prénom>
+		<prenom>Marie-Therese</prenom>
 	</tiers>
 	<tiers>
-		<raisonSociale>Hexopée</raisonSociale>
+		<raisonSociale>Hexopee</raisonSociale>
 	</tiers>
 	<tiers>
 		<raisonSociale>Humanis</raisonSociale>
 	</tiers>
 	<tiers>
-		<raisonSociale>Impôts</raisonSociale>
-		<catégorieDéfaut>Achats</catégorieDéfaut>
-		<sousCatégorieDéfaut>Achats de marchandises (pour revente)</sousCatégorieDéfaut>
+		<raisonSociale>Imp�ts</raisonSociale>
+		<categorieDefaut>Achats</categorieDefaut>
+		<sousCategorieDefaut>Achats de marchandises (pour revente)</sousCategorieDefaut>
 	</tiers>
 	<tiers>
 		<raisonSociale>Inconnu</raisonSociale>
 	</tiers>
 	<tiers>
-		<raisonSociale>Intermarché Saint-Paulien</raisonSociale>
+		<raisonSociale>Intermarche Saint-Paulien</raisonSociale>
 	</tiers>
 	<tiers>
 		<nom>Jacques</nom>
-		<prénom>Gay</prénom>
+		<prenom>Gay</prenom>
 	</tiers>
 	<tiers>
 		<nom>Jimmy</nom>
-		<prénom>Ouillon</prénom>
+		<prenom>Ouillon</prenom>
 	</tiers>
 	<tiers>
 		<nom>Joelle</nom>
-		<prénom>Barbier</prénom>
+		<prenom>Barbier</prenom>
 	</tiers>
 	<tiers>
 		<nom>Julie</nom>
-		<prénom>Plantevin</prénom>
+		<prenom>Plantevin</prenom>
 	</tiers>
 	<tiers>
 		<raisonSociale>Kiloutou</raisonSociale>
-	</tiers>
-	<tiers>
-		<raisonSociale>Klesia</raisonSociale>
 	</tiers>
 	<tiers>
 		<raisonSociale>Koesio (photocopieuse)</raisonSociale>
@@ -234,101 +234,101 @@
 	</tiers>
 	<tiers>
 		<nom>Lefort</nom>
-		<prénom>Claude</prénom>
+		<prenom>Claude</prenom>
 	</tiers>
 	<tiers>
 		<raisonSociale>Les amis de la Merisaie</raisonSociale>
 	</tiers>
 	<tiers>
 		<nom>Liotier</nom>
-		<prénom>Alison</prénom>
+		<prenom>Alison</prenom>
 	</tiers>
 	<tiers>
 		<nom>Liotier</nom>
-		<prénom>Etienne</prénom>
+		<prenom>Etienne</prenom>
 	</tiers>
 	<tiers>
-		<nom>Loïc</nom>
-		<prénom>Charrat</prénom>
+		<nom>Lo�c</nom>
+		<prenom>Charrat</prenom>
 	</tiers>
 	<tiers>
 		<raisonSociale>MAIF</raisonSociale>
 	</tiers>
 	<tiers>
-		<raisonSociale>Mairie d'Allègre</raisonSociale>
+		<raisonSociale>Mairie d'Allegre</raisonSociale>
 	</tiers>
 	<tiers>
 		<nom>Marie</nom>
-		<prénom>Lac</prénom>
+		<prenom>Lac</prenom>
 	</tiers>
 	<tiers>
 		<nom>Marina</nom>
-		<prénom>Charrat</prénom>
+		<prenom>Charrat</prenom>
 	</tiers>
 	<tiers>
-		<nom>Marlène</nom>
-		<prénom>Brisse</prénom>
+		<nom>Marlene</nom>
+		<prenom>Brisse</prenom>
 	</tiers>
 	<tiers>
 		<nom>Martel</nom>
-		<prénom>Agnès</prénom>
+		<prenom>Agnes</prenom>
 	</tiers>
 	<tiers>
-		<nom>Mélodie</nom>
-		<prénom>Chopart</prénom>
+		<nom>Melodie</nom>
+		<prenom>Chopart</prenom>
 	</tiers>
 	<tiers>
 		<nom>Meyssonnier</nom>
-		<prénom>Gilbert</prénom>
+		<prenom>Gilbert</prenom>
 	</tiers>
 	<tiers>
 		<nom>Montagnon</nom>
-		<prénom>Gaétan</prénom>
+		<prenom>Gaetan</prenom>
 	</tiers>
 	<tiers>
 		<raisonSociale>MSA</raisonSociale>
 	</tiers>
 	<tiers>
 		<nom>Nathalie</nom>
-		<prénom>Auberger</prénom>
+		<prenom>Auberger</prenom>
 	</tiers>
 	<tiers>
 		<nom>Osteil</nom>
-		<prénom>Justine</prénom>
+		<prenom>Justine</prenom>
 	</tiers>
 	<tiers>
 		<raisonSociale>Otherside Communication</raisonSociale>
 	</tiers>
 	<tiers>
-		<raisonSociale>Participants Marché de Noël</raisonSociale>
+		<raisonSociale>Participants Marche de No�l</raisonSociale>
 	</tiers>
 	<tiers>
 		<nom>Pauline Ben</nom>
-		<prénom>Brahim</prénom>
+		<prenom>Brahim</prenom>
 	</tiers>
 	<tiers>
 		<nom>Petit</nom>
-		<prénom>Patricia</prénom>
+		<prenom>Patricia</prenom>
 	</tiers>
 	<tiers>
 		<nom>Pigeon</nom>
-		<prénom>Rachel</prénom>
+		<prenom>Rachel</prenom>
 	</tiers>
 	<tiers>
 		<nom>Rachel</nom>
-		<prénom>Pigeon</prénom>
+		<prenom>Pigeon</prenom>
 	</tiers>
 	<tiers>
 		<nom>Robert</nom>
-		<prénom>Sahuc</prénom>
+		<prenom>Sahuc</prenom>
 	</tiers>
 	<tiers>
 		<nom>Roselyne</nom>
-		<prénom>Ribeyre</prénom>
+		<prenom>Ribeyre</prenom>
 	</tiers>
 	<tiers>
 		<nom>ROUSSET</nom>
-		<prénom>Mickaël</prénom>
+		<prenom>Micka�l</prenom>
 	</tiers>
 	<tiers>
 		<raisonSociale>SACEM</raisonSociale>
@@ -338,37 +338,37 @@
 	</tiers>
 	<tiers>
 		<nom>Serge</nom>
-		<prénom>Antonin</prénom>
+		<prenom>Antonin</prenom>
 	</tiers>
 	<tiers>
 		<nom>Sophie</nom>
-		<prénom>Carton</prénom>
+		<prenom>Carton</prenom>
 	</tiers>
 	<tiers>
 		<nom>Sophie</nom>
-		<prénom>Savignat</prénom>
+		<prenom>Savignat</prenom>
 	</tiers>
 	<tiers>
 		<raisonSociale>Super U Aiguilhe</raisonSociale>
 	</tiers>
 	<tiers>
 		<nom>Sylvie</nom>
-		<prénom>Bernard</prénom>
+		<prenom>Bernard</prenom>
 	</tiers>
 	<tiers>
-		<raisonSociale>Théâtre Masini</raisonSociale>
+		<raisonSociale>The�tre Masini</raisonSociale>
 	</tiers>
 	<tiers>
 		<nom>Thibaut</nom>
-		<prénom>Louvet</prénom>
+		<prenom>Louvet</prenom>
 	</tiers>
 	<tiers>
 		<nom>Tissandier</nom>
-		<prénom>Michèle</prénom>
+		<prenom>Michele</prenom>
 	</tiers>
 	<tiers>
 		<nom>Tourette</nom>
-		<prénom>suzanne</prénom>
+		<prenom>suzanne</prenom>
 	</tiers>
 	<tiers>
 		<raisonSociale>Truite de Vourzac</raisonSociale>
@@ -378,16 +378,16 @@
 	</tiers>
 	<tiers>
 		<nom>Valentine</nom>
-		<prénom>Argoud</prénom>
+		<prenom>Argoud</prenom>
 	</tiers>
 	<tiers>
-		<raisonSociale>Versement Allègre</raisonSociale>
+		<raisonSociale>Versement Allegre</raisonSociale>
 	</tiers>
 	<tiers>
 		<nom>Victorien</nom>
-		<prénom>Vicente</prénom>
+		<prenom>Vicente</prenom>
 	</tiers>
 	<tiers>
-		<raisonSociale>Virement de compte à compte</raisonSociale>
+		<raisonSociale>Virement de compte a compte</raisonSociale>
 	</tiers>
 </listeTiers>

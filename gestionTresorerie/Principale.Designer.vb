@@ -29,11 +29,14 @@ Partial Class FrmPrincipale
         btnHistogramme = New Button()
         btnConsultation = New Button()
         DataGridView1 = New DataGridView()
+        MouvementsBindingSource = New BindingSource(components)
+        BindingSource1 = New BindingSource(components)
+        btnCreeBilans = New Button()
+        DateCréationDataGridViewTextBoxColumn = New DataGridViewTextBoxColumn()
         NoteDataGridViewTextBoxColumn = New DataGridViewTextBoxColumn()
         CategorieDataGridViewTextBoxColumn = New DataGridViewTextBoxColumn()
         SousCategorieDataGridViewTextBoxColumn = New DataGridViewTextBoxColumn()
         TiersDataGridViewTextBoxColumn = New DataGridViewTextBoxColumn()
-        DateCréationDataGridViewTextBoxColumn = New DataGridViewTextBoxColumn()
         DateMvtDataGridViewTextBoxColumn = New DataGridViewTextBoxColumn()
         MontantDataGridViewTextBoxColumn = New DataGridViewTextBoxColumn()
         SensDataGridViewTextBoxColumn = New DataGridViewTextBoxColumn()
@@ -42,9 +45,6 @@ Partial Class FrmPrincipale
         TypeDataGridViewTextBoxColumn = New DataGridViewTextBoxColumn()
         ModifiableDataGridViewCheckBoxColumn = New DataGridViewCheckBoxColumn()
         NumeroRemiseDataGridViewTextBoxColumn = New DataGridViewTextBoxColumn()
-        MouvementsBindingSource = New BindingSource(components)
-        BindingSource1 = New BindingSource(components)
-        btnCreeBilans = New Button()
         CType(DataGridView1, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -93,91 +93,13 @@ Partial Class FrmPrincipale
         ' 
         DataGridView1.AutoGenerateColumns = False
         DataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        DataGridView1.Columns.AddRange(New DataGridViewColumn() {NoteDataGridViewTextBoxColumn, CategorieDataGridViewTextBoxColumn, SousCategorieDataGridViewTextBoxColumn, TiersDataGridViewTextBoxColumn, DateCréationDataGridViewTextBoxColumn, DateMvtDataGridViewTextBoxColumn, MontantDataGridViewTextBoxColumn, SensDataGridViewTextBoxColumn, EtatDataGridViewTextBoxColumn, ÉvénementDataGridViewTextBoxColumn, TypeDataGridViewTextBoxColumn, ModifiableDataGridViewCheckBoxColumn, NumeroRemiseDataGridViewTextBoxColumn})
+        DataGridView1.Columns.AddRange(New DataGridViewColumn() {DateCréationDataGridViewTextBoxColumn, NoteDataGridViewTextBoxColumn, CategorieDataGridViewTextBoxColumn, SousCategorieDataGridViewTextBoxColumn, TiersDataGridViewTextBoxColumn, DateMvtDataGridViewTextBoxColumn, MontantDataGridViewTextBoxColumn, SensDataGridViewTextBoxColumn, EtatDataGridViewTextBoxColumn, ÉvénementDataGridViewTextBoxColumn, TypeDataGridViewTextBoxColumn, ModifiableDataGridViewCheckBoxColumn, NumeroRemiseDataGridViewTextBoxColumn})
         DataGridView1.DataBindings.Add(New Binding("DataContext", MouvementsBindingSource, "note", True))
         DataGridView1.DataSource = MouvementsBindingSource
         DataGridView1.Location = New Point(133, 86)
         DataGridView1.Name = "DataGridView1"
         DataGridView1.Size = New Size(798, 297)
         DataGridView1.TabIndex = 4
-        ' 
-        ' NoteDataGridViewTextBoxColumn
-        ' 
-        NoteDataGridViewTextBoxColumn.DataPropertyName = "note"
-        NoteDataGridViewTextBoxColumn.HeaderText = "note"
-        NoteDataGridViewTextBoxColumn.Name = "NoteDataGridViewTextBoxColumn"
-        ' 
-        ' CategorieDataGridViewTextBoxColumn
-        ' 
-        CategorieDataGridViewTextBoxColumn.DataPropertyName = "categorie"
-        CategorieDataGridViewTextBoxColumn.HeaderText = "categorie"
-        CategorieDataGridViewTextBoxColumn.Name = "CategorieDataGridViewTextBoxColumn"
-        ' 
-        ' SousCategorieDataGridViewTextBoxColumn
-        ' 
-        SousCategorieDataGridViewTextBoxColumn.DataPropertyName = "sousCategorie"
-        SousCategorieDataGridViewTextBoxColumn.HeaderText = "sousCategorie"
-        SousCategorieDataGridViewTextBoxColumn.Name = "SousCategorieDataGridViewTextBoxColumn"
-        ' 
-        ' TiersDataGridViewTextBoxColumn
-        ' 
-        TiersDataGridViewTextBoxColumn.DataPropertyName = "tiers"
-        TiersDataGridViewTextBoxColumn.HeaderText = "tiers"
-        TiersDataGridViewTextBoxColumn.Name = "TiersDataGridViewTextBoxColumn"
-        ' 
-        ' DateCréationDataGridViewTextBoxColumn
-        ' 
-        DateCréationDataGridViewTextBoxColumn.DataPropertyName = "dateCréation"
-        DateCréationDataGridViewTextBoxColumn.HeaderText = "dateCréation"
-        DateCréationDataGridViewTextBoxColumn.Name = "DateCréationDataGridViewTextBoxColumn"
-        ' 
-        ' DateMvtDataGridViewTextBoxColumn
-        ' 
-        DateMvtDataGridViewTextBoxColumn.DataPropertyName = "dateMvt"
-        DateMvtDataGridViewTextBoxColumn.HeaderText = "dateMvt"
-        DateMvtDataGridViewTextBoxColumn.Name = "DateMvtDataGridViewTextBoxColumn"
-        ' 
-        ' MontantDataGridViewTextBoxColumn
-        ' 
-        MontantDataGridViewTextBoxColumn.DataPropertyName = "montant"
-        MontantDataGridViewTextBoxColumn.HeaderText = "montant"
-        MontantDataGridViewTextBoxColumn.Name = "MontantDataGridViewTextBoxColumn"
-        ' 
-        ' SensDataGridViewTextBoxColumn
-        ' 
-        SensDataGridViewTextBoxColumn.DataPropertyName = "sens"
-        SensDataGridViewTextBoxColumn.HeaderText = "sens"
-        SensDataGridViewTextBoxColumn.Name = "SensDataGridViewTextBoxColumn"
-        ' 
-        ' EtatDataGridViewTextBoxColumn
-        ' 
-        EtatDataGridViewTextBoxColumn.DataPropertyName = "etat"
-        EtatDataGridViewTextBoxColumn.HeaderText = "etat"
-        EtatDataGridViewTextBoxColumn.Name = "EtatDataGridViewTextBoxColumn"
-        ' 
-        ' ÉvénementDataGridViewTextBoxColumn
-        ' 
-        ÉvénementDataGridViewTextBoxColumn.DataPropertyName = "événement"
-        ÉvénementDataGridViewTextBoxColumn.HeaderText = "événement"
-        ÉvénementDataGridViewTextBoxColumn.Name = "ÉvénementDataGridViewTextBoxColumn"
-        ' 
-        ' TypeDataGridViewTextBoxColumn
-        ' 
-        TypeDataGridViewTextBoxColumn.DataPropertyName = "type"
-        TypeDataGridViewTextBoxColumn.HeaderText = "type"
-        TypeDataGridViewTextBoxColumn.Name = "TypeDataGridViewTextBoxColumn"
-        ' 
-        ' ModifiableDataGridViewCheckBoxColumn
-        ' 
-        ModifiableDataGridViewCheckBoxColumn.DataPropertyName = "modifiable"
-        ModifiableDataGridViewCheckBoxColumn.HeaderText = "modifiable"
-        ModifiableDataGridViewCheckBoxColumn.Name = "ModifiableDataGridViewCheckBoxColumn"
-        ' 
-        ' NumeroRemiseDataGridViewTextBoxColumn
-        ' 
-        NumeroRemiseDataGridViewTextBoxColumn.DataPropertyName = "numeroRemise"
-        NumeroRemiseDataGridViewTextBoxColumn.HeaderText = "numeroRemise"
-        NumeroRemiseDataGridViewTextBoxColumn.Name = "NumeroRemiseDataGridViewTextBoxColumn"
         ' 
         ' MouvementsBindingSource
         ' 
@@ -195,7 +117,86 @@ Partial Class FrmPrincipale
         btnCreeBilans.Text = "Crée Bilans"
         btnCreeBilans.UseVisualStyleBackColor = True
         ' 
-        ' frmPrincipale
+        ' DateCréationDataGridViewTextBoxColumn
+        ' 
+        DateCréationDataGridViewTextBoxColumn.DataPropertyName = "DateCréation"
+        DateCréationDataGridViewTextBoxColumn.HeaderText = "DateCréation"
+        DateCréationDataGridViewTextBoxColumn.Name = "DateCréationDataGridViewTextBoxColumn"
+        DateCréationDataGridViewTextBoxColumn.ReadOnly = True
+        ' 
+        ' NoteDataGridViewTextBoxColumn
+        ' 
+        NoteDataGridViewTextBoxColumn.DataPropertyName = "Note"
+        NoteDataGridViewTextBoxColumn.HeaderText = "Note"
+        NoteDataGridViewTextBoxColumn.Name = "NoteDataGridViewTextBoxColumn"
+        ' 
+        ' CategorieDataGridViewTextBoxColumn
+        ' 
+        CategorieDataGridViewTextBoxColumn.DataPropertyName = "Categorie"
+        CategorieDataGridViewTextBoxColumn.HeaderText = "Categorie"
+        CategorieDataGridViewTextBoxColumn.Name = "CategorieDataGridViewTextBoxColumn"
+        ' 
+        ' SousCategorieDataGridViewTextBoxColumn
+        ' 
+        SousCategorieDataGridViewTextBoxColumn.DataPropertyName = "SousCategorie"
+        SousCategorieDataGridViewTextBoxColumn.HeaderText = "SousCategorie"
+        SousCategorieDataGridViewTextBoxColumn.Name = "SousCategorieDataGridViewTextBoxColumn"
+        ' 
+        ' TiersDataGridViewTextBoxColumn
+        ' 
+        TiersDataGridViewTextBoxColumn.DataPropertyName = "Tiers"
+        TiersDataGridViewTextBoxColumn.HeaderText = "Tiers"
+        TiersDataGridViewTextBoxColumn.Name = "TiersDataGridViewTextBoxColumn"
+        ' 
+        ' DateMvtDataGridViewTextBoxColumn
+        ' 
+        DateMvtDataGridViewTextBoxColumn.DataPropertyName = "DateMvt"
+        DateMvtDataGridViewTextBoxColumn.HeaderText = "DateMvt"
+        DateMvtDataGridViewTextBoxColumn.Name = "DateMvtDataGridViewTextBoxColumn"
+        ' 
+        ' MontantDataGridViewTextBoxColumn
+        ' 
+        MontantDataGridViewTextBoxColumn.DataPropertyName = "Montant"
+        MontantDataGridViewTextBoxColumn.HeaderText = "Montant"
+        MontantDataGridViewTextBoxColumn.Name = "MontantDataGridViewTextBoxColumn"
+        ' 
+        ' SensDataGridViewTextBoxColumn
+        ' 
+        SensDataGridViewTextBoxColumn.DataPropertyName = "Sens"
+        SensDataGridViewTextBoxColumn.HeaderText = "Sens"
+        SensDataGridViewTextBoxColumn.Name = "SensDataGridViewTextBoxColumn"
+        ' 
+        ' EtatDataGridViewTextBoxColumn
+        ' 
+        EtatDataGridViewTextBoxColumn.DataPropertyName = "Etat"
+        EtatDataGridViewTextBoxColumn.HeaderText = "Etat"
+        EtatDataGridViewTextBoxColumn.Name = "EtatDataGridViewTextBoxColumn"
+        ' 
+        ' ÉvénementDataGridViewTextBoxColumn
+        ' 
+        ÉvénementDataGridViewTextBoxColumn.DataPropertyName = "Événement"
+        ÉvénementDataGridViewTextBoxColumn.HeaderText = "Événement"
+        ÉvénementDataGridViewTextBoxColumn.Name = "ÉvénementDataGridViewTextBoxColumn"
+        ' 
+        ' TypeDataGridViewTextBoxColumn
+        ' 
+        TypeDataGridViewTextBoxColumn.DataPropertyName = "Type"
+        TypeDataGridViewTextBoxColumn.HeaderText = "Type"
+        TypeDataGridViewTextBoxColumn.Name = "TypeDataGridViewTextBoxColumn"
+        ' 
+        ' ModifiableDataGridViewCheckBoxColumn
+        ' 
+        ModifiableDataGridViewCheckBoxColumn.DataPropertyName = "Modifiable"
+        ModifiableDataGridViewCheckBoxColumn.HeaderText = "Modifiable"
+        ModifiableDataGridViewCheckBoxColumn.Name = "ModifiableDataGridViewCheckBoxColumn"
+        ' 
+        ' NumeroRemiseDataGridViewTextBoxColumn
+        ' 
+        NumeroRemiseDataGridViewTextBoxColumn.DataPropertyName = "NumeroRemise"
+        NumeroRemiseDataGridViewTextBoxColumn.HeaderText = "NumeroRemise"
+        NumeroRemiseDataGridViewTextBoxColumn.Name = "NumeroRemiseDataGridViewTextBoxColumn"
+        ' 
+        ' FrmPrincipale
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
@@ -206,7 +207,7 @@ Partial Class FrmPrincipale
         Controls.Add(btnHistogramme)
         Controls.Add(btnChargeRelevé)
         Controls.Add(btnSaisie)
-        Name = "frmPrincipale"
+        Name = "FrmPrincipale"
         Text = "Gestion des la  trésoreire de l'AGUMAAA"
         CType(DataGridView1, ComponentModel.ISupportInitialize).EndInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).EndInit()

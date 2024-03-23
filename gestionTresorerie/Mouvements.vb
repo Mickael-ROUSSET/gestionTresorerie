@@ -83,7 +83,7 @@ Public Class Mouvements
     End Property
     Public Property Tiers() As String
         Get
-            Return _tiers
+            Return Split(_tiers, vbTab)(0)
         End Get
         Set(ByVal value As String)
             _tiers = Trim(value)

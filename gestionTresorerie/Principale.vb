@@ -67,6 +67,7 @@ Public Class FrmPrincipale
                 End Try
                 i += 1
             Loop
+            myReaderSousCategorie.Close()
             Call frmHistogramme.Histogramme("Montant par id", tabValeurs, tabLegendes, 20, 40, 300, 30, 10)
         Next
         myReaderCategorie.Close()
@@ -133,4 +134,5 @@ Public Class FrmPrincipale
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
         Call CreeBilans()
     End Sub
+
 End Class

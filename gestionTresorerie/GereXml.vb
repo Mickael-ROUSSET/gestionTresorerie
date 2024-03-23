@@ -1,36 +1,21 @@
 ﻿Imports System.Xml
-Imports Windows.Win32.System
 Public Class GereXml
-    'Private Sub creeXml()
-    '    'création d'une nouvelle instance du membre xmldocument
-    '    Dim XmlDoc As XmlDocument = New XmlDocument()
-    '    Dim raisonSociale As XmlElement 'raisonSociale pour le nœud [raisonSociale][/raisonSociale]
-    '    Dim prénom As XmlElement 'ElemSite pour le nœud [URL][/URL]
-    '    Dim nom As XmlElement 'ElemSite pour le nœud [NOM][/NOM]
-    '    Dim categorieDefaut As XmlElement 'ElemSite pour le nœud [NOM][/NOM]
-    '    Dim sousCategorieDefaut As XmlElement 'ElemSite pour le nœud [NOM][/NOM]
-
-    '    'creation de la balise [raisonSociale][/raisonSociale]
-    '    raisonSociale = XmlDoc.CreateElement("raisonSociale")
-    '    prénom = XmlDoc.CreateElement("prénom")
-    '    nom = XmlDoc.CreateElement("nom")
-
-    '    raisonSociale.InnerText = " http://www.peuw.net/index.xml "
-    '    prénom.InnerText = " peuw.net "
-    'End Sub
     Public Shared Function LitXml(sFichier As String) As ListeTiers
         'creation d'une nouvelle instance du membre xmldocument
         Dim XmlDoc As New XmlDocument()
         Dim listetiers As XmlNodeList
         Dim noeudEnf As XmlNode
+        Dim unTiers As ClsTiers
 
-        Dim unTiers As New ClsTiers
         Dim desTiers As New ListeTiers
+        'TODO : à définir correctement
+        Const CATEGORIE_DEFAUT As String = "CATEGORIE_DEFAUT"
+        Const SOUS_CATEGORIE_DEFAUT As String = "SOUS_CATEGORIE_DEFAUT"
 
-        'XmlDoc.Load(Application.StartupPath & "tiers.XML")
         XmlDoc.Load(sFichier)
-        listetiers = XmlDoc.DocumentElement.GetElementsByTagName("listetiers")
+        listetiers = XmlDoc.DocumentElement.GetElementsByTagName("tiers")
         For Each tiers In listetiers
+            unTiers = New ClsTiers
             For Each noeudEnf In tiers.ChildNodes
                 If noeudEnf.LocalName = "raisonSociale" Then
                     unTiers.RaisonSociale = noeudEnf.InnerText
@@ -38,18 +23,26 @@ Public Class GereXml
                     If (noeudEnf.LocalName = "nom") Then
                         unTiers.Nom = noeudEnf.InnerText
                     End If
-                    If (noeudEnf.LocalName = "prénom") Then
+                    If (noeudEnf.LocalName = "prenom") Then
                         unTiers.Prénom = noeudEnf.InnerText
                     End If
-                    If (noeudEnf.LocalName = "catégorieDéfaut") Then
-                        unTiers.CategorieDefaut = noeudEnf.InnerText
+                    If (noeudEnf.LocalName = "categorieDefaut") Then
+                        If noeudEnf.InnerText <> "" Then
+                            unTiers.CategorieDefaut = noeudEnf.InnerText
+                        Else
+                            unTiers.CategorieDefaut = CATEGORIE_DEFAUT
+                        End If
                     End If
-                    If (noeudEnf.LocalName = "sousCatégorieDéfaut") Then
-                        unTiers.SousCategorieDefaut = noeudEnf.InnerText
+                    If (noeudEnf.LocalName = "sousCategorieDefaut") Then
+                        If noeudEnf.InnerText <> "" Then
+                            unTiers.SousCategorieDefaut = noeudEnf.InnerText
+                        Else
+                            unTiers.SousCategorieDefaut = SOUS_CATEGORIE_DEFAUT
+                        End If
                     End If
                 End If
-                desTiers.Add(unTiers)
             Next
+            desTiers.Add(unTiers)
         Next
         Return desTiers
     End Function

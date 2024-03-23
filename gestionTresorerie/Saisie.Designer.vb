@@ -49,6 +49,7 @@ Partial Class frmSaisie
         cbCategorie = New ComboBox()
         cbSousCategorie = New ComboBox()
         cbEvénement = New ComboBox()
+        Button1 = New Button()
         grpSens.SuspendLayout()
         GroupBox1.SuspendLayout()
         CType(picGraph1, ComponentModel.ISupportInitialize).BeginInit()
@@ -301,11 +302,21 @@ Partial Class frmSaisie
         cbEvénement.Size = New Size(328, 23)
         cbEvénement.TabIndex = 31
         ' 
+        ' Button1
+        ' 
+        Button1.Location = New Point(658, 381)
+        Button1.Name = "Button1"
+        Button1.Size = New Size(75, 23)
+        Button1.TabIndex = 32
+        Button1.Text = "Button1"
+        Button1.UseVisualStyleBackColor = True
+        ' 
         ' FrmSaisie
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(873, 494)
+        Controls.Add(Button1)
         Controls.Add(cbEvénement)
         Controls.Add(cbSousCategorie)
         Controls.Add(cbCategorie)
@@ -367,5 +378,6 @@ Partial Class frmSaisie
     Friend WithEvents cbCategorie As ComboBox
     Friend WithEvents cbSousCategorie As ComboBox
     Friend WithEvents cbEvénement As ComboBox
+    Friend WithEvents Button1 As Button
 
 End Class
