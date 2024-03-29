@@ -42,19 +42,18 @@ Public Class FrmPrincipale
         Dim myCmdCategorie As SqlCommand
         Dim myCmdSousCategorie As SqlCommand
         Dim i As Integer
-        myCmdCategorie = New SqlCommand("SELECT distinct catégorie FROM Mouvements ;", myConn)
-        'myCmd = New SqlCommand("SELECT catégorie, sousCatégorie,montant,count(*) FROM Mouvements group by catégorie, sousCatégorie,montant;", myConn)
 
+        myCmdCategorie = New SqlCommand("SELECT distinct catégorie FROM Mouvements ;", myConn)
         myReaderCategorie = myCmdCategorie.ExecuteReader()
-        'Concatenate the query result into a string.
         Do While myReaderCategorie.Read()
             ReDim Preserve tabCatégorie(UBound(tabCatégorie) + 1)
             tabCatégorie(i) = myReaderCategorie.GetSqlString(0)
+            i += 1
         Loop
         myReaderCategorie.Close()
 
         For i = 0 To UBound(tabCatégorie)
-            myCmdSousCategorie = New SqlCommand("SELECT sousCatégorie, montant FROM Mouvements where catégorie = '" & tabCatégorie(i) & "';", myConn)
+            myCmdSousCategorie = New SqlCommand("SELECT sousCatégorie, sum(montant) FROM Mouvements where catégorie = '" & tabCatégorie(i) & "' group by sousCatégorie;", myConn)
             myReaderSousCategorie = myCmdSousCategorie.ExecuteReader()
             Do While myReaderSousCategorie.Read()
                 Try
@@ -68,10 +67,12 @@ Public Class FrmPrincipale
                 i += 1
             Loop
             myReaderSousCategorie.Close()
-            Call frmHistogramme.Histogramme("Montant par id", tabValeurs, tabLegendes, 20, 40, 300, 30, 10)
+            Call frmHistogramme.Histogramme("Montants par sous-catégorie", tabValeurs, tabLegendes, 20, 40, 500, 30, 10)
+            frmHistogramme.Show()
+            'frmHistogramme.ShotActiveWin.Save("C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\image" & "Montants par sous-catégorie" & ".bmp")
+            'Call frmHistogramme.testHisto()
         Next
         myReaderCategorie.Close()
-        frmHistogramme.Show()
     End Sub
     Private Sub FrmMain_Closing(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
         Try
@@ -84,8 +85,7 @@ Public Class FrmPrincipale
         myConn.Open()
     End Sub
     Private Sub SuprimeConnexion()
-        'Close the reader and the database connection.
-        'myReader.Close()
+        'Close the reader and the database connection. 
         myConn.Close()
     End Sub
     Private Sub BtnSaisie_Click(sender As Object, e As EventArgs) Handles btnSaisie.Click
@@ -132,7 +132,8 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
-        Call CreeBilans()
+        'Call CreeBilans()
+        'Call genereBilans.AjouteImage()
+        Call genereBilans.genereBilanStructure()
     End Sub
-
 End Class

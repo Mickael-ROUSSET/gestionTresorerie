@@ -22,6 +22,8 @@ Partial Class frmHistogramme
     'Ne la modifiez pas à l'aide de l'éditeur de code.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        components = New ComponentModel.Container()
+        ToolTipHisto = New ToolTip(components)
         SuspendLayout()
         ' 
         ' frmHistogramme
@@ -33,4 +35,6 @@ Partial Class frmHistogramme
         Text = "Histogramme"
         ResumeLayout(False)
     End Sub
+
+    Friend WithEvents ToolTipHisto As ToolTip
 End Class

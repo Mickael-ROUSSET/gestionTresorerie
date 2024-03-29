@@ -31,15 +31,15 @@ Public Class FrmSaisie
 
     Private Sub FrmSaisie_GotFocus(sender As Object, e As EventArgs) Handles Me.GotFocus
         'Détection du tiers
-        cbTiers.SelectedItem = detecteTiers(txtNote.Text)
+        cbTiers.SelectedItem = DetecteTiers(txtNote.Text)
     End Sub
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
-        'Détection du tiers
-        cbTiers.SelectedItem = detecteTiers(txtNote.Text)
+        'Détection et sélection du tiers
+        cbTiers.SelectedItem = cbTiers.Items.IndexOf(DetecteTiers(txtNote.Text))
     End Sub
     'Private Sub form1_GotFocus(sender As Object, e As EventArgs) Handles txtMontant.GotFocus
     'End Sub
-    Private Function detecteTiers(sNote As String) As String
+    Private Function DetecteTiers(sNote As String) As String
         'Essaie de déterminer le tiers en fonction du contenu de la note
         Dim sMots() As String, sMot As String
         Dim i As Integer
@@ -50,21 +50,24 @@ Public Class FrmSaisie
         'TODO : voir pourquoi il me ramène plein de mots vides
         For Each sMot In sMots
             sMot = Strings.UCase(sMot)
-            If Not sMot.Equals("") And sTiersTrouve.Equals("") Then
+            If Not sMot.Equals("") Then
                 For i = 0 To listeTiers.Count - 1
-                    If InStr(Strings.UCase(listeTiers.Item(i).Nom), sMot) Then
+                    If Strings.UCase(listeTiers.Item(i).Nom).Equals(sMot) Then
                         sTiersTrouve = listeTiers.Item(i).Nom
                         Exit For
                     End If
                 Next
                 'Si on ne trouve pas sur le nom, on essaie sur la raison sociale
                 For i = 0 To listeTiers.Count - 1
-                    If InStr(Strings.UCase(listeTiers.Item(i).RaisonSociale), sMot) Then
+                    If Strings.UCase(listeTiers.Item(i).RaisonSociale).Equals(sMot) Then
                         'Le "GIE" de "GIE Klésia est trouvé dans "AFC Hygiène"
                         sTiersTrouve = listeTiers.Item(i).RaisonSociale
                         Exit For
                     End If
                 Next
+                If Not sTiersTrouve.Equals("") Then
+                    Exit For
+                End If
             End If
         Next
         Return sTiersTrouve
@@ -131,7 +134,7 @@ Public Class FrmSaisie
             myCmd = AjouteParam(myCmd, unMvt)
             myCmd.ExecuteNonQuery()
         Catch ex As Exception
-            MsgBox("Echec de l'ajout en base" & " " & ex.Message)
+            MsgBox("Echec de l'insertion en base" & " " & ex.Message)
             Console.WriteLine(ex.Message)
             End
         End Try
@@ -190,18 +193,17 @@ Public Class FrmSaisie
         sCat = s(1)
         sousCat = s(2)
         'Gérer les catégories par défaut
-        cbCategorie.SelectedIndex = indexSelectionne(cbCategorie, sCat)
+        cbCategorie.SelectedIndex = IndexSelectionne(cbCategorie, sCat)
         'Chargement des sous-catégories correspondant à la catégorie
         ChargeSousCatégorie(cbCategorie.SelectedItem)
-        cbSousCategorie.SelectedIndex = indexSelectionne(cbSousCategorie, sousCat)
+        cbSousCategorie.SelectedIndex = IndexSelectionne(cbSousCategorie, sousCat)
     End Sub
-    Private Function indexSelectionne(cbBox As ComboBox, sNiveau As String) As Integer
+    Private Function IndexSelectionne(cbBox As ComboBox, sNiveau As String) As Integer
         Dim iIndex As Integer
 
-        If sNiveau.Equals("") Then
-            'Pas de catégorie
-            iIndex = 0
-        Else
+        'Pas de catégorie
+        iIndex = 0
+        If Not sNiveau.Equals("") Then
             iIndex = cbBox.Items.IndexOf(sNiveau)
         End If
         Return iIndex

@@ -4,10 +4,16 @@ Imports System.Xml
 Imports System.IO
 Imports System.IO.Packaging
 Imports DocumentFormat.OpenXml.Presentation
+Imports DocumentFormat.OpenXml.Drawing.Diagrams
+Imports DocumentFormat.OpenXml.Office2019.Drawing.SVG
+Imports DocumentFormat.OpenXml.Spreadsheet
+Imports System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel
+Imports DocumentFormat.OpenXml.Math
 Module genereBilans
     'Utilisation du NameSpace WordprocessingML
     ReadOnly WordprocessingML As String = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
     'https://badger.developpez.com/tutoriels/dotnet/creer-fichier-word-openxml/#LIX
+    'https://marketplace.visualstudio.com/items?itemName=mikeebowen.OOXMLSnippets
     Public Sub CreeBilans()
 
         ' Création du WordML
@@ -18,6 +24,36 @@ Module genereBilans
         Dim tagBody As XmlElement
         tagBody = xmlStartPart.CreateElement("w:body", WordprocessingML)
         tagDocument.AppendChild(tagBody)
+
+        Call CreeStyle("monStyle", "center")
+        'TODO : passer les titres et les tableaux de valeurs
+        Call AjouteParagraphe(xmlStartPart, tagBody, "glop 11")
+        Call AjouteParagraphe(xmlStartPart, tagBody, "glop 12")
+        Call AjouteParagraphe(xmlStartPart, tagBody, "glop 13")
+
+        ' Création d'un nouveau package
+        Dim pkgOutputDoc As Package = Package.Open("monFichier.docx", FileMode.Create, FileAccess.ReadWrite)
+
+        ' Création d'une part
+        Dim Uri As Uri
+        Uri = New Uri("/word/document.xml", UriKind.Relative)
+        Dim partDocumentXML As PackagePart
+        partDocumentXML = pkgOutputDoc.CreatePart(Uri, "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml")
+        'Call AjouteImage(xmlStartPart, pkgOutputDoc, partDocumentXML, "C:\Users\User\Downloads\Orion_HST-631f.jpeg", Uri)
+
+        Dim streamStartPart As StreamWriter
+        streamStartPart = New StreamWriter(partDocumentXML.GetStream(FileMode.Create, FileAccess.Write))
+        xmlStartPart.Save(streamStartPart)
+        streamStartPart.Close()
+
+        ' Création de la RelationShip
+        pkgOutputDoc.CreateRelationship(Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument", "rId2")
+        pkgOutputDoc.Flush()
+
+        ' Fermeture du package
+        pkgOutputDoc.Close()
+    End Sub
+    Private Sub AjouteParagraphe(xmlStartPart As XmlDocument, tagBody As XmlElement, sTexteParagraphe As String)
         Dim tagParagraph As XmlElement
         tagParagraph = xmlStartPart.CreateElement("w:p", WordprocessingML)
         tagBody.AppendChild(tagParagraph)
@@ -31,32 +67,10 @@ Module genereBilans
         ' Insertion du texte
         Dim nodeText As XmlNode
         nodeText = xmlStartPart.CreateNode(XmlNodeType.Text, "w:t", WordprocessingML)
-        nodeText.Value = "Salut !"
+        nodeText.Value = sTexteParagraphe
         tagText.AppendChild(nodeText)
-
-        ' Création d'un nouveau package
-        Dim pkgOutputDoc As Package = Nothing
-        pkgOutputDoc = Package.Open("monFichier.docx", FileMode.Create, FileAccess.ReadWrite)
-
-        ' Création d'une part
-        Dim Uri As Uri
-        Uri = New Uri("/word/document.xml", UriKind.Relative)
-        Dim partDocumentXML As PackagePart
-        partDocumentXML = pkgOutputDoc.CreatePart(Uri, "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml")
-
-        Dim streamStartPart As StreamWriter
-        streamStartPart = New StreamWriter(partDocumentXML.GetStream(FileMode.Create, FileAccess.Write))
-        xmlStartPart.Save(streamStartPart)
-        streamStartPart.Close()
-
-        ' Création de la RelationShip
-        pkgOutputDoc.CreateRelationship(Uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument", "rId1")
-        pkgOutputDoc.Flush()
-
-        ' Fermeture du package
-        pkgOutputDoc.Close()
     End Sub
-    Private Sub CreeStyle(sNomStyle As String, sAlignement As String, colCouleur As Color)
+    Private Sub CreeStyle(sNomStyle As String, sAlignement As String)
         ' Création du style
         Dim xmlStylePart As XmlDocument
         xmlStylePart = New XmlDocument()
@@ -114,11 +128,394 @@ Module genereBilans
         'attribut de l'élément w:color
         Dim valeurCouleur As XmlAttribute
         valeurCouleur = xmlStylePart.CreateAttribute("w:val", WordprocessingML)
-        'valeurCouleur.InnerText = "FF0000"
-        valeurCouleur.InnerText = colCouleur.ToString
-        tagCouleur.SetAttributeNode(valeurCouleur)
+        valeurCouleur.InnerText = "FFFF00"
+        'valeurCouleur.InnerText = colCouleur.ToString
+        'tagCouleur.SetAttributeNode(valeurCouleur)
         tagrPr.AppendChild(tagCouleur)
     End Sub
+    'Private Sub AjouteImage(xmlStartPart As XmlDocument, pkgOutputDoc As Package, partDocumentXML As PackagePart, sNomImage As String, uriDoc As Uri)
+    Public Sub AjouteImage()
+        Dim WordprocessingML As String = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+        Dim RelationShips As String = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+        Dim Drawing As String = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+        Dim DrawingML As String = "http://schemas.openxmlformats.org/drawingml/2006/main"
+        Dim Pic As String = "http://schemas.openxmlformats.org/drawingml/2006/picture"
+
+        ' Création du WordML
+        Dim xmlStartPart As XmlDocument = New XmlDocument()
+
+        Dim tagDrawing As XmlElement = xmlStartPart.CreateElement("w:drawing", WordprocessingML)
+        Dim tagInline As XmlElement = xmlStartPart.CreateElement("wp:inline", Drawing)
+        tagDrawing.AppendChild(tagInline)
+
+        'Element extent
+        Dim tagExtent As XmlElement = xmlStartPart.CreateElement("wp:extent", Drawing)
+        tagInline.AppendChild(tagExtent)
+        'attributs de extent
+        Dim attributcx As XmlAttribute = xmlStartPart.CreateAttribute("cx")
+        attributcx.InnerText = "1300000"
+        tagExtent.SetAttributeNode(attributcx)
+        Dim attributcy As XmlAttribute = xmlStartPart.CreateAttribute("cy")
+        attributcy.InnerText = "1300000"
+        tagExtent.SetAttributeNode(attributcy)
+
+        'Element docPr
+        Dim tagdocPr As XmlElement = xmlStartPart.CreateElement("wp:docPr", Drawing)
+        tagInline.AppendChild(tagdocPr)
+        'attributs de docPr
+        Dim attributname As XmlAttribute = xmlStartPart.CreateAttribute("name")
+        attributname.InnerText = "openxml.png"
+        tagdocPr.SetAttributeNode(attributname)
+        Dim attributid As XmlAttribute = xmlStartPart.CreateAttribute("id")
+        attributid.InnerText = "1"
+        tagdocPr.SetAttributeNode(attributid)
+
+        'Element graphic
+        Dim taggraphic As XmlElement = xmlStartPart.CreateElement("a:graphic", DrawingML)
+        tagInline.AppendChild(taggraphic)
+        'Element graphicData
+        Dim taggraphicData As XmlElement = xmlStartPart.CreateElement("a:graphicData", DrawingML)
+        taggraphic.AppendChild(taggraphicData)
+        'attributs de graphicData
+        Dim attributuri As XmlAttribute = xmlStartPart.CreateAttribute("uri")
+        attributuri.InnerText = "http://schemas.openxmlformats.org/drawingml/2006/picture"
+        taggraphicData.SetAttributeNode(attributuri)
+
+        'Element pic
+        Dim tagpic As XmlElement = xmlStartPart.CreateElement("pic:pic", Pic)
+        taggraphicData.AppendChild(tagpic)
+
+        'Element nvPicPr
+        Dim tagnvPicPr As XmlElement = xmlStartPart.CreateElement("pic:nvPicPr", Pic)
+        tagpic.AppendChild(tagnvPicPr)
+        'Element cNvPr
+        Dim tagcNvPr As XmlElement = xmlStartPart.CreateElement("pic:cNvPr", Pic)
+        tagnvPicPr.AppendChild(tagcNvPr)
+        'attributs de cNvPr
+        Dim attributnamecNvPr As XmlAttribute = xmlStartPart.CreateAttribute("name")
+        attributnamecNvPr.InnerText = "openxml.jpg"
+        tagcNvPr.SetAttributeNode(attributnamecNvPr)
+        Dim attributidcNvPr As XmlAttribute = xmlStartPart.CreateAttribute("id")
+        attributidcNvPr.InnerText = "2"
+        tagcNvPr.SetAttributeNode(attributidcNvPr)
+        'Element cNvPicPr
+        Dim tagcNvPicPr As XmlElement = xmlStartPart.CreateElement("pic:cNvPicPr", Pic)
+        tagnvPicPr.AppendChild(tagcNvPicPr)
+
+        'Element blipFill
+        Dim tagblipFill As XmlElement = xmlStartPart.CreateElement("pic:blipFill", Pic)
+        tagpic.AppendChild(tagblipFill)
+        'Element blip
+        Dim tagblip As XmlElement = xmlStartPart.CreateElement("a:blip", DrawingML)
+        tagblipFill.AppendChild(tagblip)
+        'attribut de blip
+        Dim attributembed As XmlAttribute = xmlStartPart.CreateAttribute("r:embed", RelationShips)
+        attributembed.InnerText = "rId1"
+        tagblip.SetAttributeNode(attributembed)
+        'Element stretch
+        Dim tagstretch As XmlElement = xmlStartPart.CreateElement("a:stretch", DrawingML)
+        tagblipFill.AppendChild(tagstretch)
+        'Element fillRect
+        Dim tagfillRect As XmlElement = xmlStartPart.CreateElement("a:fillRect", DrawingML)
+        tagstretch.AppendChild(tagfillRect)
+
+        'Element spPr
+        Dim tagspPr As XmlElement = xmlStartPart.CreateElement("pic:spPr", Pic)
+        tagpic.AppendChild(tagspPr)
+        'Element xfrm
+        Dim tagxfrm As XmlElement = xmlStartPart.CreateElement("a:xfrm", DrawingML)
+        tagspPr.AppendChild(tagxfrm)
+
+        'Element off
+        Dim tagoff As XmlElement = xmlStartPart.CreateElement("a:off", DrawingML)
+        tagxfrm.AppendChild(tagoff)
+        'attributs de off
+        Dim attributx As XmlAttribute = xmlStartPart.CreateAttribute("x")
+        attributx.InnerText = "0"
+        tagoff.SetAttributeNode(attributx)
+        Dim attributy As XmlAttribute = xmlStartPart.CreateAttribute("y")
+        attributy.InnerText = "0"
+        tagoff.SetAttributeNode(attributy)
+        'Element ext
+        Dim tagext As XmlElement = xmlStartPart.CreateElement("a:ext", DrawingML)
+        tagxfrm.AppendChild(tagext)
+        'attributs de ext
+        Dim attributcxext As XmlAttribute = xmlStartPart.CreateAttribute("cx")
+        attributcxext.InnerText = "1300000"
+        tagext.SetAttributeNode(attributcxext)
+        Dim attributcyext As XmlAttribute = xmlStartPart.CreateAttribute("cy")
+        attributcyext.InnerText = "1300000"
+        tagext.SetAttributeNode(attributcyext)
+
+        'Element prstGeom
+        Dim tagprstGeom As XmlElement = xmlStartPart.CreateElement("a:prstGeom", DrawingML)
+        tagspPr.AppendChild(tagprstGeom)
+        'attributs de prstGeom
+        Dim attributprst As XmlAttribute = xmlStartPart.CreateAttribute("prst")
+        attributprst.InnerText = "rect"
+        tagprstGeom.SetAttributeNode(attributprst)
+
+        'Une fois l'arborescence créée, il nous faut l'intégrer dans un élément run au sein d'un XmlDocument.
+        'On crée ici un XmlDocument qui contiendra deux paragraphes : un pour du texte et un pour l'image.
+        'L'insertion du XmlElement précédemment créé se fait à la dernière ligne :
+        Dim tagDocument As XmlElement = xmlStartPart.CreateElement("w:document", WordprocessingML)
+        xmlStartPart.AppendChild(tagDocument)
+        Dim tagBody As XmlElement = xmlStartPart.CreateElement("w:body", WordprocessingML)
+        tagDocument.AppendChild(tagBody)
+        Dim tagParagraph As XmlElement = xmlStartPart.CreateElement("w:p", WordprocessingML)
+        tagBody.AppendChild(tagParagraph)
+        'création du premier run
+        Dim tagRun As XmlElement = xmlStartPart.CreateElement("w:r", WordprocessingML)
+        tagParagraph.AppendChild(tagRun)
+        'un peu de texte
+        Dim tagText As XmlElement = xmlStartPart.CreateElement("w:t", WordprocessingML)
+        tagRun.AppendChild(tagText)
+        tagText.InnerText = "Voici une image :"
+        tagRun.AppendChild(tagText)
+
+        'Nouveau paragraphe avec une image
+        Dim tagParagraph2 As XmlElement = xmlStartPart.CreateElement("w:p", WordprocessingML)
+        tagBody.AppendChild(tagParagraph2)
+        'création du 2e run
+        Dim tagRun2 As XmlElement = xmlStartPart.CreateElement("w:r", WordprocessingML)
+        tagParagraph2.AppendChild(tagRun2)
+
+        'insertion de l'image dans le run
+        tagRun2.AppendChild(tagDrawing)
+
+        '-------------
+        ' Création d'un nouveau package
+        Dim pkgOutputDoc As Package = Nothing
+        pkgOutputDoc = Package.Open("monFichier.docx", FileMode.Create, FileAccess.ReadWrite)
+        ' Sauvegarde du XmlDocument dans le un fichier document.xml dans le package
+        Dim uri = New Uri("/word/document.xml", UriKind.Relative)
+        Dim partDocumentXML As PackagePart = pkgOutputDoc.CreatePart(uri, "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml")
+        'pkgOutputDoc.CreatePart(uri, "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml")
+        Dim streamStartPart As New StreamWriter(partDocumentXML.GetStream(FileMode.Create, FileAccess.Write))
+        xmlStartPart.Save(streamStartPart)
+        streamStartPart.Close()
+
+        ' Création de la RelationShip 
+        pkgOutputDoc.CreateRelationship(uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument", "rId1")
+        '-------------------
+
+        'sauvegarde de l'image dans le package
+        uri = New Uri("/word/media/openxml.png", UriKind.Relative)
+        Dim partImage As PackagePart = pkgOutputDoc.CreatePart(uri, "image/png")
+        Dim targetStream As Stream = partImage.GetStream()
+
+        Dim sourceStream As New FileStream("C:\Users\User\Downloads\Orion_HST-631f.jpeg", FileMode.Open, FileAccess.Read)
+
+        Dim buffer() As Byte
+        ReDim buffer(1024)
+        Dim nrBytesWritten As Integer = sourceStream.Read(buffer, 0, 1024)
+        While (nrBytesWritten > 0)
+            targetStream.Write(buffer, 0, nrBytesWritten)
+            nrBytesWritten = sourceStream.Read(buffer, 0, 1024)
+        End While
+
+        ' Création de la RelationShip entre l'image et la part principale
+        partDocumentXML.CreateRelationship(uri, TargetMode.Internal, "http:'schemas.openxmlformats.org/officeDocument/2006/relationships/image", "rId1")
+
+        'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image est le type de la relation qui correspond au type de relation pour les images. Nous spécifions ici un identifiant de relation rId1 car c'est la seule relation que nous déclarons dans le fichier document.xml.rels. S'il existe déjà d'autres relations (pour les styles par exemple), il vaudra vérifier que l'identifiant est bien unique.
+        'Enfin, on ferme le package 
+        pkgOutputDoc.Flush()
+        pkgOutputDoc.Close()
+    End Sub
+    Public Sub genereBilanStructure()
+        Dim Drawing As String = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+        'Dim xmlStartPart As New XmlDocument
+        ' Création du WordML
+        Dim xmlStartPart As XmlDocument = New XmlDocument()
+
+        Dim tagDrawing As XmlElement = xmlStartPart.CreateElement("w:drawing", WordprocessingML)
+        Dim tagInline As XmlElement = xmlStartPart.CreateElement("wp:inline", Drawing)
+        tagDrawing.AppendChild(tagInline)
+        xmlStartPart = creeArborescence(xmlStartPart, tagInline)
+        Dim tagDocument As XmlElement = xmlStartPart.CreateElement("w:document", WordprocessingML)
+        xmlStartPart.AppendChild(tagDocument)
+        Dim tagBody As XmlElement = xmlStartPart.CreateElement("w:body", WordprocessingML)
+        tagDocument.AppendChild(tagBody)
+        Call AjouteParagraphe(xmlStartPart, tagBody, "glop b")
+        Call ajouteParagrapheImage(xmlStartPart, tagBody, tagDrawing)
+
+        ' Création d'un nouveau package
+        Dim pkgOutputDoc As Package = Nothing
+        pkgOutputDoc = Package.Open("monFichier.docx", FileMode.Create, FileAccess.ReadWrite)
+        ' Sauvegarde du XmlDocument dans le un fichier document.xml dans le package
+        Dim uri = New Uri("/word/document.xml", UriKind.Relative)
+        Dim partDocumentXML As PackagePart = pkgOutputDoc.CreatePart(uri, "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml")
+        'pkgOutputDoc.CreatePart(uri, "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml")
+        Dim streamStartPart As New StreamWriter(partDocumentXML.GetStream(FileMode.Create, FileAccess.Write))
+        xmlStartPart.Save(streamStartPart)
+        streamStartPart.Close()
+
+        Call sauveImage(pkgOutputDoc, "C:\Users\User\Downloads\Orion_HST-631f.jpeg", partDocumentXML)
+        ' Création de la RelationShip 
+        pkgOutputDoc.CreateRelationship(uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument", "rId1")
+        Call fermePackage(pkgOutputDoc)
+    End Sub
+
+    Private Sub ajouteParagrapheImage(xmlStartPart As XmlDocument, tagBody As XmlElement, tagDrawing As XmlElement)
+        'Nouveau paragraphe avec une image
+        Dim tagParagraph2 As XmlElement = xmlStartPart.CreateElement("w:p", WordprocessingML)
+        tagBody.AppendChild(tagParagraph2)
+        'création du 2e run
+        Dim tagRun2 As XmlElement = xmlStartPart.CreateElement("w:r", WordprocessingML)
+        tagParagraph2.AppendChild(tagRun2)
+
+        'insertion de l'image dans le run
+        tagRun2.AppendChild(tagDrawing)
+    End Sub
+    Private Sub sauveImage(pkgOutputDoc As Package, sImage As String, partDocumentXML As PackagePart)
+        'sauvegarde de l'image dans le package
+        'Dim uri = New Uri("/word/media/openxml.png", UriKind.Relative)
+        Dim uri = New Uri("/word/media/" & Mid(sImage, InStrRev(sImage, "\") + 1), UriKind.Relative)
+        'Dim partImage As PackagePart = pkgOutputDoc.CreatePart(uri, "image/jpeg")
+        Dim partImage As PackagePart = pkgOutputDoc.CreatePart(uri, System.Net.Mime.MediaTypeNames.Image.Jpeg)
+        Dim targetStream As Stream = partImage.GetStream()
+
+        Dim sourceStream As New FileStream(sImage, FileMode.Open, FileAccess.Read)
+
+        Dim buffer() As Byte
+        ReDim buffer(1024)
+        Dim nrBytesWritten As Integer = sourceStream.Read(buffer, 0, 1024)
+        While (nrBytesWritten > 0)
+            targetStream.Write(buffer, 0, nrBytesWritten)
+            nrBytesWritten = sourceStream.Read(buffer, 0, 1024)
+        End While
+        ' Création de la RelationShip entre l'image et la part principale
+        partDocumentXML.CreateRelationship(uri, TargetMode.Internal, "http:'schemas.openxmlformats.org/officeDocument/2006/relationships/image", "rId1")
+    End Sub
+    Private Sub fermePackage(pkgOutputDoc As Package)
+        'Enfin, on ferme le package 
+        pkgOutputDoc.Flush()
+        pkgOutputDoc.Close()
+    End Sub
+    Private Function creeArborescence(xmlStartPart As XmlDocument, tagInline As XmlElement) As XmlDocument
+        Dim WordprocessingML As String = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+        Dim RelationShips As String = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+        Dim Drawing As String = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+        Dim DrawingML As String = "http://schemas.openxmlformats.org/drawingml/2006/main"
+        Dim Pic As String = "http://schemas.openxmlformats.org/drawingml/2006/picture"
+
+        '' Création du WordML
+        'Dim xmlStartPart As XmlDocument = New XmlDocument()
+
+        'Dim tagDrawing As XmlElement = xmlStartPart.CreateElement("w:drawing", WordprocessingML)
+        'Dim tagInline As XmlElement = xmlStartPart.CreateElement("wp:inline", Drawing)
+        'tagDrawing.AppendChild(tagInline)
+
+        'Element extent
+        Dim tagExtent As XmlElement = xmlStartPart.CreateElement("wp:extent", Drawing)
+        tagInline.AppendChild(tagExtent)
+        'attributs de extent
+        Dim attributcx As XmlAttribute = xmlStartPart.CreateAttribute("cx")
+        attributcx.InnerText = "1300000"
+        tagExtent.SetAttributeNode(attributcx)
+        Dim attributcy As XmlAttribute = xmlStartPart.CreateAttribute("cy")
+        attributcy.InnerText = "1300000"
+        tagExtent.SetAttributeNode(attributcy)
+
+        'Element docPr
+        Dim tagdocPr As XmlElement = xmlStartPart.CreateElement("wp:docPr", Drawing)
+        tagInline.AppendChild(tagdocPr)
+        'attributs de docPr
+        Dim attributname As XmlAttribute = xmlStartPart.CreateAttribute("name")
+        'attributname.InnerText = "openxml.png"
+        attributname.InnerText = "orion.jpeg"
+        tagdocPr.SetAttributeNode(attributname)
+        Dim attributid As XmlAttribute = xmlStartPart.CreateAttribute("id")
+        attributid.InnerText = "1"
+        tagdocPr.SetAttributeNode(attributid)
+
+        'Element graphic
+        Dim taggraphic As XmlElement = xmlStartPart.CreateElement("a:graphic", DrawingML)
+        tagInline.AppendChild(taggraphic)
+        'Element graphicData
+        Dim taggraphicData As XmlElement = xmlStartPart.CreateElement("a:graphicData", DrawingML)
+        taggraphic.AppendChild(taggraphicData)
+        'attributs de graphicData
+        Dim attributuri As XmlAttribute = xmlStartPart.CreateAttribute("uri")
+        attributuri.InnerText = "http://schemas.openxmlformats.org/drawingml/2006/picture"
+        taggraphicData.SetAttributeNode(attributuri)
+
+        'Element pic
+        Dim tagpic As XmlElement = xmlStartPart.CreateElement("pic:pic", Pic)
+        taggraphicData.AppendChild(tagpic)
+
+        'Element nvPicPr
+        Dim tagnvPicPr As XmlElement = xmlStartPart.CreateElement("pic:nvPicPr", Pic)
+        tagpic.AppendChild(tagnvPicPr)
+        'Element cNvPr
+        Dim tagcNvPr As XmlElement = xmlStartPart.CreateElement("pic:cNvPr", Pic)
+        tagnvPicPr.AppendChild(tagcNvPr)
+        'attributs de cNvPr
+        Dim attributnamecNvPr As XmlAttribute = xmlStartPart.CreateAttribute("name")
+        attributnamecNvPr.InnerText = "openxml.jpg"
+        tagcNvPr.SetAttributeNode(attributnamecNvPr)
+        Dim attributidcNvPr As XmlAttribute = xmlStartPart.CreateAttribute("id")
+        attributidcNvPr.InnerText = "2"
+        tagcNvPr.SetAttributeNode(attributidcNvPr)
+        'Element cNvPicPr
+        Dim tagcNvPicPr As XmlElement = xmlStartPart.CreateElement("pic:cNvPicPr", Pic)
+        tagnvPicPr.AppendChild(tagcNvPicPr)
+
+        'Element blipFill
+        Dim tagblipFill As XmlElement = xmlStartPart.CreateElement("pic:blipFill", Pic)
+        tagpic.AppendChild(tagblipFill)
+        'Element blip
+        Dim tagblip As XmlElement = xmlStartPart.CreateElement("a:blip", DrawingML)
+        tagblipFill.AppendChild(tagblip)
+        'attribut de blip
+        Dim attributembed As XmlAttribute = xmlStartPart.CreateAttribute("r:embed", RelationShips)
+        attributembed.InnerText = "rId1"
+        tagblip.SetAttributeNode(attributembed)
+        'Element stretch
+        Dim tagstretch As XmlElement = xmlStartPart.CreateElement("a:stretch", DrawingML)
+        tagblipFill.AppendChild(tagstretch)
+        'Element fillRect
+        Dim tagfillRect As XmlElement = xmlStartPart.CreateElement("a:fillRect", DrawingML)
+        tagstretch.AppendChild(tagfillRect)
+
+        'Element spPr
+        Dim tagspPr As XmlElement = xmlStartPart.CreateElement("pic:spPr", Pic)
+        tagpic.AppendChild(tagspPr)
+        'Element xfrm
+        Dim tagxfrm As XmlElement = xmlStartPart.CreateElement("a:xfrm", DrawingML)
+        tagspPr.AppendChild(tagxfrm)
+
+        'Element off
+        Dim tagoff As XmlElement = xmlStartPart.CreateElement("a:off", DrawingML)
+        tagxfrm.AppendChild(tagoff)
+        'attributs de off
+        Dim attributx As XmlAttribute = xmlStartPart.CreateAttribute("x")
+        attributx.InnerText = "0"
+        tagoff.SetAttributeNode(attributx)
+        Dim attributy As XmlAttribute = xmlStartPart.CreateAttribute("y")
+        attributy.InnerText = "0"
+        tagoff.SetAttributeNode(attributy)
+        'Element ext
+        Dim tagext As XmlElement = xmlStartPart.CreateElement("a:ext", DrawingML)
+        tagxfrm.AppendChild(tagext)
+        'attributs de ext
+        Dim attributcxext As XmlAttribute = xmlStartPart.CreateAttribute("cx")
+        attributcxext.InnerText = "1300000"
+        tagext.SetAttributeNode(attributcxext)
+        Dim attributcyext As XmlAttribute = xmlStartPart.CreateAttribute("cy")
+        attributcyext.InnerText = "1300000"
+        tagext.SetAttributeNode(attributcyext)
+
+        'Element prstGeom
+        Dim tagprstGeom As XmlElement = xmlStartPart.CreateElement("a:prstGeom", DrawingML)
+        tagspPr.AppendChild(tagprstGeom)
+        'attributs de prstGeom
+        Dim attributprst As XmlAttribute = xmlStartPart.CreateAttribute("prst")
+        attributprst.InnerText = "rect"
+        tagprstGeom.SetAttributeNode(attributprst)
+
+        Return xmlStartPart
+    End Function
 End Module
 
 
