@@ -9,6 +9,16 @@ Imports DocumentFormat.OpenXml.Office2019.Drawing.SVG
 Imports DocumentFormat.OpenXml.Spreadsheet
 Imports System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel
 Imports DocumentFormat.OpenXml.Math
+Imports DocumentFormat.OpenXml.Packaging
+Imports DocumentFormat.OpenXml.Wordprocessing
+Imports DocumentFormat.OpenXml
+Imports BottomBorder = DocumentFormat.OpenXml.Wordprocessing.BottomBorder
+Imports LeftBorder = DocumentFormat.OpenXml.Wordprocessing.LeftBorder
+Imports RightBorder = DocumentFormat.OpenXml.Wordprocessing.RightBorder
+Imports Run = DocumentFormat.OpenXml.Wordprocessing.Run
+Imports Table = DocumentFormat.OpenXml.Wordprocessing.Table
+Imports Text = DocumentFormat.OpenXml.Wordprocessing.Text
+Imports TopBorder = DocumentFormat.OpenXml.Wordprocessing.TopBorder
 Module genereBilans
     'Utilisation du NameSpace WordprocessingML
     ReadOnly WordprocessingML As String = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
@@ -322,7 +332,7 @@ Module genereBilans
         pkgOutputDoc.Flush()
         pkgOutputDoc.Close()
     End Sub
-    Public Sub genereBilanStructure()
+    Public Sub GenereBilanStructure()
         Dim Drawing As String = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
         'Dim xmlStartPart As New XmlDocument
         ' Création du WordML
@@ -331,13 +341,13 @@ Module genereBilans
         Dim tagDrawing As XmlElement = xmlStartPart.CreateElement("w:drawing", WordprocessingML)
         Dim tagInline As XmlElement = xmlStartPart.CreateElement("wp:inline", Drawing)
         tagDrawing.AppendChild(tagInline)
-        xmlStartPart = creeArborescence(xmlStartPart, tagInline)
+        xmlStartPart = CreeArborescence(xmlStartPart, tagInline)
         Dim tagDocument As XmlElement = xmlStartPart.CreateElement("w:document", WordprocessingML)
         xmlStartPart.AppendChild(tagDocument)
         Dim tagBody As XmlElement = xmlStartPart.CreateElement("w:body", WordprocessingML)
         tagDocument.AppendChild(tagBody)
         Call AjouteParagraphe(xmlStartPart, tagBody, "glop b")
-        Call ajouteParagrapheImage(xmlStartPart, tagBody, tagDrawing)
+        Call AjouteParagrapheImage(xmlStartPart, tagBody, tagDrawing)
 
         ' Création d'un nouveau package
         Dim pkgOutputDoc As Package = Nothing
@@ -350,13 +360,13 @@ Module genereBilans
         xmlStartPart.Save(streamStartPart)
         streamStartPart.Close()
 
-        Call sauveImage(pkgOutputDoc, "C:\Users\User\Downloads\Orion_HST-631f.jpeg", partDocumentXML)
+        Call SauveImage(pkgOutputDoc, "C:\Users\User\Downloads\Orion_HST-631f.jpeg", partDocumentXML)
         ' Création de la RelationShip 
         pkgOutputDoc.CreateRelationship(uri, TargetMode.Internal, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument", "rId1")
-        Call fermePackage(pkgOutputDoc)
+        Call FermePackage(pkgOutputDoc)
     End Sub
 
-    Private Sub ajouteParagrapheImage(xmlStartPart As XmlDocument, tagBody As XmlElement, tagDrawing As XmlElement)
+    Private Sub AjouteParagrapheImage(xmlStartPart As XmlDocument, tagBody As XmlElement, tagDrawing As XmlElement)
         'Nouveau paragraphe avec une image
         Dim tagParagraph2 As XmlElement = xmlStartPart.CreateElement("w:p", WordprocessingML)
         tagBody.AppendChild(tagParagraph2)
@@ -367,7 +377,7 @@ Module genereBilans
         'insertion de l'image dans le run
         tagRun2.AppendChild(tagDrawing)
     End Sub
-    Private Sub sauveImage(pkgOutputDoc As Package, sImage As String, partDocumentXML As PackagePart)
+    Private Sub SauveImage(pkgOutputDoc As Package, sImage As String, partDocumentXML As PackagePart)
         'sauvegarde de l'image dans le package
         'Dim uri = New Uri("/word/media/openxml.png", UriKind.Relative)
         Dim uri = New Uri("/word/media/" & Mid(sImage, InStrRev(sImage, "\") + 1), UriKind.Relative)
@@ -387,12 +397,15 @@ Module genereBilans
         ' Création de la RelationShip entre l'image et la part principale
         partDocumentXML.CreateRelationship(uri, TargetMode.Internal, "http:'schemas.openxmlformats.org/officeDocument/2006/relationships/image", "rId1")
     End Sub
-    Private Sub fermePackage(pkgOutputDoc As Package)
+    Private Sub FermePackage(pkgOutputDoc As Package)
         'Enfin, on ferme le package 
         pkgOutputDoc.Flush()
         pkgOutputDoc.Close()
     End Sub
-    Private Function creeArborescence(xmlStartPart As XmlDocument, tagInline As XmlElement) As XmlDocument
+    Private Sub AjouteTableau()
+        'https://learn.microsoft.com/fr-fr/office/open-xml/word/how-to-insert-a-table-into-a-word-processing-document?tabs=cs-0%2Ccs-1%2Cvb-2%2Cvb-3%2Cvb-4%2Cvb
+    End Sub
+    Private Function CreeArborescence(xmlStartPart As XmlDocument, tagInline As XmlElement) As XmlDocument
         Dim WordprocessingML As String = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
         Dim RelationShips As String = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
         Dim Drawing As String = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
@@ -516,10 +529,125 @@ Module genereBilans
 
         Return xmlStartPart
     End Function
+    Public Sub AjouteTableau(ByVal fileName As String)
+        'https://learn.microsoft.com/fr-fr/office/open-xml/word/how-to-insert-a-table-into-a-word-processing-document?tabs=cs-0%2Ccs-1%2Cvb-2%2Cvb-3%2Cvb-4%2Cvb
+        ' Insert a table into a word processing document. 
+        ' Use the file name and path passed in as an argument 
+        ' to open an existing Word 2007 document.
+
+        Using doc As WordprocessingDocument = WordprocessingDocument.Open(fileName, True)
+            ' Create an empty table.
+            Dim table As New Table()
+
+            ' Create a TableProperties object and specify its border information.
+            Dim tblProp As New TableProperties(New TableBorders(
+            New TopBorder() With {.Val = New EnumValue(Of BorderValues)(BorderValues.Dashed), .Size = 24},
+            New BottomBorder() With {.Val = New EnumValue(Of BorderValues)(BorderValues.Dashed), .Size = 24},
+            New LeftBorder() With {.Val = New EnumValue(Of BorderValues)(BorderValues.Dashed), .Size = 24},
+            New RightBorder() With {.Val = New EnumValue(Of BorderValues)(BorderValues.Dashed), .Size = 24},
+            New InsideHorizontalBorder() With {.Val = New EnumValue(Of BorderValues)(BorderValues.Dashed), .Size = 24},
+            New InsideVerticalBorder() With {.Val = New EnumValue(Of BorderValues)(BorderValues.Dashed), .Size = 24}))
+            ' Append the TableProperties object to the empty table.
+            table.AppendChild(Of TableProperties)(tblProp)
+
+            ' Create a row.
+            Dim tr As New TableRow()
+
+            ' Create a cell.
+            Dim tc1 As New TableCell()
+
+            ' Specify the width property of the table cell.
+            tc1.Append(New TableCellProperties(New TableCellWidth()))
+
+            ' Specify the table cell content.
+            tc1.Append(New Wordprocessing.Paragraph(New Run(New Text("some text"))))
+
+            ' Append the table cell to the table row.
+            tr.Append(tc1)
+
+            ' Create a second table cell by copying the OuterXml value of the first table cell.
+            Dim tc2 As New TableCell(tc1.OuterXml)
+
+            ' Append the table cell to the table row.
+            tr.Append(tc2)
+
+            ' Append the table row to the table.
+            table.Append(tr)
+
+            ' Append the table to the document.
+            doc.MainDocumentPart.Document.Body.Append(table)
+        End Using
+    End Sub
 End Module
 
 
 
+'Imports DocumentFormat.OpenXml
+'Imports DocumentFormat.OpenXml.Packaging
+'Imports DocumentFormat.OpenXml.Wordprocessing
+'Imports BottomBorder = DocumentFormat.OpenXml.Wordprocessing.BottomBorder
+'Imports LeftBorder = DocumentFormat.OpenXml.Wordprocessing.LeftBorder
+'Imports RightBorder = DocumentFormat.OpenXml.Wordprocessing.RightBorder
+'Imports Run = DocumentFormat.OpenXml.Wordprocessing.Run
+'Imports Table = DocumentFormat.OpenXml.Wordprocessing.Table
+'Imports Text = DocumentFormat.OpenXml.Wordprocessing.Text
+'Imports TopBorder = DocumentFormat.OpenXml.Wordprocessing.TopBorder
+
+'Module MyModule
+
+'    Sub Main(args As String())
+'    End Sub
+
+
+'    ' Insert a table into a word processing document.
+'    Public Sub CreateTable(ByVal fileName As String)
+'        ' Use the file name and path passed in as an argument 
+'        ' to open an existing Word 2007 document.
+
+'        Using doc As WordprocessingDocument = WordprocessingDocument.Open(fileName, True)
+'            ' Create an empty table.
+'            Dim table As New Table()
+
+'            ' Create a TableProperties object and specify its border information.
+'            Dim tblProp As New TableProperties(New TableBorders(
+'            New TopBorder() With {.Val = New EnumValue(Of BorderValues)(BorderValues.Dashed), .Size = 24},
+'            New BottomBorder() With {.Val = New EnumValue(Of BorderValues)(BorderValues.Dashed), .Size = 24},
+'            New LeftBorder() With {.Val = New EnumValue(Of BorderValues)(BorderValues.Dashed), .Size = 24},
+'            New RightBorder() With {.Val = New EnumValue(Of BorderValues)(BorderValues.Dashed), .Size = 24},
+'            New InsideHorizontalBorder() With {.Val = New EnumValue(Of BorderValues)(BorderValues.Dashed), .Size = 24},
+'            New InsideVerticalBorder() With {.Val = New EnumValue(Of BorderValues)(BorderValues.Dashed), .Size = 24}))
+'            ' Append the TableProperties object to the empty table.
+'            table.AppendChild(Of TableProperties)(tblProp)
+
+'            ' Create a row.
+'            Dim tr As New TableRow()
+
+'            ' Create a cell.
+'            Dim tc1 As New TableCell()
+
+'            ' Specify the width property of the table cell.
+'            tc1.Append(New TableCellProperties(New TableCellWidth()))
+
+'            ' Specify the table cell content.
+'            tc1.Append(New Paragraph(New Run(New Text("some text"))))
+
+'            ' Append the table cell to the table row.
+'            tr.Append(tc1)
+
+'            ' Create a second table cell by copying the OuterXml value of the first table cell.
+'            Dim tc2 As New TableCell(tc1.OuterXml)
+
+'            ' Append the table cell to the table row.
+'            tr.Append(tc2)
+
+'            ' Append the table row to the table.
+'            table.Append(tr)
+
+'            ' Append the table to the document.
+'            doc.MainDocumentPart.Document.Body.Append(table)
+'        End Using
+'    End Sub
+'End Module
 
 
 'Imports System.IO

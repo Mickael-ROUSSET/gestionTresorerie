@@ -6,8 +6,8 @@
     '             utilisant seulement des Controles PictureBox et Labels 
     ' ===== VERSION 1 = Histogramme(s) % via un Array 
 
-    Private P As PictureBox
-    Private L As Label
+    Private picBRectangles As PictureBox
+    Private lblValeurs As Label
     Private arrColor() As Color = {Color.Tomato, Color.DarkSeaGreen, Color.CornflowerBlue,
                                    Color.Orchid, Color.OliveDrab, Color.SlateBlue, Color.Goldenrod}
     'Pour test
@@ -60,76 +60,80 @@
                 cpt_Hauteur += 1
             End If
             Try
-                P = New PictureBox With {.Left = cpt_Left, .Top = ctl_Top, .Width = _largeurBarre,
-                                     .Height = cpt_Hauteur, .BackColor = arrColor(i Mod nbCouleursDisponibles)}
+                picBRectangles = New PictureBox With {.Left = cpt_Left, .Top = ctl_Top, .Width = _largeurBarre, .Height = cpt_Hauteur, .BackColor = arrColor(i Mod nbCouleursDisponibles)}
+                'Me.Show()
+                'Me.TopMost = True
                 'monImage = P.Image
                 'monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image1.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
             Catch ex As Exception
                 Console.WriteLine(ex.Message)
             End Try
-            ToolTipHisto.SetToolTip(P, " " & _legende(i) & " " & _valeurs(i) & " % ")
-            Controls.Add(P)
+            ToolTipHisto.SetToolTip(picBRectangles, " " & _legende(i) & " " & _valeurs(i) & " % ")
+            Controls.Add(picBRectangles)
             ' ----- Valeurs :
             If _valeurs(i) > 0.5 * valMax Then
-                ctl_Top = P.Top
+                ctl_Top = picBRectangles.Top
                 maBColor = arrColor(i Mod nbCouleursDisponibles)
                 maFColor = Color.Wheat
             ElseIf _valeurs(i) < 0.05 * valMax Then
-                ctl_Top = P.Top - 20
+                ctl_Top = picBRectangles.Top - 20
                 maBColor = Color.Tan
                 maFColor = Color.Black
             Else
-                ctl_Top = P.Top - 15
+                ctl_Top = picBRectangles.Top - 15
                 maBColor = Color.Tan
                 maFColor = Color.Black
             End If
-            L = New Label With {.Left = cpt_Left, .Top = ctl_Top, .Width = _largeurBarre, .BackColor = maBColor,
+            lblValeurs = New Label With {.Left = cpt_Left, .Top = ctl_Top, .Width = _largeurBarre, .BackColor = maBColor,
                                 .ForeColor = maFColor, .Text = _valeurs(i), .TextAlign = ContentAlignment.TopCenter,
                                 .FlatStyle = FlatStyle.System, .Font = maFontBold, .Height = 12}
-            Controls.Add(L)
+            Controls.Add(lblValeurs)
             'L.Image.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image5.jpg")
-            L.BringToFront()
+            lblValeurs.BringToFront()
             cpt_Left += _largeurBarre + _interval
         Next
         ' ----- Barre des 50% :
         'P = New PictureBox With {.Top = _top + (_hauteur / 2), .Left = _left, .Width = ctl_Largeur, .Height = 1, .BackColor = Color.DarkMagenta}
         'monImage = P.Image
         'monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image1.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
-        Controls.Add(P)
+        Controls.Add(picBRectangles)
 
         ' ----- Titre sous le graphe :
-        L = New Label With {.Text = _titre, .Font = maFont, .Left = _left, .Top = _top + _hauteur + 5,
+        lblValeurs = New Label With {.Text = _titre, .Font = maFont, .Left = _left, .Top = _top + _hauteur + 5,
                             .TextAlign = ContentAlignment.MiddleLeft, .FlatStyle = FlatStyle.System, .AutoSize = True}
-        Controls.Add(L)
+        Controls.Add(lblValeurs)
         'L.Image.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image6.jpg")
 
         ' ----- Légende (nuancier + étiquettes ) :
         cpt_Left += 5 - _interval       ' marge de 5 pixels entre le graph et les carrés et entre les carrés et les étiquettes
         For i As Integer = nbBarres - 1 To 0 Step -1
-            P = New PictureBox With {.Top = ctl_Bas - 10, .Left = cpt_Left, .Width = 10, .Height = 10, .BackColor = arrColor(i Mod 7)}
+            picBRectangles = New PictureBox With {.Top = ctl_Bas - 10, .Left = cpt_Left, .Width = 10, .Height = 10, .BackColor = arrColor(i Mod 7)}
             'monImage = P.Image
             'monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image1.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
-            L = New Label With {.Top = ctl_Bas - 12, .Left = cpt_Left + 10, .Text = _legende(i), .AutoSize = True}
+            lblValeurs = New Label With {.Top = ctl_Bas - 12, .Left = cpt_Left + 10, .Text = _legende(i), .AutoSize = True}
             'L.Image.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image7.jpg")
-            If L.Width > lbl_Largeur Then lbl_Largeur = L.Width
+            If lblValeurs.Width > lbl_Largeur Then lbl_Largeur = lblValeurs.Width
             ctl_Bas -= lbl_Hauteur - 4
-            ToolTipHisto.SetToolTip(P, " " & _valeurs(i) & " % ")
-            ToolTipHisto.SetToolTip(L, " " & _valeurs(i) & " % ")  ' et la valeur si on ne peut pas la capter (=0) dans le graphe
-            Controls.Add(P)
-            Controls.Add(L)
+            ToolTipHisto.SetToolTip(picBRectangles, " " & _valeurs(i) & " % ")
+            ToolTipHisto.SetToolTip(lblValeurs, " " & _valeurs(i) & " % ")  ' et la valeur si on ne peut pas la capter (=0) dans le graphe
+            Controls.Add(picBRectangles)
+            Controls.Add(lblValeurs)
         Next
 
         ' ----- Cadre Fond :
-        P = New PictureBox With {.Top = _top, .Left = _left, .Width = ctl_Largeur, .Height = _hauteur, .BackColor = Color.Tan}
-        monImage = P.Image
+        picBRectangles = New PictureBox With {.Top = _top, .Left = _left, .Width = ctl_Largeur, .Height = _hauteur, .BackColor = Color.Tan}
+        monImage = picBRectangles.Image
         'monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image1.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
-        Controls.Add(P)
+        Controls.Add(picBRectangles)
         'P.Image.Save("C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\image" & _titre)
         'P.SendToBack()
 
         '' Return = la position right de l'histogramme = marge + barres + maxi étiquette légende
         'Return cpt_Left + lbl_Largeur
-        Return P
+        'picBRectangles.BringToFront()
+        'picBRectangles.CreateControl()
+        'picBRectangles.CreateGraphics.Save()
+        Return picBRectangles
     End Function
 
     'TODO à sortir dans un module de copie d'écran si cela marche
@@ -220,64 +224,64 @@
                 ctl_Top -= 1        ' on triche juste ce qu'il faut, c'est pour capter le ToolTip !
                 cpt_Hauteur += 1
             End If
-            P = New PictureBox With {.Left = cpt_Left, .Top = ctl_Top, .Width = _largeurBarre, .Height = cpt_Hauteur, .BackColor = arrColor(i)}
+            picBRectangles = New PictureBox With {.Left = cpt_Left, .Top = ctl_Top, .Width = _largeurBarre, .Height = cpt_Hauteur, .BackColor = arrColor(i)}
             'ttip.SetToolTip(P, " " & _legende(i) & " " & _valeurs(i) & " % ")
-            monImage = P.Image
+            monImage = picBRectangles.Image
             monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image1.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
-            Controls.Add(P)
+            Controls.Add(picBRectangles)
             ' ----- Valeurs :
             If _valeurs(i) > 50 Then
-                ctl_Top = P.Top
+                ctl_Top = picBRectangles.Top
                 maBColor = arrColor(i)
                 maFColor = Color.Wheat
             ElseIf _valeurs(i) < 5 Then
-                ctl_Top = P.Top - 20
+                ctl_Top = picBRectangles.Top - 20
                 maBColor = Color.Tan
                 maFColor = Color.Black
             Else
-                ctl_Top = P.Top - 15
+                ctl_Top = picBRectangles.Top - 15
                 maBColor = Color.Tan
                 maFColor = Color.Black
             End If
-            L = New Label With {.Left = cpt_Left, .Top = ctl_Top, .Width = _largeurBarre, .BackColor = maBColor,
+            lblValeurs = New Label With {.Left = cpt_Left, .Top = ctl_Top, .Width = _largeurBarre, .BackColor = maBColor,
                                 .ForeColor = maFColor, .Text = _valeurs(i), .TextAlign = ContentAlignment.TopCenter,
                                 .FlatStyle = FlatStyle.System, .Font = maFontBold, .Height = 12}
-            Controls.Add(L)
-            L.BringToFront()
+            Controls.Add(lblValeurs)
+            lblValeurs.BringToFront()
             cpt_Left += _largeurBarre + _interval
         Next
         ' ----- Barre des 50% :
-        P = New PictureBox With {.Top = _top + (_hauteur / 2), .Left = _left, .Width = ctl_Largeur, .Height = 1, .BackColor = Color.DarkMagenta}
-        monImage = P.Image
+        picBRectangles = New PictureBox With {.Top = _top + (_hauteur / 2), .Left = _left, .Width = ctl_Largeur, .Height = 1, .BackColor = Color.DarkMagenta}
+        monImage = picBRectangles.Image
         monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image2.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
-        Controls.Add(P)
+        Controls.Add(picBRectangles)
 
         ' ----- Titre sous le graphe :
-        L = New Label With {.Text = _titre, .Font = maFont, .Left = _left, .Top = _top + _hauteur + 5,
+        lblValeurs = New Label With {.Text = _titre, .Font = maFont, .Left = _left, .Top = _top + _hauteur + 5,
                             .TextAlign = ContentAlignment.MiddleLeft, .FlatStyle = FlatStyle.System, .AutoSize = True}
-        Controls.Add(L)
+        Controls.Add(lblValeurs)
 
         ' ----- Légende (nuancier + étiquettes ) :
         cpt_Left += 5 - _interval       ' marge de 5 pixels entre le graph et les carrés et entre les carrés et les étiquettes
         For i As Integer = nbBarres - 1 To 0 Step -1
-            P = New PictureBox With {.Top = ctl_Bas - 10, .Left = cpt_Left, .Width = 10, .Height = 10, .BackColor = arrColor(i)}
-            monImage = P.Image
+            picBRectangles = New PictureBox With {.Top = ctl_Bas - 10, .Left = cpt_Left, .Width = 10, .Height = 10, .BackColor = arrColor(i)}
+            monImage = picBRectangles.Image
             monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image3.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
-            L = New Label With {.Top = ctl_Bas - 12, .Left = cpt_Left + 10, .Text = _legende(i), .AutoSize = True}
-            If L.Width > lbl_Largeur Then lbl_Largeur = L.Width
+            lblValeurs = New Label With {.Top = ctl_Bas - 12, .Left = cpt_Left + 10, .Text = _legende(i), .AutoSize = True}
+            If lblValeurs.Width > lbl_Largeur Then lbl_Largeur = lblValeurs.Width
             ctl_Bas -= lbl_Hauteur - 4
             'ttip.SetToolTip(P, " " & _valeurs(i) & " % ")
             'ttip.SetToolTip(L, " " & _valeurs(i) & " % ")  ' et la valeur si on ne peut pas la capter (=0) dans le graphe
-            Controls.Add(P)
-            Controls.Add(L)
+            Controls.Add(picBRectangles)
+            Controls.Add(lblValeurs)
         Next
 
         ' ----- Cadre Fond :
-        P = New PictureBox With {.Top = _top, .Left = _left, .Width = ctl_Largeur, .Height = _hauteur, .BackColor = Color.Tan}
-        monImage = P.Image
+        picBRectangles = New PictureBox With {.Top = _top, .Left = _left, .Width = ctl_Largeur, .Height = _hauteur, .BackColor = Color.Tan}
+        monImage = picBRectangles.Image
         monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image4.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
-        Controls.Add(P)
-        P.SendToBack()
+        Controls.Add(picBRectangles)
+        picBRectangles.SendToBack()
 
         ' Return = la position right de l'histogramme = marge + barres + maxi étiquette légende
         Return cpt_Left + lbl_Largeur

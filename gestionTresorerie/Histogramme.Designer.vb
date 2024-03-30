@@ -30,7 +30,7 @@ Partial Class frmHistogramme
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(800, 450)
+        ClientSize = New Size(800, 561)
         Name = "frmHistogramme"
         Text = "Histogramme"
         ResumeLayout(False)

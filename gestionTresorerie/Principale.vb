@@ -22,8 +22,7 @@ Public Class FrmPrincipale
         Call CreeConnexion()
     End Sub
     Private Function GetConnectionString() As String
-        ' To avoid storing the connection string in your code,
-        ' you can retrieve it from a configuration file.
+        ' To avoid storing the connection string in your code, you can retrieve it from a configuration file.
         'Return "Data Source=MSSQL1;Initial Catalog=AdventureWorks;" & "Integrated Security=true;"
         'Return "Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf";Integrated Security=True;Connect Timeout=30"
         Dim builder As New System.Data.SqlClient.SqlConnectionStringBuilder
@@ -41,7 +40,8 @@ Public Class FrmPrincipale
         Dim tabValeurs() As Decimal = Array.Empty(Of Decimal)()
         Dim myCmdCategorie As SqlCommand
         Dim myCmdSousCategorie As SqlCommand
-        Dim i As Integer
+        Dim i As Integer, iNbCat As Integer
+        Dim sNomImage As String
 
         myCmdCategorie = New SqlCommand("SELECT distinct catégorie FROM Mouvements ;", myConn)
         myReaderCategorie = myCmdCategorie.ExecuteReader()
@@ -52,10 +52,13 @@ Public Class FrmPrincipale
         Loop
         myReaderCategorie.Close()
 
-        For i = 0 To UBound(tabCatégorie)
-            myCmdSousCategorie = New SqlCommand("SELECT sousCatégorie, sum(montant) FROM Mouvements where catégorie = '" & tabCatégorie(i) & "' group by sousCatégorie;", myConn)
+        For iNbCat = 0 To UBound(tabCatégorie)
+            ReDim tabLegendes(0)
+            ReDim tabValeurs(0)
+            myCmdSousCategorie = New SqlCommand("SELECT sousCatégorie, sum(montant) FROM Mouvements where catégorie = '" & tabCatégorie(iNbCat) & "' group by sousCatégorie;", myConn)
             myReaderSousCategorie = myCmdSousCategorie.ExecuteReader()
             Do While myReaderSousCategorie.Read()
+                i = 0
                 Try
                     ReDim Preserve tabLegendes(UBound(tabLegendes) + 1)
                     tabLegendes(i) = CStr(myReaderSousCategorie.GetSqlString(0))
@@ -67,12 +70,34 @@ Public Class FrmPrincipale
                 i += 1
             Loop
             myReaderSousCategorie.Close()
-            Call frmHistogramme.Histogramme("Montants par sous-catégorie", tabValeurs, tabLegendes, 20, 40, 500, 30, 10)
-            frmHistogramme.Show()
+            'Supprime tous les controls de la fenêtre (=> les images précédentes)
+            Call SupprimeControlesfenetre(frmHistogramme)
+            Call frmHistogramme.Histogramme("Montants par sous-catégorie : " & tabCatégorie(iNbCat), tabValeurs, tabLegendes, 20, 40, 500, 30, 10)
             'frmHistogramme.ShotActiveWin.Save("C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\image" & "Montants par sous-catégorie" & ".bmp")
             'Call frmHistogramme.testHisto()
-        Next
+            frmHistogramme.Show()
+            sNomImage = "C:\Users\User\Downloads\frmHistogramme" & iNbCat & ".png"
+            Using bmp = New Bitmap(frmHistogramme.Width, frmHistogramme.Height)
+                frmHistogramme.DrawToBitmap(bmp, New Rectangle(0, 0, bmp.Width, bmp.Height))
+                Try
+                    Kill(sNomImage)
+                Catch
+                    'Ne fait rien : c'est que le fichier à supprimer ne devait pas exister
+                End Try
+                bmp.Save(sNomImage)
+            End Using
+        Next iNbCat
+
         myReaderCategorie.Close()
+    End Sub
+    Private Sub SupprimeControlesfenetre(frm As Form)
+        Dim i As Integer, nbControls As Integer
+
+        nbControls = frm.Controls.Count
+        For i = 0 To nbControls - 1
+            frm.Controls.Remove(frm.Controls.Item(0))
+            'Debug.Print("Name : " & frm.Controls.Item(0).Name)
+        Next i
     End Sub
     Private Sub FrmMain_Closing(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
         Try
@@ -93,7 +118,7 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub BtnChargeRelevé_Click(sender As Object, e As EventArgs) Handles btnChargeRelevé.Click
-        frmChargeRelevé.Show()
+        FrmChargeRelevé.Show()
     End Sub
 
     Private Sub BindingSource1_CurrentChanged(sender As Object, e As EventArgs) Handles BindingSource1.CurrentChanged
@@ -134,6 +159,6 @@ Public Class FrmPrincipale
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
         'Call CreeBilans()
         'Call genereBilans.AjouteImage()
-        Call genereBilans.genereBilanStructure()
+        Call genereBilans.GenereBilanStructure()
     End Sub
 End Class

@@ -23,6 +23,7 @@ Public Class FrmSaisie
         listeTiers = GereXml.LitXml(My.Settings.ficTiers).RenvoieListe
         'Chargement du fichier contenant la liste des tiers 
         Call ChargeFichierTiers(Me.cbTiers, My.Settings.ficTiers)
+        Call ChargeTableTiers(Me.cbTiers, FrmPrincipale.myConn)
         'Chargement du fichier contenant la liste des événements
         Call ChargeFichierTexte(Me.cbEvénement, My.Settings.ficEvénement)
         'Chargement du fichier contenant la liste des types
@@ -96,6 +97,17 @@ Public Class FrmSaisie
         Catch ex As Exception
             MsgBox("Une erreur est survenue au cours de l'accès en lecture du fichier de configuration du logiciel." & vbCrLf & vbCrLf & "Veuillez vérifier l'emplacement : " & fichierTexte, MsgBoxStyle.Critical, "Erreur lors e l'ouverture du fichier conf...")
         End Try
+    End Sub
+    Private Sub ChargeTableTiers(cbBox As System.Windows.Forms.ComboBox, myConn As SqlConnection)
+        Dim myCmdCategorie As SqlCommand
+        Dim myReaderTiers As SqlDataReader
+
+        myCmdCategorie = New SqlCommand("SELECT nom, prenom FROM Tiers ;", myConn)
+        myReaderTiers = myCmdCategorie.ExecuteReader()
+        Do While myReaderTiers.Read()
+            cbBox.Items.Add(myReaderTiers.GetSqlString(0))
+        Loop
+        myReaderTiers.Close()
     End Sub
     Private Sub ChargeFichierTiers(cbBox As System.Windows.Forms.ComboBox, fichierTiers As String)
         Dim gereXml As New GereXml
