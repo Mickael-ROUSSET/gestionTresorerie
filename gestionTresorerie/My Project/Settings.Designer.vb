@@ -113,6 +113,19 @@ Namespace My
                 Me("ficType") = value
             End Set
         End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\bin\Debug\net8.0-w"& _ 
+            "indows\monFichier.docx")>  _
+        Public Property ficBilan() As String
+            Get
+                Return CType(Me("ficBilan"),String)
+            End Get
+            Set
+                Me("ficBilan") = value
+            End Set
+        End Property
     End Class
 End Namespace
 

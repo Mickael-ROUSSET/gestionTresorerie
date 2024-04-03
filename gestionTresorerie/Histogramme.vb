@@ -1,4 +1,27 @@
-﻿Public Class frmHistogramme
+﻿
+Imports System.Windows.Forms.DataVisualization.Charting
+Imports DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing
+Public Class frmHistogramme
+    Public Sub creeChart(ByVal titre As String, ByVal valeurs() As Decimal, ByVal legende() As String)
+        'https://plasserre.developpez.com/cours/chart/#LIII-C-1
+        Dim i As Integer
+
+        'Supprimer tous les points
+        ChartBilan.Series("Series1").Points.Clear()
+
+        'ChartBilan.Titles.Add(titre)
+        ChartBilan.ChartAreas(0).AxisX.Title = "Catégorie"
+        ChartBilan.ChartAreas(0).AxisY.Title = "Montant"
+        For i = 0 To UBound(valeurs) - 1
+            ChartBilan.Series("Series1").Points.AddXY((i), valeurs(i))
+        Next
+        'ChartBilan.Series("Series1").IsXValueIndexed = False
+        'ChartBilan.ChartAreas("ChartArea1").RecalculateAxesScale()
+        'On indique d'afficher ces Series sur le ChartArea1
+        ChartBilan.Series("Series1").ChartArea = "ChartArea1"
+        'ChartBilan.BringToFront()
+    End Sub
+
     'https://codes-sources.commentcamarche.net/source/53025-afficher-un-histogramme-personnalise
 
     ' ===== CDC : Afficher un Histogramme % (ou plusieurs dans la même Form) 
@@ -108,10 +131,7 @@
         cpt_Left += 5 - _interval       ' marge de 5 pixels entre le graph et les carrés et entre les carrés et les étiquettes
         For i As Integer = nbBarres - 1 To 0 Step -1
             picBRectangles = New PictureBox With {.Top = ctl_Bas - 10, .Left = cpt_Left, .Width = 10, .Height = 10, .BackColor = arrColor(i Mod 7)}
-            'monImage = P.Image
-            'monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image1.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
             lblValeurs = New Label With {.Top = ctl_Bas - 12, .Left = cpt_Left + 10, .Text = _legende(i), .AutoSize = True}
-            'L.Image.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image7.jpg")
             If lblValeurs.Width > lbl_Largeur Then lbl_Largeur = lblValeurs.Width
             ctl_Bas -= lbl_Hauteur - 4
             ToolTipHisto.SetToolTip(picBRectangles, " " & _valeurs(i) & " % ")
@@ -121,18 +141,10 @@
         Next
 
         ' ----- Cadre Fond :
-        picBRectangles = New PictureBox With {.Top = _top, .Left = _left, .Width = ctl_Largeur, .Height = _hauteur, .BackColor = Color.Tan}
+        picBRectangles = New PictureBox With {.Top = _top, .Left = _left, .Width = ctl_Largeur, .Height = _hauteur, .BackColor = Color.Black}
         monImage = picBRectangles.Image
-        'monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image1.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
         Controls.Add(picBRectangles)
-        'P.Image.Save("C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\image" & _titre)
-        'P.SendToBack()
 
-        '' Return = la position right de l'histogramme = marge + barres + maxi étiquette légende
-        'Return cpt_Left + lbl_Largeur
-        'picBRectangles.BringToFront()
-        'picBRectangles.CreateControl()
-        'picBRectangles.CreateGraphics.Save()
         Return picBRectangles
     End Function
 
@@ -142,39 +154,39 @@
     Private Declare Function GetWindowRect Lib "user32.dll" (ByVal hWnd As IntPtr, ByRef lpRect As Rectangle) As Integer
     Private Declare Function GetDesktopWindow Lib "user32" () As IntPtr
     'Capture tout l'écran
-    Public Shared Function ShotScreen() As Bitmap
-        Try
-            Dim DesktopRect As Rectangle = Screen.GetBounds(New Point(0, 0)) 'obtient la taille du bureau sous forme de rectangle dans DesktopRect
-            Return ShotScreenPart(DesktopRect.Width, DesktopRect.Height) 'appele la fonction ShotScreenPart avec les dimensions du bureau. 
-        Catch ex As Exception
-            MsgBox(ex.ToString)
-        End Try
-    End Function
+    'Public Shared Function ShotScreen() As Bitmap
+    '    Try
+    '        Dim DesktopRect As Rectangle = Screen.GetBounds(New Point(0, 0)) 'obtient la taille du bureau sous forme de rectangle dans DesktopRect
+    '        Return ShotScreenPart(DesktopRect.Width, DesktopRect.Height) 'appele la fonction ShotScreenPart avec les dimensions du bureau. 
+    '    Catch ex As Exception
+    '        MsgBox(ex.ToString)
+    '    End Try
+    'End Function
     'Capture la fenetre active
-    Public Function ShotActiveWin() As Bitmap
-        Dim WinRect As Rectangle
-        Try
-            If GetWindowRect(GetForegroundWindow, WinRect) Then 'obtient la taille et la position de la fenetre active sous forme de rectangle (WinRect)
-                Return ShotScreenPart(WinRect.Size.Width - WinRect.Left, WinRect.Size.Height - WinRect.Top, WinRect.Left, WinRect.Top)  'appele la fonction ShotLoc avec les dimensions et la position de la fenetre. 
-            End If
-        Catch ex As Exception
-            MsgBox(ex.ToString)
-        End Try
-    End Function
+    'Public Function ShotActiveWin() As Bitmap
+    '    Dim WinRect As Rectangle
+    '    Try
+    '        If GetWindowRect(GetForegroundWindow, WinRect) Then 'obtient la taille et la position de la fenetre active sous forme de rectangle (WinRect)
+    '            Return ShotScreenPart(WinRect.Size.Width - WinRect.Left, WinRect.Size.Height - WinRect.Top, WinRect.Left, WinRect.Top)  'appele la fonction ShotLoc avec les dimensions et la position de la fenetre. 
+    '        End If
+    '    Catch ex As Exception
+    '        MsgBox(ex.ToString)
+    '    End Try
+    'End Function
     'Capture une partie de l'ecran, defini par les deux variable width et height (dimensions du rectangle), et des valeur optionels X et Y (base du rectangle)
-    Public Shared Function ShotScreenPart(ByVal nwidth As Integer, ByVal nheight As Integer, Optional ByVal x As Integer = 0, Optional ByVal y As Integer = 0) As Bitmap
-        Dim resultBmp As New Bitmap(nwidth, nheight) 'crée l'objet bitmap cible
-        Dim SrcGraph As Graphics = Graphics.FromHwnd(GetDesktopWindow) 'crée l'objet "graphics" SelGraph a partir du handdle du bureau
-        Dim BmpGraph As Graphics = Graphics.FromImage(resultBmp) 'crée un objet graphics à partir du bitmap
-        Dim bmpDC As IntPtr = BmpGraph.GetHdc() 'obtient le device context du bitmap
-        Dim hDC As IntPtr = SrcGraph.GetHdc() 'obtient le device context du bureau
-        BitBlt(bmpDC, 0, 0, nwidth, nheight, hDC, x, y, &HCC0020) '"bit-block transfer" : copie chaque bits affichés dans le device context hDC dans le device context du bitmap 
-        SrcGraph.ReleaseHdc(hDC) 'relache le device context du bureau
-        BmpGraph.ReleaseHdc(bmpDC) 'relache le device context du bitmap
-        SrcGraph.Dispose()
-        BmpGraph.Dispose() 'libere toutes les ressources crées par l'objet (useless?)
-        Return resultBmp
-    End Function
+    'Public Shared Function ShotScreenPart(ByVal nwidth As Integer, ByVal nheight As Integer, Optional ByVal x As Integer = 0, Optional ByVal y As Integer = 0) As Bitmap
+    '    Dim resultBmp As New Bitmap(nwidth, nheight) 'crée l'objet bitmap cible
+    '    Dim SrcGraph As Graphics = Graphics.FromHwnd(GetDesktopWindow) 'crée l'objet "graphics" SelGraph a partir du handdle du bureau
+    '    Dim BmpGraph As Graphics = Graphics.FromImage(resultBmp) 'crée un objet graphics à partir du bitmap
+    '    Dim bmpDC As IntPtr = BmpGraph.GetHdc() 'obtient le device context du bitmap
+    '    Dim hDC As IntPtr = SrcGraph.GetHdc() 'obtient le device context du bureau
+    '    BitBlt(bmpDC, 0, 0, nwidth, nheight, hDC, x, y, &HCC0020) '"bit-block transfer" : copie chaque bits affichés dans le device context hDC dans le device context du bitmap 
+    '    SrcGraph.ReleaseHdc(hDC) 'relache le device context du bureau
+    '    BmpGraph.ReleaseHdc(bmpDC) 'relache le device context du bitmap
+    '    SrcGraph.Dispose()
+    '    BmpGraph.Dispose() 'libere toutes les ressources crées par l'objet (useless?)
+    '    Return resultBmp
+    'End Function
     Private Function MaxTableau(tab() As Decimal) As Decimal
         'TODO gérer les valeurs négatives
         Dim i As Integer
@@ -211,7 +223,6 @@
         Dim cpt_Hauteur As Integer = 0                          ' compteur
         Dim lbl_Hauteur As Integer = maFont.Size / maFont.FontFamily.GetCellAscent(0) * maFont.FontFamily.GetEmHeight(0) * 1.8
         Dim lbl_Largeur As Integer = 0
-        Dim monImage As Image
 
         ' ----- Barres :
         Dim maBColor, maFColor As Color
@@ -225,9 +236,7 @@
                 cpt_Hauteur += 1
             End If
             picBRectangles = New PictureBox With {.Left = cpt_Left, .Top = ctl_Top, .Width = _largeurBarre, .Height = cpt_Hauteur, .BackColor = arrColor(i)}
-            'ttip.SetToolTip(P, " " & _legende(i) & " " & _valeurs(i) & " % ")
-            monImage = picBRectangles.Image
-            monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image1.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
+            'ttip.SetToolTip(P, " " & _legende(i) & " " & _valeurs(i) & " % ") 
             Controls.Add(picBRectangles)
             ' ----- Valeurs :
             If _valeurs(i) > 50 Then
@@ -252,8 +261,6 @@
         Next
         ' ----- Barre des 50% :
         picBRectangles = New PictureBox With {.Top = _top + (_hauteur / 2), .Left = _left, .Width = ctl_Largeur, .Height = 1, .BackColor = Color.DarkMagenta}
-        monImage = picBRectangles.Image
-        monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image2.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
         Controls.Add(picBRectangles)
 
         ' ----- Titre sous le graphe :
@@ -265,8 +272,6 @@
         cpt_Left += 5 - _interval       ' marge de 5 pixels entre le graph et les carrés et entre les carrés et les étiquettes
         For i As Integer = nbBarres - 1 To 0 Step -1
             picBRectangles = New PictureBox With {.Top = ctl_Bas - 10, .Left = cpt_Left, .Width = 10, .Height = 10, .BackColor = arrColor(i)}
-            monImage = picBRectangles.Image
-            monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image3.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
             lblValeurs = New Label With {.Top = ctl_Bas - 12, .Left = cpt_Left + 10, .Text = _legende(i), .AutoSize = True}
             If lblValeurs.Width > lbl_Largeur Then lbl_Largeur = lblValeurs.Width
             ctl_Bas -= lbl_Hauteur - 4
@@ -278,14 +283,13 @@
 
         ' ----- Cadre Fond :
         picBRectangles = New PictureBox With {.Top = _top, .Left = _left, .Width = ctl_Largeur, .Height = _hauteur, .BackColor = Color.Tan}
-        monImage = picBRectangles.Image
-        monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image4.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
         Controls.Add(picBRectangles)
         picBRectangles.SendToBack()
 
         ' Return = la position right de l'histogramme = marge + barres + maxi étiquette légende
         Return cpt_Left + lbl_Largeur
     End Function
+
 End Class
 
 'Imports System.Data.SqlClient

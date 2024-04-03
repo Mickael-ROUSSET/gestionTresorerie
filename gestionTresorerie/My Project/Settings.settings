@@ -20,5 +20,8 @@
     <Setting Name="ficType" Type="System.String" Scope="User">
       <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\ressources\type.ini</Value>
     </Setting>
+    <Setting Name="ficBilan" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\bin\Debug\net8.0-windows\monFichier.docx</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

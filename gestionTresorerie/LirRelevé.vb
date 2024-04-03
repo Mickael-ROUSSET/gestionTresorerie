@@ -1,9 +1,5 @@
 ﻿Imports System.Security
-
-Imports System.ComponentModel
-Imports System.Diagnostics
 Imports System.IO
-Imports System.Windows.Forms
 Imports System.Text.RegularExpressions
 Module LitRelevé
 

@@ -14,6 +14,24 @@ Public Class FrmSaisie
     Public Property Properties As Object
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Call chargeListes()
+        'Dim sFicParam As String
+
+        'sFicParam = My.Settings.ficRessources
+        'For Each Section In GestionFichierIni.SectionNames(sFicParam)
+        '    Me.cbCategorie.Items.Add(Section)
+        'Next
+        'listeTiers = GereXml.LitXml(My.Settings.ficTiers).RenvoieListe
+        ''Chargement du fichier contenant la liste des tiers 
+        'Call ChargeFichierTiers(Me.cbTiers, My.Settings.ficTiers)
+        'Call ChargeTableTiers(Me.cbTiers, FrmPrincipale.myConn)
+        ''Chargement du fichier contenant la liste des événements
+        'Call ChargeFichierTexte(Me.cbEvénement, My.Settings.ficEvénement)
+        ''Chargement du fichier contenant la liste des types
+        'Call ChargeFichierTexte(Me.cbType, My.Settings.ficType)
+    End Sub
+
+    Public Sub chargeListes()
         Dim sFicParam As String
 
         sFicParam = My.Settings.ficRessources
@@ -29,7 +47,6 @@ Public Class FrmSaisie
         'Chargement du fichier contenant la liste des types
         Call ChargeFichierTexte(Me.cbType, My.Settings.ficType)
     End Sub
-
     Private Sub FrmSaisie_GotFocus(sender As Object, e As EventArgs) Handles Me.GotFocus
         'Détection du tiers
         cbTiers.SelectedItem = DetecteTiers(txtNote.Text)
@@ -197,7 +214,6 @@ Public Class FrmSaisie
     Private Sub BtnHistogramme_Click(sender As Object, e As EventArgs) Handles btnHistogramme.Click
         frmHistogramme.ShowDialog()
     End Sub
-
     Private Sub CbTiers_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cbTiers.SelectedIndexChanged
         Dim s(2) As String, sCat As String, sousCat As String
 
@@ -210,7 +226,7 @@ Public Class FrmSaisie
         ChargeSousCatégorie(cbCategorie.SelectedItem)
         cbSousCategorie.SelectedIndex = IndexSelectionne(cbSousCategorie, sousCat)
     End Sub
-    Private Function IndexSelectionne(cbBox As ComboBox, sNiveau As String) As Integer
+    public Function IndexSelectionne(cbBox As ComboBox, sNiveau As String) As Integer
         Dim iIndex As Integer
 
         'Pas de catégorie
@@ -237,5 +253,4 @@ Public Class FrmSaisie
             End If
         End With
     End Sub
-
 End Class

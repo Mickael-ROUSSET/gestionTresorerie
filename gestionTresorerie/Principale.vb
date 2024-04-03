@@ -2,6 +2,7 @@
 Imports System.Data.SqlClient
 Imports System.IO
 Imports System.Windows.Forms.VisualStyles.VisualStyleElement
+Imports gestionTresorerie.My
 
 Public Class FrmPrincipale
 
@@ -43,6 +44,8 @@ Public Class FrmPrincipale
         Dim i As Integer, iNbCat As Integer
         Dim sNomImage As String
 
+        Call creeOpenXml.creeDoc(My.Settings.ficBilan)
+        'Call CreateAndAddParagraphStyle()
         myCmdCategorie = New SqlCommand("SELECT distinct catégorie FROM Mouvements ;", myConn)
         myReaderCategorie = myCmdCategorie.ExecuteReader()
         Do While myReaderCategorie.Read()
@@ -53,12 +56,16 @@ Public Class FrmPrincipale
         myReaderCategorie.Close()
 
         For iNbCat = 0 To UBound(tabCatégorie)
+            'For iNbCat = 0 To 0
             ReDim tabLegendes(0)
             ReDim tabValeurs(0)
             myCmdSousCategorie = New SqlCommand("SELECT sousCatégorie, sum(montant) FROM Mouvements where catégorie = '" & tabCatégorie(iNbCat) & "' group by sousCatégorie;", myConn)
+            Call creeOpenXml.ajouteParagraphe(My.Settings.ficBilan, tabCatégorie(iNbCat))
             myReaderSousCategorie = myCmdSousCategorie.ExecuteReader()
+            i = 0
+            'Supprime tous les controls de la fenêtre (=> les images précédentes)
+            'Call SupprimeControlesfenetre(frmHistogramme)
             Do While myReaderSousCategorie.Read()
-                i = 0
                 Try
                     ReDim Preserve tabLegendes(UBound(tabLegendes) + 1)
                     tabLegendes(i) = CStr(myReaderSousCategorie.GetSqlString(0))
@@ -70,22 +77,29 @@ Public Class FrmPrincipale
                 i += 1
             Loop
             myReaderSousCategorie.Close()
-            'Supprime tous les controls de la fenêtre (=> les images précédentes)
-            Call SupprimeControlesfenetre(frmHistogramme)
-            Call frmHistogramme.Histogramme("Montants par sous-catégorie : " & tabCatégorie(iNbCat), tabValeurs, tabLegendes, 20, 40, 500, 30, 10)
-            'frmHistogramme.ShotActiveWin.Save("C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\image" & "Montants par sous-catégorie" & ".bmp")
-            'Call frmHistogramme.testHisto()
+            'Call frmHistogramme.Histogramme("Montants par sous-catégorie : " & tabCatégorie(iNbCat), tabValeurs, tabLegendes, 20, 40, 500, 30, 10)
+            Call frmHistogramme.creeChart("Montants par sous-catégorie : " & tabCatégorie(iNbCat), tabValeurs, tabLegendes)
             frmHistogramme.Show()
             sNomImage = "C:\Users\User\Downloads\frmHistogramme" & iNbCat & ".png"
+            'URL : https://stackoverflow.com/questions/37825662/how-to-save-the-whole-windows-form-as-image-vb-net
             Using bmp = New Bitmap(frmHistogramme.Width, frmHistogramme.Height)
                 frmHistogramme.DrawToBitmap(bmp, New Rectangle(0, 0, bmp.Width, bmp.Height))
                 Try
-                    Kill(sNomImage)
+                    My.Computer.FileSystem.DeleteFile(sNomImage, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.DeletePermanently, Microsoft.VisualBasic.FileIO.UICancelOption.DoNothing)
                 Catch
                     'Ne fait rien : c'est que le fichier à supprimer ne devait pas exister
                 End Try
                 bmp.Save(sNomImage)
             End Using
+            Call creeOpenXml.ajouteImage(My.Settings.ficBilan, sNomImage)
+
+            'Création du tableau
+            Dim data(1, UBound(tabValeurs) - 1) As String
+            For j As Integer = 0 To UBound(tabValeurs) - 1
+                data(0, j) = tabLegendes(j)
+                data(1, j) = tabValeurs(j)
+            Next j
+            Call creeOpenXml.ajouteTableau(My.Settings.ficBilan, data)
         Next iNbCat
 
         myReaderCategorie.Close()
@@ -121,10 +135,6 @@ Public Class FrmPrincipale
         FrmChargeRelevé.Show()
     End Sub
 
-    Private Sub BindingSource1_CurrentChanged(sender As Object, e As EventArgs) Handles BindingSource1.CurrentChanged
-
-    End Sub
-
     Private Sub BtnConsultation_Click(sender As Object, e As EventArgs) Handles btnConsultation.Click
         ' Evite de définir la chaine de connexion à chaque endroit où tu l'utilises : si tu dois la changer,
         ' ça fait autant d'endroits à modifier, et ça force à recompiler. Il vaut mieux la définir dans les
@@ -156,9 +166,80 @@ Public Class FrmPrincipale
         End Try
     End Sub
 
-    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
-        'Call CreeBilans()
-        'Call genereBilans.AjouteImage()
-        Call genereBilans.GenereBilanStructure()
+    Private Sub FermerToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles FermerToolStripMenuItem.Click
+        Me.Close()
+        End
     End Sub
+
+    Private Sub btnCreeBilans_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
+        creeOpenXml.Main()
+    End Sub
+
+    Private Sub DataGridView1_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles DataGridView1.CellContentClick
+        Dim dateMvt As Date
+        Dim montant As Double
+        Dim sens As Boolean
+        Dim note As String
+        Dim bExiste As Boolean
+        Dim categorie As String
+        Dim sousCategorie As String
+        Dim tiers As String
+        Dim rapproche As String
+        Dim evenement As String
+        Dim monType As String
+        Dim remise As String
+
+        With Me.DataGridView1.CurrentRow.Cells
+            note = .Item(1).Value
+            dateMvt = CDate(.Item(5).Value)
+            montant = .Item(6).Value
+            sens = .Item(7).Value
+            categorie = .Item(2).Value
+            sousCategorie = .Item(3).Value
+            tiers = .Item(4).Value
+            rapproche = .Item(8).Value
+            evenement = .Item(9).Value
+            monType = .Item(10).Value
+            remise = .Item(12).Value
+        End With
+        bExiste = Mouvements.existe(dateMvt, montant, sens)
+        With FrmSaisie
+            .chargeListes()
+            .dateMvt.Value = dateMvt
+            .txtNote.Text = note
+            .rbDebit.Checked = sens
+            .txtMontant.Text = montant
+            'If Mouvements.existe(dateMvt, montant, sens) Then
+            '.cbCategorie 
+            If categorie > "" Then
+                .cbCategorie.SelectedIndex = IndexSelectionne(.cbCategorie, categorie)
+            End If
+            '.cbSousCategorie  
+            If sousCategorie > "" Then
+                .cbSousCategorie.SelectedIndex = IndexSelectionne(.cbCategorie, sousCategorie)
+            End If
+            '.cbTiers  
+            If tiers > "" Then
+                .cbTiers.SelectedIndex = IndexSelectionne(.cbCategorie, tiers)
+            End If
+            '.cbEvénement  
+            If evenement > "" Then
+                .cbEvénement.SelectedIndex = IndexSelectionne(.cbCategorie, evenement)
+            End If
+            '.cbType 
+            If monType > "" Then
+                .cbType.SelectedIndex = IndexSelectionne(.cbCategorie, monType)
+            End If
+            .txtRemise.Text = remise
+            .rbRapproche.Text = rapproche
+            'End If
+            .Show()
+        End With
+    End Sub
+
+    'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
+    '    'Call CreeBilans()
+    '    'Call genereBilans.AjouteImage()
+    '    Call genereBilans.GenereBilanStructure()
+    'End Sub
 End Class

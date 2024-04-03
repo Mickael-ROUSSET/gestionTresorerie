@@ -4,6 +4,7 @@ Imports System.Text.RegularExpressions
 Imports System
 Imports DocumentFormat.OpenXml.Office.Word
 Imports DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing
+Imports System.Data.SqlClient
 Public Class Mouvements
     Private _note As String
     Private _categorie As String
@@ -36,6 +37,22 @@ Public Class Mouvements
             Me.NumeroRemise = numeroRemise
         End If
     End Sub
+    Public Shared Function existe(ByVal dateMvt As Date, ByVal montant As String, ByVal sens As String) As Boolean
+        ' Vérifie si le mouvement existe déjà
+        Dim bExiste As Boolean = False
+        Dim monMvt As SqlCommand
+        Dim myReader As SqlDataReader
+        Dim sDate As String
+
+        sDate = dateMvt.Year.ToString & "-" & dateMvt.Month.ToString & "-" & dateMvt.Day.ToString
+        monMvt = New SqlCommand("SELECT count(*) FROM Mouvements where dateMvt = '" & sDate & "' and montant = '" & montant & "' and sens = '" & sens & "';", FrmPrincipale.myConn)
+        myReader = monMvt.ExecuteReader()
+        Do While myReader.Read()
+            bExiste = (myReader.GetInt32(0) > 0)
+        Loop
+        myReader.Close()
+        Return bExiste
+    End Function
     Public Shared Function VerifParam(note As String, categorie As String, sousCategorie As String, tiers As String, dateMvt As Date, montant As String, sens As String, etat As String, événement As String, type As String, modifiable As Boolean, numeroRemise As String) As Boolean
         Dim bToutEstLa As Boolean = False
         If categorie <> "" And sousCategorie <> "" And tiers <> "" And IsDate(dateMvt) And sens <> "" And etat <> "" And type <> "" Then
