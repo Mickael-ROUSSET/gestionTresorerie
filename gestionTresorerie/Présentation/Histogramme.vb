@@ -5,6 +5,7 @@ Public Class frmHistogramme
     Public Sub creeChart(ByVal titre As String, ByVal valeurs() As Decimal, ByVal legende() As String)
         'https://plasserre.developpez.com/cours/chart/#LIII-C-1
         Dim i As Integer
+        Dim sLegende As String
 
         'Supprimer tous les points
         ChartBilan.Series("Series1").Points.Clear()
@@ -12,8 +13,22 @@ Public Class frmHistogramme
         'ChartBilan.Titles.Add(titre)
         ChartBilan.ChartAreas(0).AxisX.Title = "Catégorie"
         ChartBilan.ChartAreas(0).AxisY.Title = "Montant"
+        ' Set the Series style
+        'ChartBilan.ChartAreas(0).BackColor = Color.Red
+        ChartBilan.ChartAreas(0).BorderColor = Color.Violet
+        'ChartBilan.Series.Style.ShadowInterior = New Syncfusion.Drawing.BrushInfo(Color.White)
+        'ChartBilan.Series.Style.ShadowOffset = New Size(3, 3
+        ChartBilan.Palette = ChartColorPalette.Fire
+        ChartBilan.Series("Series1").MarkerStyle = MarkerStyle.Diamond
+        ' Met un  Gradient sur la couleur du fond
+        ChartBilan.BackGradientStyle = GradientStyle.DiagonalRight
+        'Le LightStyle modifie la lumière : la couleur des côtés et du dessus des colonnes change  
+        ChartBilan.ChartAreas("ChartArea1").Area3DStyle.LightStyle = LightStyle.Realistic
+        ChartBilan.Series("Series1").BorderColor = Color.Bisque
         For i = 0 To UBound(valeurs) - 1
-            ChartBilan.Series("Series1").Points.AddXY((i), valeurs(i))
+            sLegende = Str(i) & "_" & Strings.Replace(legende(i), " ", "")
+            ChartBilan.Series("Series1").Points.AddXY(sLegende, valeurs(i))
+            ChartBilan.Series("Series1").Points(i).Color = arrColor(i Mod (UBound(arrColor) - 1))
         Next
         'ChartBilan.Series("Series1").IsXValueIndexed = False
         'ChartBilan.ChartAreas("ChartArea1").RecalculateAxesScale()
@@ -49,104 +64,104 @@ Public Class frmHistogramme
     '    'Width = cpt_Right + marge
 
     'End Sub
-    Public Function Histogramme(ByVal _titre As String, ByVal _valeurs() As Decimal, ByVal _legende() As String,
-                                  ByVal _top As Integer, ByVal _left As Integer,
-                                  ByVal _hauteur As Integer, ByVal _largeurBarre As Integer,
-                                  Optional ByVal _interval As Integer = 0) As PictureBox
-        'Contrôles sur le nb de valeurs
-        Dim nbBarres As Integer = _valeurs.Length : If nbBarres < 0 Then Return Nothing
-        If nbBarres > _legende.Length Then Return Nothing
-        'Largeur de l'histogramme
-        Dim ctl_Largeur As Integer = (nbBarres * _largeurBarre) + ((nbBarres - 1) * _interval)
-        'Définition des marges gauche et bas
-        Dim cpt_Left As Integer = IIf(_left < 10, 10, _left)
-        Dim ctl_Bas As Integer = IIf(_top < 10, 10, _top) + IIf(_hauteur < 20, 20, _hauteur)
-        Dim cpt_Hauteur As Integer = 0                          ' compteur
-        Dim lbl_Hauteur As Integer = maFont.Size / maFont.FontFamily.GetCellAscent(0) * maFont.FontFamily.GetEmHeight(0) * 1.8
-        Dim lbl_Largeur As Integer = 0
-        Dim nbCouleursDisponibles As Integer = UBound(arrColor) - 1
-        Dim monImage As Image
+    'Public Function Histogramme(ByVal _titre As String, ByVal _valeurs() As Decimal, ByVal _legende() As String,
+    '                              ByVal _top As Integer, ByVal _left As Integer,
+    '                              ByVal _hauteur As Integer, ByVal _largeurBarre As Integer,
+    '                              Optional ByVal _interval As Integer = 0) As PictureBox
+    '    'Contrôles sur le nb de valeurs
+    '    Dim nbBarres As Integer = _valeurs.Length : If nbBarres < 0 Then Return Nothing
+    '    If nbBarres > _legende.Length Then Return Nothing
+    '    'Largeur de l'histogramme
+    '    Dim ctl_Largeur As Integer = (nbBarres * _largeurBarre) + ((nbBarres - 1) * _interval)
+    '    'Définition des marges gauche et bas
+    '    Dim cpt_Left As Integer = IIf(_left < 10, 10, _left)
+    '    Dim ctl_Bas As Integer = IIf(_top < 10, 10, _top) + IIf(_hauteur < 20, 20, _hauteur)
+    '    Dim cpt_Hauteur As Integer = 0                          ' compteur
+    '    Dim lbl_Hauteur As Integer = maFont.Size / maFont.FontFamily.GetCellAscent(0) * maFont.FontFamily.GetEmHeight(0) * 1.8
+    '    Dim lbl_Largeur As Integer = 0
+    '    Dim nbCouleursDisponibles As Integer = UBound(arrColor) - 1
+    '    Dim monImage As Image
 
-        ' ----- Barres :
-        Dim maBColor, maFColor As Color
-        Dim valMax As Decimal = MaxTableau(_valeurs)
-        For i As Integer = 0 To nbBarres - 1
-            'If _valeurs(i) < 0 Then _valeurs(i) = 0
-            'cpt_Hauteur = _hauteur / 100 * _valeurs(i)
-            'todo : gérer le cas MaxTableau = 0
-            'cpt_Hauteur = MaxTableau(_valeurs) * _top / MaxTableau(_valeurs)
-            'Dim cpt_Hauteur As Integer = MaxTableau(_valeurs)
-            cpt_Hauteur = _hauteur / valMax * _valeurs(i)
-            Dim ctl_Top As Integer = _top + _hauteur - cpt_Hauteur
-            If _valeurs(i) <= 2 Then
-                ctl_Top -= 1        ' on triche juste ce qu'il faut, c'est pour capter le ToolTip !
-                cpt_Hauteur += 1
-            End If
-            Try
-                picBRectangles = New PictureBox With {.Left = cpt_Left, .Top = ctl_Top, .Width = _largeurBarre, .Height = cpt_Hauteur, .BackColor = arrColor(i Mod nbCouleursDisponibles)}
-                'Me.Show()
-                'Me.TopMost = True
-                'monImage = P.Image
-                'monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image1.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
-            Catch ex As Exception
-                Console.WriteLine(ex.Message)
-            End Try
-            ToolTipHisto.SetToolTip(picBRectangles, " " & _legende(i) & " " & _valeurs(i) & " % ")
-            Controls.Add(picBRectangles)
-            ' ----- Valeurs :
-            If _valeurs(i) > 0.5 * valMax Then
-                ctl_Top = picBRectangles.Top
-                maBColor = arrColor(i Mod nbCouleursDisponibles)
-                maFColor = Color.Wheat
-            ElseIf _valeurs(i) < 0.05 * valMax Then
-                ctl_Top = picBRectangles.Top - 20
-                maBColor = Color.Tan
-                maFColor = Color.Black
-            Else
-                ctl_Top = picBRectangles.Top - 15
-                maBColor = Color.Tan
-                maFColor = Color.Black
-            End If
-            lblValeurs = New Label With {.Left = cpt_Left, .Top = ctl_Top, .Width = _largeurBarre, .BackColor = maBColor,
-                                .ForeColor = maFColor, .Text = _valeurs(i), .TextAlign = ContentAlignment.TopCenter,
-                                .FlatStyle = FlatStyle.System, .Font = maFontBold, .Height = 12}
-            Controls.Add(lblValeurs)
-            'L.Image.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image5.jpg")
-            lblValeurs.BringToFront()
-            cpt_Left += _largeurBarre + _interval
-        Next
-        ' ----- Barre des 50% :
-        'P = New PictureBox With {.Top = _top + (_hauteur / 2), .Left = _left, .Width = ctl_Largeur, .Height = 1, .BackColor = Color.DarkMagenta}
-        'monImage = P.Image
-        'monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image1.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
-        Controls.Add(picBRectangles)
+    '    ' ----- Barres :
+    '    Dim maBColor, maFColor As Color
+    '    Dim valMax As Decimal = MaxTableau(_valeurs)
+    '    For i As Integer = 0 To nbBarres - 1
+    '        'If _valeurs(i) < 0 Then _valeurs(i) = 0
+    '        'cpt_Hauteur = _hauteur / 100 * _valeurs(i)
+    '        'todo : gérer le cas MaxTableau = 0
+    '        'cpt_Hauteur = MaxTableau(_valeurs) * _top / MaxTableau(_valeurs)
+    '        'Dim cpt_Hauteur As Integer = MaxTableau(_valeurs)
+    '        cpt_Hauteur = _hauteur / valMax * _valeurs(i)
+    '        Dim ctl_Top As Integer = _top + _hauteur - cpt_Hauteur
+    '        If _valeurs(i) <= 2 Then
+    '            ctl_Top -= 1        ' on triche juste ce qu'il faut, c'est pour capter le ToolTip !
+    '            cpt_Hauteur += 1
+    '        End If
+    '        Try
+    '            picBRectangles = New PictureBox With {.Left = cpt_Left, .Top = ctl_Top, .Width = _largeurBarre, .Height = cpt_Hauteur, .BackColor = arrColor(i Mod nbCouleursDisponibles)}
+    '            'Me.Show()
+    '            'Me.TopMost = True
+    '            'monImage = P.Image
+    '            'monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image1.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
+    '        Catch ex As Exception
+    '            Console.WriteLine(ex.Message)
+    '        End Try
+    '        ToolTipHisto.SetToolTip(picBRectangles, " " & _legende(i) & " " & _valeurs(i) & " % ")
+    '        Controls.Add(picBRectangles)
+    '        ' ----- Valeurs :
+    '        If _valeurs(i) > 0.5 * valMax Then
+    '            ctl_Top = picBRectangles.Top
+    '            maBColor = arrColor(i Mod nbCouleursDisponibles)
+    '            maFColor = Color.Wheat
+    '        ElseIf _valeurs(i) < 0.05 * valMax Then
+    '            ctl_Top = picBRectangles.Top - 20
+    '            maBColor = Color.Tan
+    '            maFColor = Color.Black
+    '        Else
+    '            ctl_Top = picBRectangles.Top - 15
+    '            maBColor = Color.Tan
+    '            maFColor = Color.Black
+    '        End If
+    '        lblValeurs = New Label With {.Left = cpt_Left, .Top = ctl_Top, .Width = _largeurBarre, .BackColor = maBColor,
+    '                            .ForeColor = maFColor, .Text = _valeurs(i), .TextAlign = ContentAlignment.TopCenter,
+    '                            .FlatStyle = FlatStyle.System, .Font = maFontBold, .Height = 12}
+    '        Controls.Add(lblValeurs)
+    '        'L.Image.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image5.jpg")
+    '        lblValeurs.BringToFront()
+    '        cpt_Left += _largeurBarre + _interval
+    '    Next
+    '    ' ----- Barre des 50% :
+    '    'P = New PictureBox With {.Top = _top + (_hauteur / 2), .Left = _left, .Width = ctl_Largeur, .Height = 1, .BackColor = Color.DarkMagenta}
+    '    'monImage = P.Image
+    '    'monImage.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image1.jpg ", System.Drawing.Imaging.ImageFormat.Jpeg)
+    '    Controls.Add(picBRectangles)
 
-        ' ----- Titre sous le graphe :
-        lblValeurs = New Label With {.Text = _titre, .Font = maFont, .Left = _left, .Top = _top + _hauteur + 5,
-                            .TextAlign = ContentAlignment.MiddleLeft, .FlatStyle = FlatStyle.System, .AutoSize = True}
-        Controls.Add(lblValeurs)
-        'L.Image.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image6.jpg")
+    '    ' ----- Titre sous le graphe :
+    '    lblValeurs = New Label With {.Text = _titre, .Font = maFont, .Left = _left, .Top = _top + _hauteur + 5,
+    '                        .TextAlign = ContentAlignment.MiddleLeft, .FlatStyle = FlatStyle.System, .AutoSize = True}
+    '    Controls.Add(lblValeurs)
+    '    'L.Image.Save("C:\Users\User\source\repos\gestionTresorerie\ressources\image6.jpg")
 
-        ' ----- Légende (nuancier + étiquettes ) :
-        cpt_Left += 5 - _interval       ' marge de 5 pixels entre le graph et les carrés et entre les carrés et les étiquettes
-        For i As Integer = nbBarres - 1 To 0 Step -1
-            picBRectangles = New PictureBox With {.Top = ctl_Bas - 10, .Left = cpt_Left, .Width = 10, .Height = 10, .BackColor = arrColor(i Mod 7)}
-            lblValeurs = New Label With {.Top = ctl_Bas - 12, .Left = cpt_Left + 10, .Text = _legende(i), .AutoSize = True}
-            If lblValeurs.Width > lbl_Largeur Then lbl_Largeur = lblValeurs.Width
-            ctl_Bas -= lbl_Hauteur - 4
-            ToolTipHisto.SetToolTip(picBRectangles, " " & _valeurs(i) & " % ")
-            ToolTipHisto.SetToolTip(lblValeurs, " " & _valeurs(i) & " % ")  ' et la valeur si on ne peut pas la capter (=0) dans le graphe
-            Controls.Add(picBRectangles)
-            Controls.Add(lblValeurs)
-        Next
+    '    ' ----- Légende (nuancier + étiquettes ) :
+    '    cpt_Left += 5 - _interval       ' marge de 5 pixels entre le graph et les carrés et entre les carrés et les étiquettes
+    '    For i As Integer = nbBarres - 1 To 0 Step -1
+    '        picBRectangles = New PictureBox With {.Top = ctl_Bas - 10, .Left = cpt_Left, .Width = 10, .Height = 10, .BackColor = arrColor(i Mod 7)}
+    '        lblValeurs = New Label With {.Top = ctl_Bas - 12, .Left = cpt_Left + 10, .Text = _legende(i), .AutoSize = True}
+    '        If lblValeurs.Width > lbl_Largeur Then lbl_Largeur = lblValeurs.Width
+    '        ctl_Bas -= lbl_Hauteur - 4
+    '        ToolTipHisto.SetToolTip(picBRectangles, " " & _valeurs(i) & " % ")
+    '        ToolTipHisto.SetToolTip(lblValeurs, " " & _valeurs(i) & " % ")  ' et la valeur si on ne peut pas la capter (=0) dans le graphe
+    '        Controls.Add(picBRectangles)
+    '        Controls.Add(lblValeurs)
+    '    Next
 
-        ' ----- Cadre Fond :
-        picBRectangles = New PictureBox With {.Top = _top, .Left = _left, .Width = ctl_Largeur, .Height = _hauteur, .BackColor = Color.Black}
-        monImage = picBRectangles.Image
-        Controls.Add(picBRectangles)
+    '    ' ----- Cadre Fond :
+    '    picBRectangles = New PictureBox With {.Top = _top, .Left = _left, .Width = ctl_Largeur, .Height = _hauteur, .BackColor = Color.Black}
+    '    monImage = picBRectangles.Image
+    '    Controls.Add(picBRectangles)
 
-        Return picBRectangles
-    End Function
+    '    Return picBRectangles
+    'End Function
 
     'TODO à sortir dans un module de copie d'écran si cela marche
     Private Declare Function BitBlt Lib "GDI32" (ByVal hDestDC As IntPtr, ByVal X As Integer, ByVal Y As Integer, ByVal nWidth As Integer, ByVal nHeight As Integer, ByVal hSrcDC As IntPtr, ByVal SrcX As Integer, ByVal SrcY As Integer, ByVal Rop As Integer) As Integer
@@ -187,17 +202,17 @@ Public Class frmHistogramme
     '    BmpGraph.Dispose() 'libere toutes les ressources crées par l'objet (useless?)
     '    Return resultBmp
     'End Function
-    Private Function MaxTableau(tab() As Decimal) As Decimal
-        'TODO gérer les valeurs négatives
-        Dim i As Integer
-        Dim maxTemp As Decimal = 0
-        For i = 0 To UBound(tab) - 1
-            If tab(i) > maxTemp Then
-                maxTemp = tab(i)
-            End If
-        Next
-        Return maxTemp
-    End Function
+    'Private Function MaxTableau(tab() As Decimal) As Decimal
+    '    'TODO gérer les valeurs négatives
+    '    Dim i As Integer
+    '    Dim maxTemp As Decimal = 0
+    '    For i = 0 To UBound(tab) - 1
+    '        If tab(i) > maxTemp Then
+    '            maxTemp = tab(i)
+    '        End If
+    '    Next
+    '    Return maxTemp
+    'End Function
 
 
     'Private Sub Form1_Load(ByVal s As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load

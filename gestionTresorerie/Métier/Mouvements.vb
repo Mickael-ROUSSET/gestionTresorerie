@@ -45,7 +45,7 @@ Public Class Mouvements
         Dim sDate As String
 
         sDate = dateMvt.Year.ToString & "-" & dateMvt.Month.ToString & "-" & dateMvt.Day.ToString
-        monMvt = New SqlCommand("SELECT count(*) FROM Mouvements where dateMvt = '" & sDate & "' and montant = '" & montant & "' and sens = '" & sens & "';", FrmPrincipale.myConn)
+        monMvt = New SqlCommand("SELECT count(*) FROM Mouvements where dateMvt = '" & sDate & "' and montant = '" & montant & "' and sens = '" & sens & "';", FrmPrincipale.maConn)
         myReader = monMvt.ExecuteReader()
         Do While myReader.Read()
             bExiste = (myReader.GetInt32(0) > 0)

@@ -10,7 +10,7 @@
 		<categorieDefaut>Entretien et reparation</categorieDefaut>
 		<sousCategorieDefaut>Materiel : AFC</sousCategorieDefaut>
 	</tiers>
-		<raisonSociale>AGUMAAA</raisonSociale>
+	<raisonSociale>AGUMAAA</raisonSociale>
 	<tiers>
 		<raisonSociale>AIST 43</raisonSociale>
 		<categorieDefaut>Cotisations sociales</categorieDefaut>
@@ -18,13 +18,13 @@
 	</tiers>
 	<tiers>
 		<raisonSociale>Allegre Festivites</raisonSociale>
-	</tiers> 
+	</tiers>
 	<tiers>
 		<raisonSociale>Klesia</raisonSociale>
 	</tiers>
 	<tiers>
-		<raisonSociale>Amicale Laïque</raisonSociale>
-	</tiers> 
+		<raisonSociale>Amicale Laique</raisonSociale>
+	</tiers>
 	<tiers>
 		<raisonSociale>Association Germaine Tillion</raisonSociale>
 		<categorieDefaut>Frais de personnel interne</categorieDefaut>
@@ -35,6 +35,8 @@
 	</tiers>
 	<tiers>
 		<raisonSociale>Au bon pain (Montagnon)</raisonSociale>
+		<categorieDefaut>Achats</categorieDefaut>
+		<sousCategorieDefaut>Achats de marchandises (pour revente)</sousCategorieDefaut>
 	</tiers>
 	<tiers>
 		<raisonSociale>Auchan</raisonSociale>
@@ -43,12 +45,14 @@
 	</tiers>
 	<tiers>
 		<raisonSociale>BRASSERIE DE L'ARZON</raisonSociale>
+		<categorieDefaut>Achats</categorieDefaut>
+		<sousCategorieDefaut>Achats de marchandises (pour revente)</sousCategorieDefaut>
 	</tiers>
 	<tiers>
 		<raisonSociale>Casino</raisonSociale>
 		<categorieDefaut>Achats</categorieDefaut>
 		<sousCategorieDefaut>Achats de marchandises (pour revente)</sousCategorieDefaut>
-	</tiers> 
+	</tiers>
 	<tiers>
 		<raisonSociale>Centrakor</raisonSociale>
 		<categorieDefaut>Achats</categorieDefaut>
@@ -58,7 +62,7 @@
 		<raisonSociale>CER France</raisonSociale>
 		<categorieDefaut>Cotisations et licence versees</categorieDefaut>
 		<sousCategorieDefaut>Cotisations et licences versees (a preciser)</sousCategorieDefaut>
-	</tiers> 
+	</tiers>
 	<tiers>
 		<raisonSociale>Cinema AGUMAAA</raisonSociale>
 	</tiers>
@@ -66,7 +70,7 @@
 		<raisonSociale>Cinevasion</raisonSociale>
 		<categorieDefaut>Cotisations et licence versees</categorieDefaut>
 		<sousCategorieDefaut>Cotisations a l'instance Nationale</sousCategorieDefaut>
-	</tiers> 
+	</tiers>
 	<tiers>
 		<raisonSociale>Colporteuses de Legendes</raisonSociale>
 	</tiers>
@@ -77,7 +81,7 @@
 		<raisonSociale>Comite de jumelage</raisonSociale>
 	</tiers>
 	<tiers>
-		<raisonSociale>Commerçants</raisonSociale>
+		<raisonSociale>Commercants</raisonSociale>
 		<categorieDefaut>Cotisations et licence versees</categorieDefaut>
 		<sousCategorieDefaut>Cotisations et licences versees (a preciser)</sousCategorieDefaut>
 	</tiers>
@@ -88,7 +92,7 @@
 	</tiers>
 	<tiers>
 		<raisonSociale>Cultura</raisonSociale>
-	</tiers> 
+	</tiers>
 	<tiers>
 		<raisonSociale>Equip Bureau - Fournitures diverses</raisonSociale>
 		<categorieDefaut>Achats</categorieDefaut>
@@ -99,7 +103,7 @@
 	</tiers>
 	<tiers>
 		<raisonSociale>Fonds de caisse</raisonSociale>
-	</tiers> 
+	</tiers>
 	<tiers>
 		<raisonSociale>Hexopee</raisonSociale>
 	</tiers>
@@ -107,16 +111,15 @@
 		<raisonSociale>Humanis</raisonSociale>
 	</tiers>
 	<tiers>
-		<raisonSociale>Impôts</raisonSociale>
+		<raisonSociale>Impots</raisonSociale>
+		<categorieDefaut>Achats</categorieDefaut>
+		<sousCategorieDefaut>Achats de marchandises (pour revente)</sousCategorieDefaut>
+	</tiers> 
+	<tiers>
+		<raisonSociale>Intermarche Saint-Paulien</raisonSociale>
 		<categorieDefaut>Achats</categorieDefaut>
 		<sousCategorieDefaut>Achats de marchandises (pour revente)</sousCategorieDefaut>
 	</tiers>
-	<tiers>
-		<raisonSociale>Inconnu</raisonSociale>
-	</tiers>
-	<tiers>
-		<raisonSociale>Intermarche Saint-Paulien</raisonSociale>
-	</tiers> 
 	<tiers>
 		<raisonSociale>Kiloutou</raisonSociale>
 	</tiers>
@@ -131,43 +134,47 @@
 	</tiers>
 	<tiers>
 		<raisonSociale>La Poste</raisonSociale>
-	</tiers> 
+	</tiers>
 	<tiers>
 		<raisonSociale>Les amis de la Merisaie</raisonSociale>
-	</tiers> 
+	</tiers>
 	<tiers>
 		<raisonSociale>MAIF</raisonSociale>
 	</tiers>
 	<tiers>
 		<raisonSociale>Mairie d'Allegre</raisonSociale>
-	</tiers> 
+	</tiers>
 	<tiers>
 		<raisonSociale>MSA</raisonSociale>
-	</tiers> 
+	</tiers>
 	<tiers>
 		<raisonSociale>Participants Marche de Noel</raisonSociale>
-	</tiers> 
+	</tiers>
 	<tiers>
 		<raisonSociale>SACEM</raisonSociale>
 	</tiers>
 	<tiers>
 		<raisonSociale>Saveurs d'Ailleurs</raisonSociale>
-	</tiers> 
+	</tiers>
 	<tiers>
 		<raisonSociale>Super U Aiguilhe</raisonSociale>
-	</tiers> 
+		<categorieDefaut>Achats</categorieDefaut>
+		<sousCategorieDefaut>Achats de marchandises (pour revente)</sousCategorieDefaut>
+	</tiers>
 	<tiers>
-		<raisonSociale>Theâtre Masini</raisonSociale>
-	</tiers> 
+		<raisonSociale>Theatre Masini</raisonSociale>
+	</tiers>
 	<tiers>
 		<raisonSociale>Truite de Vourzac</raisonSociale>
+		<categorieDefaut>Achats</categorieDefaut>
+		<sousCategorieDefaut>Achats de marchandises (pour revente)</sousCategorieDefaut>
 	</tiers>
 	<tiers>
 		<raisonSociale>URSSAF AUVERGNE</raisonSociale>
-	</tiers> 
+	</tiers>
 	<tiers>
 		<raisonSociale>Versement Allegre</raisonSociale>
-	</tiers> 
+	</tiers>
 	<tiers>
 		<raisonSociale>Virement de compte a compte</raisonSociale>
 	</tiers>

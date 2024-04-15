@@ -2,15 +2,18 @@
 Imports System.Data.SqlClient
 Imports System.IO
 Imports System.Windows.Forms.VisualStyles.VisualStyleElement
+Imports DocumentFormat.OpenXml.Packaging
+Imports DocumentFormat.OpenXml.Wordprocessing
 Imports gestionTresorerie.My
 
 Public Class FrmPrincipale
 
     Inherits System.Windows.Forms.Form
     'Create ADO.NET objects.
-    Public myConn As SqlConnection
-    Private myCmd As SqlCommand
-    Private myReader As SqlDataReader
+    Public maConnexionDB As New connexionDB
+    Public Shared maConn As SqlConnection
+    Private maCmd As SqlCommand
+    Private monReader As SqlDataReader
     Private results As String
 
     Public Property Properties As Object
@@ -19,23 +22,33 @@ Public Class FrmPrincipale
         Call LectureBase()
     End Sub
     Private Sub FrmPrincipale_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        myConn = New SqlConnection(GetConnectionString())
-        Call CreeConnexion()
+        Try
+            Call initialisations()
+        Catch ex As Exception
+            Console.WriteLine("FrmPrincipale_Load : " & ex.Message)
+        End Try
     End Sub
-    Private Function GetConnectionString() As String
-        ' To avoid storing the connection string in your code, you can retrieve it from a configuration file.
-        'Return "Data Source=MSSQL1;Initial Catalog=AdventureWorks;" & "Integrated Security=true;"
-        'Return "Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf";Integrated Security=True;Connect Timeout=30"
-        Dim builder As New System.Data.SqlClient.SqlConnectionStringBuilder
-        builder("Data Source") = "(LocalDB)\MSSQLLocalDB"
-        builder("AttachDbFilename") = My.Settings.ficBddDonnees
-        builder("Integrated Security") = True
-        builder("Connect Timeout") = 30
-        Return builder.ConnectionString
-    End Function
+
+    Private Sub initialisations()
+        Dim maConnexionDB As New connexionDB
+        maConn = maConnexionDB.getConnexion
+        FrmSaisie.chargeListes(maConn)
+    End Sub
+    'Private Function GetConnectionString() As String
+    '    ' To avoid storing the connection string in your code, you can retrieve it from a configuration file.
+    '    'Return "Data Source=MSSQL1;Initial Catalog=AdventureWorks;" & "Integrated Security=true;"
+    '    'Return "Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf";Integrated Security=True;Connect Timeout=30"
+    '    Dim builder As New System.Data.SqlClient.SqlConnectionStringBuilder
+    '    builder("Data Source") = "(LocalDB)\MSSQLLocalDB"
+    '    builder("AttachDbFilename") = My.Settings.ficBddDonnees
+    '    builder("Integrated Security") = True
+    '    builder("Connect Timeout") = 30
+    '    Debug.Print("builder.ConnectionString : " & builder.ConnectionString)
+    '    Return builder.ConnectionString
+    'End Function
     Private Sub LectureBase()
-        Dim myReaderCategorie As SqlDataReader
-        Dim myReaderSousCategorie As SqlDataReader
+        Dim monReaderCategorie As SqlDataReader
+        Dim monReaderSousCategorie As SqlDataReader
         Dim tabLegendes() As String = Array.Empty(Of String)()
         Dim tabCatégorie() As String = Array.Empty(Of String)()
         Dim tabValeurs() As Decimal = Array.Empty(Of Decimal)()
@@ -43,51 +56,54 @@ Public Class FrmPrincipale
         Dim myCmdSousCategorie As SqlCommand
         Dim i As Integer, iNbCat As Integer
         Dim sNomImage As String
+        Dim para As Paragraph
 
         Call creeOpenXml.creeDoc(My.Settings.ficBilan)
-        'Call CreateAndAddParagraphStyle()
-        myCmdCategorie = New SqlCommand("SELECT distinct catégorie FROM Mouvements ;", myConn)
-        myReaderCategorie = myCmdCategorie.ExecuteReader()
-        Do While myReaderCategorie.Read()
+        'Dim styleDefinitionsPart As StyleDefinitionsPart = creeOpenXml.AddStylesPartToPackage(My.Settings.ficBilan)
+        'Call creeOpenXml.CreateAndAddParagraphStyle(styleDefinitionsPart, "monStyle", "monStyle")
+        myCmdCategorie = New SqlCommand("SELECT distinct catégorie FROM Mouvements ;", maConn)
+        monReaderCategorie = myCmdCategorie.ExecuteReader()
+        Do While monReaderCategorie.Read()
             ReDim Preserve tabCatégorie(UBound(tabCatégorie) + 1)
-            tabCatégorie(i) = myReaderCategorie.GetSqlString(0)
+            tabCatégorie(i) = monReaderCategorie.GetSqlString(0)
             i += 1
         Loop
-        myReaderCategorie.Close()
+        monReaderCategorie.Close()
 
         For iNbCat = 0 To UBound(tabCatégorie)
-            'For iNbCat = 0 To 0
             ReDim tabLegendes(0)
             ReDim tabValeurs(0)
-            myCmdSousCategorie = New SqlCommand("SELECT sousCatégorie, sum(montant) FROM Mouvements where catégorie = '" & tabCatégorie(iNbCat) & "' group by sousCatégorie;", myConn)
-            Call creeOpenXml.ajouteParagraphe(My.Settings.ficBilan, tabCatégorie(iNbCat))
-            myReaderSousCategorie = myCmdSousCategorie.ExecuteReader()
+            myCmdSousCategorie = New SqlCommand("SELECT sousCatégorie, sum(montant) FROM Mouvements where catégorie = '" & tabCatégorie(iNbCat) & "' group by sousCatégorie order by sum(montant) desc;", maConn)
+            para = creeOpenXml.ajouteParagraphe(My.Settings.ficBilan, vbCrLf)
+            para = creeOpenXml.ajouteParagraphe(My.Settings.ficBilan, tabCatégorie(iNbCat))
+            'Call ApplyStyleToParagraph(My.Settings.ficBilan, "monStyle", "monStyle", para)
+            monReaderSousCategorie = myCmdSousCategorie.ExecuteReader()
             i = 0
             'Supprime tous les controls de la fenêtre (=> les images précédentes)
             'Call SupprimeControlesfenetre(frmHistogramme)
-            Do While myReaderSousCategorie.Read()
+            Do While monReaderSousCategorie.Read()
                 Try
                     ReDim Preserve tabLegendes(UBound(tabLegendes) + 1)
-                    tabLegendes(i) = CStr(myReaderSousCategorie.GetSqlString(0))
+                    tabLegendes(i) = CStr(monReaderSousCategorie.GetSqlString(0))
                     ReDim Preserve tabValeurs(UBound(tabValeurs) + 1)
-                    tabValeurs(i) = myReaderSousCategorie.GetDecimal(1)
+                    tabValeurs(i) = monReaderSousCategorie.GetDecimal(1)
                 Catch ex As Exception
                     Console.WriteLine(ex.Message)
                 End Try
                 i += 1
             Loop
-            myReaderSousCategorie.Close()
-            'Call frmHistogramme.Histogramme("Montants par sous-catégorie : " & tabCatégorie(iNbCat), tabValeurs, tabLegendes, 20, 40, 500, 30, 10)
+            monReaderSousCategorie.Close()
             Call frmHistogramme.creeChart("Montants par sous-catégorie : " & tabCatégorie(iNbCat), tabValeurs, tabLegendes)
             frmHistogramme.Show()
             sNomImage = "C:\Users\User\Downloads\frmHistogramme" & iNbCat & ".png"
             'URL : https://stackoverflow.com/questions/37825662/how-to-save-the-whole-windows-form-as-image-vb-net
             Using bmp = New Bitmap(frmHistogramme.Width, frmHistogramme.Height)
                 frmHistogramme.DrawToBitmap(bmp, New Rectangle(0, 0, bmp.Width, bmp.Height))
+                'Supprime l'image si elle existe déjà
                 Try
                     My.Computer.FileSystem.DeleteFile(sNomImage, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.DeletePermanently, Microsoft.VisualBasic.FileIO.UICancelOption.DoNothing)
                 Catch
-                    'Ne fait rien : c'est que le fichier à supprimer ne devait pas exister
+                    'Ne fait rien quand le fichier à supprimer n'existe pas
                 End Try
                 bmp.Save(sNomImage)
             End Using
@@ -102,7 +118,7 @@ Public Class FrmPrincipale
             Call creeOpenXml.ajouteTableau(My.Settings.ficBilan, data)
         Next iNbCat
 
-        myReaderCategorie.Close()
+        monReaderCategorie.Close()
     End Sub
     Private Sub SupprimeControlesfenetre(frm As Form)
         Dim i As Integer, nbControls As Integer
@@ -121,11 +137,15 @@ Public Class FrmPrincipale
     End Sub
     Private Sub CreeConnexion()
         'Open the connection.
-        myConn.Open()
+        maConn.Open()
     End Sub
     Private Sub SuprimeConnexion()
         'Close the reader and the database connection. 
-        myConn.Close()
+        Try
+            maConn.Close()
+        Catch ex As Exception
+            Debug.Print(ex.Message)
+        End Try
     End Sub
     Private Sub BtnSaisie_Click(sender As Object, e As EventArgs) Handles btnSaisie.Click
         FrmSaisie.Show()
@@ -147,7 +167,7 @@ Public Class FrmPrincipale
         ' Essaie de taper une apostrophe (') dans TextBox1, et observe le résultat ;)
         ' Ensuite, va faire un tour ici pour apprendre à régler le problème :
         ' http://johannblais.developpez.com/tutoriel/dotnet/bonnes-pratiques-acces-donnees/#LIV
-        Dim command As New System.Data.SqlClient.SqlCommand("SELECT * FROM Mouvements", myConn)
+        Dim command As New System.Data.SqlClient.SqlCommand("SELECT * FROM Mouvements", maConn)
 
         Dim dt As New DataTable
         Dim adpt As New Data.SqlClient.SqlDataAdapter(command)
@@ -172,7 +192,8 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub btnCreeBilans_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
-        creeOpenXml.Main()
+        'creeOpenXml.Main()
+        MsgBox("fonction désactivée")
     End Sub
 
     Private Sub DataGridView1_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles DataGridView1.CellContentClick
@@ -204,7 +225,7 @@ Public Class FrmPrincipale
         End With
         bExiste = Mouvements.existe(dateMvt, montant, sens)
         With FrmSaisie
-            .chargeListes()
+            .chargeListes(maConn)
             .dateMvt.Value = dateMvt
             .txtNote.Text = note
             .rbDebit.Checked = sens

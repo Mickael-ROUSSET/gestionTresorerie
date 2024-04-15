@@ -126,6 +126,36 @@ Namespace My
                 Me("ficBilan") = value
             End Set
         End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.SpecialSettingAttribute(Global.System.Configuration.SpecialSetting.ConnectionString),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=""G:\Mon Drive\AGUMAAA\Documen"& _ 
+            "ts\BacASable\bddAgumaaa.mdf"";Integrated Security=True;Connect Timeout=30")>  _
+        Public ReadOnly Property DBsource() As String
+            Get
+                Return CType(Me("DBsource"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("<?xml version=""1.0"" encoding=""utf-16""?>"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"<ArrayOfString xmlns:xsd=""http://www.w3."& _ 
+            "org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"  <s"& _ 
+            "tring>SELECT ssCat.libelle, sum(mvt.montant) FROM Mouvements mvt, sousCategorie "& _ 
+            "ssCat where ssCat.id = mvt.tabCategorie and mvt.Categorie = '%Id' group by sscat"& _ 
+            ".id order by sum(mvt.montant) desc;</string>"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"  <string>SELECT evt.libelle, sum("& _ 
+            "mvt.montant) FROM Mouvements mvt, Evenements evt where evt.id = mvt.tabCategorie"& _ 
+            " and mvt.événement = '%Id' group by événement.id order by événement.id desc;</st"& _ 
+            "ring>"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"  <string />"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"</ArrayOfString>")>  _
+        Public Property Requetes() As Global.System.Collections.Specialized.StringCollection
+            Get
+                Return CType(Me("Requetes"),Global.System.Collections.Specialized.StringCollection)
+            End Get
+            Set
+                Me("Requetes") = value
+            End Set
+        End Property
     End Class
 End Namespace
 

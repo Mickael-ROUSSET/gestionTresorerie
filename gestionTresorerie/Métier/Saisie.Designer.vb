@@ -22,6 +22,7 @@ Partial Class frmSaisie
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
+        components = New ComponentModel.Container()
         lblType = New Label()
         dateMvt = New DateTimePicker()
         lblTiers = New Label()
@@ -37,8 +38,7 @@ Partial Class frmSaisie
         GroupBox1 = New GroupBox()
         rbCree = New RadioButton()
         rbRapproche = New RadioButton()
-        btnDessin = New Button()
-        picGraph1 = New PictureBox()
+        btnInsereTiers = New Button()
         btnHistogramme = New Button()
         lblRemise = New Label()
         txtRemise = New TextBox()
@@ -50,9 +50,18 @@ Partial Class frmSaisie
         cbSousCategorie = New ComboBox()
         cbEvénement = New ComboBox()
         Button1 = New Button()
+        dgvTiers = New DataGridView()
+        MouvementsBindingSource1 = New BindingSource(components)
+        MouvementsBindingSource = New BindingSource(components)
+        dgvCategorie = New DataGridView()
+        dgvSousCategorie = New DataGridView()
         grpSens.SuspendLayout()
         GroupBox1.SuspendLayout()
-        CType(picGraph1, ComponentModel.ISupportInitialize).BeginInit()
+        CType(dgvTiers, ComponentModel.ISupportInitialize).BeginInit()
+        CType(MouvementsBindingSource1, ComponentModel.ISupportInitialize).BeginInit()
+        CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
+        CType(dgvCategorie, ComponentModel.ISupportInitialize).BeginInit()
+        CType(dgvSousCategorie, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
         ' 
         ' lblType
@@ -202,27 +211,19 @@ Partial Class frmSaisie
         rbRapproche.Text = "Rapproché"
         rbRapproche.UseVisualStyleBackColor = True
         ' 
-        ' btnDessin
+        ' btnInsereTiers
         ' 
-        btnDessin.Location = New Point(632, 428)
-        btnDessin.Name = "btnDessin"
-        btnDessin.Size = New Size(75, 23)
-        btnDessin.TabIndex = 19
-        btnDessin.Text = "Dessin"
-        btnDessin.UseVisualStyleBackColor = True
-        ' 
-        ' picGraph1
-        ' 
-        picGraph1.Location = New Point(522, 141)
-        picGraph1.Name = "picGraph1"
-        picGraph1.Size = New Size(200, 145)
-        picGraph1.TabIndex = 20
-        picGraph1.TabStop = False
+        btnInsereTiers.Location = New Point(988, 50)
+        btnInsereTiers.Name = "btnInsereTiers"
+        btnInsereTiers.Size = New Size(90, 23)
+        btnInsereTiers.TabIndex = 19
+        btnInsereTiers.Text = "Insère un tiers"
+        btnInsereTiers.UseVisualStyleBackColor = True
         ' 
         ' btnHistogramme
         ' 
         btnHistogramme.AutoSize = True
-        btnHistogramme.Location = New Point(632, 322)
+        btnHistogramme.Location = New Point(766, 338)
         btnHistogramme.Name = "btnHistogramme"
         btnHistogramme.Size = New Size(90, 25)
         btnHistogramme.TabIndex = 21
@@ -304,18 +305,65 @@ Partial Class frmSaisie
         ' 
         ' Button1
         ' 
-        Button1.Location = New Point(658, 381)
+        Button1.Location = New Point(766, 382)
         Button1.Name = "Button1"
         Button1.Size = New Size(75, 23)
         Button1.TabIndex = 32
         Button1.Text = "Button1"
         Button1.UseVisualStyleBackColor = True
         ' 
+        ' dgvTiers
+        ' 
+        dgvTiers.AllowDrop = True
+        dgvTiers.AllowUserToOrderColumns = True
+        dgvTiers.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        dgvTiers.Location = New Point(496, 50)
+        dgvTiers.MultiSelect = False
+        dgvTiers.Name = "dgvTiers"
+        dgvTiers.SelectionMode = DataGridViewSelectionMode.FullRowSelect
+        dgvTiers.Size = New Size(451, 119)
+        dgvTiers.TabIndex = 33
+        ' 
+        ' MouvementsBindingSource1
+        ' 
+        MouvementsBindingSource1.DataSource = GetType(Mouvements)
+        ' 
+        ' MouvementsBindingSource
+        ' 
+        MouvementsBindingSource.DataSource = GetType(Mouvements)
+        ' 
+        ' dgvCategorie
+        ' 
+        dgvCategorie.AllowDrop = True
+        dgvCategorie.AllowUserToOrderColumns = True
+        dgvCategorie.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        dgvCategorie.Location = New Point(496, 175)
+        dgvCategorie.MultiSelect = False
+        dgvCategorie.Name = "dgvCategorie"
+        dgvCategorie.SelectionMode = DataGridViewSelectionMode.FullRowSelect
+        dgvCategorie.Size = New Size(451, 74)
+        dgvCategorie.TabIndex = 34
+        ' 
+        ' dgvSousCategorie
+        ' 
+        dgvSousCategorie.AllowDrop = True
+        dgvSousCategorie.AllowUserToOrderColumns = True
+        dgvSousCategorie.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        dgvSousCategorie.Location = New Point(484, 272)
+        dgvSousCategorie.MultiSelect = False
+        dgvSousCategorie.Name = "dgvSousCategorie"
+        dgvSousCategorie.SelectionMode = DataGridViewSelectionMode.FullRowSelect
+        dgvSousCategorie.Size = New Size(451, 61)
+        dgvSousCategorie.TabIndex = 35
+        ' 
         ' FrmSaisie
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(873, 494)
+        ClientSize = New Size(1506, 542)
+        Controls.Add(dgvSousCategorie)
+        Controls.Add(dgvCategorie)
+        Controls.Add(dgvTiers)
         Controls.Add(Button1)
         Controls.Add(cbEvénement)
         Controls.Add(cbSousCategorie)
@@ -327,8 +375,7 @@ Partial Class frmSaisie
         Controls.Add(txtRemise)
         Controls.Add(lblRemise)
         Controls.Add(btnHistogramme)
-        Controls.Add(picGraph1)
-        Controls.Add(btnDessin)
+        Controls.Add(btnInsereTiers)
         Controls.Add(GroupBox1)
         Controls.Add(lblEvénement)
         Controls.Add(txtMontant)
@@ -346,7 +393,11 @@ Partial Class frmSaisie
         grpSens.PerformLayout()
         GroupBox1.ResumeLayout(False)
         GroupBox1.PerformLayout()
-        CType(picGraph1, ComponentModel.ISupportInitialize).EndInit()
+        CType(dgvTiers, ComponentModel.ISupportInitialize).EndInit()
+        CType(MouvementsBindingSource1, ComponentModel.ISupportInitialize).EndInit()
+        CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).EndInit()
+        CType(dgvCategorie, ComponentModel.ISupportInitialize).EndInit()
+        CType(dgvSousCategorie, ComponentModel.ISupportInitialize).EndInit()
         ResumeLayout(False)
         PerformLayout()
     End Sub
@@ -366,8 +417,7 @@ Partial Class frmSaisie
     Friend WithEvents GroupBox1 As GroupBox
     Friend WithEvents rbCree As RadioButton
     Friend WithEvents rbRapproche As RadioButton
-    Friend WithEvents btnDessin As Button
-    Friend WithEvents picGraph1 As PictureBox
+    Friend WithEvents btnInsereTiers As Button
     Friend WithEvents btnHistogramme As Button
     Friend WithEvents lblRemise As Label
     Friend WithEvents txtRemise As TextBox
@@ -379,5 +429,10 @@ Partial Class frmSaisie
     Friend WithEvents cbSousCategorie As ComboBox
     Friend WithEvents cbEvénement As ComboBox
     Friend WithEvents Button1 As Button
+    Friend WithEvents dgvTiers As DataGridView
+    Friend WithEvents MouvementsBindingSource1 As BindingSource
+    Friend WithEvents MouvementsBindingSource As BindingSource
+    Friend WithEvents dgvCategorie As DataGridView
+    Friend WithEvents dgvSousCategorie As DataGridView
 
 End Class
