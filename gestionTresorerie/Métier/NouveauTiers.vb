@@ -3,61 +3,102 @@
 Public Class frmNouveauTiers
 
     Private Sub btnCreerTiers_Click(sender As Object, e As EventArgs) Handles btnCreerTiers.Click
+        Dim listeTiers As ListeTiers
+
+        If ListeTiers Is Nothing Then
+            ListeTiers = New ListeTiers(FrmPrincipale.maConnexionDB.getConnexion)
+        End If
         If rbPersonneMorale.Checked = True Then
-            insereNouveauTiers(txtRaisonSociale.Text, CInt(txtCategorie.Text), CInt(txtSousCategorie.Text))
+            insereNouveauTiers(listeTiers, txtRaisonSociale.Text, CInt(txtCategorie.Text), CInt(txtSousCategorie.Text))
         Else
-            insereNouveauTiers(txtNom.Text, txtPrenom.Text, CInt(txtCategorie.Text), CInt(txtSousCategorie.Text))
+            insereNouveauTiers(listeTiers, txtNom.Text, txtPrenom.Text, CInt(txtCategorie.Text), CInt(txtSousCategorie.Text))
         End If
     End Sub
-    Sub insereNouveauTiers(sPrenom As String, sNom As String, Optional iCategorie As Integer = 0, Optional iSousCategorie As Integer = 0)
-        Dim maCmd As SqlCommand
-        Dim iNbLignes As Integer
+    Sub insereNouveauTiers(listeTiers As ListeTiers, sPrenom As String, sNom As String, Optional iCategorie As Integer = 0, Optional iSousCategorie As Integer = 0)
+        Dim sRequete As String
         Dim neoTiers As Tiers
-        Dim listeTiers As ListeTiers
 
-        If listeTiers Is Nothing Then
-            listeTiers = New ListeTiers(FrmPrincipale.maConnexionDB.getConnexion)
-        End If
         neoTiers = listeTiers.Add(sPrenom, sNom, iCategorie, iSousCategorie)
-        maCmd = New SqlCommand
-        With maCmd
-            .Connection = FrmPrincipale.maConn
-            .CommandText = "Insert into Tiers (prenom, nom, dateCreation, dateModification, categorieDefaut, sousCategorieDefaut) 
+        sRequete = "Insert into Tiers (prenom, nom, dateCreation, dateModification, categorieDefaut, sousCategorieDefaut) 
                values (@prenom, @nom, @dateCreation, @dateModification, @categorieDefaut, @sousCategorieDefaut)"
-        End With
-        Try
-            maCmd = AjouteParam(maCmd, neoTiers)
-            iNbLignes = maCmd.ExecuteNonQuery
-        Catch ex As Exception
-            Console.WriteLine(ex.Message)
-        End Try
-
-        MsgBox(iNbLignes & ", ligne insérée : " & neoTiers.Prénom & ", " & neoTiers.Nom)
+        Call creeNouveauTiers(sRequete, neoTiers)
     End Sub
-    Sub insereNouveauTiers(sRaisonSociale As String, Optional iCategorie As Integer = 0, Optional iSousCategorie As Integer = 0)
+    Sub insereNouveauTiers(listeTiers As ListeTiers, sRaisonSociale As String, Optional iCategorie As Integer = 0, Optional iSousCategorie As Integer = 0)
+        Dim sRequete As String
+        Dim neoTiers As Tiers
+
+        neoTiers = listeTiers.Add(sRaisonSociale, iCategorie, iSousCategorie)
+        sRequete = "Insert into Tiers (raisonSociale, dateCreation, dateModification, categorieDefaut, sousCategorieDefaut) 
+               values (@raisonSociale, @dateCreation, @dateModification, @categorieDefaut, @sousCategorieDefaut)"
+        Call creeNouveauTiers(sRequete, neoTiers)
+    End Sub
+    'Sub insereNouveauTiers(sPrenom As String, sNom As String, Optional iCategorie As Integer = 0, Optional iSousCategorie As Integer = 0)
+    '    Dim maCmd As SqlCommand
+    '    Dim iNbLignes As Integer
+    '    Dim neoTiers As Tiers
+    '    Dim listeTiers As ListeTiers
+
+    '    If listeTiers Is Nothing Then
+    '        listeTiers = New ListeTiers(FrmPrincipale.maConnexionDB.getConnexion)
+    '    End If
+    '    neoTiers = listeTiers.Add(sPrenom, sNom, iCategorie, iSousCategorie)
+    '    maCmd = New SqlCommand
+    '    With maCmd
+    '        .Connection = FrmPrincipale.maConn
+    '        .CommandText = "Insert into Tiers (prenom, nom, dateCreation, dateModification, categorieDefaut, sousCategorieDefaut) 
+    '           values (@prenom, @nom, @dateCreation, @dateModification, @categorieDefaut, @sousCategorieDefaut)"
+    '    End With
+    '    Try
+    '        maCmd = AjouteParam(maCmd, neoTiers)
+    '        iNbLignes = maCmd.ExecuteNonQuery
+    '    Catch ex As Exception
+    '        Console.WriteLine(ex.Message)
+    '    End Try
+
+    '    MsgBox(iNbLignes & ", ligne insérée : " & neoTiers.Prénom & ", " & neoTiers.Nom)
+    'End Sub
+    'Sub insereNouveauTiers(sRaisonSociale As String, Optional iCategorie As Integer = 0, Optional iSousCategorie As Integer = 0)
+    '    Dim maCmd As SqlCommand
+    '    Dim iNbLignes As Integer
+    '    Dim neoTiers As Tiers
+    '    Dim listeTiers As ListeTiers
+
+    '    If listeTiers Is Nothing Then
+    '        listeTiers = New ListeTiers(FrmPrincipale.maConnexionDB.getConnexion)
+    '    End If
+    '    neoTiers = listeTiers.Add(sRaisonSociale, iCategorie, iSousCategorie)
+    '    maCmd = New SqlCommand
+    '    With maCmd
+    '        .Connection = FrmPrincipale.maConn
+    '        .CommandText = "Insert into Tiers (raisonSociale, dateCreation, dateModification, categorieDefaut, sousCategorieDefaut) 
+    '           values (@raisonSociale, @dateCreation, @dateModification, @categorieDefaut, @sousCategorieDefaut)"
+    '    End With
+    '    Try
+    '        maCmd = AjouteParam(maCmd, neoTiers)
+    '        iNbLignes = maCmd.ExecuteNonQuery
+    '    Catch ex As Exception
+    '        Console.WriteLine(ex.Message)
+    '    End Try
+
+    '    MsgBox(iNbLignes & ", ligne insérée : " & neoTiers.RaisonSociale)
+    'End Sub
+    Sub creeNouveauTiers(sRequete As String, tiers As Tiers)
         Dim maCmd As SqlCommand
         Dim iNbLignes As Integer
-        Dim neoTiers As Tiers
-        Dim listeTiers As ListeTiers
 
-        If listeTiers Is Nothing Then
-            listeTiers = New ListeTiers(FrmPrincipale.maConnexionDB.getConnexion)
-        End If
-        neoTiers = listeTiers.Add(sRaisonSociale, iCategorie, iSousCategorie)
         maCmd = New SqlCommand
         With maCmd
             .Connection = FrmPrincipale.maConn
-            .CommandText = "Insert into Tiers (raisonSociale, dateCreation, dateModification, categorieDefaut, sousCategorieDefaut) 
-               values (@raisonSociale, @dateCreation, @dateModification, @categorieDefaut, @sousCategorieDefaut)"
+            .CommandText = sRequete
         End With
         Try
-            maCmd = AjouteParam(maCmd, neoTiers)
+            maCmd = AjouteParam(maCmd, tiers)
             iNbLignes = maCmd.ExecuteNonQuery
         Catch ex As Exception
             Console.WriteLine(ex.Message)
         End Try
 
-        MsgBox(iNbLignes & ", ligne insérée : " & neoTiers.RaisonSociale)
+        MsgBox(iNbLignes & ", ligne insérée : " & tiers.RaisonSociale)
     End Sub
     Private Function AjouteParam(myCmd As SqlCommand, neoTiers As Tiers) As SqlCommand
         With myCmd
