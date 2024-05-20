@@ -19,20 +19,6 @@ Public Class FrmChargeRelevé
             MsgBox("Une erreur " & ex.Message & " est survenue sur la lecture du relevé : " & sFichier, MsgBoxStyle.Critical)
         End Try
     End Sub
-    'Private Sub AjouteLigne(sligne As String)
-    '    'Dim valeurs(3) As String
-
-    '    ''Date
-    '    'valeurs(0) = Split(sligne, ";")(0)
-    '    ''Note
-    '    'valeurs(1) = Split(sligne, ";")(1)
-    '    ''Débit
-    '    'valeurs(2) = Split(sligne, ";")(2)
-    '    ''Crédit
-    '    'valeurs(3) = Split(sligne, ";")(3)
-    '    ''dgvRelevé.Rows.Add(valeurs)
-    '    dgvRelevé.Rows.Add(Split(sligne, ";"))
-    'End Sub
 
     Private Sub DataGridView1_SelectionChanged(sender As Object, e As DataGridViewCellEventArgs) Handles dgvRelevé.CellContentClick
         Dim sMontant As String

@@ -16,23 +16,12 @@ Imports PIC = DocumentFormat.OpenXml.Drawing.Pictures
 
 Module creeOpenXml
     'https://learn.microsoft.com/fr-fr/office/open-xml/word/overview
-    'Sub Main()
-    '    Dim sNomFichier As String
-    '    sNomFichier = "C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\bin\Debug\net8.0-windows\test0.docx"
-    '    Call creeDoc(sNomFichier)
-    '    ajouteParagraphe(sNomFichier, "glop 1111 ")
-    '    Call ajouteImage(sNomFichier, "C:\Users\User\Downloads\frmHistogramme1.png")
-    '    ajouteParagraphe(sNomFichier, "glop 2222 ")
-    '    Call ajouteImage(sNomFichier, "C:\Users\User\Downloads\frmHistogramme4.png")
-    '    ajouteParagraphe(sNomFichier, "glop 33333 ")
 
-    'End Sub
 
     Public Sub creeDoc(ByVal filepath As String)
         'https://learn.microsoft.com/fr-fr/office/open-xml/word/how-to-create-a-word-processing-document-by-providing-a-file-name?tabs=vb-0%2Ccs-1%2Ccs-2%2Cvb
         ' Create a document by supplying the filepath.
-        Using wordDocument As WordprocessingDocument =
-        WordprocessingDocument.Create(filepath, WordprocessingDocumentType.Document)
+        Using wordDocument As WordprocessingDocument = WordprocessingDocument.Create(filepath, WordprocessingDocumentType.Document)
 
             ' Add a main document part. 
             Dim mainPart As MainDocumentPart = wordDocument.AddMainDocumentPart()
@@ -47,54 +36,53 @@ Module creeOpenXml
     End Sub
     ' Take the data from a two-dimensional array and build a table at the 
     ' end of the supplied document.
-    'Public Sub ajouteTableau(document As WordprocessingDocument, ByVal data(,) As String)
-    '    'https://learn.microsoft.com/fr-fr/office/open-xml/word/how-to-add-tables-to-word-processing-documents?tabs=cs-0%2Cvb-1%2Ccs-2%2Ccs-3%2Ccs-4%2Ccs-5%2Ccs-6%2Ccs-7%2Ccs-8%2Cvb
-    '    'Using document = WordprocessingDocument.Open(fileName, True)
+    Public Sub ajouteTableau(document As WordprocessingDocument, ByVal data(,) As String)
+        'https://learn.microsoft.com/fr-fr/office/open-xml/word/how-to-add-tables-to-word-processing-documents?tabs=cs-0%2Cvb-1%2Ccs-2%2Ccs-3%2Ccs-4%2Ccs-5%2Ccs-6%2Ccs-7%2Ccs-8%2Cvb
 
-    '    Dim doc = document.MainDocumentPart.Document
+        Dim doc = document.MainDocumentPart.Document
 
-    '        Dim table As New Table()
+        Dim table As New Table()
 
-    '        Dim props As TableProperties =
-    '            New TableProperties(New TableBorders(
-    '            New TopBorder With {
-    '                .Val = New EnumValue(Of BorderValues)(BorderValues.Single),
-    '                .Size = 12},
-    '            New BottomBorder With {
-    '                .Val = New EnumValue(Of BorderValues)(BorderValues.Single),
-    '                .Size = 12},
-    '            New LeftBorder With {
-    '                .Val = New EnumValue(Of BorderValues)(BorderValues.Single),
-    '                .Size = 12},
-    '            New RightBorder With {
-    '                .Val = New EnumValue(Of BorderValues)(BorderValues.Single),
-    '                .Size = 12},
-    '            New InsideHorizontalBorder With {
-    '                .Val = New EnumValue(Of BorderValues)(BorderValues.Single),
-    '                .Size = 12},
-    '            New InsideVerticalBorder With {
-    '                .Val = New EnumValue(Of BorderValues)(BorderValues.Single),
-    '                .Size = 12}))
-    '        table.AppendChild(Of TableProperties)(props)
+        Dim props As TableProperties =
+            New TableProperties(New TableBorders(
+            New TopBorder With {
+                .Val = New EnumValue(Of BorderValues)(BorderValues.Single),
+                .Size = 12},
+            New BottomBorder With {
+                .Val = New EnumValue(Of BorderValues)(BorderValues.Single),
+                .Size = 12},
+            New LeftBorder With {
+                .Val = New EnumValue(Of BorderValues)(BorderValues.Single),
+                .Size = 12},
+            New RightBorder With {
+                .Val = New EnumValue(Of BorderValues)(BorderValues.Single),
+                .Size = 12},
+            New InsideHorizontalBorder With {
+                .Val = New EnumValue(Of BorderValues)(BorderValues.Single),
+                .Size = 12},
+            New InsideVerticalBorder With {
+                .Val = New EnumValue(Of BorderValues)(BorderValues.Single),
+                .Size = 12}))
+        table.AppendChild(Of TableProperties)(props)
 
-    '        For i = 0 To UBound(data, 1)
-    '            Dim tr As New TableRow
-    '            For j = 0 To UBound(data, 2)
-    '                Dim tc As New TableCell
-    '                tc.Append(New Paragraph(New Run(New Text(data(i, j)))))
+        For i = 0 To UBound(data, 1)
+            Dim tr As New TableRow
+            For j = 0 To UBound(data, 2)
+                Dim tc As New TableCell
+                tc.Append(New Paragraph(New Run(New Text(data(i, j)))))
 
-    '                ' Assume you want columns that are automatically sized.
-    '                tc.Append(New TableCellProperties(
-    '                    New TableCellWidth With {.Type = TableWidthUnitValues.Auto}))
+                ' Assume you want columns that are automatically sized.
+                tc.Append(New TableCellProperties(
+                    New TableCellWidth With {.Type = TableWidthUnitValues.Auto}))
 
-    '                tr.Append(tc)
-    '            Next
-    '            table.Append(tr)
-    '        Next
-    '        doc.Body.Append(table)
-    '        doc.Save()
-    '    'End Using
-    'End Sub
+                tr.Append(tc)
+            Next
+            table.Append(tr)
+        Next
+        doc.Body.Append(table)
+        doc.Save()
+        'End Using
+    End Sub
     Public Sub ajouteTableau(ByVal fileName As String, ByVal data(,) As String)
         'https://learn.microsoft.com/fr-fr/office/open-xml/word/how-to-add-tables-to-word-processing-documents?tabs=cs-0%2Cvb-1%2Ccs-2%2Ccs-3%2Ccs-4%2Ccs-5%2Ccs-6%2Ccs-7%2Ccs-8%2Cvb
         Using document = WordprocessingDocument.Open(fileName, True)
@@ -171,17 +159,17 @@ Module creeOpenXml
         ' Create the StyleRunProperties object and specify some of the run properties.
         Dim styleRunProperties1 As New StyleRunProperties()
         Dim bold1 As New Bold()
-        Dim color1 As New Color() With {
-            .ThemeColor = ThemeColorValues.Accent2}
+        Dim color1 As New Color() With {.ThemeColor = ThemeColorValues.Accent3}
+        'Dim color1 As New Color() With {.ThemeColor = ThemeColorValues.Accent3}
         Dim font1 As New RunFonts() With {.Ascii = "Tahoma"}
         Dim italic1 As New Italic()
         ' Specify a 24 point size.
-        Dim fontSize1 As New FontSize() With {.Val = "48"}
+        Dim fontSize1 As New FontSize() With {.Val = "72"}
         styleRunProperties1.Append(font1)
         styleRunProperties1.Append(fontSize1)
         styleRunProperties1.Append(color1)
-        styleRunProperties1.Append(bold1)
-        styleRunProperties1.Append(italic1)
+        'styleRunProperties1.Append(bold1)
+        'styleRunProperties1.Append(italic1)
 
         ' Add the run properties to the style.
         style.Append(styleRunProperties1)
@@ -190,6 +178,16 @@ Module creeOpenXml
         styles.Append(style)
     End Sub
 
+
+    ' Add a StylesDefinitionsPart to the document.  Returns a reference to it.
+    '2005
+    Public Function AddStylesPartToPackage(document As WordprocessingDocument) As StyleDefinitionsPart
+        Dim part As StyleDefinitionsPart
+        part = document.MainDocumentPart.AddNewPart(Of StyleDefinitionsPart)()
+        Dim root As New Styles()
+        root.Save(part)
+        Return part
+    End Function
     ' Add a StylesDefinitionsPart to the document.  Returns a reference to it.
     Public Function AddStylesPartToPackage(ByVal fileName As String) As StyleDefinitionsPart
         Dim document As WordprocessingDocument = WordprocessingDocument.Open(fileName, True)
@@ -221,20 +219,19 @@ Module creeOpenXml
         AddImageToBody(wordprocessingDocument, mainPart.GetIdOfPart(imagePart))
         End Using
     End Sub
-    'Public Sub ajouteImage(WordprocessingDocument As WordprocessingDocument, ByVal fileName As String)
-    '    'https://learn.microsoft.com/fr-fr/office/open-xml/word/how-to-insert-a-picture-into-a-word-processing-document?tabs=cs-0%2Ccs-1%2Ccs-2%2Cvb-3%2Cvb 
-    '    'Using wordprocessingDocument As WordprocessingDocument = WordprocessingDocument.Open(document, True)
-    '    Dim mainPart As MainDocumentPart = WordprocessingDocument.MainDocumentPart
+    Public Sub ajouteImage(document As WordprocessingDocument, ByVal fileName As String)
+        'https://learn.microsoft.com/fr-fr/office/open-xml/word/how-to-insert-a-picture-into-a-word-processing-document?tabs=cs-0%2Ccs-1%2Ccs-2%2Cvb-3%2Cvb  
+        Dim mainPart As MainDocumentPart = document.MainDocumentPart
 
-    '    Dim imagePart As ImagePart = mainPart.AddImagePart(ImagePartType.Jpeg)
+        Dim imagePart As ImagePart = mainPart.AddImagePart(ImagePartType.Jpeg)
 
-    '    Using stream As New FileStream(fileName, FileMode.Open)
-    '        imagePart.FeedData(stream)
-    '    End Using
+        Using stream As New FileStream(fileName, FileMode.Open)
+            imagePart.FeedData(stream)
+        End Using
 
-    '    AddImageToBody(WordprocessingDocument, mainPart.GetIdOfPart(imagePart))
-    '    'End Using
-    'End Sub
+        AddImageToBody(document, mainPart.GetIdOfPart(imagePart))
+        'End Using
+    End Sub
 
     Private Sub AddImageToBody(ByVal wordDoc As WordprocessingDocument, ByVal relationshipId As String)
         ' Define the reference of the image.
@@ -281,7 +278,18 @@ Module creeOpenXml
         ' Append the reference to body, the element should be in a Run.
         wordDoc.MainDocumentPart.Document.Body.AppendChild(New Paragraph(New Run(element)))
     End Sub
+    '2005'
+    Public Function ajouteParagraphe(ByVal document As WordprocessingDocument, ByVal txt As String) As Paragraph
+        ' Open a WordprocessingDocument for editing using the filepath. 
+        ' Assign a reference to the existing document body.
+        Dim body As Body = document.MainDocumentPart.Document.Body
 
+            ' Add a paragraph with some text.            
+            Dim para As Paragraph = body.AppendChild(New Paragraph())
+            Dim run As Run = para.AppendChild(New Run())
+            run.AppendChild(New Text(txt))
+        Return para
+    End Function
     Public Function ajouteParagraphe(ByVal filepath As String, ByVal txt As String) As Paragraph
         ' Open a WordprocessingDocument for editing using the filepath.
         Using wordprocessingDocument As WordprocessingDocument = WordprocessingDocument.Open(filepath, True)
@@ -347,40 +355,40 @@ Module creeOpenXml
         End Using
     End Sub
     '' Apply a style to a paragraph.
-    'Public Sub ApplyStyleToParagraph(ByVal doc As WordprocessingDocument, ByVal styleid As String, ByVal stylename As String, ByVal p As Paragraph)
+    Public Sub ApplyStyleToParagraph(ByVal doc As WordprocessingDocument, ByVal styleid As String, ByVal stylename As String, ByVal p As Paragraph)
 
-    '    ' If the paragraph has no ParagraphProperties object, create one.
-    '    If p.Elements(Of ParagraphProperties)().Count() = 0 Then
-    '        p.PrependChild(Of ParagraphProperties)(New ParagraphProperties)
-    '    End If
+        ' If the paragraph has no ParagraphProperties object, create one.
+        If p.Elements(Of ParagraphProperties)().Count() = 0 Then
+            p.PrependChild(Of ParagraphProperties)(New ParagraphProperties)
+        End If
 
-    '    ' Get the paragraph properties element of the paragraph.
-    '    Dim pPr As ParagraphProperties = p.Elements(Of ParagraphProperties)().First()
+        ' Get the paragraph properties element of the paragraph.
+        Dim pPr As ParagraphProperties = p.Elements(Of ParagraphProperties)().First()
 
-    '    ' Get the Styles part for this document.
-    '    Dim part As StyleDefinitionsPart = doc.MainDocumentPart.StyleDefinitionsPart
+        ' Get the Styles part for this document.
+        Dim part As StyleDefinitionsPart = doc.MainDocumentPart.StyleDefinitionsPart
 
-    '    ' If the Styles part does not exist, add it and then add the style.
-    '    If part Is Nothing Then
-    '        part = AddStylesPartToPackage(doc)
-    '        AddNewStyle(part, styleid, stylename)
-    '    Else
-    '        ' If the style is not in the document, add it.
-    '        If IsStyleIdInDocument(doc, styleid) <> True Then
-    '            ' No match on styleid, so let's try style name.
-    '            Dim styleidFromName As String =
-    '                GetStyleIdFromStyleName(doc, stylename)
-    '            If styleidFromName Is Nothing Then
-    '                AddNewStyle(part, styleid, stylename)
-    '            Else
-    '                styleid = styleidFromName
-    '            End If
-    '        End If
-    '    End If
+        ' If the Styles part does not exist, add it and then add the style.
+        If part Is Nothing Then
+            part = AddStylesPartToPackage(doc)
+            AddNewStyle(part, styleid, stylename)
+        Else
+            ' If the style is not in the document, add it.
+            If IsStyleIdInDocument(doc, styleid) <> True Then
+                ' No match on styleid, so let's try style name.
+                Dim styleidFromName As String =
+                    GetStyleIdFromStyleName(doc, stylename)
+                If styleidFromName Is Nothing Then
+                    AddNewStyle(part, styleid, stylename)
+                Else
+                    styleid = styleidFromName
+                End If
+            End If
+        End If
 
-    '    ' Set the style of the paragraph.
-    '    pPr.ParagraphStyleId = New ParagraphStyleId With {.Val = styleid}
-    'End Sub
+        ' Set the style of the paragraph.
+        pPr.ParagraphStyleId = New ParagraphStyleId With {.Val = styleid}
+    End Sub
 
     ' Return true if the style id is in the document, false otherwise.
     Public Function IsStyleIdInDocument(ByVal doc As WordprocessingDocument, ByVal styleid As String) As Boolean
@@ -518,7 +526,20 @@ Module creeOpenXml
         ' Add the style to the styles part.
         styles.Append(style)
     End Sub
-
+    Public Sub AddSectionBreakToTheDocument(ByVal doc As WordprocessingDocument)
+        Dim myMainPart As MainDocumentPart = doc.MainDocumentPart
+        Dim paragraphSectionBreak As Paragraph = New Paragraph()
+        Dim paragraphSectionBreakProperties As ParagraphProperties = New ParagraphProperties()
+        Dim SectionBreakProperties As SectionProperties = New SectionProperties()
+        'Dim SectionBreakType As SectionType = New SectionType() { .Val() = SectionMarkValues.NextPage}
+        Dim SectionBreakType As New SectionType
+        SectionBreakType.Val = SectionMarkValues.NextPage
+        SectionBreakProperties.Append(SectionBreakType)
+        paragraphSectionBreakProperties.Append(SectionBreakProperties)
+        paragraphSectionBreak.Append(paragraphSectionBreakProperties)
+        myMainPart.Document.Body.InsertAfter(paragraphSectionBreak, myMainPart.Document.Body.LastChild)
+        myMainPart.Document.Save()
+    End Sub
     ' Add a StylesDefinitionsPart to the document. Returns a reference to it.
     'Public Function AddStylesPartToPackage(ByVal doc As WordprocessingDocument) _
     '    As StyleDefinitionsPart

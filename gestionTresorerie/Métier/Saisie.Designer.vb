@@ -51,6 +51,7 @@ Partial Class frmSaisie
         cbEvénement = New ComboBox()
         Button1 = New Button()
         dgvTiers = New DataGridView()
+        TiersBindingSource = New BindingSource(components)
         MouvementsBindingSource1 = New BindingSource(components)
         MouvementsBindingSource = New BindingSource(components)
         dgvCategorie = New DataGridView()
@@ -58,6 +59,7 @@ Partial Class frmSaisie
         grpSens.SuspendLayout()
         GroupBox1.SuspendLayout()
         CType(dgvTiers, ComponentModel.ISupportInitialize).BeginInit()
+        CType(TiersBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource1, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(dgvCategorie, ComponentModel.ISupportInitialize).BeginInit()
@@ -223,7 +225,7 @@ Partial Class frmSaisie
         ' btnHistogramme
         ' 
         btnHistogramme.AutoSize = True
-        btnHistogramme.Location = New Point(766, 338)
+        btnHistogramme.Location = New Point(1261, 476)
         btnHistogramme.Name = "btnHistogramme"
         btnHistogramme.Size = New Size(90, 25)
         btnHistogramme.TabIndex = 21
@@ -305,7 +307,7 @@ Partial Class frmSaisie
         ' 
         ' Button1
         ' 
-        Button1.Location = New Point(766, 382)
+        Button1.Location = New Point(1261, 507)
         Button1.Name = "Button1"
         Button1.Size = New Size(75, 23)
         Button1.TabIndex = 32
@@ -316,13 +318,20 @@ Partial Class frmSaisie
         ' 
         dgvTiers.AllowDrop = True
         dgvTiers.AllowUserToOrderColumns = True
+        dgvTiers.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+        dgvTiers.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedHeaders
         dgvTiers.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        dgvTiers.GridColor = SystemColors.MenuHighlight
         dgvTiers.Location = New Point(496, 50)
         dgvTiers.MultiSelect = False
         dgvTiers.Name = "dgvTiers"
         dgvTiers.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvTiers.Size = New Size(451, 119)
+        dgvTiers.Size = New Size(451, 157)
         dgvTiers.TabIndex = 33
+        ' 
+        ' TiersBindingSource
+        ' 
+        TiersBindingSource.DataSource = GetType(Tiers)
         ' 
         ' MouvementsBindingSource1
         ' 
@@ -336,24 +345,28 @@ Partial Class frmSaisie
         ' 
         dgvCategorie.AllowDrop = True
         dgvCategorie.AllowUserToOrderColumns = True
+        dgvCategorie.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+        dgvCategorie.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCells
         dgvCategorie.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvCategorie.Location = New Point(496, 175)
+        dgvCategorie.Location = New Point(496, 213)
         dgvCategorie.MultiSelect = False
         dgvCategorie.Name = "dgvCategorie"
         dgvCategorie.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvCategorie.Size = New Size(451, 74)
+        dgvCategorie.Size = New Size(451, 112)
         dgvCategorie.TabIndex = 34
         ' 
         ' dgvSousCategorie
         ' 
         dgvSousCategorie.AllowDrop = True
         dgvSousCategorie.AllowUserToOrderColumns = True
+        dgvSousCategorie.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+        dgvSousCategorie.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCells
         dgvSousCategorie.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvSousCategorie.Location = New Point(484, 272)
+        dgvSousCategorie.Location = New Point(496, 331)
         dgvSousCategorie.MultiSelect = False
         dgvSousCategorie.Name = "dgvSousCategorie"
         dgvSousCategorie.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvSousCategorie.Size = New Size(451, 61)
+        dgvSousCategorie.Size = New Size(451, 88)
         dgvSousCategorie.TabIndex = 35
         ' 
         ' FrmSaisie
@@ -394,6 +407,7 @@ Partial Class frmSaisie
         GroupBox1.ResumeLayout(False)
         GroupBox1.PerformLayout()
         CType(dgvTiers, ComponentModel.ISupportInitialize).EndInit()
+        CType(TiersBindingSource, ComponentModel.ISupportInitialize).EndInit()
         CType(MouvementsBindingSource1, ComponentModel.ISupportInitialize).EndInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).EndInit()
         CType(dgvCategorie, ComponentModel.ISupportInitialize).EndInit()
@@ -434,5 +448,6 @@ Partial Class frmSaisie
     Friend WithEvents MouvementsBindingSource As BindingSource
     Friend WithEvents dgvCategorie As DataGridView
     Friend WithEvents dgvSousCategorie As DataGridView
+    Friend WithEvents TiersBindingSource As BindingSource
 
 End Class

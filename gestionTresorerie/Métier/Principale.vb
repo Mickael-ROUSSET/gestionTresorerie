@@ -30,22 +30,10 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub initialisations()
-        Dim maConnexionDB As New connexionDB
+        'Dim maConnexionDB As New connexionDB
         maConn = maConnexionDB.getConnexion
         FrmSaisie.chargeListes(maConn)
     End Sub
-    'Private Function GetConnectionString() As String
-    '    ' To avoid storing the connection string in your code, you can retrieve it from a configuration file.
-    '    'Return "Data Source=MSSQL1;Initial Catalog=AdventureWorks;" & "Integrated Security=true;"
-    '    'Return "Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf";Integrated Security=True;Connect Timeout=30"
-    '    Dim builder As New System.Data.SqlClient.SqlConnectionStringBuilder
-    '    builder("Data Source") = "(LocalDB)\MSSQLLocalDB"
-    '    builder("AttachDbFilename") = My.Settings.ficBddDonnees
-    '    builder("Integrated Security") = True
-    '    builder("Connect Timeout") = 30
-    '    Debug.Print("builder.ConnectionString : " & builder.ConnectionString)
-    '    Return builder.ConnectionString
-    'End Function
     Private Sub LectureBase()
         Dim monReaderCategorie As SqlDataReader
         Dim monReaderSousCategorie As SqlDataReader
@@ -59,8 +47,10 @@ Public Class FrmPrincipale
         Dim para As Paragraph
 
         Call creeOpenXml.creeDoc(My.Settings.ficBilan)
-        'Dim styleDefinitionsPart As StyleDefinitionsPart = creeOpenXml.AddStylesPartToPackage(My.Settings.ficBilan)
-        'Call creeOpenXml.CreateAndAddParagraphStyle(styleDefinitionsPart, "monStyle", "monStyle")
+
+        Dim document As WordprocessingDocument = WordprocessingDocument.Open(My.Settings.ficBilan, True)
+        Dim styleDefinitionsPart As StyleDefinitionsPart = creeOpenXml.AddStylesPartToPackage(document)
+        Call creeOpenXml.CreateAndAddParagraphStyle(StyleDefinitionsPart, "monStyle", "monStyle")
         myCmdCategorie = New SqlCommand("SELECT distinct catégorie FROM Mouvements ;", maConn)
         monReaderCategorie = myCmdCategorie.ExecuteReader()
         Do While monReaderCategorie.Read()
@@ -74,9 +64,9 @@ Public Class FrmPrincipale
             ReDim tabLegendes(0)
             ReDim tabValeurs(0)
             myCmdSousCategorie = New SqlCommand("SELECT sousCatégorie, sum(montant) FROM Mouvements where catégorie = '" & tabCatégorie(iNbCat) & "' group by sousCatégorie order by sum(montant) desc;", maConn)
-            para = creeOpenXml.ajouteParagraphe(My.Settings.ficBilan, vbCrLf)
-            para = creeOpenXml.ajouteParagraphe(My.Settings.ficBilan, tabCatégorie(iNbCat))
-            'Call ApplyStyleToParagraph(My.Settings.ficBilan, "monStyle", "monStyle", para)
+            Call creeOpenXml.AddSectionBreakToTheDocument(document)
+            para = creeOpenXml.ajouteParagraphe(document, tabCatégorie(iNbCat))
+            Call ApplyStyleToParagraph(document, "monStyle", "monStyle", para)
             monReaderSousCategorie = myCmdSousCategorie.ExecuteReader()
             i = 0
             'Supprime tous les controls de la fenêtre (=> les images précédentes)
@@ -107,7 +97,7 @@ Public Class FrmPrincipale
                 End Try
                 bmp.Save(sNomImage)
             End Using
-            Call creeOpenXml.ajouteImage(My.Settings.ficBilan, sNomImage)
+            Call creeOpenXml.ajouteImage(document, sNomImage)
 
             'Création du tableau
             Dim data(1, UBound(tabValeurs) - 1) As String
@@ -115,20 +105,22 @@ Public Class FrmPrincipale
                 data(0, j) = tabLegendes(j)
                 data(1, j) = tabValeurs(j)
             Next j
-            Call creeOpenXml.ajouteTableau(My.Settings.ficBilan, data)
+            para = creeOpenXml.ajouteParagraphe(document, vbCrLf)
+            Call creeOpenXml.ajouteTableau(document, data)
         Next iNbCat
 
         monReaderCategorie.Close()
+        document.Save()
+        document.Dispose()
     End Sub
-    Private Sub SupprimeControlesfenetre(frm As Form)
-        Dim i As Integer, nbControls As Integer
+    'Private Sub SupprimeControlesfenetre(frm As Form)
+    '    Dim i As Integer, nbControls As Integer
 
-        nbControls = frm.Controls.Count
-        For i = 0 To nbControls - 1
-            frm.Controls.Remove(frm.Controls.Item(0))
-            'Debug.Print("Name : " & frm.Controls.Item(0).Name)
-        Next i
-    End Sub
+    '    nbControls = frm.Controls.Count
+    '    For i = 0 To nbControls - 1
+    '        frm.Controls.Remove(frm.Controls.Item(0))
+    '    Next i
+    'End Sub
     Private Sub FrmMain_Closing(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
         Try
             Call SuprimeConnexion()

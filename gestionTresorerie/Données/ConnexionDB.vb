@@ -5,24 +5,27 @@ Imports System.Data.SqlClient
 
 Public Class connexionDB
     Implements IDisposable
-    Public maConnexion As SqlConnection
-    Public maCommandeSql As New SqlCommand()
+    Public _maConnexion As SqlConnection
+    Public _maCommandeSql As New SqlCommand()
     Public result As String
     Public reader As SqlDataReader
     'Public sRequete As String
     'Private collRequetes As Collection(Of String)
 
     Public Sub New()
-        getConnexion()
+        creeConnexion()
     End Sub
     Public Function getConnexion() As SqlConnection
-        'Crée la connexion si elle n'existe pas, sinon renvoie celle existante
-        If maConnexion Is Nothing Then
-            maConnexion = New SqlConnection(My.Settings.DBsource)
-        End If
-        Return maConnexion
-        'maConnexion.Open()
+        'Crée la connexion si elle n'existe pas, sinon renvoie celle existante 
+        Return _maConnexion
     End Function
+    Public Sub creeConnexion()
+        'Crée la connexion si elle n'existe pas, sinon renvoie celle existante
+        If _maConnexion Is Nothing Then
+            _maConnexion = New SqlConnection(My.Settings.DBsource)
+            _maConnexion.Open()
+        End If
+    End Sub
 
     Public Function getRequete(indiceRequete As Integer) As String
         'Return collRequetes(indiceRequete)
@@ -34,7 +37,7 @@ Public Class connexionDB
     End Sub
     Private Sub SuprimeConnexion()
         'Close the reader and the database connection. 
-        maConnexion.Close()
+        _maConnexion.Close()
     End Sub
     'Public Sub creeConnexion()
     '    Me.maCommandeSql.Connection = maConnexion
@@ -52,11 +55,11 @@ Public Class connexionDB
     'End Sub
 
     Public Function ConnexionExecuteReader() As SqlDataReader
-        Me.maCommandeSql.Connection = maConnexion
+        Me._maCommandeSql.Connection = _maConnexion
         'Me.maCommandeSql.CommandText = Me.sRequete
         Try
-            Me.maConnexion.Open()
-            Me.reader = maCommandeSql.ExecuteReader(CommandBehavior.CloseConnection)
+            Me._maConnexion.Open()
+            Me.reader = _maCommandeSql.ExecuteReader(CommandBehavior.CloseConnection)
         Catch ex As Exception
         Finally
         End Try
@@ -66,9 +69,9 @@ Public Class connexionDB
     Public Sub Dispose() Implements System.IDisposable.Dispose
         Try
             'Me.sRequete = Nothing
-            Me.maConnexion.Close()
-            Me.maConnexion.Dispose()
-            Me.maCommandeSql.Dispose()
+            Me._maConnexion.Close()
+            Me._maConnexion.Dispose()
+            Me._maCommandeSql.Dispose()
             Me.reader.Close()
             Me.result = Nothing
         Catch ex As Exception

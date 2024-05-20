@@ -3,22 +3,31 @@
 Public Class ListeTiers
 
     ReadOnly _listeTiers As New List(Of Tiers)
-    Public Function getListeTiers(maConn As SqlConnection) As List(Of Tiers)
-        Dim myCmdCategorie As SqlCommand
-        Dim myReaderTiers As SqlDataReader
+    Public Sub New(maConn As SqlConnection)
 
-        myCmdCategorie = New SqlCommand("SELECT nom, prenom FROM Tiers;", maConn)
-        myReaderTiers = myCmdCategorie.ExecuteReader()
-        Do While myReaderTiers.Read()
-            _listeTiers.Add(New Tiers(myReaderTiers.GetSqlString(0), myReaderTiers.GetSqlString(1)))
+        If _listeTiers.Count = 0 Then
+            extraitListeTiers(maConn)
+        End If
+    End Sub
+    Public Sub extraitListeTiers(maConn As SqlConnection)
+        Dim maCmdCategorie As SqlCommand
+        Dim monReaderTiers As SqlDataReader
+
+        maCmdCategorie = New SqlCommand("SELECT id,nom, prenom FROM Tiers where nom is not null;", maConn)
+        monReaderTiers = maCmdCategorie.ExecuteReader()
+
+        Do While monReaderTiers.Read()
+            _listeTiers.Add(New Tiers(monReaderTiers.GetInt32(0), monReaderTiers.GetString(1), monReaderTiers.GetString(2)))
         Loop
-        myReaderTiers.Close()
-        myCmdCategorie = New SqlCommand("SELECT raisonSociale FROM Tiers;", maConn)
-        myReaderTiers = myCmdCategorie.ExecuteReader()
-        Do While myReaderTiers.Read()
-            _listeTiers.Add(New Tiers(myReaderTiers.GetSqlString(0)))
+        monReaderTiers.Close()
+        maCmdCategorie = New SqlCommand("SELECT id,raisonSociale FROM Tiers where raisonSociale is not null;", maConn)
+        monReaderTiers = maCmdCategorie.ExecuteReader()
+        Do While monReaderTiers.Read()
+            _listeTiers.Add(New Tiers(monReaderTiers.GetInt32(0), monReaderTiers.GetSqlString(1)))
         Loop
-        myReaderTiers.Close()
+        monReaderTiers.Close()
+    End Sub
+    Public Function getListeTiers() As List(Of Tiers)
         Return _listeTiers
     End Function
     Public Function getParId(id As Integer) As Tiers
@@ -42,7 +51,7 @@ Public Class ListeTiers
         Return sIdentite
     End Function
     Public Function getIdParRaisonSociale(sIdentite As String) As Integer
-        Dim indice As Integer = 0
+        Dim indice As Integer = -1
 
         For Each tiers In _listeTiers
             If Trim(tiers.Nom) = sIdentite Then
@@ -59,30 +68,22 @@ Public Class ListeTiers
         Next
         Return indice
     End Function
-    'Public Function CatégorieParDéfaut(identité As String) As String
-    '    Dim sCatégorie As String = ""
-    '    For Each tiers As Tiers In listeTiers
-    '        If tiers.RaisonSociale.Equals(identité) Or tiers.Nom.Equals(identité) Then
-    '            sCatégorie = tiers.CategorieDefaut
-    '            Exit For
-    '        End If
-    '    Next
-    '    Return sCatégorie
-    'End Function
-    'Public Function SousCatégorieParDéfaut(identité As String) As String
-    '    Dim sousCatégorie As String = ""
-    '    For Each tiers As Tiers In listeTiers
-    '        If tiers.RaisonSociale.Equals(identité) Or tiers.Nom.Equals(identité) Then
-    '            sousCatégorie = tiers.SousCategorieDefaut
-    '            Exit For
-    '        End If
-    '    Next
-    '    Return sousCatégorie
-    'End Function
-    Public Sub Add(tiers As Tiers)
-        _listeTiers.Add(tiers)
-    End Sub
+    Public Function Add(sNom As String, sPrenom As String, Optional iCategorie As Integer = 0, Optional iSousCategorie As Integer = 0) As Tiers
+        Dim monTiers As Tiers
+        'Renvoie l'id du Tiers créé 
+        monTiers = New Tiers(CompteTiers() + 1, sNom, sPrenom, iCategorie, iSousCategorie)
+        _listeTiers.Add(monTiers)
+        Return monTiers
+    End Function
+    Public Function Add(sRaisonSociale As String, Optional iCategorie As Integer = 0, Optional iSousCategorie As Integer = 0) As Tiers
+        Dim monTiers As Tiers
+        'Renvoie l'id du Tiers créé 
+        monTiers = New Tiers(CompteTiers() + 1, sRaisonSociale, iCategorie, iSousCategorie)
+        _listeTiers.Add(monTiers)
+        Return monTiers
+    End Function
     Public Sub SupprimeTiers(tiers As Tiers)
+        'Todo : voir si je crée des trous de séquence
         _listeTiers.Remove(tiers)
     End Sub
     Public Function CompteTiers() As Integer

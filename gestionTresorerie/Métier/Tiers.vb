@@ -9,20 +9,27 @@ Public Class Tiers
     Dim _prénom As String
     Dim _categorieDefaut As Integer
     Dim _sousCategorieDefaut As Integer
+    Dim _dateCreation As Date
+    Dim _dateModification As Date
 
-
-    Public Sub New(sNom As String, sPrenom As String)
-        If Not sNom Is Nothing Then
+    Public Sub New(id As Integer, sNom As String, sPrenom As String, Optional sCategorie As Integer = 0, Optional sSousCategorie As Integer = 0)
+        If sNom IsNot Nothing Then
+            _id = id
             _nom = sNom
             _prénom = sPrenom
+            _categorieDefaut = sCategorie
+            _sousCategorieDefaut = sSousCategorie
         End If
     End Sub
-    Public Sub New(sRaisonSociale As String)
-        If Not sRaisonSociale Is Nothing Then
+    Public Sub New(id As Integer, sRaisonSociale As String, Optional sCategorie As Integer = 0, Optional sSousCategorie As Integer = 0)
+        If sRaisonSociale IsNot Nothing Then
+            _id = id
             _raisonSociale = sRaisonSociale
+            _categorieDefaut = sCategorie
+            _sousCategorieDefaut = sSousCategorie
         End If
     End Sub
-    Public Shared Function categorieTiers(idTiers As Double) As Integer
+    Public Shared Function getCategorieTiers(idTiers As Double) As Integer
         ' Renvoie la catégorie et la sous catégorie d'un tiers 
         Dim maCmd As SqlCommand
         Dim monReader As SqlDataReader
@@ -30,7 +37,7 @@ Public Class Tiers
 
         maCmd = New SqlCommand
         With maCmd
-            FrmPrincipale.maConn.Open()
+            'FrmPrincipale.maConn.Open()
             .Connection = FrmPrincipale.maConn
             .CommandText = "SELECT categorieDefaut FROM Tiers where id = '" & idTiers & "';"
         End With
@@ -46,7 +53,7 @@ Public Class Tiers
         monReader.Close()
         Return iCategorie
     End Function
-    Public Shared Function sousCategorieTiers(idTiers As Double) As Integer
+    Public Shared Function getSousCategorieTiers(idTiers As Double) As Integer
         ' Renvoie la catégorie et la sous catégorie d'un tiers 
         Dim maCmd As SqlCommand
         Dim monReader As SqlDataReader
@@ -118,4 +125,22 @@ Public Class Tiers
             _sousCategorieDefaut = value
         End Set
     End Property
+
+    Public Property dateCreation As Date
+        Get
+            Return _dateCreation
+        End Get
+        Set()
+            _dateCreation = Now
+        End Set
+    End Property
+    Public Property dateModification As Date
+        Get
+            Return _dateModification
+        End Get
+        Set()
+            _dateModification = Now
+        End Set
+    End Property
+
 End Class

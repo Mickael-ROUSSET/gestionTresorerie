@@ -1,8 +1,6 @@
-﻿Imports System.Collections.Specialized.BitVector32
-Imports System.Text.RegularExpressions
+﻿Imports System.Text.RegularExpressions
 Imports System.Data.SqlClient
 Imports System.IO
-Imports System.Data.Common
 
 Public Class FrmSaisie
 
@@ -11,92 +9,77 @@ Public Class FrmSaisie
     Private myReader As SqlDataReader
     Private results As String
     Private listeTiers As ListeTiers
-
     Public Property Properties As Object
 
-    'Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-    'Call chargeListes()
-    'Dim sFicParam As String
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Dim indTiersDetecte As Integer = 0, indCategorie As Integer = 0
+        Dim idCategorie As Integer, idSousCategorie As Integer
+        'Détection du tiers
+        If listeTiers Is Nothing Then
+            listeTiers = New ListeTiers(FrmPrincipale.maConnexionDB.getConnexion)
+        End If
+        indTiersDetecte = DetecteTiers(txtNote.Text)
+        If indTiersDetecte > -1 Then
+            dgvTiers.Rows.Item(indTiersDetecte).Selected = True
+            dgvTiers.FirstDisplayedScrollingRowIndex = indTiersDetecte
+        End If
+        If dgvCategorie.RowCount = 0 Then
+            Call ChargeDgvCategorie(FrmPrincipale.maConn)
+        End If
+        'TODO, il doit falloir trouver le libellé de la catégorie à partir de l'indice
+        idCategorie = Tiers.getCategorieTiers(indTiersDetecte)
+        dgvCategorie.Rows.Item(idCategorie).Selected = True
+        If dgvSousCategorie.RowCount = 0 Then
+            Call ChargeDgvSousCategorie(FrmPrincipale.maConn, idCategorie)
+        End If
+        idSousCategorie = chercheIndiceDvg(Tiers.getSousCategorieTiers(indTiersDetecte), dgvSousCategorie)
+        dgvSousCategorie.Rows.Item(idSousCategorie).Selected = True
+        dgvSousCategorie.FirstDisplayedScrollingRowIndex = idSousCategorie
+    End Sub
+    Private Function chercheIndiceDvg(indiceCherche As Integer, dgv As DataGridView) As Integer
+        Dim i As Integer, ligneCible As Integer = 0
 
-    'sFicParam = My.Settings.ficRessources
-    'For Each Section In GestionFichierIni.SectionNames(sFicParam)
-    '    Me.cbCategorie.Items.Add(Section)
-    'Next
-    'listeTiers = GereXml.LitXml(My.Settings.ficTiers).RenvoieListe
-    ''Chargement du fichier contenant la liste des tiers 
-    'Call ChargeFichierTiers(Me.cbTiers, My.Settings.ficTiers)
-    'Call ChargeTableTiers(Me.cbTiers, FrmPrincipale.myConn)
-    ''Chargement du fichier contenant la liste des événements
-    'Call ChargeFichierTexte(Me.cbEvénement, My.Settings.ficEvénement)
-    ''Chargement du fichier contenant la liste des types
-    'Call ChargeFichierTexte(Me.cbType, My.Settings.ficType)
-    'End Sub
+        For i = 0 To dgv.RowCount
+            If dgv.Rows(i).Cells(0).Value = indiceCherche Then
+                ligneCible = i
+                Exit For
+            End If
+        Next
+        Return ligneCible
+    End Function
+
 
     Public Sub chargeListes(maConn As SqlConnection)
-        'Dim sFicParam As String
-        Dim listeTiers As New ListeTiers
-        'Dim listeACharger As List(Of Tiers)
 
-        'sFicParam = My.Settings.ficRessources
-        'For Each Section In GestionFichierIni.SectionNames(sFicParam)
-        '    Me.cbCategorie.Items.Add(Section)
-        'Next
-        'listeACharger = listeTiers.getListeTiers(FrmPrincipale.maConn)
-        'Chargement du fichier contenant la liste des tiers 
-        'Call ChargeFichierTiers(Me.cbTiers, My.Settings.ficTiers)
-        'Call ChargeTableTiers(Me.cbTiers, FrmPrincipale.myConn)
-        Call ChargeDgvTiers(maConn)
+        Call ChargeDgvTiers(FrmPrincipale.maConn)
         Call ChargeDgvCategorie(maConn)
         'Chargement du fichier contenant la liste des événements
         Call ChargeFichierTexte(Me.cbEvénement, My.Settings.ficEvénement)
         'Chargement du fichier contenant la liste des types
         Call ChargeFichierTexte(Me.cbType, My.Settings.ficType)
     End Sub
-    'Public Sub chargeListes()
-    '    Dim sFicParam As String
-
-    '    sFicParam = My.Settings.ficRessources
-    '    For Each Section In GestionFichierIni.SectionNames(sFicParam)
-    '        Me.cbCategorie.Items.Add(Section)
-    '    Next
-    '    listeTiers = GereXml.LitXml(My.Settings.ficTiers).RenvoieListe
-    '    'Chargement du fichier contenant la liste des tiers 
-    '    Call ChargeFichierTiers(Me.cbTiers, My.Settings.ficTiers)
-    '    'Call ChargeTableTiers(Me.cbTiers, FrmPrincipale.myConn)
-    '    Call ChargeDgvTiers(Me.cbTiers, FrmPrincipale.maConn)
-    '    'Chargement du fichier contenant la liste des événements
-    '    Call ChargeFichierTexte(Me.cbEvénement, My.Settings.ficEvénement)
-    '    'Chargement du fichier contenant la liste des types
-    '    Call ChargeFichierTexte(Me.cbType, My.Settings.ficType)
-    'End Sub
-    Private Sub FrmSaisie_GotFocus(sender As Object, e As EventArgs) Handles Me.GotFocus
-        'Détection du tiers
-        cbTiers.SelectedItem = DetecteTiers(txtNote.Text)
-        dgvTiers.Rows.Item(DetecteTiers(txtNote.Text)).Selected = True
-    End Sub
-    'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
-    '    'Détection et sélection du tiers
-    '    cbTiers.SelectedItem = cbTiers.Items.IndexOf(DetecteTiers(txtNote.Text))
-    'End Sub
-    'Private Sub form1_GotFocus(sender As Object, e As EventArgs) Handles txtMontant.GotFocus
-    'End Sub
-    Private Function DetecteTiers(sNote As String) As String
+    Private Function DetecteTiers(sNote As String) As Integer
         'Essaie de déterminer le tiers en fonction du contenu de la note
         Dim sMots() As String, sMot As String
-        Dim i As Integer
-        Dim sIdentite As String = ""
+        Dim i As Integer = -1
+        'Dim sIdentite As String = ""
 
-        sMots = Split(txtNote.Text, Space(1))
+        sMots = Split(txtNote.Text, Space(1),, CompareMethod.Text)
         'TODO : voir pourquoi il me ramène plein de mots vides
         For Each sMot In sMots
             If Not sMot.Equals("") Then
-                sIdentite = listeTiers.getIdentiteParId(listeTiers.getIdParRaisonSociale(Strings.UCase(sMot)))
-                If Not sIdentite.Equals("") Then
+                i = listeTiers.getIdParRaisonSociale(Strings.UCase(sMot))
+                If i > -1 Then
                     Exit For
                 End If
+                'sIdentite = listeTiers.getIdentiteParId(listeTiers.getIdParRaisonSociale(Strings.UCase(sMot)))
+                'If Not sIdentite.Equals("") Then
+                '    Exit For
+                'End If
             End If
         Next
-        Return sIdentite
+        'Return sIdentite
+        Return i
     End Function
     'Private Function DetecteTiers(sNote As String) As String
     '    'Essaie de déterminer le tiers en fonction du contenu de la note
@@ -173,33 +156,8 @@ Public Class FrmSaisie
             ' On informe l'utilisateur qu'il y a eu un problème :
             MessageBox.Show("ChargeDgvTiers : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
         End Try
-        dgvTiers.Columns("id").Visible = False
-        dgvTiers.Columns("nom").Visible = True
-        dgvTiers.Columns("prenom").Visible = True
-        dgvTiers.Columns("raisonSociale").Visible = True
-        dgvTiers.Columns("categorieDefaut").Visible = False
-        dgvTiers.Columns("sousCategorieDefaut").Visible = False
+        'dgvTiers.Columns("id").Visible = False 
     End Sub
-    'Private Sub ChargeFichierTiers(cbBox As System.Windows.Forms.ComboBox, fichierTiers As String)
-    '    Dim gereXml As New GereXml
-    '    Dim tiers As Tiers
-
-    '    Try
-    '        Dim monStreamReader As New StreamReader(fichierTiers, System.Text.Encoding.Default) 'Stream pour la lecture
-    '        'https://selkis.developpez.com/tutoriels/dotnet/Xmlpart1/
-    '        'For Each tiers In GereXml.LitXml(fichierTiers).RenvoieListe
-    '        For Each tiers In listeTiers
-    '            If Not IsNothing(tiers.RaisonSociale) Then
-    '                'TODO : tout pourri mais devrait faire l'affaire
-    '                cbBox.Items.Add(tiers.RaisonSociale & vbTab & tiers.CategorieDefaut & vbTab & tiers.SousCategorieDefaut)
-    '            Else
-    '                cbBox.Items.Add(tiers.Prénom & " " & tiers.Nom & vbTab & tiers.CategorieDefaut & vbTab & tiers.SousCategorieDefaut)
-    '            End If
-    '        Next
-    '    Catch ex As Exception
-    '        MsgBox("Une erreur est survenue au cours de l'accès en lecture du fichier de configuration du logiciel." & vbCrLf & vbCrLf & "Veuillez vérifier l'emplacement : " & fichierTiers, MsgBoxStyle.Critical, "Erreur lors e l'ouverture du fichier conf...")
-    '    End Try
-    'End Sub
 
     Private Sub ChargeDgvCategorie(maConn As SqlConnection)
         Dim bindingSource1 = New BindingSource()
@@ -224,6 +182,7 @@ Public Class FrmSaisie
         Dim bindingSource1 = New BindingSource()
 
         Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, libelle FROM SousCategorie where idCategorie = '" & idCategorie & "';", maConn)
+        'Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, libelle FROM SousCategorie;", maConn)
 
         Dim dt As New DataTable
         Dim adpt As New Data.SqlClient.SqlDataAdapter(command)
@@ -236,35 +195,20 @@ Public Class FrmSaisie
             ' On informe l'utilisateur qu'il y a eu un problème :
             MessageBox.Show("ChargeDgvSousCategorie : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
         End Try
-        dgvSousCategorie.Columns("id").Visible = False
+        dgvSousCategorie.Columns("id").Visible = True
         dgvSousCategorie.Columns("libelle").Visible = True
     End Sub
-    'Private Sub ChargeFichierTiers(cbBox As System.Windows.Forms.ComboBox, fichierTiers As String)
-    '    Dim gereXml As New GereXml
-    '    Dim tiers As Tiers
-
-    '    Try
-    '        Dim monStreamReader As New StreamReader(fichierTiers, System.Text.Encoding.Default) 'Stream pour la lecture
-    '        'https://selkis.developpez.com/tutoriels/dotnet/Xmlpart1/
-    '        'For Each tiers In GereXml.LitXml(fichierTiers).RenvoieListe
-    '        For Each tiers In listeTiers
-    '            If Not IsNothing(tiers.RaisonSociale) Then
-    '                'TODO : tout pourri mais devrait faire l'affaire
-    '                cbBox.Items.Add(tiers.RaisonSociale & vbTab & tiers.CategorieDefaut & vbTab & tiers.SousCategorieDefaut)
-    '            Else
-    '                cbBox.Items.Add(tiers.Prénom & " " & tiers.Nom & vbTab & tiers.CategorieDefaut & vbTab & tiers.SousCategorieDefaut)
-    '            End If
-    '        Next
-    '    Catch ex As Exception
-    '        MsgBox("Une erreur est survenue au cours de l'accès en lecture du fichier de configuration du logiciel." & vbCrLf & vbCrLf & "Veuillez vérifier l'emplacement : " & fichierTiers, MsgBoxStyle.Critical, "Erreur lors e l'ouverture du fichier conf...")
-    '    End Try
-    'End Sub
     Private Sub CbCategorie_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cbCategorie.SelectedIndexChanged
         Me.cbSousCategorie.Items.Clear()
     End Sub
     Private Sub BtnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
+        Dim sCategorie As String, sSousCategorie As String
+
         'Enregistre les informations sur le mouvement saisi en base de données
-        Dim unMvt As New Mouvements(txtNote.Text, cbCategorie.SelectedItem, cbSousCategorie.SelectedItem, cbTiers.SelectedItem, dateMvt.Value, txtMontant.Text, rbCredit.Checked, rbRapproche.Checked, cbEvénement.SelectedItem, cbType.SelectedItem, False, txtRemise.Text)
+        'Dim unMvt As New Mouvements(txtNote.Text, cbCategorie.SelectedItem, cbSousCategorie.SelectedItem, cbTiers.SelectedItem, dateMvt.Value, txtMontant.Text, rbCredit.Checked, rbRapproche.Checked, cbEvénement.SelectedItem, cbType.SelectedItem, False, txtRemise.Text)
+        sCategorie = dgvCategorie.Rows(dgvCategorie.SelectedRows(0).Index).Cells(1).Value
+        sSousCategorie = dgvSousCategorie.Rows(dgvSousCategorie.SelectedRows(0).Index).Cells(1).Value
+        Dim unMvt As New Mouvements(txtNote.Text, sCategorie, sSousCategorie, cbTiers.SelectedItem, dateMvt.Value, txtMontant.Text, rbCredit.Checked, rbRapproche.Checked, cbEvénement.SelectedItem, cbType.SelectedItem, False, txtRemise.Text)
 
         Try
             maCmd = New SqlCommand
@@ -326,34 +270,7 @@ Public Class FrmSaisie
     Private Sub BtnHistogramme_Click(sender As Object, e As EventArgs) Handles btnHistogramme.Click
         frmHistogramme.ShowDialog()
     End Sub
-    Private Sub CbTiers_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cbTiers.SelectedIndexChanged
-        Dim s(2) As String, sCat As String, sousCat As String
 
-        s = Split(cbTiers.SelectedItem, vbTab)
-        sCat = s(1)
-        sousCat = s(2)
-        'Gérer les catégories par défaut
-        cbCategorie.SelectedIndex = IndexSelectionne(cbCategorie, sCat)
-        'Chargement des sous-catégories correspondant à la catégorie
-        ChargeSousCatégorie(cbCategorie.SelectedItem)
-        cbSousCategorie.SelectedIndex = IndexSelectionne(cbSousCategorie, sousCat)
-    End Sub
-    'public Function IndexSelectionne(cbBox As ComboBox, sNiveau As String) As Integer
-    '    Dim iIndex As Integer
-
-    '    'Pas de catégorie
-    '    iIndex = 0
-    '    If Not sNiveau.Equals("") Then
-    '        iIndex = cbBox.Items.IndexOf(sNiveau)
-    '    End If
-    '    Return iIndex
-    'End Function
-    'Private Sub ChargeSousCatégorie(sSection As String)
-
-    '    For Each clé In GestionFichierIni.SectionKeys(My.Settings.ficRessources, sSection)
-    '        Me.cbSousCategorie.Items.Add(GestionFichierIni.ReadValue(My.Settings.ficRessources, sSection, clé))
-    '    Next
-    'End Sub
     Private Sub CbTiers_TextChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles cbTiers.TextChanged
         'Recherche à la volée dans la cb
         With cbTiers
@@ -371,7 +288,8 @@ Public Class FrmSaisie
         'cbCategorie.SelectedIndex = IndexSelectionne(cbCategorie, dgvTiers.Rows(dgvTiers.SelectedCells(0).RowIndex).Cells(1).Value.ToString)private void selectedRowsButton_Click(object sender, System.EventArgs e)
 
         Dim selectedRowCount As Int32 = dgvTiers.Rows.GetRowCount(DataGridViewElementStates.Selected)
-        Dim i As Integer
+        Dim i As Integer, idTiers As Integer
+
         If (selectedRowCount > 0) Then
             Dim sb As System.Text.StringBuilder = New System.Text.StringBuilder()
             For i = 0 To selectedRowCount
@@ -384,11 +302,15 @@ Public Class FrmSaisie
             'MessageBox.Show(sb.ToString(), "Selected Rows")
         End If
         'TODO : il faut retrouver le Tiers
-        Call ChargeDgvSousCategorie(FrmPrincipale.maConn, Tiers.categorieTiers(dgvTiers.SelectedRows(0).Cells(0).Value))
-        'Call ChargeSousCatégorie(dgvTiers.Rows(dgvTiers.SelectedCells(0).RowIndex).Cells(0).Value)
-        'cbSousCategorie.SelectedIndex = IndexSelectionne(cbSousCategorie, dgvTiers.Rows(dgvTiers.SelectedCells(0).RowIndex).Cells(2).Value.ToString)
+        dgvTiers.CurrentCell = dgvTiers.SelectedRows(0).Cells(0)
+        Call ChargeDgvSousCategorie(FrmPrincipale.maConn, Tiers.getCategorieTiers(dgvTiers.SelectedRows(0).Cells(0).Value))
+        'TODO : sélectionner la catégorie et la sous catégorie qui vont bien
+        idTiers = Tiers.getCategorieTiers(dgvTiers.SelectedRows(0).Cells(0).Value)
+        dgvCategorie.Item(1, idTiers).Selected = True
+        dgvCategorie.CurrentCell = dgvCategorie.Rows(idTiers).Cells(0)
+        dgvSousCategorie.Item(1, Tiers.getSousCategorieTiers(dgvTiers.SelectedRows(0).Cells(0).Value)).Selected = True
     End Sub
-    Private Sub ChargeSousCatégorie(indiceCategorie As Integer)
+    Private Sub ChargeSousCategorie(indiceCategorie As Integer)
         Dim monReaderSousCategorie As SqlDataReader
         Dim maCmdSousCategorie As SqlCommand
 
@@ -424,12 +346,11 @@ Public Class FrmSaisie
             dgvCategorie.DataSource = dt
         Catch ex As SqlException
             ' On informe l'utilisateur qu'il y a eu un problème :
-            MessageBox.Show("ChargeDgvCategorie : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
+            MessageBox.Show("dgvTiers_UserAddedRow : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
         End Try
     End Sub
 
-    '    RowsAdded
-    'RowsRemoved
-    'RowValidated
-    'RowValidating
+    Private Sub btnInsereTiers_Click(sender As Object, e As EventArgs) Handles btnInsereTiers.Click
+        frmNouveauTiers.show
+    End Sub
 End Class
