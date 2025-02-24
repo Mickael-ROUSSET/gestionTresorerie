@@ -45,9 +45,6 @@ Partial Class frmSaisie
         txtNote = New TextBox()
         lblNote = New Label()
         cbType = New ComboBox()
-        cbTiers = New ComboBox()
-        cbCategorie = New ComboBox()
-        cbSousCategorie = New ComboBox()
         cbEvénement = New ComboBox()
         Button1 = New Button()
         dgvTiers = New DataGridView()
@@ -69,9 +66,9 @@ Partial Class frmSaisie
         ' lblType
         ' 
         lblType.AutoSize = True
-        lblType.Location = New Point(12, 158)
+        lblType.Location = New Point(698, 134)
         lblType.Name = "lblType"
-        lblType.Size = New Size(31, 15)
+        lblType.Size = New Size(32, 15)
         lblType.TabIndex = 0
         lblType.Text = "Type"
         ' 
@@ -86,16 +83,16 @@ Partial Class frmSaisie
         ' lblTiers
         ' 
         lblTiers.AutoSize = True
-        lblTiers.Location = New Point(12, 196)
+        lblTiers.Location = New Point(17, 134)
         lblTiers.Name = "lblTiers"
-        lblTiers.Size = New Size(31, 15)
+        lblTiers.Size = New Size(32, 15)
         lblTiers.TabIndex = 4
         lblTiers.Text = "Tiers"
         ' 
         ' lblCategorie
         ' 
         lblCategorie.AutoSize = True
-        lblCategorie.Location = New Point(12, 234)
+        lblCategorie.Location = New Point(17, 302)
         lblCategorie.Name = "lblCategorie"
         lblCategorie.Size = New Size(58, 15)
         lblCategorie.TabIndex = 5
@@ -104,7 +101,7 @@ Partial Class frmSaisie
         ' lblSousCategorie
         ' 
         lblSousCategorie.AutoSize = True
-        lblSousCategorie.Location = New Point(12, 272)
+        lblSousCategorie.Location = New Point(12, 442)
         lblSousCategorie.Name = "lblSousCategorie"
         lblSousCategorie.Size = New Size(86, 15)
         lblSousCategorie.TabIndex = 8
@@ -147,7 +144,7 @@ Partial Class frmSaisie
         ' btnValider
         ' 
         btnValider.AutoSize = True
-        btnValider.Location = New Point(146, 418)
+        btnValider.Location = New Point(832, 284)
         btnValider.Name = "btnValider"
         btnValider.Size = New Size(75, 25)
         btnValider.TabIndex = 13
@@ -173,7 +170,7 @@ Partial Class frmSaisie
         ' lblEvénement
         ' 
         lblEvénement.AutoSize = True
-        lblEvénement.Location = New Point(12, 310)
+        lblEvénement.Location = New Point(698, 176)
         lblEvénement.Name = "lblEvénement"
         lblEvénement.Size = New Size(66, 15)
         lblEvénement.TabIndex = 17
@@ -235,7 +232,7 @@ Partial Class frmSaisie
         ' lblRemise
         ' 
         lblRemise.AutoSize = True
-        lblRemise.Location = New Point(12, 348)
+        lblRemise.Location = New Point(698, 214)
         lblRemise.Name = "lblRemise"
         lblRemise.Size = New Size(45, 15)
         lblRemise.TabIndex = 23
@@ -243,14 +240,14 @@ Partial Class frmSaisie
         ' 
         ' txtRemise
         ' 
-        txtRemise.Location = New Point(123, 348)
+        txtRemise.Location = New Point(809, 214)
         txtRemise.Name = "txtRemise"
         txtRemise.Size = New Size(328, 23)
         txtRemise.TabIndex = 24
         ' 
         ' txtNote
         ' 
-        txtNote.Location = New Point(123, 386)
+        txtNote.Location = New Point(809, 252)
         txtNote.Name = "txtNote"
         txtNote.Size = New Size(328, 23)
         txtNote.TabIndex = 26
@@ -258,7 +255,7 @@ Partial Class frmSaisie
         ' lblNote
         ' 
         lblNote.AutoSize = True
-        lblNote.Location = New Point(12, 386)
+        lblNote.Location = New Point(698, 252)
         lblNote.Name = "lblNote"
         lblNote.Size = New Size(33, 15)
         lblNote.TabIndex = 25
@@ -268,39 +265,15 @@ Partial Class frmSaisie
         ' 
         cbType.DropDownStyle = ComboBoxStyle.DropDownList
         cbType.FormattingEnabled = True
-        cbType.Location = New Point(123, 158)
+        cbType.Location = New Point(809, 134)
         cbType.Name = "cbType"
         cbType.Size = New Size(328, 23)
         cbType.TabIndex = 27
         ' 
-        ' cbTiers
-        ' 
-        cbTiers.FormattingEnabled = True
-        cbTiers.Location = New Point(123, 196)
-        cbTiers.Name = "cbTiers"
-        cbTiers.Size = New Size(328, 23)
-        cbTiers.TabIndex = 28
-        ' 
-        ' cbCategorie
-        ' 
-        cbCategorie.FormattingEnabled = True
-        cbCategorie.Location = New Point(123, 234)
-        cbCategorie.Name = "cbCategorie"
-        cbCategorie.Size = New Size(328, 23)
-        cbCategorie.TabIndex = 29
-        ' 
-        ' cbSousCategorie
-        ' 
-        cbSousCategorie.FormattingEnabled = True
-        cbSousCategorie.Location = New Point(123, 272)
-        cbSousCategorie.Name = "cbSousCategorie"
-        cbSousCategorie.Size = New Size(328, 23)
-        cbSousCategorie.TabIndex = 30
-        ' 
         ' cbEvénement
         ' 
         cbEvénement.FormattingEnabled = True
-        cbEvénement.Location = New Point(123, 310)
+        cbEvénement.Location = New Point(809, 176)
         cbEvénement.Name = "cbEvénement"
         cbEvénement.Size = New Size(328, 23)
         cbEvénement.TabIndex = 31
@@ -322,11 +295,11 @@ Partial Class frmSaisie
         dgvTiers.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedHeaders
         dgvTiers.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
         dgvTiers.GridColor = SystemColors.MenuHighlight
-        dgvTiers.Location = New Point(496, 50)
+        dgvTiers.Location = New Point(104, 134)
         dgvTiers.MultiSelect = False
         dgvTiers.Name = "dgvTiers"
         dgvTiers.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvTiers.Size = New Size(451, 157)
+        dgvTiers.Size = New Size(547, 157)
         dgvTiers.TabIndex = 33
         ' 
         ' TiersBindingSource
@@ -348,11 +321,11 @@ Partial Class frmSaisie
         dgvCategorie.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
         dgvCategorie.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCells
         dgvCategorie.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvCategorie.Location = New Point(496, 213)
+        dgvCategorie.Location = New Point(104, 302)
         dgvCategorie.MultiSelect = False
         dgvCategorie.Name = "dgvCategorie"
         dgvCategorie.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvCategorie.Size = New Size(451, 112)
+        dgvCategorie.Size = New Size(547, 112)
         dgvCategorie.TabIndex = 34
         ' 
         ' dgvSousCategorie
@@ -362,11 +335,11 @@ Partial Class frmSaisie
         dgvSousCategorie.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
         dgvSousCategorie.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCells
         dgvSousCategorie.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvSousCategorie.Location = New Point(496, 331)
+        dgvSousCategorie.Location = New Point(104, 442)
         dgvSousCategorie.MultiSelect = False
         dgvSousCategorie.Name = "dgvSousCategorie"
         dgvSousCategorie.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvSousCategorie.Size = New Size(451, 88)
+        dgvSousCategorie.Size = New Size(547, 88)
         dgvSousCategorie.TabIndex = 35
         ' 
         ' FrmSaisie
@@ -379,9 +352,6 @@ Partial Class frmSaisie
         Controls.Add(dgvTiers)
         Controls.Add(Button1)
         Controls.Add(cbEvénement)
-        Controls.Add(cbSousCategorie)
-        Controls.Add(cbCategorie)
-        Controls.Add(cbTiers)
         Controls.Add(cbType)
         Controls.Add(txtNote)
         Controls.Add(lblNote)
@@ -438,9 +408,6 @@ Partial Class frmSaisie
     Friend WithEvents txtNote As TextBox
     Friend WithEvents lblNote As Label
     Friend WithEvents cbType As ComboBox
-    Friend WithEvents cbTiers As ComboBox
-    Friend WithEvents cbCategorie As ComboBox
-    Friend WithEvents cbSousCategorie As ComboBox
     Friend WithEvents cbEvénement As ComboBox
     Friend WithEvents Button1 As Button
     Friend WithEvents dgvTiers As DataGridView

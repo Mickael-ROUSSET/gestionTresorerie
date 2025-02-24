@@ -4,7 +4,6 @@ Public Class frmHistogramme
     Public Sub creeChart(ByVal titre As String, ByVal valeurs() As Decimal, ByVal legende() As String)
         'https://plasserre.developpez.com/cours/chart/#LIII-C-1
         Dim i As Integer
-        Dim sLegende As String
 
         'Supprimer tous les points
         ChartBilan.Series("Series1").Points.Clear()
@@ -56,10 +55,10 @@ Public Class frmHistogramme
 
 
     'TODO à sortir dans un module de copie d'écran si cela marche
-    Private Declare Function BitBlt Lib "GDI32" (ByVal hDestDC As IntPtr, ByVal X As Integer, ByVal Y As Integer, ByVal nWidth As Integer, ByVal nHeight As Integer, ByVal hSrcDC As IntPtr, ByVal SrcX As Integer, ByVal SrcY As Integer, ByVal Rop As Integer) As Integer
-    Private Declare Function GetForegroundWindow Lib "user32" () As IntPtr
-    Private Declare Function GetWindowRect Lib "user32.dll" (ByVal hWnd As IntPtr, ByRef lpRect As Rectangle) As Integer
-    Private Declare Function GetDesktopWindow Lib "user32" () As IntPtr
+    'Private Declare Function BitBlt Lib "GDI32" (ByVal hDestDC As IntPtr, ByVal X As Integer, ByVal Y As Integer, ByVal nWidth As Integer, ByVal nHeight As Integer, ByVal hSrcDC As IntPtr, ByVal SrcX As Integer, ByVal SrcY As Integer, ByVal Rop As Integer) As Integer
+    'Private Declare Function GetForegroundWindow Lib "user32" () As IntPtr
+    'Private Declare Function GetWindowRect Lib "user32.dll" (ByVal hWnd As IntPtr, ByRef lpRect As Rectangle) As Integer
+    'Private Declare Function GetDesktopWindow Lib "user32" () As IntPtr
     'Capture tout l'écran
     'Public Shared Function ShotScreen() As Bitmap
     '    Try

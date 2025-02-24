@@ -14,23 +14,29 @@ Public Class FrmSaisie
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Dim indTiersDetecte As Integer = 0, indCategorie As Integer = 0
         Dim idCategorie As Integer, idSousCategorie As Integer
+        Dim idTiers As Integer
         'Détection du tiers
         If listeTiers Is Nothing Then
             listeTiers = New ListeTiers(FrmPrincipale.maConnexionDB.getConnexion)
         End If
         indTiersDetecte = DetecteTiers(txtNote.Text)
         If indTiersDetecte > -1 Then
-            dgvTiers.Rows.Item(indTiersDetecte).Selected = True
-            dgvTiers.FirstDisplayedScrollingRowIndex = indTiersDetecte
+            'dgvTiers.Rows.Item(indTiersDetecte).Selected = True
+            idTiers = chercheIndiceDvg(indTiersDetecte, dgvTiers)
+            dgvTiers.Rows.Item(idTiers).Selected = True
+            dgvTiers.FirstDisplayedScrollingRowIndex = idTiers
         End If
         If dgvCategorie.RowCount = 0 Then
-            Call ChargeDgvCategorie(FrmPrincipale.maConn)
+            Call ChargeDgvCategorie(FrmPrincipale.maConn, rbDebit.Checked)
         End If
         'TODO, il doit falloir trouver le libellé de la catégorie à partir de l'indice
-        idCategorie = Tiers.getCategorieTiers(indTiersDetecte)
+        'idCategorie = Tiers.getCategorieTiers(indTiersDetecte)
+        idCategorie = chercheIndiceDvg(Tiers.getCategorieTiers(indTiersDetecte), dgvCategorie)
         dgvCategorie.Rows.Item(idCategorie).Selected = True
+        dgvCategorie.FirstDisplayedScrollingRowIndex = idCategorie
+
         If dgvSousCategorie.RowCount = 0 Then
-            Call ChargeDgvSousCategorie(FrmPrincipale.maConn, idCategorie)
+            Call ChargeDgvSousCategorie(FrmPrincipale.maConn, Tiers.getCategorieTiers(indTiersDetecte))
         End If
         idSousCategorie = chercheIndiceDvg(Tiers.getSousCategorieTiers(indTiersDetecte), dgvSousCategorie)
         dgvSousCategorie.Rows.Item(idSousCategorie).Selected = True
@@ -52,7 +58,7 @@ Public Class FrmSaisie
     Public Sub chargeListes(maConn As SqlConnection)
 
         Call ChargeDgvTiers(FrmPrincipale.maConn)
-        Call ChargeDgvCategorie(maConn)
+        Call ChargeDgvCategorie(maConn, rbDebit.Checked)
         'Chargement du fichier contenant la liste des événements
         Call ChargeFichierTexte(Me.cbEvénement, My.Settings.ficEvénement)
         'Chargement du fichier contenant la liste des types
@@ -117,10 +123,10 @@ Public Class FrmSaisie
     Private Sub Désélectionne()
         'Désélectionne les items des comboBox
 
-        Me.cbCategorie.SelectedIndex = -1
+        'Me.cbCategorie.SelectedIndex = -1
         cbEvénement.SelectedIndex = -1
-        cbSousCategorie.SelectedIndex = -1
-        cbTiers.SelectedIndex = -1
+        'cbSousCategorie.SelectedIndex = -1
+        'cbTiers.SelectedIndex = -1
         cbType.SelectedIndex = -1
     End Sub
     Private Sub ChargeFichierTexte(cbBox As System.Windows.Forms.ComboBox, fichierTexte As String)
@@ -159,9 +165,14 @@ Public Class FrmSaisie
         'dgvTiers.Columns("id").Visible = False 
     End Sub
 
-    Private Sub ChargeDgvCategorie(maConn As SqlConnection)
+    Private Sub ChargeDgvCategorie(maConn As SqlConnection, debit As Boolean)
         Dim bindingSource1 = New BindingSource()
+        'Dim sTopDebit As String
 
+        'Ne charge que les catégories correspondant au sens sélectionné
+        'sTopDebit = IIf(debit, 1, 0)
+        'Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, libelle FROM Categorie where debit =" & sTopDebit & ";", maConn)
+        'TODO : remettre la restriction sur le sens du mouvement
         Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, libelle FROM Categorie;", maConn)
 
         Dim dt As New DataTable
@@ -181,34 +192,55 @@ Public Class FrmSaisie
     Private Sub ChargeDgvSousCategorie(maConn As SqlConnection, idCategorie As Integer)
         Dim bindingSource1 = New BindingSource()
 
-        Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, libelle FROM SousCategorie where idCategorie = '" & idCategorie & "';", maConn)
-        'Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, libelle FROM SousCategorie;", maConn)
+        Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, libelle FROM SousCategorie where idCategorie = @idCategorie;", maConn)
+        command.Parameters.AddWithValue("@idCategorie", idCategorie)
 
         Dim dt As New DataTable
         Dim adpt As New Data.SqlClient.SqlDataAdapter(command)
 
         Try
-            ' Place la connexion dans le bloc try : c'est typiquement le genre d'instruction qui peut lever une exception. 
+            ' Place la connexion dans le bloc try : c'est typiquement le genre d'instruction qui peut lever une exception.
             adpt.Fill(dt)
             dgvSousCategorie.DataSource = dt
+
+            ' Vérifie si le DataGridView est vide
+            If dgvSousCategorie.Rows.Count = 0 Then
+                MessageBox.Show("ChargeDgvSousCategorie : aucune ligne n'a été trouvée pour la catégorie spécifiée.")
+                MessageBox.Show("Ajouter une entrée dans la table SousCategorie.")
+                'TODO : orienter vers une fenêtre qui permettra d'ajouter une entrée
+                End
+            End If
         Catch ex As SqlException
             ' On informe l'utilisateur qu'il y a eu un problème :
             MessageBox.Show("ChargeDgvSousCategorie : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
+        Catch ex As Exception
+            ' Gère toutes les autres erreurs
+            MessageBox.Show("ChargeDgvSousCategorie : une erreur inattendue s'est produite !" & vbCrLf & ex.ToString())
         End Try
-        dgvSousCategorie.Columns("id").Visible = True
+
+        dgvSousCategorie.Columns("id").Visible = False
         dgvSousCategorie.Columns("libelle").Visible = True
     End Sub
-    Private Sub CbCategorie_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cbCategorie.SelectedIndexChanged
-        Me.cbSousCategorie.Items.Clear()
-    End Sub
+
+    'Private Sub CbCategorie_SelectedIndexChanged(sender As Object, e As EventArgs)
+    '    cbSousCategorie.Items.Clear
+    'End Sub
     Private Sub BtnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
         Dim sCategorie As String, sSousCategorie As String
+        ', sNomTiers As String, sPrenomTiers As String, sRaisonSocialeTiers As String, sTiers As String
+        Dim idTiers As Integer
 
         'Enregistre les informations sur le mouvement saisi en base de données
         'Dim unMvt As New Mouvements(txtNote.Text, cbCategorie.SelectedItem, cbSousCategorie.SelectedItem, cbTiers.SelectedItem, dateMvt.Value, txtMontant.Text, rbCredit.Checked, rbRapproche.Checked, cbEvénement.SelectedItem, cbType.SelectedItem, False, txtRemise.Text)
         sCategorie = dgvCategorie.Rows(dgvCategorie.SelectedRows(0).Index).Cells(1).Value
         sSousCategorie = dgvSousCategorie.Rows(dgvSousCategorie.SelectedRows(0).Index).Cells(1).Value
-        Dim unMvt As New Mouvements(txtNote.Text, sCategorie, sSousCategorie, cbTiers.SelectedItem, dateMvt.Value, txtMontant.Text, rbCredit.Checked, rbRapproche.Checked, cbEvénement.SelectedItem, cbType.SelectedItem, False, txtRemise.Text)
+        idTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(0).Value
+        'sNomTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(1).Value
+        'sPrenomTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(2).Value
+        'sRaisonSocialeTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(3).Value
+        'Dim unMvt As New Mouvements(txtNote.Text, sCategorie, sSousCategorie, cbTiers.SelectedItem, dateMvt.Value, txtMontant.Text,        rbCredit.Checked, rbRapproche.Checked, cbEvénement.SelectedItem, cbType.SelectedItem, False, txtRemise.Text)
+        Dim unMvt As New Mouvements(txtNote.Text, sCategorie, sSousCategorie, idTiers, dateMvt.Value, txtMontant.Text,
+                                    rbCredit.Checked, rbRapproche.Checked, cbEvénement.SelectedItem, cbType.SelectedItem, False, txtRemise.Text)
 
         Try
             maCmd = New SqlCommand
@@ -227,34 +259,34 @@ Public Class FrmSaisie
         FrmPrincipale.Show()
     End Sub
     Private Function AjouteParam(myCmd As SqlCommand, unMvt As Mouvements) As SqlCommand
-        With myCmd
-            .Parameters.Clear()
-            .Parameters.Add("@note", SqlDbType.NVarChar)
-            .Parameters(0).Value = unMvt.Note
-            .Parameters.Add("@categorie", SqlDbType.VarChar)
-            .Parameters(1).Value = unMvt.Categorie
-            .Parameters.Add("@sousCategorie", SqlDbType.VarChar)
-            .Parameters(2).Value = unMvt.SousCategorie
-            .Parameters.Add("@tiers", SqlDbType.VarChar)
-            .Parameters(3).Value = unMvt.Tiers
-            .Parameters.Add("@dateCréation", SqlDbType.Date)
-            .Parameters(4).Value = Now.Date
-            .Parameters.Add("@dateMvt", SqlDbType.Date)
-            .Parameters(5).Value = unMvt.DateMvt
-            .Parameters.Add("@montant", SqlDbType.Decimal)
-            .Parameters(6).Value = unMvt.Montant
-            .Parameters.Add("@sens", SqlDbType.Bit)
-            .Parameters(7).Value = unMvt.Sens
-            .Parameters.Add("@etat", SqlDbType.Bit)
-            .Parameters(8).Value = unMvt.Etat
-            .Parameters.Add("@événement", SqlDbType.VarChar)
-            .Parameters(9).Value = unMvt.Événement
-            .Parameters.Add("@type", SqlDbType.VarChar)
-            .Parameters(10).Value = unMvt.Type
-            .Parameters.Add("@modifiable", SqlDbType.Bit)
-            .Parameters(11).Value = unMvt.Modifiable
-            .Parameters.Add("@numeroRemise", SqlDbType.Int)
-            .Parameters(12).Value = unMvt.NumeroRemise
+        With myCmd.Parameters
+            .Clear()
+            .Add("@note", SqlDbType.NVarChar)
+            .Item(0).Value = unMvt.Note
+            .Add("@categorie", SqlDbType.VarChar)
+            .Item(1).Value = unMvt.Categorie
+            .Add("@sousCategorie", SqlDbType.VarChar)
+            .Item(2).Value = unMvt.SousCategorie
+            .Add("@tiers", SqlDbType.Decimal)
+            .Item(3).Value = unMvt.Tiers
+            .Add("@dateCréation", SqlDbType.Date)
+            .Item(4).Value = Now.Date
+            .Add("@dateMvt", SqlDbType.Date)
+            .Item(5).Value = unMvt.DateMvt
+            .Add("@montant", SqlDbType.Decimal)
+            .Item(6).Value = unMvt.Montant
+            .Add("@sens", SqlDbType.Bit)
+            .Item(7).Value = unMvt.Sens
+            .Add("@etat", SqlDbType.Bit)
+            .Item(8).Value = unMvt.Etat
+            .Add("@événement", SqlDbType.VarChar)
+            .Item(9).Value = unMvt.Événement
+            .Add("@type", SqlDbType.VarChar)
+            .Item(10).Value = unMvt.Type
+            .Add("@modifiable", SqlDbType.Bit)
+            .Item(11).Value = unMvt.Modifiable
+            .Add("@numeroRemise", SqlDbType.Int)
+            .Item(12).Value = unMvt.NumeroRemise
         End With
         Return myCmd
     End Function
@@ -271,17 +303,17 @@ Public Class FrmSaisie
         frmHistogramme.ShowDialog()
     End Sub
 
-    Private Sub CbTiers_TextChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles cbTiers.TextChanged
-        'Recherche à la volée dans la cb
-        With cbTiers
-            If .FindString(Me.cbTiers.Text) > 0 Then
-                Dim Pos As Int32 = .Text.Length
-                .SelectedIndex = Me.cbTiers.FindString(Me.cbTiers.Text)
-                .SelectionStart = Pos
-                .SelectionLength = Me.cbTiers.Text.Length - Pos
-            End If
-        End With
-    End Sub
+    'Private Sub CbTiers_TextChanged(ByVal sender As Object, ByVal e As EventArgs)
+    '    'Recherche à la volée dans la cb
+    '    With cbTiers
+    '        If .FindString(cbTiers.Text) > 0 Then
+    '            Dim Pos = .Text.Length
+    '            .SelectedIndex = cbTiers.FindString(cbTiers.Text)
+    '            .SelectionStart = Pos
+    '            .SelectionLength = cbTiers.Text.Length - Pos
+    '        End If
+    '    End With
+    'End Sub
 
     Private Sub dgvTiers_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvTiers.CellContentClick
         'Gérer les catégories par défaut
@@ -294,37 +326,41 @@ Public Class FrmSaisie
             Dim sb As System.Text.StringBuilder = New System.Text.StringBuilder()
             For i = 0 To selectedRowCount
                 sb.Append("Row: ")
-                sb.Append(dgvTiers.SelectedRows(i).Index.ToString())
+                sb.Append(dgvTiers.SelectedRows(i).Index)
                 sb.Append(Environment.NewLine)
                 i += 1
             Next
             sb.Append("Total: " + selectedRowCount.ToString())
             'MessageBox.Show(sb.ToString(), "Selected Rows")
         End If
-        'TODO : il faut retrouver le Tiers
+        'Retrouver le Tiers
         dgvTiers.CurrentCell = dgvTiers.SelectedRows(0).Cells(0)
-        Call ChargeDgvSousCategorie(FrmPrincipale.maConn, Tiers.getCategorieTiers(dgvTiers.SelectedRows(0).Cells(0).Value))
-        'TODO : sélectionner la catégorie et la sous catégorie qui vont bien
-        idTiers = Tiers.getCategorieTiers(dgvTiers.SelectedRows(0).Cells(0).Value)
-        dgvCategorie.Item(1, idTiers).Selected = True
-        dgvCategorie.CurrentCell = dgvCategorie.Rows(idTiers).Cells(0)
-        dgvSousCategorie.Item(1, Tiers.getSousCategorieTiers(dgvTiers.SelectedRows(0).Cells(0).Value)).Selected = True
+        idTiers = dgvTiers.SelectedRows(0).Cells(0).Value
+        ''Sélectionner la catégorie et la sous catégorie qui vont bien
+        'dgvCategorie.Item(1, idTiers).Selected = True
+        ''Charger la sousCategorie
+        'If dgvSousCategorie.RowCount = 0 Then
+        '    Call ChargeDgvSousCategorie(FrmPrincipale.maConn, Tiers.getCategorieTiers(idTiers))
+        'End If
+        ''idTiers = Tiers.getCategorieTiers(dgvTiers.SelectedRows(0).Cells(0).Value)
+        ''dgvCategorie.CurrentCell = dgvCategorie.Rows(idTiers).Cells(0)
+        'dgvSousCategorie.Item(1, Tiers.getSousCategorieTiers(idTiers)).Selected = True
     End Sub
-    Private Sub ChargeSousCategorie(indiceCategorie As Integer)
-        Dim monReaderSousCategorie As SqlDataReader
-        Dim maCmdSousCategorie As SqlCommand
+    'Private Sub ChargeSousCategorie(indiceCategorie As Integer)
+    '    Dim monReaderSousCategorie As SqlDataReader
+    '    Dim maCmdSousCategorie As SqlCommand
 
-        maCmdSousCategorie = New SqlCommand("SELECT libelle FROM SousCategorie where idCategorie =" & indiceCategorie & ";", FrmPrincipale.maConn)
-        monReaderSousCategorie = maCmdSousCategorie.ExecuteReader()
-        Do While monReaderSousCategorie.Read()
-            Try
-                Me.cbSousCategorie.Items.Add(monReaderSousCategorie.GetSqlString(0))
-            Catch ex As Exception
-                Console.WriteLine(ex.Message)
-            End Try
-        Loop
-        monReaderSousCategorie.Close()
-    End Sub
+    '    maCmdSousCategorie = New SqlCommand("SELECT libelle FROM SousCategorie where idCategorie =" & indiceCategorie & ";", FrmPrincipale.maConn)
+    '    monReaderSousCategorie = maCmdSousCategorie.ExecuteReader()
+    '    Do While monReaderSousCategorie.Read()
+    '        Try
+    '            Me.cbSousCategorie.Items.Add(monReaderSousCategorie.GetSqlString(0))
+    '        Catch ex As Exception
+    '            Console.WriteLine(ex.Message)
+    '        End Try
+    '    Loop
+    '    monReaderSousCategorie.Close()
+    'End Sub
 
     Private Sub dgvTiers_UserAddedRow(sender As Object, e As DataGridViewRowEventArgs) Handles dgvTiers.UserAddedRow
         Dim bindingSource1 = New BindingSource()
@@ -353,4 +389,23 @@ Public Class FrmSaisie
     Private Sub btnInsereTiers_Click(sender As Object, e As EventArgs) Handles btnInsereTiers.Click
         frmNouveauTiers.show
     End Sub
+
+    Private Sub dgvCategorie_DoubleClick(sender As Object, e As EventArgs) Handles dgvCategorie.DoubleClick
+        'Teste si la feuille est déjà chargée
+        'TODO : ne marche pas
+        If Not dgvCategorie.SelectedRows(0).Cells(0) Is Nothing Then
+            Call ChargeDgvSousCategorie(FrmPrincipale.maConn, dgvCategorie.SelectedRows(0).Cells(0).Value)
+        End If
+    End Sub
+
+    'Private Sub grpSens_Enter(sender As Object, e As EventArgs) Handles grpSens.Enter
+    'End Sub
+
+    'Private Sub rbDebit_CheckedChanged(sender As Object, e As EventArgs) Handles rbDebit.CheckedChanged
+    '    ChargeDgvCategorie(FrmPrincipale.maConn, rbDebit.Checked)
+    'End Sub
+
+    'Private Sub rbCredit_CheckedChanged(sender As Object, e As EventArgs) Handles rbCredit.CheckedChanged
+    '    ChargeDgvCategorie(FrmPrincipale.maConn, rbCredit.Checked)
+    'End Sub
 End Class

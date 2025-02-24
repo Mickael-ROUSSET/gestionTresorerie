@@ -9,7 +9,7 @@ Public Class Mouvements
     Private _note As String
     Private _categorie As String
     Private _sousCategorie As String
-    Private _tiers As String
+    Private _tiers As Integer
     Private _dateCréation As Date
     Private _dateMvt As Date
     Private _montant As Decimal
@@ -19,23 +19,25 @@ Public Class Mouvements
     Private _type As String
     Private _modifiable As Boolean
     Private _numeroRemise As String
-    Public Sub New(ByVal note As String, ByVal categorie As String, ByVal sousCategorie As String, ByVal tiers As String, ByVal dateMvt As Date, ByVal montant As String, ByVal sens As String, ByVal etat As String, ByVal événement As String, ByVal type As String, ByVal modifiable As Boolean, ByVal numeroRemise As String)
+    Public Sub New(ByVal note As String, ByVal categorie As String, ByVal sousCategorie As String, ByVal tiers As Integer, ByVal dateMvt As Date, ByVal montant As String, ByVal sens As String, ByVal etat As String, ByVal événement As String, ByVal type As String, ByVal modifiable As Boolean, ByVal numeroRemise As String)
         ' Set the property value.
-        If VerifParam(note, categorie, sousCategorie, tiers, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise) Then
-            Me.Note = note
-            Me.Categorie = categorie
-            Me.SousCategorie = sousCategorie
-            Me.Tiers = tiers
-            Me.DateMvt = dateMvt
-            Me.DateCréation = Date.Now
-            Me.Montant = montant
-            Me.Sens = sens
-            Me.Etat = etat
-            Me.Événement = événement
-            Me.Type = type
-            Me.Modifiable = modifiable
-            Me.NumeroRemise = numeroRemise
-        End If
+        With Me
+            If VerifParam(note, categorie, sousCategorie, tiers, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise) Then
+                .Note = note
+                .Categorie = categorie
+                .SousCategorie = sousCategorie
+                .Tiers = tiers
+                .DateMvt = dateMvt
+                .DateCréation = Date.Now
+                .Montant = montant
+                .Sens = sens
+                .Etat = etat
+                .Événement = événement
+                .Type = type
+                .Modifiable = modifiable
+                .NumeroRemise = numeroRemise
+            End If
+        End With
     End Sub
     Public Shared Function existe(ByVal dateMvt As Date, ByVal montant As String, ByVal sens As String) As Boolean
         ' Vérifie si le mouvement existe déjà
@@ -53,9 +55,9 @@ Public Class Mouvements
         myReader.Close()
         Return bExiste
     End Function
-    Public Shared Function VerifParam(note As String, categorie As String, sousCategorie As String, tiers As String, dateMvt As Date, montant As String, sens As String, etat As String, événement As String, type As String, modifiable As Boolean, numeroRemise As String) As Boolean
+    Public Shared Function VerifParam(note As String, categorie As String, sousCategorie As String, tiers As Integer, dateMvt As Date, montant As String, sens As String, etat As String, événement As String, type As String, modifiable As Boolean, numeroRemise As String) As Boolean
         Dim bToutEstLa As Boolean = False
-        If categorie <> "" And sousCategorie <> "" And tiers <> "" And IsDate(dateMvt) And sens <> "" And etat <> "" And type <> "" Then
+        If categorie <> "" And sousCategorie <> "" And tiers <> 0 And IsDate(dateMvt) And sens <> "" And etat <> "" And type <> "" Then
             bToutEstLa = True
         End If
         Return bToutEstLa
@@ -98,12 +100,12 @@ Public Class Mouvements
             _sousCategorie = Trim(value)
         End Set
     End Property
-    Public Property Tiers() As String
+    Public Property Tiers() As Integer
         Get
             Return Split(_tiers, vbTab)(0)
         End Get
-        Set(ByVal value As String)
-            _tiers = Trim(value)
+        Set(ByVal value As Integer)
+            _tiers = value
         End Set
     End Property
     Public Property DateMvt() As Date

@@ -54,7 +54,7 @@ Public Class Tiers
         Return iCategorie
     End Function
     Public Shared Function getSousCategorieTiers(idTiers As Double) As Integer
-        ' Renvoie la catégorie et la sous catégorie d'un tiers 
+        ' Renvoie la sous catégorie d'un tiers 
         Dim maCmd As SqlCommand
         Dim monReader As SqlDataReader
         Dim iSousCategorie As Integer

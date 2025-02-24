@@ -433,7 +433,7 @@ Module creeOpenXml
         style.Append(styleName1)
         style.Append(basedOn1)
         'TODO : remettre ?
-        'style.Append(nextParagraphStyle1)
+        style.Append(nextParagraphStyle1)
 
         ' Create the StyleRunProperties object and specify some of the run properties.
         Dim styleRunProperties1 As New StyleRunProperties

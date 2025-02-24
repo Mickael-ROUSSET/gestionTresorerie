@@ -1,0 +1,4 @@
+﻿[*.vb]
+
+# BC42104: La variable est utilisée avant de se voir attribuer une valeur
+dotnet_diagnostic.BC42104.severity = none

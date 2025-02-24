@@ -224,25 +224,25 @@ Public Class FrmPrincipale
             .txtMontant.Text = montant
             'If Mouvements.existe(dateMvt, montant, sens) Then
             '.cbCategorie 
-            If categorie > "" Then
-                .cbCategorie.SelectedIndex = IndexSelectionne(.cbCategorie, categorie)
-            End If
-            '.cbSousCategorie  
-            If sousCategorie > "" Then
-                .cbSousCategorie.SelectedIndex = IndexSelectionne(.cbCategorie, sousCategorie)
-            End If
-            '.cbTiers  
-            If tiers > "" Then
-                .cbTiers.SelectedIndex = IndexSelectionne(.cbCategorie, tiers)
-            End If
+            'If categorie > "" Then
+            '    .cbCategorie.SelectedIndex = IndexSelectionne(.cbCategorie, categorie)
+            'End If
+            ''.cbSousCategorie  
+            'If sousCategorie > "" Then
+            '    .cbSousCategorie.SelectedIndex = IndexSelectionne(.cbCategorie, sousCategorie)
+            'End If
+            ''.cbTiers  
+            'If tiers > "" Then
+            '    .cbTiers.SelectedIndex = IndexSelectionne(.cbCategorie, tiers)
+            'End If
             '.cbEvénement  
-            If evenement > "" Then
-                .cbEvénement.SelectedIndex = IndexSelectionne(.cbCategorie, evenement)
-            End If
-            '.cbType 
-            If monType > "" Then
-                .cbType.SelectedIndex = IndexSelectionne(.cbCategorie, monType)
-            End If
+            'If evenement > "" Then
+            '    .cbEvénement.SelectedIndex = IndexSelectionne(.cbCategorie, evenement)
+            'End If
+            ''.cbType 
+            'If monType > "" Then
+            '    .cbType.SelectedIndex = IndexSelectionne(.cbCategorie, monType)
+            'End If
             .txtRemise.Text = remise
             .rbRapproche.Text = rapproche
             'End If

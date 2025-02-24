@@ -32,6 +32,7 @@ Partial Class FrmChargeRelevé
         dgVDébit = New DataGridViewTextBoxColumn()
         BindingSource1 = New BindingSource(components)
         BindingSource2 = New BindingSource(components)
+        btnOuvreSaisie = New Button()
         fldBrowserDialog = New FolderBrowserDialog()
         CType(dgvRelevé, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -42,7 +43,7 @@ Partial Class FrmChargeRelevé
         ' 
         btnOuvreFichier.Location = New Point(12, 21)
         btnOuvreFichier.Name = "btnOuvreFichier"
-        btnOuvreFichier.Size = New Size(75, 23)
+        btnOuvreFichier.Size = New Size(97, 23)
         btnOuvreFichier.TabIndex = 2
         btnOuvreFichier.Text = "Ouvre relevé"
         btnOuvreFichier.UseVisualStyleBackColor = True
@@ -85,14 +86,24 @@ Partial Class FrmChargeRelevé
         dgVDébit.Name = "dgVDébit"
         dgVDébit.Width = 75
         ' 
-        ' frmChargeRelevé
+        ' btnOuvreSaisie
         ' 
-        AutoScaleDimensions = New SizeF(7.0F, 15.0F)
+        btnOuvreSaisie.Location = New Point(310, 451)
+        btnOuvreSaisie.Name = "btnOuvreSaisie"
+        btnOuvreSaisie.Size = New Size(182, 23)
+        btnOuvreSaisie.TabIndex = 4
+        btnOuvreSaisie.Text = "Enregistrement du mouvement"
+        btnOuvreSaisie.UseVisualStyleBackColor = True
+        ' 
+        ' FrmChargeRelevé
+        ' 
+        AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(800, 450)
+        ClientSize = New Size(800, 506)
+        Controls.Add(btnOuvreSaisie)
         Controls.Add(dgvRelevé)
         Controls.Add(btnOuvreFichier)
-        Name = "frmChargeRelevé"
+        Name = "FrmChargeRelevé"
         Text = "Charge Relevé"
         CType(dgvRelevé, ComponentModel.ISupportInitialize).EndInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).EndInit()
@@ -107,4 +118,5 @@ Partial Class FrmChargeRelevé
     Friend WithEvents dgVDébit As DataGridViewTextBoxColumn
     Friend WithEvents BindingSource1 As BindingSource
     Friend WithEvents BindingSource2 As BindingSource
+    Friend WithEvents btnOuvreSaisie As Button
 End Class
