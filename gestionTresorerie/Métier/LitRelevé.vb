@@ -38,10 +38,10 @@ Module LitRelevé
         Try
             ' Ouvrir le fichier en mode écriture pour le vider 
             System.IO.File.WriteAllText(cheminFichier, String.Empty)
-            Console.WriteLine("Le fichier a été vidé avec succès.")
+            MsgBox("Le fichier a été vidé avec succès.")
         Catch ex As Exception
             ' Gérer les exceptions en cas d'erreur 
-            Console.WriteLine("ViderFichier, erreur : " & ex.Message)
+            MsgBox("ViderFichier, erreur : " & ex.Message)
         End Try
     End Sub
     Private Sub TraiteFichierCsvMensuel(sFicTemp As String, sFichier As String)

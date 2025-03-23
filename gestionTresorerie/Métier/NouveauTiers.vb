@@ -52,7 +52,7 @@ Public Class frmNouveauTiers
     '        maCmd = AjouteParam(maCmd, neoTiers)
     '        iNbLignes = maCmd.ExecuteNonQuery
     '    Catch ex As Exception
-    '        Console.WriteLine(ex.Message)
+    '        msgbox(ex.Message)
     '    End Try
 
     '    MsgBox(iNbLignes & ", ligne insérée : " & neoTiers.Prénom & ", " & neoTiers.Nom)
@@ -77,7 +77,7 @@ Public Class frmNouveauTiers
     '        maCmd = AjouteParam(maCmd, neoTiers)
     '        iNbLignes = maCmd.ExecuteNonQuery
     '    Catch ex As Exception
-    '        Console.WriteLine(ex.Message)
+    '        msgbox(ex.Message)
     '    End Try
 
     '    MsgBox(iNbLignes & ", ligne insérée : " & neoTiers.RaisonSociale)
@@ -95,7 +95,7 @@ Public Class frmNouveauTiers
             maCmd = AjouteParam(maCmd, tiers)
             iNbLignes = maCmd.ExecuteNonQuery
         Catch ex As Exception
-            Console.WriteLine(ex.Message)
+            MsgBox(ex.Message)
         End Try
 
         MsgBox(iNbLignes & ", ligne insérée : " & tiers.RaisonSociale)

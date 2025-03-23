@@ -1,6 +1,8 @@
 ﻿Imports System.Text.RegularExpressions
 Imports System.Data.SqlClient
 Imports System.IO
+Imports DocumentFormat.OpenXml.Office2019.Drawing.Model3D
+Imports DocumentFormat.OpenXml.Wordprocessing
 
 Public Class FrmSaisie
 
@@ -252,7 +254,7 @@ Public Class FrmSaisie
             maCmd.ExecuteNonQuery()
         Catch ex As Exception
             MsgBox("Echec de l'insertion en base" & " " & ex.Message)
-            Console.WriteLine(ex.Message)
+            MsgBox(ex.Message)
             End
         End Try
         Me.Hide()
@@ -336,15 +338,6 @@ Public Class FrmSaisie
         'Retrouver le Tiers
         dgvTiers.CurrentCell = dgvTiers.SelectedRows(0).Cells(0)
         idTiers = dgvTiers.SelectedRows(0).Cells(0).Value
-        ''Sélectionner la catégorie et la sous catégorie qui vont bien
-        'dgvCategorie.Item(1, idTiers).Selected = True
-        ''Charger la sousCategorie
-        'If dgvSousCategorie.RowCount = 0 Then
-        '    Call ChargeDgvSousCategorie(FrmPrincipale.maConn, Tiers.getCategorieTiers(idTiers))
-        'End If
-        ''idTiers = Tiers.getCategorieTiers(dgvTiers.SelectedRows(0).Cells(0).Value)
-        ''dgvCategorie.CurrentCell = dgvCategorie.Rows(idTiers).Cells(0)
-        'dgvSousCategorie.Item(1, Tiers.getSousCategorieTiers(idTiers)).Selected = True
     End Sub
     'Private Sub ChargeSousCategorie(indiceCategorie As Integer)
     '    Dim monReaderSousCategorie As SqlDataReader
@@ -356,7 +349,7 @@ Public Class FrmSaisie
     '        Try
     '            Me.cbSousCategorie.Items.Add(monReaderSousCategorie.GetSqlString(0))
     '        Catch ex As Exception
-    '            Console.WriteLine(ex.Message)
+    '            msgbox(ex.Message)
     '        End Try
     '    Loop
     '    monReaderSousCategorie.Close()
@@ -387,7 +380,7 @@ Public Class FrmSaisie
     End Sub
 
     Private Sub btnInsereTiers_Click(sender As Object, e As EventArgs) Handles btnInsereTiers.Click
-        frmNouveauTiers.show
+        frmNouveauTiers.Show()
     End Sub
 
     Private Sub dgvCategorie_DoubleClick(sender As Object, e As EventArgs) Handles dgvCategorie.DoubleClick
@@ -397,6 +390,57 @@ Public Class FrmSaisie
             Call ChargeDgvSousCategorie(FrmPrincipale.maConn, dgvCategorie.SelectedRows(0).Cells(0).Value)
         End If
     End Sub
+
+    'Private Sub selectionneLigneParLibelle(libelle As String)
+    '    'Sélectionne la ligne dont le libellé correspond au paramètre (sur le nombre de caractères renseignés)
+    '    Dim i As Long
+
+    '    If Len(libelle) > 1 Then
+    '        For i = 0 To dgvCategorie.RowCount - 1
+    '            If Strings.Left(dgvCategorie.SelectedRows(i).Cells(1).Value, Len(libelle)) = libelle Then
+    '                dgvCategorie.Rows(i).Selected = True
+    '                dgvCategorie.Rows(i).Visible = True
+    '            End If
+    '        Next
+    '    End If
+    'End Sub
+    Private Sub selectionneLigneParLibelle(dgv As DataGridView, libelle As String)
+        'Sélectionne la ligne dont le libellé correspond au paramètre (sur le nombre de caractères renseignés)
+        Dim i As Long
+        Dim sLibMajuscule As String
+
+        sLibMajuscule = UCase(libelle)
+        If Len(libelle) > 1 Then
+            'Il faut gérer les cas personnes morales / physiques
+            For i = 0 To dgv.RowCount - 1
+                Select Case True
+                    Case Not IsDBNull(dgv.Rows(i).Cells(1).Value)
+                        If UCase(Strings.Left(dgv.Rows(i).Cells(1).Value, Len(libelle))) = sLibMajuscule Then
+                            afficheLigneTrouvée(dgv, i)
+                        End If
+                    Case Not IsDBNull(dgv.Rows(i).Cells(3).Value)
+                        If UCase(Strings.Left(dgv.Rows(i).Cells(3).Value, Len(libelle))) = sLibMajuscule Then
+                            afficheLigneTrouvée(dgv, i)
+                        End If
+                    Case Else
+                        MsgBox("selectionneLigneParLibelle : erreur critique sur recherche : " & dgv.Name & " libellé : " & libelle)
+                        End
+                End Select
+            Next
+        End If
+    End Sub
+    Private Sub afficheLigneTrouvée(dgv As DataGridView, ligne As Long)
+        dgv.Rows(ligne).Selected = True
+        dgv.CurrentCell = dgv.SelectedRows(0).Cells(0)
+    End Sub
+    Private Sub txtRechercheTiers_TextChanged(sender As Object, e As EventArgs) Handles txtRechercheTiers.TextChanged
+        selectionneLigneParLibelle(dgvTiers, txtRechercheTiers.Text)
+    End Sub
+    'Private Sub dgvCategorie_SelectionChanged(sender As Object, e As EventArgs) Handles dgvCategorie.SelectionChanged
+    '    If Not dgvCategorie.SelectedRows(0).Cells(0) Is Nothing Then
+    '        Call ChargeDgvSousCategorie(FrmPrincipale.maConn, dgvCategorie.SelectedRows(0).Cells(0).Value)
+    '    End If
+    'End Sub
 
     'Private Sub grpSens_Enter(sender As Object, e As EventArgs) Handles grpSens.Enter
     'End Sub

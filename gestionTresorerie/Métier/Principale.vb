@@ -25,7 +25,7 @@ Public Class FrmPrincipale
         Try
             Call initialisations()
         Catch ex As Exception
-            Console.WriteLine("FrmPrincipale_Load : " & ex.Message)
+            MsgBox("FrmPrincipale_Load : " & ex.Message)
         End Try
     End Sub
 
@@ -78,7 +78,7 @@ Public Class FrmPrincipale
                     ReDim Preserve tabValeurs(UBound(tabValeurs) + 1)
                     tabValeurs(i) = monReaderSousCategorie.GetDecimal(1)
                 Catch ex As Exception
-                    Console.WriteLine(ex.Message)
+                    MsgBox(ex.Message)
                 End Try
                 i += 1
             Loop
@@ -248,6 +248,15 @@ Public Class FrmPrincipale
             'End If
             .Show()
         End With
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        'ChequeOCR.litImage()
+        Dim extraction As New appelMistral
+
+        Dim chqJson = extraction.litImage("C:\Users\User\Downloads\SKM_C25825030110110.jpg")
+        chqJson.InsereEnBase()
+
     End Sub
 
     'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click

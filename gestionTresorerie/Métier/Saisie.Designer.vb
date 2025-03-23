@@ -53,6 +53,7 @@ Partial Class frmSaisie
         MouvementsBindingSource = New BindingSource(components)
         dgvCategorie = New DataGridView()
         dgvSousCategorie = New DataGridView()
+        txtRechercheTiers = New TextBox()
         grpSens.SuspendLayout()
         GroupBox1.SuspendLayout()
         CType(dgvTiers, ComponentModel.ISupportInitialize).BeginInit()
@@ -290,6 +291,7 @@ Partial Class frmSaisie
         ' dgvTiers
         ' 
         dgvTiers.AllowDrop = True
+        dgvTiers.AllowUserToDeleteRows = False
         dgvTiers.AllowUserToOrderColumns = True
         dgvTiers.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
         dgvTiers.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedHeaders
@@ -298,6 +300,7 @@ Partial Class frmSaisie
         dgvTiers.Location = New Point(104, 134)
         dgvTiers.MultiSelect = False
         dgvTiers.Name = "dgvTiers"
+        dgvTiers.ReadOnly = True
         dgvTiers.SelectionMode = DataGridViewSelectionMode.FullRowSelect
         dgvTiers.Size = New Size(547, 157)
         dgvTiers.TabIndex = 33
@@ -342,11 +345,19 @@ Partial Class frmSaisie
         dgvSousCategorie.Size = New Size(547, 88)
         dgvSousCategorie.TabIndex = 35
         ' 
+        ' txtRechercheTiers
+        ' 
+        txtRechercheTiers.Location = New Point(506, 89)
+        txtRechercheTiers.Name = "txtRechercheTiers"
+        txtRechercheTiers.Size = New Size(100, 23)
+        txtRechercheTiers.TabIndex = 36
+        ' 
         ' FrmSaisie
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(1506, 542)
+        Controls.Add(txtRechercheTiers)
         Controls.Add(dgvSousCategorie)
         Controls.Add(dgvCategorie)
         Controls.Add(dgvTiers)
@@ -416,5 +427,6 @@ Partial Class frmSaisie
     Friend WithEvents dgvCategorie As DataGridView
     Friend WithEvents dgvSousCategorie As DataGridView
     Friend WithEvents TiersBindingSource As BindingSource
+    Friend WithEvents txtRechercheTiers As TextBox
 
 End Class

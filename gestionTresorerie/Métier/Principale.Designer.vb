@@ -59,6 +59,7 @@ Partial Class FrmPrincipale
         ParamètresTechniquesToolStripMenuItem = New ToolStripMenuItem()
         FichiersParamètresToolStripMenuItem = New ToolStripMenuItem()
         EnvironnementToolStripMenuItem = New ToolStripMenuItem()
+        Button1 = New Button()
         CType(DataGridView1, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -199,9 +200,6 @@ Partial Class FrmPrincipale
         ' 
         MouvementsBindingSource.DataSource = GetType(Mouvements)
         ' 
-        ' BindingSource1
-        ' 
-        ' 
         ' btnCreeBilans
         ' 
         btnCreeBilans.Location = New Point(23, 257)
@@ -302,11 +300,21 @@ Partial Class FrmPrincipale
         EnvironnementToolStripMenuItem.Size = New Size(176, 22)
         EnvironnementToolStripMenuItem.Text = "Environnement"
         ' 
+        ' Button1
+        ' 
+        Button1.Location = New Point(48, 430)
+        Button1.Name = "Button1"
+        Button1.Size = New Size(75, 23)
+        Button1.TabIndex = 7
+        Button1.Text = "Button1"
+        Button1.UseVisualStyleBackColor = True
+        ' 
         ' FrmPrincipale
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(966, 541)
+        Controls.Add(Button1)
         Controls.Add(btnCreeBilans)
         Controls.Add(DataGridView1)
         Controls.Add(btnConsultation)
@@ -361,4 +369,5 @@ Partial Class FrmPrincipale
     Friend WithEvents EnvironnementToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents GérerUnMouvementToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents FermerToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents Button1 As Button
 End Class

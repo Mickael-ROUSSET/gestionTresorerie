@@ -28,10 +28,10 @@ Public Class connexionDB
             End If
         Catch ex As SqlException
             ' Gère les erreurs de connexion SQL
-            Console.WriteLine("creeConnexion : erreur SQL : " & ex.Message)
+            MsgBox("creeConnexion : erreur SQL : " & ex.Message)
         Catch ex As Exception
             ' Gère toutes les autres erreurs
-            Console.WriteLine("Erreur : " & ex.Message)
+            MsgBox("Erreur : " & ex.Message)
         End Try
     End Sub
 

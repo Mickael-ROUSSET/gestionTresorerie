@@ -46,7 +46,7 @@ Public Class Tiers
             Try
                 iCategorie = monReader.GetInt32(0)
             Catch ex As Exception
-                Console.WriteLine(ex.Message)
+                MsgBox(ex.Message)
             End Try
         Loop
         'TODO : gérer les réponses multiples éventuelles
@@ -69,7 +69,7 @@ Public Class Tiers
             Try
                 iSousCategorie = monReader.GetInt32(0)
             Catch ex As Exception
-                Console.WriteLine(ex.Message)
+                MsgBox(ex.Message)
             End Try
         Loop
         'TODO : gérer les réponses multiples éventuelles
