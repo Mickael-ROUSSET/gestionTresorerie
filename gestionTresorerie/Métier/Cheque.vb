@@ -1,4 +1,5 @@
 ﻿Imports System.Data.SqlClient
+Imports System.IO
 Imports System.Text.RegularExpressions
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
@@ -11,6 +12,8 @@ Public Class Cheque
     Public _montant_numerique As Decimal
     Public _destinataire As String
 
+    Public Sub New()
+    End Sub
     Public Sub New(json As String)
         Call ParseJson(json)
     End Sub
@@ -110,20 +113,24 @@ Public Class Cheque
             Return String.Empty
         End If
     End Function
-    Public Sub InsereEnBase()
+    Public Sub InsereEnBase(cheminChq As String)
         Using FrmPrincipale.maConn
             Try
-
-                Dim query As String = "INSERT INTO [dbo].Cheque ([numero], [date], [emetteur], [montant], [banque], [destinataire]) VALUES (@numero, @date, @emetteur, @montant, @banque, @destinataire)"
+                Dim query As String = "INSERT INTO [dbo].Cheque ([numero], [date], [emetteur], [montant], [banque], [destinataire], [imageChq]) VALUES (@numero, @date, @emetteur, @montant, @banque, @destinataire, @imageChq)"
 
                 Using command As New SqlCommand(query, FrmPrincipale.maConn)
                     command.Parameters.AddWithValue("@numero", _numero_du_cheque)
                     command.Parameters.AddWithValue("@date", Convert.ToDateTime(_dateChq))
                     command.Parameters.AddWithValue("@emetteur", _emetteur_du_cheque)
                     command.Parameters.AddWithValue("@montant", _montant_numerique)
-                    'command.Parameters.AddWithValue("@banque", _emetteur)
                     command.Parameters.AddWithValue("@banque", "CA43")
                     command.Parameters.AddWithValue("@destinataire", _destinataire)
+
+                    ' Lire l'image en tant que tableau d'octets 
+                    Dim imageBytes As Byte() = File.ReadAllBytes(cheminChq)
+
+                    ' Ajouter le paramètre pour l'image
+                    command.Parameters.AddWithValue("@imageChq", imageBytes)
 
                     command.ExecuteNonQuery()
                 End Using
@@ -134,4 +141,35 @@ Public Class Cheque
             End Try
         End Using
     End Sub
+    Public Sub AfficherImage(idCheque As Integer, pbBox As PictureBox)
+        Using FrmPrincipale.maConn
+            Try
+                ' Requête SQL pour récupérer l'image
+                Dim query As String = "SELECT [imageChq] FROM [dbo].Cheque WHERE [id] = @id"
+
+                Using command As New SqlCommand(query, FrmPrincipale.maConn)
+                    command.Parameters.AddWithValue("@id", idCheque)
+
+                    ' Exécuter la requête et récupérer les données binaires de l'image
+                    Dim imageData As Object = command.ExecuteScalar()
+
+                    If imageData IsNot Nothing AndAlso TypeOf imageData Is Byte() Then
+                        ' Convertir les données binaires en objet Image
+                        Dim imageBytes As Byte() = DirectCast(imageData, Byte())
+                        Using ms As New IO.MemoryStream(imageBytes)
+                            Dim image As Image = Image.FromStream(ms)
+                            ' Afficher l'image dans le PictureBox
+                            pbBox.Image = image
+                        End Using
+                    Else
+                        MessageBox.Show("Aucune image trouvée pour cet enregistrement.")
+                    End If
+                End Using
+            Catch ex As Exception
+                MessageBox.Show("Erreur lors de la récupération de l'image : " & ex.Message)
+            End Try
+        End Using
+    End Sub
+
+
 End Class

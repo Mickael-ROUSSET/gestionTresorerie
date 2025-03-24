@@ -113,14 +113,6 @@ Public Class FrmPrincipale
         document.Save()
         document.Dispose()
     End Sub
-    'Private Sub SupprimeControlesfenetre(frm As Form)
-    '    Dim i As Integer, nbControls As Integer
-
-    '    nbControls = frm.Controls.Count
-    '    For i = 0 To nbControls - 1
-    '        frm.Controls.Remove(frm.Controls.Item(0))
-    '    Next i
-    'End Sub
     Private Sub FrmMain_Closing(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
         Try
             Call SuprimeConnexion()
@@ -222,27 +214,6 @@ Public Class FrmPrincipale
             .txtNote.Text = note
             .rbDebit.Checked = sens
             .txtMontant.Text = montant
-            'If Mouvements.existe(dateMvt, montant, sens) Then
-            '.cbCategorie 
-            'If categorie > "" Then
-            '    .cbCategorie.SelectedIndex = IndexSelectionne(.cbCategorie, categorie)
-            'End If
-            ''.cbSousCategorie  
-            'If sousCategorie > "" Then
-            '    .cbSousCategorie.SelectedIndex = IndexSelectionne(.cbCategorie, sousCategorie)
-            'End If
-            ''.cbTiers  
-            'If tiers > "" Then
-            '    .cbTiers.SelectedIndex = IndexSelectionne(.cbCategorie, tiers)
-            'End If
-            '.cbEvénement  
-            'If evenement > "" Then
-            '    .cbEvénement.SelectedIndex = IndexSelectionne(.cbCategorie, evenement)
-            'End If
-            ''.cbType 
-            'If monType > "" Then
-            '    .cbType.SelectedIndex = IndexSelectionne(.cbCategorie, monType)
-            'End If
             .txtRemise.Text = remise
             .rbRapproche.Text = rapproche
             'End If
@@ -253,9 +224,11 @@ Public Class FrmPrincipale
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
         'ChequeOCR.litImage()
         Dim extraction As New appelMistral
+        Dim cheminChq As String
 
-        Dim chqJson = extraction.litImage("C:\Users\User\Downloads\SKM_C25825030110110.jpg")
-        chqJson.InsereEnBase()
+        cheminChq = "C:\Users\User\Downloads\SKM_C25825030110110.jpg"
+        Dim chqJson = extraction.litImage(cheminChq)
+        chqJson.InsereEnBase(cheminChq)
 
     End Sub
 

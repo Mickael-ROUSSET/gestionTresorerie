@@ -54,6 +54,8 @@ Partial Class frmSaisie
         dgvCategorie = New DataGridView()
         dgvSousCategorie = New DataGridView()
         txtRechercheTiers = New TextBox()
+        pbImageChq = New PictureBox()
+        btnAfficheChq = New Button()
         grpSens.SuspendLayout()
         GroupBox1.SuspendLayout()
         CType(dgvTiers, ComponentModel.ISupportInitialize).BeginInit()
@@ -62,6 +64,7 @@ Partial Class frmSaisie
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(dgvCategorie, ComponentModel.ISupportInitialize).BeginInit()
         CType(dgvSousCategorie, ComponentModel.ISupportInitialize).BeginInit()
+        CType(pbImageChq, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
         ' 
         ' lblType
@@ -352,11 +355,31 @@ Partial Class frmSaisie
         txtRechercheTiers.Size = New Size(100, 23)
         txtRechercheTiers.TabIndex = 36
         ' 
+        ' pbImageChq
+        ' 
+        pbImageChq.Location = New Point(797, 380)
+        pbImageChq.Name = "pbImageChq"
+        pbImageChq.Size = New Size(374, 134)
+        pbImageChq.SizeMode = PictureBoxSizeMode.Zoom
+        pbImageChq.TabIndex = 37
+        pbImageChq.TabStop = False
+        ' 
+        ' btnAfficheChq
+        ' 
+        btnAfficheChq.Location = New Point(798, 347)
+        btnAfficheChq.Name = "btnAfficheChq"
+        btnAfficheChq.Size = New Size(117, 23)
+        btnAfficheChq.TabIndex = 38
+        btnAfficheChq.Text = "Affiche chèque"
+        btnAfficheChq.UseVisualStyleBackColor = True
+        ' 
         ' FrmSaisie
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(1506, 542)
+        Controls.Add(btnAfficheChq)
+        Controls.Add(pbImageChq)
         Controls.Add(txtRechercheTiers)
         Controls.Add(dgvSousCategorie)
         Controls.Add(dgvCategorie)
@@ -393,6 +416,7 @@ Partial Class frmSaisie
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).EndInit()
         CType(dgvCategorie, ComponentModel.ISupportInitialize).EndInit()
         CType(dgvSousCategorie, ComponentModel.ISupportInitialize).EndInit()
+        CType(pbImageChq, ComponentModel.ISupportInitialize).EndInit()
         ResumeLayout(False)
         PerformLayout()
     End Sub
@@ -428,5 +452,7 @@ Partial Class frmSaisie
     Friend WithEvents dgvSousCategorie As DataGridView
     Friend WithEvents TiersBindingSource As BindingSource
     Friend WithEvents txtRechercheTiers As TextBox
+    Friend WithEvents pbImageChq As PictureBox
+    Friend WithEvents btnAfficheChq As Button
 
 End Class

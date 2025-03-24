@@ -436,6 +436,13 @@ Public Class FrmSaisie
     Private Sub txtRechercheTiers_TextChanged(sender As Object, e As EventArgs) Handles txtRechercheTiers.TextChanged
         selectionneLigneParLibelle(dgvTiers, txtRechercheTiers.Text)
     End Sub
+
+    Private Sub btnAfficheChq_Click(sender As Object, e As EventArgs) Handles btnAfficheChq.Click
+        'TODO : chemin en dur
+        Dim chq As New Cheque
+
+        chq.AfficherImage(2, Me.pbImageChq)
+    End Sub
     'Private Sub dgvCategorie_SelectionChanged(sender As Object, e As EventArgs) Handles dgvCategorie.SelectionChanged
     '    If Not dgvCategorie.SelectedRows(0).Cells(0) Is Nothing Then
     '        Call ChargeDgvSousCategorie(FrmPrincipale.maConn, dgvCategorie.SelectedRows(0).Cells(0).Value)
