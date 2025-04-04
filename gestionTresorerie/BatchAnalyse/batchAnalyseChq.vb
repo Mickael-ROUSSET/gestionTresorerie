@@ -137,9 +137,9 @@ Public Class batchAnalyseChq
         Logger.GetInstance().INFO($"Compte rendu par répertoire :")
         For Each kvp As KeyValuePair(Of String, (Integer, Integer, Integer)) In compteursParRepertoire
             Logger.GetInstance().INFO($"Répertoire : {kvp.Key}")
-            Logger.GetInstance().INFO($"  Fichiers traités : {kvp.Value.fichiersTraites}")
-            Logger.GetInstance().INFO($"  Traitements OK : {kvp.Value.traitementOK}")
-            Logger.GetInstance().INFO($"  Traitements KO : {kvp.Value.traitementKO}")
+            Logger.GetInstance().INFO($"  Fichiers traités : {kvp.Value.Item1}")
+            Logger.GetInstance().INFO($"  Traitements OK : {kvp.Value.Item2}")
+            Logger.GetInstance().INFO($"  Traitements KO : {kvp.Value.Item3}")
         Next
     End Sub
 End Class

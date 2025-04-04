@@ -5,8 +5,7 @@ Public Class lectureProprietes
     Private Shared _repInstallation As String
 
     Public Sub New()
-        ' Lire la variable d'environnement
-        '_env = Environ.GetEnvironmentVariable("envAgumaaa")
+        ' Lire la variable d'environnement 
         _env = Environ("envAgumaaa")
         If _env = "Prod" Then
             _repInstallation = My.Settings.repInstallationProd
@@ -55,8 +54,8 @@ Public Class lectureProprietes
         End Get
     End Property
     Public Shared Function GetVariable(nomVariable As String) As String
-        ' Retourner la chaîne de connexion de test par défaut
-        'Return _repInstallation & ConfigurationManager.GetSection(nomVariable).ConnectionString
+        ' Retourner la variable demandée
+        'N.B. : elle ne doit pas dépendre pas de l'environnement Prod / test
         Return _repInstallation & My.Settings.Item(nomVariable)
     End Function
 End Class

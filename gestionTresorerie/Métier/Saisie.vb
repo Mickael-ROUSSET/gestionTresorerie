@@ -73,7 +73,6 @@ Public Class FrmSaisie
         'Essaie de déterminer le tiers en fonction du contenu de la note
         Dim sMots() As String, sMot As String
         Dim i As Integer = -1
-        'Dim sIdentite As String = ""
 
         sMots = Split(txtNote.Text, Space(1),, CompareMethod.Text)
         'TODO : voir pourquoi il me ramène plein de mots vides
@@ -83,55 +82,14 @@ Public Class FrmSaisie
                 If i > -1 Then
                     Exit For
                 End If
-                'sIdentite = listeTiers.getIdentiteParId(listeTiers.getIdParRaisonSociale(Strings.UCase(sMot)))
-                'If Not sIdentite.Equals("") Then
-                '    Exit For
-                'End If
             End If
         Next
-        'Return sIdentite
         Return i
     End Function
-    'Private Function DetecteTiers(sNote As String) As String
-    '    'Essaie de déterminer le tiers en fonction du contenu de la note
-    '    Dim sMots() As String, sMot As String
-    '    Dim i As Integer
-    '    Dim sTiersTrouve As String
-
-    '    sMots = Split(txtNote.Text, Space(1))
-    '    sTiersTrouve = ""
-    '    'TODO : voir pourquoi il me ramène plein de mots vides
-    '    For Each sMot In sMots
-    '        sMot = Strings.UCase(sMot)
-    '        If Not sMot.Equals("") Then
-    '            For i = 0 To listeTiers.Count - 1
-    '                If Strings.UCase(listeTiers.Item(i).Nom).Equals(sMot) Then
-    '                    sTiersTrouve = listeTiers.Item(i).Nom
-    '                    Exit For
-    '                End If
-    '            Next
-    '            'Si on ne trouve pas sur le nom, on essaie sur la raison sociale
-    '            For i = 0 To listeTiers.Count - 1
-    '                If Strings.UCase(listeTiers.Item(i).RaisonSociale).Equals(sMot) Then
-    '                    'Le "GIE" de "GIE Klésia est trouvé dans "AFC Hygiène"
-    '                    sTiersTrouve = listeTiers.Item(i).RaisonSociale
-    '                    Exit For
-    '                End If
-    '            Next
-    '            If Not sTiersTrouve.Equals("") Then
-    '                Exit For
-    '            End If
-    '        End If
-    '    Next
-    '    Return sTiersTrouve
-    'End Function
     Private Sub Désélectionne()
         'Désélectionne les items des comboBox
 
-        'Me.cbCategorie.SelectedIndex = -1
         cbEvénement.SelectedIndex = -1
-        'cbSousCategorie.SelectedIndex = -1
-        'cbTiers.SelectedIndex = -1
         cbType.SelectedIndex = -1
     End Sub
     Private Sub ChargeFichierTexte(cbBox As System.Windows.Forms.ComboBox, fichierTexte As String)
@@ -322,7 +280,6 @@ Public Class FrmSaisie
 
     Private Sub dgvTiers_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvTiers.CellContentClick
         'Gérer les catégories par défaut
-        'cbCategorie.SelectedIndex = IndexSelectionne(cbCategorie, dgvTiers.Rows(dgvTiers.SelectedCells(0).RowIndex).Cells(1).Value.ToString)private void selectedRowsButton_Click(object sender, System.EventArgs e)
 
         Dim selectedRowCount As Int32 = dgvTiers.Rows.GetRowCount(DataGridViewElementStates.Selected)
         Dim i As Integer, idTiers As Integer
@@ -357,7 +314,6 @@ Public Class FrmSaisie
     '    Loop
     '    monReaderSousCategorie.Close()
     'End Sub
-
     Private Sub dgvTiers_UserAddedRow(sender As Object, e As DataGridViewRowEventArgs) Handles dgvTiers.UserAddedRow
         Dim bindingSource1 = New BindingSource()
         Dim id As Integer
@@ -381,11 +337,9 @@ Public Class FrmSaisie
             MessageBox.Show("dgvTiers_UserAddedRow : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
         End Try
     End Sub
-
     Private Sub btnInsereTiers_Click(sender As Object, e As EventArgs) Handles btnInsereTiers.Click
         frmNouveauTiers.Show()
     End Sub
-
     Private Sub dgvCategorie_DoubleClick(sender As Object, e As EventArgs) Handles dgvCategorie.DoubleClick
         'Teste si la feuille est déjà chargée
         'TODO : ne marche pas
@@ -441,48 +395,9 @@ Public Class FrmSaisie
     End Sub
 
     Private Sub btnSelChq_Click(sender As Object, e As EventArgs) Handles btnSelChq.Click
-        Dim tabCheques As New List(Of Cheque)()
-
-        ' Convertir txtMontant.Text en Decimal
-        Dim montant As Decimal
-        If Decimal.TryParse(txtMontant.Text.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, montant) Then
-            ' Utilisation de Using pour garantir la fermeture des objets
-            Using cmdLstCheques As New SqlCommand("SELECT id, numero, date, emetteur, destinataire FROM Cheque WHERE montant = @montant;", connexionDB.GetInstance.getConnexion)
-                cmdLstCheques.Parameters.AddWithValue("@montant", montant)
-
-                Try
-                    Using readerChq As SqlDataReader = cmdLstCheques.ExecuteReader()
-                        While readerChq.Read()
-                            Try
-                                ' Construire le JSON et créer un objet Cheque
-                                '    Dim chqSel As New Cheque(CreerJsonCheque(
-                                '    readerChq.GetInt32(0),
-                                '    montant,
-                                '    readerChq.GetInt32(1),
-                                '    readerChq.GetDateTime(2),
-                                '    readerChq.GetString(3),
-                                '    readerChq.GetString(4)
-                                '))
-                                Dim chqSel As New Cheque(readerChq.GetInt32(0), CStr(montant), readerChq.GetInt32(1), readerChq.GetDateTime(2), readerChq.GetString(3), readerChq.GetString(4))
-                                tabCheques.Add(chqSel)
-                            Catch ex As Exception
-                                MessageBox.Show("Erreur lors de la lecture des données : " & ex.Message)
-                            End Try
-                        End While
-                    End Using
-                Catch ex As Exception
-                    MessageBox.Show("Erreur lors de l'exécution de la commande SQL : " & ex.Message)
-                End Try
-            End Using
-        Else
-            MessageBox.Show("Valeur de montant invalide.")
-        End If
-
-        ' TODO : Utiliser tabCheques comme nécessaire
-        ' chq.alimlstCheques(tabCheques.ToArray())
+        selectionneCheque.chargeListeChq(CDec(Me.txtMontant.Text))
+        selectionneCheque.Show()
     End Sub
-
-
 
     Public Function CreerJsonCheque(_id As Integer, _montant_numerique As Decimal, _numero_du_cheque As String, _dateChq As DateTime, _emetteur_du_cheque As String, _destinataire As String) As String
         ' Créer un objet JObject pour construire le JSON

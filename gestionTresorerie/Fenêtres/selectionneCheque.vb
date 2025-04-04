@@ -1,4 +1,7 @@
-﻿Public Class selectionneCheque
+﻿Imports System.Data.SqlClient
+Imports System.Globalization
+
+Public Class selectionneCheque
     Private _idChqSel As Integer
     Public Property idChqSel() As Integer
         Get
@@ -12,30 +15,6 @@
     Public Sub New()
         ' Initialisez les composants
         InitializeComponent()
-
-        ' Configurez le ListView
-        lstCheques.View = View.Details
-        lstCheques.Columns.Add("ID", 50, HorizontalAlignment.Left)
-        lstCheques.Columns.Add("Montant", 100, HorizontalAlignment.Left)
-        lstCheques.Columns.Add("Date", 100, HorizontalAlignment.Left)
-        lstCheques.Columns.Add("Destinataire", 150, HorizontalAlignment.Left)
-        lstCheques.FullRowSelect = True
-
-        '' Ajoutez des exemples de données au ListView
-        'Dim item1 As New ListViewItem("1")
-        'item1.SubItems.Add("100.00")
-        'item1.SubItems.Add("2023-01-01")
-        'item1.SubItems.Add("Destinataire 1")
-        'lstCheques.Items.Add(item1)
-
-        'Dim item2 As New ListViewItem("2")
-        'item2.SubItems.Add("200.00")
-        'item2.SubItems.Add("2023-02-01")
-        'item2.SubItems.Add("Destinataire 2")
-        'lstCheques.Items.Add(item2)
-
-        ' Gérez l'événement de changement de sélection
-        AddHandler lstCheques.SelectedIndexChanged, AddressOf LvCheques_SelectedIndexChanged
     End Sub
     Public Sub alimlstCheques(cheques() As Cheque)
         For Each chq As Cheque In cheques
@@ -48,7 +27,7 @@
             lstCheques.Items.Add(item)
         Next
     End Sub
-    Private Sub LvCheques_SelectedIndexChanged(sender As Object, e As EventArgs)
+    Private Sub LstCheques_SelectedIndexChanged(sender As Object, e As EventArgs)
         If lstCheques.SelectedItems.Count > 0 Then
             Dim selectedItem As ListViewItem = lstCheques.SelectedItems(0)
             Dim idChq As Integer = Integer.Parse(selectedItem.Text)
@@ -58,8 +37,71 @@
             _idChqSel = idChq
         End If
     End Sub
-
     Private Sub btnSelCheque_Click(sender As Object, e As EventArgs) Handles btnSelCheque.Click
         Me.Hide()
     End Sub
+
+    Public Sub chargeListeChq(montant As Decimal)
+        Dim tabCheques As New List(Of Cheque)()
+
+        ' Convertir txtMontant.Text en Decimal 
+        If Decimal.TryParse(FrmSaisie.txtMontant.Text.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, montant) Then
+            ' Utilisation de Using pour garantir la fermeture des objets
+            Using cmdLstCheques As New SqlCommand("SELECT id, numero, date, emetteur, destinataire FROM Cheque WHERE montant = @montant;", connexionDB.GetInstance.getConnexion)
+                cmdLstCheques.Parameters.AddWithValue("@montant", montant)
+
+                Try
+                    Using readerChq As SqlDataReader = cmdLstCheques.ExecuteReader()
+                        While readerChq.Read()
+                            Try
+                                ' Construire le JSON et créer un objet Cheque
+                                '    Dim chqSel As New Cheque(CreerJsonCheque(
+                                '    readerChq.GetInt32(0),
+                                '    montant,
+                                '    readerChq.GetInt32(1),
+                                '    readerChq.GetDateTime(2),
+                                '    readerChq.GetString(3),
+                                '    readerChq.GetString(4)
+                                '))
+                                Dim chqSel As New Cheque(readerChq.GetInt32(0), CStr(montant), readerChq.GetInt32(1), readerChq.GetDateTime(2), readerChq.GetString(3), readerChq.GetString(4))
+                                tabCheques.Add(chqSel)
+                            Catch ex As Exception
+                                MessageBox.Show("Erreur lors de la lecture des données : " & ex.Message)
+                            End Try
+                        End While
+                    End Using
+                Catch ex As Exception
+                    MessageBox.Show("Erreur lors de l'exécution de la commande SQL : " & ex.Message)
+                End Try
+            End Using
+        Else
+            MessageBox.Show("Valeur de montant invalide.")
+        End If
+        Call alimListeChq(tabCheques)
+    End Sub
+    Public Sub alimListeChq(tabCheques As List(Of Cheque))
+        ' Configurer le ListView
+        lstCheques.View = View.Details
+        lstCheques.Columns.Add("ID", 50, HorizontalAlignment.Left)
+        lstCheques.Columns.Add("Montant", 100, HorizontalAlignment.Left)
+        lstCheques.Columns.Add("Date", 100, HorizontalAlignment.Left)
+        lstCheques.Columns.Add("Destinataire", 150, HorizontalAlignment.Left)
+        lstCheques.FullRowSelect = True
+
+        ' Ajouter chaque chèque au ListView
+        For Each cheque As Cheque In tabCheques
+            ' Créer une nouvelle ligne pour le ListView
+            Dim item As New ListViewItem(cheque.id.ToString())
+            item.SubItems.Add(cheque.montant_numerique.ToString())
+            'item.SubItems.Add(cheque.dateChq.ToString("yyyy-MM-dd"))
+            item.SubItems.Add(cheque.dateChq)
+            item.SubItems.Add(cheque.destinataire)
+            ' Ajouter la ligne au ListView
+            lstCheques.Items.Add(item)
+        Next
+
+        ' Gérer l'événement de changement de sélection
+        AddHandler lstCheques.SelectedIndexChanged, AddressOf LstCheques_SelectedIndexChanged
+    End Sub
+
 End Class

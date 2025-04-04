@@ -35,7 +35,6 @@ Public Class Cheque
             _destinataire = value
         End Set
     End Property
-
     Public Property montant_numerique() As Decimal
         Get
             Return _montant_numerique
@@ -161,41 +160,58 @@ Public Class Cheque
         End Using
     End Sub
     Public Sub AfficherImage(idCheque As Integer, pbBox As PictureBox)
-        Using connexionDB.GetInstance.getConnexion
-            Try
-                ' Requête SQL pour récupérer l'image
-                Dim query As String = "SELECT [imageChq] FROM [dbo].Cheque WHERE [id] = @id"
+        Dim sqlConnexion As SqlConnection = Nothing
 
-                Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
-                    command.Parameters.AddWithValue("@id", idCheque)
+        Try
+            ' Effacer l'image précédemment affichée
+            pbBox.Image = Nothing
 
-                    ' Exécuter la requête et récupérer les données binaires de l'image
-                    Dim imageData As Object = command.ExecuteScalar()
+            ' Obtenir la connexion SQL
+            sqlConnexion = connexionDB.GetInstance.getConnexion
 
-                    If imageData IsNot Nothing AndAlso TypeOf imageData Is Byte() Then
-                        ' Convertir les données binaires en objet Image
-                        Dim imageBytes As Byte() = DirectCast(imageData, Byte())
-                        Using ms As New IO.MemoryStream(imageBytes)
-                            Dim image As Image = Image.FromStream(ms)
-                            ' Afficher l'image dans le PictureBox
-                            'pbBox.Image = image
-                            'Redimensionne l'image pour ne prendre que le haut où se trouve le chèque
-                            'TODO : constante pour le ration à utiliser pour les chèques
-                            Try
-                                pbBox.Image = AfficherTiersSuperieurImage(image, 0.33)
-                            Catch ex As Exception
-                                Logger.GetInstance().ERR("Erreur lors de l'extraction du tiers supérieur de l'image : " & ex.Message)
-                            End Try
-                        End Using
-                    Else
-                        Logger.GetInstance().INFO("Aucune image trouvée pour cet enregistrement.")
-                    End If
-                End Using
-            Catch ex As Exception
-                Logger.GetInstance().ERR("Erreur lors de la récupération de l'image : " & ex.Message)
-            End Try
-        End Using
+            ' Ouvrir la connexion
+            If sqlConnexion.State <> ConnectionState.Open Then
+                sqlConnexion.Open()
+            End If
+
+            ' Requête SQL pour récupérer l'image
+            Dim query As String = "SELECT [imageChq] FROM [dbo].Cheque WHERE [id] = @id"
+
+            Using command As New SqlCommand(query, sqlConnexion)
+                command.Parameters.AddWithValue("@id", idCheque)
+
+                ' Exécuter la requête et récupérer les données binaires de l'image
+                Dim imageData As Object = command.ExecuteScalar()
+
+                If imageData IsNot Nothing AndAlso TypeOf imageData Is Byte() Then
+                    ' Convertir les données binaires en objet Image
+                    Dim imageBytes As Byte() = DirectCast(imageData, Byte())
+                    Using ms As New IO.MemoryStream(imageBytes)
+                        Dim image As Image = Image.FromStream(ms)
+                        ' Afficher l'image dans le PictureBox
+                        ' Redimensionne l'image pour ne prendre que le haut où se trouve le chèque
+                        ' TODO : constante pour le ratio à utiliser pour les chèques
+                        Try
+                            pbBox.Image = AfficherTiersSuperieurImage(image, 0.33)
+                        Catch ex As Exception
+                            Logger.GetInstance().ERR("Erreur lors de l'extraction du tiers supérieur de l'image : " & ex.Message)
+                        End Try
+                    End Using
+                Else
+                    Logger.GetInstance().INFO("Aucune image trouvée pour cet enregistrement.")
+                End If
+            End Using
+        Catch ex As Exception
+            Logger.GetInstance().ERR("Erreur lors de la récupération de l'image : " & ex.Message)
+        Finally
+            ' Fermer la connexion si elle est ouverte
+            If sqlConnexion IsNot Nothing AndAlso sqlConnexion.State = ConnectionState.Open Then
+                sqlConnexion.Close()
+            End If
+        End Try
     End Sub
+
+
 
     Public Function AfficherTiersSuperieurImage(image As Image, ratio As Double) As Image
         AfficherTiersSuperieurImage = Nothing

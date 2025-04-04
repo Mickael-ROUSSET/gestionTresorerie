@@ -11,8 +11,6 @@ Public Class connexionDB
     Public result As String
     Public reader As SqlDataReader
     Private Shared _instance As connexionDB
-    'Public sRequete As String
-    'Private collRequetes As Collection(Of String)
     Private Sub New()
     End Sub
 
@@ -34,7 +32,6 @@ Public Class connexionDB
         Try
             ' Crée la connexion si elle n'existe pas, sinon renvoie celle existante
             If _maConnexion Is Nothing Then
-                '_maConnexion = New SqlConnection(My.Settings.DBsource)
                 _maConnexion = New SqlConnection(connexionString)
                 _maConnexion.Open()
                 Logger.GetInstance.INFO("Connexion à la base : " & connexionString)
@@ -52,11 +49,9 @@ Public Class connexionDB
 
 
     Public Function getRequete(indiceRequete As Integer) As String
-        'Return collRequetes(indiceRequete)
         Return My.Settings.Requetes.Item(indiceRequete)
     End Function
     Public Sub setRequete(sRequete As String)
-        'collRequetes.Add(collRequetes(indiceRequete))
         My.Settings.Requetes.Add(sRequete)
         Logger.GetInstance.INFO("Requête : " & sRequete & " ajoutée")
     End Sub
@@ -82,7 +77,6 @@ Public Class connexionDB
 
     Public Function ConnexionExecuteReader() As SqlDataReader
         Me._maCommandeSql.Connection = _maConnexion
-        'Me.maCommandeSql.CommandText = Me.sRequete
         Try
             Me._maConnexion.Open()
             Me.reader = _maCommandeSql.ExecuteReader(CommandBehavior.CloseConnection)

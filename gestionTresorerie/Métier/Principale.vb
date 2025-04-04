@@ -1,10 +1,6 @@
-﻿Imports System.Data.Common
-Imports System.Data.SqlClient
-Imports System.IO
-Imports System.Windows.Forms.VisualStyles.VisualStyleElement
+﻿Imports System.Data.SqlClient
 Imports DocumentFormat.OpenXml.Packaging
 Imports DocumentFormat.OpenXml.Wordprocessing
-Imports gestionTresorerie.My
 
 Public Class FrmPrincipale
 
@@ -69,8 +65,7 @@ Public Class FrmPrincipale
             Call ApplyStyleToParagraph(document, "monStyle", "monStyle", para)
             monReaderSousCategorie = myCmdSousCategorie.ExecuteReader()
             i = 0
-            'Supprime tous les controls de la fenêtre (=> les images précédentes)
-            'Call SupprimeControlesfenetre(frmHistogramme)
+
             Do While monReaderSousCategorie.Read()
                 Try
                     ReDim Preserve tabLegendes(UBound(tabLegendes) + 1)
@@ -114,22 +109,7 @@ Public Class FrmPrincipale
         document.Dispose()
     End Sub
     Private Sub FrmMain_Closing(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
-        Try
-            Call SuprimeConnexion()
-        Catch
-        End Try
-    End Sub
-    Private Sub CreeConnexion()
-        'Open the connection.
-        maConn.Open()
-    End Sub
-    Private Sub SuprimeConnexion()
-        'Close the reader and the database connection. 
-        Try
-            maConn.Close()
-        Catch ex As Exception
-            Debug.Print(ex.Message)
-        End Try
+        connexionDB.GetInstance.Dispose()
     End Sub
     Private Sub BtnSaisie_Click(sender As Object, e As EventArgs) Handles btnSaisie.Click
         FrmSaisie.Show()
@@ -160,9 +140,7 @@ Public Class FrmPrincipale
             ' On informe l'utilisateur qu'il y a eu un problème :
             MessageBox.Show("Une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
         Finally
-            ' Le code du bloc Finally est toujours exécuté, même en cas d'erreur dans le Try
-            ' On y place donc la fermeture de la connection :
-            'myConn.Close()
+            ' Le code du bloc Finally est toujours exécuté, même en cas d'erreur dans le Try 
         End Try
     End Sub
 
@@ -212,7 +190,6 @@ Public Class FrmPrincipale
             .txtMontant.Text = montant
             .txtRemise.Text = remise
             .rbRapproche.Text = rapproche
-            'End If
             .Show()
         End With
     End Sub
