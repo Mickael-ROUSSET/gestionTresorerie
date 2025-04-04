@@ -1,4 +1,5 @@
 ﻿Imports System.Collections.ObjectModel
+Imports System.Configuration.Assemblies
 Imports System.Data.SqlClient
 
 ' Classe permettant de se connecter à une base de donnée SQLSERVER 
@@ -9,29 +10,43 @@ Public Class connexionDB
     Public _maCommandeSql As New SqlCommand()
     Public result As String
     Public reader As SqlDataReader
+    Private Shared _instance As connexionDB
     'Public sRequete As String
     'Private collRequetes As Collection(Of String)
-
-    Public Sub New()
-        creeConnexion()
+    Private Sub New()
     End Sub
+
+    ' Méthode publique pour accéder à l'instance unique
+    Public Shared Function GetInstance() As connexionDB
+        If _instance Is Nothing Then
+            _instance = New connexionDB()
+        End If
+        Return _instance
+    End Function
     Public Function getConnexion() As SqlConnection
         'Crée la connexion si elle n'existe pas, sinon renvoie celle existante 
+        Dim lectureProprietes As New lectureProprietes()
+
+        creeConnexion(lectureProprietes.connexionString)
         Return _maConnexion
     End Function
-    Public Sub creeConnexion()
+    Public Sub creeConnexion(connexionString As String)
         Try
             ' Crée la connexion si elle n'existe pas, sinon renvoie celle existante
             If _maConnexion Is Nothing Then
-                _maConnexion = New SqlConnection(My.Settings.DBsource)
+                '_maConnexion = New SqlConnection(My.Settings.DBsource)
+                _maConnexion = New SqlConnection(connexionString)
                 _maConnexion.Open()
+                Logger.GetInstance.INFO("Connexion à la base : " & connexionString)
             End If
         Catch ex As SqlException
             ' Gère les erreurs de connexion SQL
             MsgBox("creeConnexion : erreur SQL : " & ex.Message)
+            Logger.GetInstance.ERR(ex.Message)
         Catch ex As Exception
             ' Gère toutes les autres erreurs
             MsgBox("Erreur : " & ex.Message)
+            Logger.GetInstance.ERR(ex.Message)
         End Try
     End Sub
 
@@ -43,10 +58,12 @@ Public Class connexionDB
     Public Sub setRequete(sRequete As String)
         'collRequetes.Add(collRequetes(indiceRequete))
         My.Settings.Requetes.Add(sRequete)
+        Logger.GetInstance.INFO("Requête : " & sRequete & " ajoutée")
     End Sub
     Private Sub SuprimeConnexion()
         'Close the reader and the database connection. 
         _maConnexion.Close()
+        Logger.GetInstance.INFO("Connexion : " & _maConnexion.ConnectionString & " fermée")
     End Sub
     'Public Sub creeConnexion()
     '    Me.maCommandeSql.Connection = maConnexion

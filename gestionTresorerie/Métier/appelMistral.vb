@@ -14,11 +14,11 @@ Public Class appelMistral
     'Dim apiUrl As String = "https://api.mistral.ai/v1/chat/completions"
 
     ' URL de l'API Mistral pour l'extraction de texte
-    Dim apiUrlImage As String = "https://api.mistral.ai/extract-text"
+    ReadOnly apiUrlImage As String = "https://api.mistral.ai/extract-text"
 
     'Prompt système
     'TODO : à mettre dans un fichier paramètre yaml
-    Dim promptSysteme As String =
+    ReadOnly promptSysteme As String =
 "Tu es une IA spécialisée dans l'analyse de documents. 
 Ta tâche est d’extraire du chèque en PJ le texte des éléments 
 la banque émettrice en haut de l'image
@@ -28,12 +28,11 @@ la date à droite de la mention ""Le ""
 l'émetteur du chèque au centre
 le destinataire à droite de la mention ""à ""
 écrit les éléments extraits au format json"
-    Dim question = "Extrais du chèque en PJ le texte des éléments : emetteur_du_cheque=la banque émettrice en haut de l'image, le montant_numerique=montant numérique dans le cadre en haut à droite, numero_du_cheque=le numéro du chèque en bas à gauche, dateChq=la date à droite de la mention \""Le \"", emetteur_du_cheque=l'émetteur du chèque au centre, le destinataire=destinataire à droite de la mention \""à \"" retourne les éléments extraits au format json"
+    ReadOnly question = "Extrais du chèque en PJ le texte des éléments : emetteur_du_cheque=la banque émettrice en haut de l'image, le montant_numerique=montant numérique dans le cadre en haut à droite, numero_du_cheque=le numéro du chèque en bas à gauche, dateChq=la date à droite de la mention \""Le \"", emetteur_du_cheque=l'émetteur du chèque au centre, le destinataire=destinataire à droite de la mention \""à \"" retourne les éléments extraits au format json"
     'Prompt demande d'analyse du chèque
-    Dim promptAnalyse As String = "Analyse l'image du chèque pour en extraire le texte"
+    ReadOnly promptAnalyse As String = "Analyse l'image du chèque pour en extraire le texte"
 
     Public Function litImage(chequeImagePath As String) As Cheque
-        'Dim question As String = "Extrait le texte de l'image"
         ' Clé API Mistral
         Dim valCle = New cléApiMistral
         Dim apiKey As String = valCle.getCle
@@ -93,13 +92,15 @@ le destinataire à droite de la mention ""à ""
 
                     ' Lire la réponse
                     Dim responseBody As String = response.Content.ReadAsStringAsync().Result
+                    Logger.GetInstance().INFO(responseBody)
 
                     ' Supposons que la réponse soit un JSON contenant le texte extrait
                     ' Vous pouvez utiliser JsonConvert pour désérialiser si nécessaire
                     Return responseBody
 
                 Catch ex As HttpRequestException
-                    Console.WriteLine($"Erreur de requête : {ex.Message}")
+                    MsgBox($"Erreur de requête : {ex.Message}")
+                    Logger.GetInstance().ERR("ex.Message")
                     Return String.Empty
                 End Try
             End Using

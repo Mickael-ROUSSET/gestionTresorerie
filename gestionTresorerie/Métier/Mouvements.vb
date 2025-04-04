@@ -19,6 +19,7 @@ Public Class Mouvements
     Private _type As String
     Private _modifiable As Boolean
     Private _numeroRemise As String
+    Private _idCheque As Integer
     Public Sub New(ByVal note As String, ByVal categorie As String, ByVal sousCategorie As String, ByVal tiers As Integer, ByVal dateMvt As Date, ByVal montant As String, ByVal sens As String, ByVal etat As String, ByVal événement As String, ByVal type As String, ByVal modifiable As Boolean, ByVal numeroRemise As String)
         ' Set the property value.
         With Me
@@ -166,6 +167,14 @@ Public Class Mouvements
         End Get
         Set(ByVal value As Boolean)
             _modifiable = value
+        End Set
+    End Property
+    Public Property idCheque() As Integer
+        Get
+            Return _idCheque
+        End Get
+        Set(ByVal value As Integer)
+            _idCheque = value
         End Set
     End Property
     Public Property NumeroRemise() As String

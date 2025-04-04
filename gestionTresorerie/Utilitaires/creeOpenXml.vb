@@ -43,8 +43,7 @@ Module creeOpenXml
 
         Dim table As New Table()
 
-        Dim props As TableProperties =
-            New TableProperties(New TableBorders(
+        Dim props As New TableProperties(New TableBorders(
             New TopBorder With {
                 .Val = New EnumValue(Of BorderValues)(BorderValues.Single),
                 .Size = 12},
@@ -91,8 +90,7 @@ Module creeOpenXml
 
             Dim table As New Table()
 
-            Dim props As TableProperties =
-                New TableProperties(New TableBorders(
+            Dim props As New TableProperties(New TableBorders(
                 New TopBorder With {
                     .Val = New EnumValue(Of BorderValues)(BorderValues.Single),
                     .Size = 12},

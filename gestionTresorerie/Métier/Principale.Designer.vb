@@ -60,6 +60,7 @@ Partial Class FrmPrincipale
         FichiersParamètresToolStripMenuItem = New ToolStripMenuItem()
         EnvironnementToolStripMenuItem = New ToolStripMenuItem()
         Button1 = New Button()
+        btnBatch = New Button()
         CType(DataGridView1, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -309,11 +310,22 @@ Partial Class FrmPrincipale
         Button1.Text = "Button1"
         Button1.UseVisualStyleBackColor = True
         ' 
+        ' btnBatch
+        ' 
+        btnBatch.Location = New Point(299, 443)
+        btnBatch.Name = "btnBatch"
+        btnBatch.Size = New Size(156, 23)
+        btnBatch.TabIndex = 8
+        btnBatch.Text = "lanceBatchAnalyse"
+        btnBatch.TextImageRelation = TextImageRelation.TextBeforeImage
+        btnBatch.UseVisualStyleBackColor = True
+        ' 
         ' FrmPrincipale
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(966, 541)
+        Controls.Add(btnBatch)
         Controls.Add(Button1)
         Controls.Add(btnCreeBilans)
         Controls.Add(DataGridView1)
@@ -370,4 +382,5 @@ Partial Class FrmPrincipale
     Friend WithEvents GérerUnMouvementToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents FermerToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents Button1 As Button
+    Friend WithEvents btnBatch As Button
 End Class

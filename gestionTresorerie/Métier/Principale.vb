@@ -10,7 +10,7 @@ Public Class FrmPrincipale
 
     Inherits System.Windows.Forms.Form
     'Create ADO.NET objects.
-    Public maConnexionDB As New connexionDB
+    Public maConnexionDB As connexionDB
     Public Shared maConn As SqlConnection
     Private maCmd As SqlCommand
     Private monReader As SqlDataReader
@@ -23,17 +23,15 @@ Public Class FrmPrincipale
     End Sub
     Private Sub FrmPrincipale_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Try
-            Call initialisations()
+            ' Chargement des listes dans le formulaire
+            FrmSaisie.chargeListes(connexionDB.GetInstance.getConnexion)
         Catch ex As Exception
-            MsgBox("FrmPrincipale_Load : " & ex.Message)
+            ' Gestion des erreurs
+            MessageBox.Show("Une erreur est survenue lors de l'initialisation : " & ex.Message, "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Logger.GetInstance.ERR("Une erreur est survenue lors de l'initialisation : " & ex.Message)
         End Try
     End Sub
 
-    Private Sub initialisations()
-        'Dim maConnexionDB As New connexionDB
-        maConn = maConnexionDB.getConnexion
-        FrmSaisie.chargeListes(maConn)
-    End Sub
     Private Sub LectureBase()
         Dim monReaderCategorie As SqlDataReader
         Dim monReaderSousCategorie As SqlDataReader
@@ -46,9 +44,11 @@ Public Class FrmPrincipale
         Dim sNomImage As String
         Dim para As Paragraph
 
-        Call creeOpenXml.creeDoc(My.Settings.ficBilan)
+        'Call creeOpenXml.creeDoc(My.Settings.repInstallation & My.Settings.ficBilan)
+        'TODO : utiliser lectureProprietes
+        Call creeOpenXml.creeDoc(lectureProprietes.GetVariable("ficBilan"))
 
-        Dim document As WordprocessingDocument = WordprocessingDocument.Open(My.Settings.ficBilan, True)
+        Dim document As WordprocessingDocument = WordprocessingDocument.Open(My.Settings.repInstallation & My.Settings.ficBilan, True)
         Dim styleDefinitionsPart As StyleDefinitionsPart = creeOpenXml.AddStylesPartToPackage(document)
         Call creeOpenXml.CreateAndAddParagraphStyle(StyleDefinitionsPart, "monStyle", "monStyle")
         myCmdCategorie = New SqlCommand("SELECT distinct catégorie FROM Mouvements ;", maConn)
@@ -144,10 +144,6 @@ Public Class FrmPrincipale
         ' ça fait autant d'endroits à modifier, et ça force à recompiler. Il vaut mieux la définir dans les
         ' paramètres de l'application, comme ça si tu dois la changer tu n'auras qu'un seul endroit à modifier.
 
-        'TODO : bonne idée
-        'Dim connectString As String = My.Settings.ChaineDeConnection
-        'Dim connection As New System.Data.SqlClient.SqlConnection(connectString)
-
         ' Essaie de taper une apostrophe (') dans TextBox1, et observe le résultat ;)
         ' Ensuite, va faire un tour ici pour apprendre à régler le problème :
         ' http://johannblais.developpez.com/tutoriel/dotnet/bonnes-pratiques-acces-donnees/#LIV
@@ -221,15 +217,10 @@ Public Class FrmPrincipale
         End With
     End Sub
 
-    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
-        'ChequeOCR.litImage()
-        Dim extraction As New appelMistral
-        Dim cheminChq As String
+    Private Sub btnBatch_Click(sender As Object, e As EventArgs) Handles btnBatch.Click
+        Dim batch As New batchAnalyseChq
 
-        cheminChq = "C:\Users\User\Downloads\SKM_C25825030110110.jpg"
-        Dim chqJson = extraction.litImage(cheminChq)
-        chqJson.InsereEnBase(cheminChq)
-
+        Call batch.ParcourirRepertoireEtAnalyser()
     End Sub
 
     'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click

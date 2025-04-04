@@ -38,10 +38,11 @@ Module LitRelevé
         Try
             ' Ouvrir le fichier en mode écriture pour le vider 
             System.IO.File.WriteAllText(cheminFichier, String.Empty)
-            MsgBox("Le fichier a été vidé avec succès.")
+            Logger.GetInstance.INFO("Le fichier a été vidé avec succès.")
         Catch ex As Exception
             ' Gérer les exceptions en cas d'erreur 
             MsgBox("ViderFichier, erreur : " & ex.Message)
+            Logger.GetInstance.ERR("ViderFichier, erreur : " & ex.Message)
         End Try
     End Sub
     Private Sub TraiteFichierCsvMensuel(sFicTemp As String, sFichier As String)
@@ -74,7 +75,8 @@ Module LitRelevé
             monStreamReader.Close()
             file.Close()
         Catch ex As Exception
-            MsgBox("Une erreur est survenue sur a lecture du relevé : " & sFichier, MsgBoxStyle.Critical)
+            MsgBox("Une erreur est survenue sur la lecture du relevé : " & sFichier, MsgBoxStyle.Critical)
+            Logger.GetInstance.ERR("Une erreur est survenue sur la lecture du relevé : " & sFichier)
         End Try
     End Sub
     Private Sub TraiteFichierPourri(sFicTemp As String, sFichier As String)
@@ -104,6 +106,7 @@ Module LitRelevé
             file.Close()
         Catch ex As Exception
             MsgBox("TraiteFichierPourri : Une erreur est survenue sur la lecture du relevé : " & sFichier, MsgBoxStyle.Critical)
+            Logger.GetInstance.ERR("TraiteFichierPourri : Une erreur est survenue sur la lecture du relevé : " & sFichier)
         End Try
     End Sub
     Private Function formatteLigne(sLigne As String, bPresenceDate As Boolean) As String

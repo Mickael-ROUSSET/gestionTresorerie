@@ -37,8 +37,8 @@ Public Class Tiers
 
         maCmd = New SqlCommand
         With maCmd
-            'FrmPrincipale.maConn.Open()
-            .Connection = FrmPrincipale.maConn
+            'connexionDB.GetInstance.getConnexion.Open()
+            .Connection = connexionDB.GetInstance.getConnexion
             .CommandText = "SELECT categorieDefaut FROM Tiers where id = '" & idTiers & "';"
         End With
         monReader = maCmd.ExecuteReader()
@@ -61,7 +61,7 @@ Public Class Tiers
 
         maCmd = New SqlCommand
         With maCmd
-            .Connection = FrmPrincipale.maConn
+            .Connection = connexionDB.GetInstance.getConnexion
             .CommandText = "SELECT sousCategorieDefaut FROM Tiers where id = '" & idTiers & "';"
         End With
         monReader = maCmd.ExecuteReader()

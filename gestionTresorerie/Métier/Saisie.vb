@@ -3,6 +3,9 @@ Imports System.Data.SqlClient
 Imports System.IO
 Imports DocumentFormat.OpenXml.Office2019.Drawing.Model3D
 Imports DocumentFormat.OpenXml.Wordprocessing
+Imports Newtonsoft.Json.Linq
+Imports Newtonsoft.Json
+Imports System.Globalization
 
 Public Class FrmSaisie
 
@@ -14,14 +17,14 @@ Public Class FrmSaisie
     Public Property Properties As Object
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        Dim indTiersDetecte As Integer = 0, indCategorie As Integer = 0
+        'Dim indCategorie As Integer = 0
         Dim idCategorie As Integer, idSousCategorie As Integer
         Dim idTiers As Integer
         'Détection du tiers
         If listeTiers Is Nothing Then
-            listeTiers = New ListeTiers(FrmPrincipale.maConnexionDB.getConnexion)
+            listeTiers = New ListeTiers(connexionDB.GetInstance.getConnexion)
         End If
-        indTiersDetecte = DetecteTiers(txtNote.Text)
+        Dim indTiersDetecte As Integer = DetecteTiers(txtNote.Text)
         If indTiersDetecte > -1 Then
             'dgvTiers.Rows.Item(indTiersDetecte).Selected = True
             idTiers = chercheIndiceDvg(indTiersDetecte, dgvTiers)
@@ -29,7 +32,7 @@ Public Class FrmSaisie
             dgvTiers.FirstDisplayedScrollingRowIndex = idTiers
         End If
         If dgvCategorie.RowCount = 0 Then
-            Call ChargeDgvCategorie(FrmPrincipale.maConn, rbDebit.Checked)
+            Call ChargeDgvCategorie(connexionDB.GetInstance.getConnexion, rbDebit.Checked)
         End If
         'TODO, il doit falloir trouver le libellé de la catégorie à partir de l'indice
         'idCategorie = Tiers.getCategorieTiers(indTiersDetecte)
@@ -38,7 +41,7 @@ Public Class FrmSaisie
         dgvCategorie.FirstDisplayedScrollingRowIndex = idCategorie
 
         If dgvSousCategorie.RowCount = 0 Then
-            Call ChargeDgvSousCategorie(FrmPrincipale.maConn, Tiers.getCategorieTiers(indTiersDetecte))
+            Call ChargeDgvSousCategorie(connexionDB.GetInstance.getConnexion, Tiers.getCategorieTiers(indTiersDetecte))
         End If
         idSousCategorie = chercheIndiceDvg(Tiers.getSousCategorieTiers(indTiersDetecte), dgvSousCategorie)
         dgvSousCategorie.Rows.Item(idSousCategorie).Selected = True
@@ -59,12 +62,12 @@ Public Class FrmSaisie
 
     Public Sub chargeListes(maConn As SqlConnection)
 
-        Call ChargeDgvTiers(FrmPrincipale.maConn)
+        Call ChargeDgvTiers(connexionDB.GetInstance.getConnexion)
         Call ChargeDgvCategorie(maConn, rbDebit.Checked)
         'Chargement du fichier contenant la liste des événements
-        Call ChargeFichierTexte(Me.cbEvénement, My.Settings.ficEvénement)
+        Call ChargeFichierTexte(Me.cbEvénement, My.Settings.repInstallation & My.Settings.ficEvénement)
         'Chargement du fichier contenant la liste des types
-        Call ChargeFichierTexte(Me.cbType, My.Settings.ficType)
+        Call ChargeFichierTexte(Me.cbType, My.Settings.repInstallation & My.Settings.ficType)
     End Sub
     Private Function DetecteTiers(sNote As String) As Integer
         'Essaie de déterminer le tiers en fonction du contenu de la note
@@ -247,7 +250,7 @@ Public Class FrmSaisie
         Try
             maCmd = New SqlCommand
             With maCmd
-                .Connection = FrmPrincipale.maConn
+                .Connection = connexionDB.GetInstance.getConnexion
                 .CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers,dateCréation,dateMvt,montant,sens,etat,événement,type, modifiable,numeroRemise) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable,@numeroRemise);"
             End With
             maCmd = AjouteParam(maCmd, unMvt)
@@ -325,7 +328,7 @@ Public Class FrmSaisie
         Dim i As Integer, idTiers As Integer
 
         If (selectedRowCount > 0) Then
-            Dim sb As System.Text.StringBuilder = New System.Text.StringBuilder()
+            Dim sb As New System.Text.StringBuilder()
             For i = 0 To selectedRowCount
                 sb.Append("Row: ")
                 sb.Append(dgvTiers.SelectedRows(i).Index)
@@ -343,7 +346,7 @@ Public Class FrmSaisie
     '    Dim monReaderSousCategorie As SqlDataReader
     '    Dim maCmdSousCategorie As SqlCommand
 
-    '    maCmdSousCategorie = New SqlCommand("SELECT libelle FROM SousCategorie where idCategorie =" & indiceCategorie & ";", FrmPrincipale.maConn)
+    '    maCmdSousCategorie = New SqlCommand("SELECT libelle FROM SousCategorie where idCategorie =" & indiceCategorie & ";", connexionDB.GetInstance.getConnexion)
     '    monReaderSousCategorie = maCmdSousCategorie.ExecuteReader()
     '    Do While monReaderSousCategorie.Read()
     '        Try
@@ -364,7 +367,7 @@ Public Class FrmSaisie
         sNom = dgvTiers.CurrentRow.Cells(0).Value.ToString
         sPrenom = dgvTiers.CurrentRow.Cells(0).Value.ToString
         sRaisonSociale = dgvTiers.CurrentRow.Cells(0).Value.ToString
-        Dim command As New System.Data.SqlClient.SqlCommand("insert into Tiers (id, nom, prenom, raisonSoicale) values ('" & id & "', '" & sNom & "' ,'" & sPrenom & "', '" & sRaisonSociale & "';", FrmPrincipale.maConn)
+        Dim command As New System.Data.SqlClient.SqlCommand("insert into Tiers (id, nom, prenom, raisonSoicale) values ('" & id & "', '" & sNom & "' ,'" & sPrenom & "', '" & sRaisonSociale & "';", connexionDB.GetInstance.getConnexion)
 
         Dim dt As New DataTable
         Dim adpt As New Data.SqlClient.SqlDataAdapter(command)
@@ -386,8 +389,8 @@ Public Class FrmSaisie
     Private Sub dgvCategorie_DoubleClick(sender As Object, e As EventArgs) Handles dgvCategorie.DoubleClick
         'Teste si la feuille est déjà chargée
         'TODO : ne marche pas
-        If Not dgvCategorie.SelectedRows(0).Cells(0) Is Nothing Then
-            Call ChargeDgvSousCategorie(FrmPrincipale.maConn, dgvCategorie.SelectedRows(0).Cells(0).Value)
+        If dgvCategorie.SelectedRows(0).Cells(0) IsNot Nothing Then
+            Call ChargeDgvSousCategorie(connexionDB.GetInstance.getConnexion, dgvCategorie.SelectedRows(0).Cells(0).Value)
         End If
     End Sub
 
@@ -437,26 +440,77 @@ Public Class FrmSaisie
         selectionneLigneParLibelle(dgvTiers, txtRechercheTiers.Text)
     End Sub
 
-    Private Sub btnAfficheChq_Click(sender As Object, e As EventArgs) Handles btnAfficheChq.Click
-        'TODO : chemin en dur
-        Dim chq As New Cheque
+    Private Sub btnSelChq_Click(sender As Object, e As EventArgs) Handles btnSelChq.Click
+        Dim tabCheques As New List(Of Cheque)()
 
-        chq.AfficherImage(2, Me.pbImageChq)
+        ' Convertir txtMontant.Text en Decimal
+        Dim montant As Decimal
+        If Decimal.TryParse(txtMontant.Text.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, montant) Then
+            ' Utilisation de Using pour garantir la fermeture des objets
+            Using cmdLstCheques As New SqlCommand("SELECT id, numero, date, emetteur, destinataire FROM Cheque WHERE montant = @montant;", connexionDB.GetInstance.getConnexion)
+                cmdLstCheques.Parameters.AddWithValue("@montant", montant)
+
+                Try
+                    Using readerChq As SqlDataReader = cmdLstCheques.ExecuteReader()
+                        While readerChq.Read()
+                            Try
+                                ' Construire le JSON et créer un objet Cheque
+                                '    Dim chqSel As New Cheque(CreerJsonCheque(
+                                '    readerChq.GetInt32(0),
+                                '    montant,
+                                '    readerChq.GetInt32(1),
+                                '    readerChq.GetDateTime(2),
+                                '    readerChq.GetString(3),
+                                '    readerChq.GetString(4)
+                                '))
+                                Dim chqSel As New Cheque(readerChq.GetInt32(0), CStr(montant), readerChq.GetInt32(1), readerChq.GetDateTime(2), readerChq.GetString(3), readerChq.GetString(4))
+                                tabCheques.Add(chqSel)
+                            Catch ex As Exception
+                                MessageBox.Show("Erreur lors de la lecture des données : " & ex.Message)
+                            End Try
+                        End While
+                    End Using
+                Catch ex As Exception
+                    MessageBox.Show("Erreur lors de l'exécution de la commande SQL : " & ex.Message)
+                End Try
+            End Using
+        Else
+            MessageBox.Show("Valeur de montant invalide.")
+        End If
+
+        ' TODO : Utiliser tabCheques comme nécessaire
+        ' chq.alimlstCheques(tabCheques.ToArray())
     End Sub
+
+
+
+    Public Function CreerJsonCheque(_id As Integer, _montant_numerique As Decimal, _numero_du_cheque As String, _dateChq As DateTime, _emetteur_du_cheque As String, _destinataire As String) As String
+        ' Créer un objet JObject pour construire le JSON
+        Dim jsonObject As New JObject()
+        jsonObject("id") = _id
+        jsonObject("montant_numerique") = _montant_numerique
+        jsonObject("numero_du_cheque") = _numero_du_cheque
+        jsonObject("dateChq") = _dateChq.ToString("yyyy-MM-dd") ' Formatage de la date
+        jsonObject("emetteur_du_cheque") = _emetteur_du_cheque
+        jsonObject("destinataire") = _destinataire
+
+        ' Convertir l'objet JObject en une chaîne JSON
+        Dim jsonString As String = jsonObject.ToString(Formatting.Indented)
+
+        Return jsonString
+    End Function
+
     'Private Sub dgvCategorie_SelectionChanged(sender As Object, e As EventArgs) Handles dgvCategorie.SelectionChanged
     '    If Not dgvCategorie.SelectedRows(0).Cells(0) Is Nothing Then
-    '        Call ChargeDgvSousCategorie(FrmPrincipale.maConn, dgvCategorie.SelectedRows(0).Cells(0).Value)
+    '        Call ChargeDgvSousCategorie(connexionDB.GetInstance.getConnexion, dgvCategorie.SelectedRows(0).Cells(0).Value)
     '    End If
     'End Sub
 
-    'Private Sub grpSens_Enter(sender As Object, e As EventArgs) Handles grpSens.Enter
-    'End Sub
-
     'Private Sub rbDebit_CheckedChanged(sender As Object, e As EventArgs) Handles rbDebit.CheckedChanged
-    '    ChargeDgvCategorie(FrmPrincipale.maConn, rbDebit.Checked)
+    '    ChargeDgvCategorie(connexionDB.GetInstance.getConnexion, rbDebit.Checked)
     'End Sub
 
     'Private Sub rbCredit_CheckedChanged(sender As Object, e As EventArgs) Handles rbCredit.CheckedChanged
-    '    ChargeDgvCategorie(FrmPrincipale.maConn, rbCredit.Checked)
+    '    ChargeDgvCategorie(connexionDB.GetInstance.getConnexion, rbCredit.Checked)
     'End Sub
 End Class

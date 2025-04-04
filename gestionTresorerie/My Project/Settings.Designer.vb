@@ -15,7 +15,7 @@ Option Explicit On
 Namespace My
     
     <Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),  _
-     Global.System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.9.0.0"),  _
+     Global.System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.13.0.0"),  _
      Global.System.ComponentModel.EditorBrowsableAttribute(Global.System.ComponentModel.EditorBrowsableState.Advanced)>  _
     Partial Friend NotInheritable Class MySettings
         Inherits Global.System.Configuration.ApplicationSettingsBase
@@ -56,7 +56,7 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\source\repos\gestionTresorerie\ressources\categories.ini")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("ressources\categories.ini")>  _
         Public ReadOnly Property ficRessources() As String
             Get
                 Return CType(Me("ficRessources"),String)
@@ -65,7 +65,7 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\source\repos\gestionTresorerie\ressources\tiers.xml")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("ressources\tiers.xml")>  _
         Public ReadOnly Property ficTiers() As String
             Get
                 Return CType(Me("ficTiers"),String)
@@ -74,25 +74,16 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\Données")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("gestionTresorerie\Données")>  _
         Public ReadOnly Property repDonnées() As String
             Get
                 Return CType(Me("repDonnées"),String)
             End Get
         End Property
         
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf")>  _
-        Public ReadOnly Property ficBddDonnees() As String
-            Get
-                Return CType(Me("ficBddDonnees"),String)
-            End Get
-        End Property
-        
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\source\repos\gestionTresorerie\ressources\événement.ini")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("ressources\événement.ini")>  _
         Public Property ficEvénement() As String
             Get
                 Return CType(Me("ficEvénement"),String)
@@ -104,7 +95,7 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\source\repos\gestionTresorerie\ressources\type.ini")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("ressources\type.ini")>  _
         Public Property ficType() As String
             Get
                 Return CType(Me("ficType"),String)
@@ -116,8 +107,7 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\bin\Debug\net8.0-w"& _ 
-            "indows\monFichier.docx")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("gestionTresorerie\bin\Debug\net8.0-windows\monFichier.docx")>  _
         Public Property ficBilan() As String
             Get
                 Return CType(Me("ficBilan"),String)
@@ -125,17 +115,6 @@ Namespace My
             Set
                 Me("ficBilan") = value
             End Set
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.SpecialSettingAttribute(Global.System.Configuration.SpecialSetting.ConnectionString),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=""G:\Mon Drive\AGUMAAA\Documen"& _ 
-            "ts\BacASable\bddAgumaaa.mdf"";Integrated Security=True;Connect Timeout=30")>  _
-        Public ReadOnly Property DBsource() As String
-            Get
-                Return CType(Me("DBsource"),String)
-            End Get
         End Property
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
@@ -155,6 +134,158 @@ Namespace My
             Set
                 Me("Requetes") = value
             End Set
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.SpecialSettingAttribute(Global.System.Configuration.SpecialSetting.ConnectionString),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=""G:\Mon Drive\AGUMAAA\Documen"& _ 
+            "ts\BacASable\bddAgumaaa.mdf"";Integrated Security=True;Connect Timeout=30")>  _
+        Public ReadOnly Property DBsource() As String
+            Get
+                Return CType(Me("DBsource"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("ressources\gestionTresorerie.log")>  _
+        Public ReadOnly Property fichierLog() As String
+            Get
+                Return CType(Me("fichierLog"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\source\repos\gestionTresorerie\")>  _
+        Public ReadOnly Property repInstallation() As String
+            Get
+                Return CType(Me("repInstallation"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\source\repos\gestionTresorerie\")>  _
+        Public ReadOnly Property repInstallationProd() As String
+            Get
+                Return CType(Me("repInstallationProd"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\source\repos\gestionTresorerie\")>  _
+        Public ReadOnly Property repInstallationTest() As String
+            Get
+                Return CType(Me("repInstallationTest"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf")>  _
+        Public ReadOnly Property ficBddDonnees() As String
+            Get
+                Return CType(Me("ficBddDonnees"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.SpecialSettingAttribute(Global.System.Configuration.SpecialSetting.ConnectionString),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=""G:\Mon Drive\AGUMAAA\Documen"& _ 
+            "ts\BacASable\bddAgumaaa.mdf"";Integrated Security=True;Connect Timeout=30")>  _
+        Public ReadOnly Property DBsourceProd() As String
+            Get
+                Return CType(Me("DBsourceProd"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.SpecialSettingAttribute(Global.System.Configuration.SpecialSetting.ConnectionString),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=""G:\Mon Drive\AGUMAAA\Documen"& _ 
+            "ts\BacASable\bddAgumaaa.mdf"";Integrated Security=True;Connect Timeout=30")>  _
+        Public ReadOnly Property DBsourceTest() As String
+            Get
+                Return CType(Me("DBsourceTest"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf")>  _
+        Public ReadOnly Property ficBddDonneesProd() As String
+            Get
+                Return CType(Me("ficBddDonneesProd"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf")>  _
+        Public ReadOnly Property ficBddDonneesTest() As String
+            Get
+                Return CType(Me("ficBddDonneesTest"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf")>  _
+        Public ReadOnly Property AttachDbFilenameProd() As String
+            Get
+                Return CType(Me("AttachDbFilenameProd"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf")>  _
+        Public ReadOnly Property AttachDbFilenameTest() As String
+            Get
+                Return CType(Me("AttachDbFilenameTest"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\Chèques\"& _ 
+            "")>  _
+        Public ReadOnly Property repChqProd() As String
+            Get
+                Return CType(Me("repChqProd"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\Chèques\"& _ 
+            "")>  _
+        Public ReadOnly Property repChqTest() As String
+            Get
+                Return CType(Me("repChqTest"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute(";Integrated Security=True;Connect Timeout=30")>  _
+        Public ReadOnly Property ParamDb() As String
+            Get
+                Return CType(Me("ParamDb"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=")>  _
+        Public ReadOnly Property DataSource() As String
+            Get
+                Return CType(Me("DataSource"),String)
+            End Get
         End Property
     End Class
 End Namespace

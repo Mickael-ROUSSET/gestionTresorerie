@@ -3,7 +3,8 @@ Imports System.IO
 Imports System.Text.RegularExpressions
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
-
+Imports System.Drawing
+Imports System.Security.Principal
 Public Class Cheque
     Public _dateChq As String
     Public _numero_du_cheque As Integer
@@ -11,11 +12,20 @@ Public Class Cheque
     Public _emetteur_du_cheque As String
     Public _montant_numerique As Decimal
     Public _destinataire As String
+    Public _id As Integer
 
     Public Sub New()
     End Sub
     Public Sub New(json As String)
         Call ParseJson(json)
+    End Sub
+    Public Sub New(id As Integer, montant_numerique As String, numero_du_cheque As Integer, dateChq As Date, emetteur_du_cheque As String, destinataire As String)
+        _id = id
+        _montant_numerique = montant_numerique
+        _numero_du_cheque = numero_du_cheque
+        _dateChq = dateChq
+        _emetteur_du_cheque = emetteur_du_cheque
+        _destinataire = destinataire
     End Sub
     Public Property destinataire() As String
         Get
@@ -66,6 +76,14 @@ Public Class Cheque
             _dateChq = value
         End Set
     End Property
+    Property id() As Integer
+        Get
+            Return _id
+        End Get
+        Set(ByVal value As Integer)
+            _id = value
+        End Set
+    End Property
 
     Sub ParseJson(json As String)
         ' Parse the JSON string
@@ -87,7 +105,8 @@ Public Class Cheque
                     Dim resultatJson As String = ExtractAndCleanJson(content)
                     Dim objResultat = JObject.Parse(resultatJson)
                     With objResultat
-                        '_emetteur = .Item("emetteur").ToString
+                        'TODO : je ne l'ai pas encore
+                        '_id = CInt(.Item("id").ToString)
                         _montant_numerique = .Item("montant_numerique").ToString
                         _numero_du_cheque = CInt(.Item("numero_du_cheque").ToString)
                         _dateChq = CDate(.Item("dateChq").ToString)
@@ -114,40 +133,40 @@ Public Class Cheque
         End If
     End Function
     Public Sub InsereEnBase(cheminChq As String)
-        Using FrmPrincipale.maConn
+        Using connexionDB.GetInstance.getConnexion
             Try
                 Dim query As String = "INSERT INTO [dbo].Cheque ([numero], [date], [emetteur], [montant], [banque], [destinataire], [imageChq]) VALUES (@numero, @date, @emetteur, @montant, @banque, @destinataire, @imageChq)"
 
-                Using command As New SqlCommand(query, FrmPrincipale.maConn)
-                    command.Parameters.AddWithValue("@numero", _numero_du_cheque)
-                    command.Parameters.AddWithValue("@date", Convert.ToDateTime(_dateChq))
-                    command.Parameters.AddWithValue("@emetteur", _emetteur_du_cheque)
-                    command.Parameters.AddWithValue("@montant", _montant_numerique)
-                    command.Parameters.AddWithValue("@banque", "CA43")
-                    command.Parameters.AddWithValue("@destinataire", _destinataire)
+                Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
+                    With command.Parameters
+                        .AddWithValue("@numero", _numero_du_cheque)
+                        .AddWithValue("@date", Convert.ToDateTime(_dateChq))
+                        .AddWithValue("@emetteur", _emetteur_du_cheque)
+                        .AddWithValue("@montant", _montant_numerique)
+                        .AddWithValue("@banque", "CA43")
+                        .AddWithValue("@destinataire", _destinataire)
 
-                    ' Lire l'image en tant que tableau d'octets 
-                    Dim imageBytes As Byte() = File.ReadAllBytes(cheminChq)
+                        ' Lire l'image en tant que tableau d'octets 
+                        Dim imageBytes As Byte() = File.ReadAllBytes(cheminChq)
 
-                    ' Ajouter le paramètre pour l'image
-                    command.Parameters.AddWithValue("@imageChq", imageBytes)
-
+                        ' Ajouter le paramètre pour l'image
+                        .AddWithValue("@imageChq", imageBytes)
+                    End With
                     command.ExecuteNonQuery()
                 End Using
-
-                Console.WriteLine("Données insérées avec succès.")
+                Logger.GetInstance.INFO("Données insérées avec succès." & Command.ToString)
             Catch ex As Exception
-                Console.WriteLine("Erreur lors de l'insertion des données : " & ex.Message)
+                Logger.GetInstance.ERR("Erreur lors de l'insertion des données : " & ex.Message)
             End Try
         End Using
     End Sub
     Public Sub AfficherImage(idCheque As Integer, pbBox As PictureBox)
-        Using FrmPrincipale.maConn
+        Using connexionDB.GetInstance.getConnexion
             Try
                 ' Requête SQL pour récupérer l'image
                 Dim query As String = "SELECT [imageChq] FROM [dbo].Cheque WHERE [id] = @id"
 
-                Using command As New SqlCommand(query, FrmPrincipale.maConn)
+                Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
                     command.Parameters.AddWithValue("@id", idCheque)
 
                     ' Exécuter la requête et récupérer les données binaires de l'image
@@ -159,17 +178,51 @@ Public Class Cheque
                         Using ms As New IO.MemoryStream(imageBytes)
                             Dim image As Image = Image.FromStream(ms)
                             ' Afficher l'image dans le PictureBox
-                            pbBox.Image = image
+                            'pbBox.Image = image
+                            'Redimensionne l'image pour ne prendre que le haut où se trouve le chèque
+                            'TODO : constante pour le ration à utiliser pour les chèques
+                            Try
+                                pbBox.Image = AfficherTiersSuperieurImage(image, 0.33)
+                            Catch ex As Exception
+                                Logger.GetInstance().ERR("Erreur lors de l'extraction du tiers supérieur de l'image : " & ex.Message)
+                            End Try
                         End Using
                     Else
-                        MessageBox.Show("Aucune image trouvée pour cet enregistrement.")
+                        Logger.GetInstance().INFO("Aucune image trouvée pour cet enregistrement.")
                     End If
                 End Using
             Catch ex As Exception
-                MessageBox.Show("Erreur lors de la récupération de l'image : " & ex.Message)
+                Logger.GetInstance().ERR("Erreur lors de la récupération de l'image : " & ex.Message)
             End Try
         End Using
     End Sub
 
+    Public Function AfficherTiersSuperieurImage(image As Image, ratio As Double) As Image
+        AfficherTiersSuperieurImage = Nothing
+        Try
+            ' Charger l'image à partir du chemin spécifié
+            'Dim originalImage As Image = Image.FromFile(cheminImage)
 
+            ' Calculer la hauteur du tiers supérieur
+            Dim tiersSuperieurHauteur As Integer = CInt(image.Height * ratio)
+
+            ' Créer un rectangle pour définir la zone à découper
+            Dim rectangleTiersSuperieur As New Rectangle(0, 0, image.Width, tiersSuperieurHauteur)
+
+            ' Créer une nouvelle image pour le tiers supérieur
+            Dim tiersSuperieurImage As Image = New Bitmap(rectangleTiersSuperieur.Width, rectangleTiersSuperieur.Height)
+
+            ' Dessiner la partie supérieure de l'image originale sur la nouvelle image
+            Using g As Graphics = Graphics.FromImage(tiersSuperieurImage)
+                g.DrawImage(image, New Rectangle(0, 0, rectangleTiersSuperieur.Width, rectangleTiersSuperieur.Height), rectangleTiersSuperieur, GraphicsUnit.Pixel)
+            End Using
+
+            ' Afficher l'image du tiers supérieur dans la PictureBox
+            AfficherTiersSuperieurImage = tiersSuperieurImage
+
+            Logger.GetInstance().INFO("Tiers supérieur de l'image affiché avec succès.")
+        Catch ex As Exception
+            Logger.GetInstance().ERR("Erreur lors de l'extraction du tiers supérieur de l'image : " & ex.Message)
+        End Try
+    End Function
 End Class
