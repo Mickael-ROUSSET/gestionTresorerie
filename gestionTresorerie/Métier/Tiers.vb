@@ -76,6 +76,59 @@ Public Class Tiers
         monReader.Close()
         Return iSousCategorie
     End Function
+
+    Public Function ExtraireTiers() As List(Of (nom As String, prenom As String, raisonSociale As String))
+        Dim sqlConnexion As SqlConnection = Nothing
+        Dim ListeTiers As List(Of (nom As String, prenom As String, raisonSociale As String))
+        Try
+            ' Obtenir la connexion SQL
+            sqlConnexion = connexionDB.GetInstance.getConnexion
+
+            ' Ouvrir la connexion
+            If sqlConnexion.State <> ConnectionState.Open Then
+                sqlConnexion.Open()
+            End If
+
+            ' Requête SQL pour extraire les données
+            Dim query As String = "SELECT [nom], [prenom], [raisonSociale] FROM [dbo].Tiers"
+
+            Using command As New SqlCommand(query, sqlConnexion)
+                ' Exécuter la requête et récupérer les résultats
+                Using reader As SqlDataReader = command.ExecuteReader()
+                    ' Parcourir les résultats et ajouter chaque enregistrement à la liste
+                    While reader.Read()
+                        Dim nom As String = reader("nom").ToString()
+                        Dim prenom As String = reader("prenom").ToString()
+                        Dim raisonSociale As String = reader("raisonSociale").ToString()
+
+                        ' Ajouter les données à la liste
+                        ListeTiers.Add((nom, prenom, raisonSociale))
+                    End While
+                End Using
+            End Using
+        Catch ex As Exception
+            Logger.GetInstance().ERR("Erreur lors de l'extraction des données de la table Tiers : " & ex.Message)
+        Finally
+            ' Fermer la connexion si elle est ouverte
+            If sqlConnexion IsNot Nothing AndAlso sqlConnexion.State = ConnectionState.Open Then
+                sqlConnexion.Close()
+            End If
+        End Try
+        Return ListeTiers
+    End Function
+    Public Shared Function ConvertirListeTiersEnChaine(listeTiers As List(Of (nom As String, prenom As String, raisonSociale As String))) As String
+        ' Utiliser un StringBuilder pour construire la chaîne de caractères efficacement
+        Dim sb As New System.Text.StringBuilder()
+
+        ' Parcourir chaque élément de la liste et ajouter une ligne pour chaque occurrence
+        For Each tiers In listeTiers
+            sb.AppendLine($"Nom: {tiers.nom}, Prénom: {tiers.prenom}, Raison Sociale: {tiers.raisonSociale}")
+        Next
+
+        ' Retourner la chaîne de caractères complète
+        Return sb.ToString()
+    End Function
+
     Public ReadOnly Property id As Integer
         Get
             Return _id

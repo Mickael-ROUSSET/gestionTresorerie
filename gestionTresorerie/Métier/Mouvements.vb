@@ -1,9 +1,4 @@
-﻿Imports System.Runtime.InteropServices.JavaScript
-Imports DocumentFormat.OpenXml.Wordprocessing
-Imports System.Text.RegularExpressions
-Imports System
-Imports DocumentFormat.OpenXml.Office.Word
-Imports DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing
+﻿Imports System.Text.RegularExpressions
 Imports System.Data.SqlClient
 Public Class Mouvements
     Private _note As String
@@ -20,10 +15,10 @@ Public Class Mouvements
     Private _modifiable As Boolean
     Private _numeroRemise As String
     Private _idCheque As Integer
-    Public Sub New(ByVal note As String, ByVal categorie As String, ByVal sousCategorie As String, ByVal tiers As Integer, ByVal dateMvt As Date, ByVal montant As String, ByVal sens As String, ByVal etat As String, ByVal événement As String, ByVal type As String, ByVal modifiable As Boolean, ByVal numeroRemise As String)
+    Public Sub New(ByVal note As String, ByVal categorie As String, ByVal sousCategorie As String, ByVal tiers As Integer, ByVal dateMvt As Date, ByVal montant As String, ByVal sens As String, ByVal etat As String, ByVal événement As String, ByVal type As String, ByVal modifiable As Boolean, ByVal numeroRemise As String, ByVal idCheque As Integer)
         ' Set the property value.
         With Me
-            If VerifParam(note, categorie, sousCategorie, tiers, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise) Then
+            If VerifParam(note, categorie, sousCategorie, tiers, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise, idCheque) Then
                 .Note = note
                 .Categorie = categorie
                 .SousCategorie = sousCategorie
@@ -37,6 +32,7 @@ Public Class Mouvements
                 .Type = type
                 .Modifiable = modifiable
                 .NumeroRemise = numeroRemise
+                .idCheque = idCheque
             End If
         End With
     End Sub
@@ -56,8 +52,121 @@ Public Class Mouvements
         myReader.Close()
         Return bExiste
     End Function
-    Public Shared Function VerifParam(note As String, categorie As String, sousCategorie As String, tiers As Integer, dateMvt As Date, montant As String, sens As String, etat As String, événement As String, type As String, modifiable As Boolean, numeroRemise As String) As Boolean
+
+    Public Shared Sub MettreAJourMouvement(id As Integer, categorie As String, sousCategorie As String, montant As Decimal, sens As Boolean, tiers As String, note As String, dateMvt As Date, etat As Boolean, evenement As String, type As String, modifiable As Boolean, numeroRemise As Integer?, Optional idCheque As Integer? = Nothing)
+        Dim sqlConnexion As SqlConnection = Nothing
+        Dim rowsAffected As Integer = 0
+
+        Try
+            ' Obtenir la connexion SQL
+            sqlConnexion = connexionDB.GetInstance.getConnexion
+
+            ' Ouvrir la connexion
+            If sqlConnexion.State <> ConnectionState.Open Then
+                sqlConnexion.Open()
+            End If
+
+            ' Requête SQL pour mettre à jour la table Mouvements
+            Dim query As String = "UPDATE [dbo].[Mouvements] SET [catégorie] = @Categorie, [sousCatégorie] = @SousCategorie, [montant] = @Montant, [sens] = @Sens, [tiers] = @Tiers, [note] = @Note, [dateMvt] = @DateMvt, [dateModification] = GETDATE(), [etat] = @Etat, [événement] = @Evenement, [type] = @Type, [modifiable] = @Modifiable, [numeroRemise] = @NumeroRemise"
+
+            ' Ajouter la partie conditionnelle pour idCheque
+            If idCheque.HasValue Then
+                query &= ", [idCheque] = @IdCheque"
+            Else
+                query &= ", [idCheque] = NULL"
+            End If
+
+            query &= " WHERE [Id] = @Id"
+
+            Using command As New SqlCommand(query, sqlConnexion)
+                ' Ajouter les paramètres à la requête
+                command.Parameters.AddWithValue("@Categorie", categorie)
+                command.Parameters.AddWithValue("@SousCategorie", If(sousCategorie Is Nothing, DBNull.Value, sousCategorie))
+                command.Parameters.AddWithValue("@Montant", montant)
+                command.Parameters.AddWithValue("@Sens", sens)
+                command.Parameters.AddWithValue("@Tiers", If(tiers Is Nothing, DBNull.Value, tiers))
+                command.Parameters.AddWithValue("@Note", If(note Is Nothing, DBNull.Value, note))
+                command.Parameters.AddWithValue("@DateMvt", dateMvt)
+                command.Parameters.AddWithValue("@Etat", etat)
+                command.Parameters.AddWithValue("@Evenement", If(evenement Is Nothing, DBNull.Value, evenement))
+                command.Parameters.AddWithValue("@Type", If(type Is Nothing, DBNull.Value, type))
+                command.Parameters.AddWithValue("@Modifiable", modifiable)
+                command.Parameters.AddWithValue("@NumeroRemise", If(numeroRemise.HasValue, numeroRemise.Value, DBNull.Value))
+
+                ' Ajouter le paramètre idCheque s'il est fourni
+                If idCheque.HasValue Then
+                    command.Parameters.AddWithValue("@IdCheque", idCheque.Value)
+                End If
+
+                command.Parameters.AddWithValue("@Id", id)
+
+                ' Exécuter la requête et obtenir le nombre de lignes affectées
+                rowsAffected = command.ExecuteNonQuery()
+            End Using
+
+            ' Trace indiquant le nombre de lignes mises à jour
+            Logger.GetInstance().INFO($"Nombre de lignes mises à jour : {rowsAffected}")
+
+            ' Trace indiquant les valeurs mises à jour
+            Logger.GetInstance().INFO($"Valeurs mises à jour - Id: {id}, Catégorie: {categorie}, Sous-Catégorie: {sousCategorie}, Montant: {montant}, Sens: {sens}, Tiers: {tiers}, Note: {note}, DateMvt: {dateMvt}, Etat: {etat}, Evénement: {evenement}, Type: {type}, Modifiable: {modifiable}, Numéro Remise: {numeroRemise}, IdChèque: {idCheque}")
+
+        Catch ex As Exception
+            ' Trace en cas d'erreur
+            Logger.GetInstance().ERR($"Erreur lors de la mise à jour du mouvement : {ex.Message}")
+        Finally
+            ' Fermer la connexion si elle est ouverte
+            If sqlConnexion IsNot Nothing AndAlso sqlConnexion.State = ConnectionState.Open Then
+                sqlConnexion.Close()
+            End If
+        End Try
+    End Sub
+
+
+    Public Shared Sub SupprimerMouvement(id As Integer)
+            Dim sqlConnexion As SqlConnection = Nothing
+            Dim rowsAffected As Integer = 0
+
+            Try
+                ' Obtenir la connexion SQL
+                sqlConnexion = connexionDB.GetInstance.getConnexion
+
+                ' Ouvrir la connexion
+                If sqlConnexion.State <> ConnectionState.Open Then
+                    sqlConnexion.Open()
+                End If
+
+                ' Requête SQL pour supprimer l'enregistrement
+                Dim query As String = "DELETE FROM [dbo].[Mouvements] WHERE [Id] = @Id"
+
+                Using command As New SqlCommand(query, sqlConnexion)
+                    ' Ajouter le paramètre Id à la requête
+                    command.Parameters.AddWithValue("@Id", id)
+
+                    ' Exécuter la requête et obtenir le nombre de lignes affectées
+                    rowsAffected = command.ExecuteNonQuery()
+                End Using
+
+                ' Trace indiquant le nombre de lignes supprimées
+                Logger.GetInstance().INFO($"Nombre de lignes supprimées : {rowsAffected}")
+
+                ' Trace indiquant l'Id supprimé
+                Logger.GetInstance().INFO($"Enregistrement supprimé - Id: {id}")
+
+            Catch ex As Exception
+                ' Trace en cas d'erreur
+                Logger.GetInstance().ERR($"Erreur lors de la suppression du mouvement : {ex.Message}")
+            Finally
+                ' Fermer la connexion si elle est ouverte
+                If sqlConnexion IsNot Nothing AndAlso sqlConnexion.State = ConnectionState.Open Then
+                    sqlConnexion.Close()
+                End If
+            End Try
+        End Sub
+
+    Public Shared Function VerifParam(note As String, categorie As String, sousCategorie As String, tiers As Integer, dateMvt As Date, montant As String, sens As String, etat As String, événement As String, type As String, modifiable As Boolean, numeroRemise As String, ByVal idCheque As Integer) As Boolean
         Dim bToutEstLa As Boolean = False
+
+        'L'idCheque est facultatif
         If categorie <> "" And sousCategorie <> "" And tiers <> 0 And IsDate(dateMvt) And sens <> "" And etat <> "" And type <> "" Then
             bToutEstLa = True
         End If
@@ -184,8 +293,6 @@ Public Class Mouvements
         Set(ByVal value As String)
             Dim s As String
             s = Trim(Strings.Replace(value, """", ""))
-            'Dim myRegex As Regex = New Regex("(.*)""(.*)")
-            'If Integer.TryParse(Trim(myRegex.Replace(value, "$1$2")), vbNull) Then
             If Integer.TryParse(Trim(Strings.Replace(value, """", "")), vbNull) Then
                 _numeroRemise = Trim(Strings.Replace(value, """", ""))
             Else

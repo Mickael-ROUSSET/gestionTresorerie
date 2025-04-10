@@ -11,8 +11,6 @@ Public Class connexionDB
     Public result As String
     Public reader As SqlDataReader
     Private Shared _instance As connexionDB
-    Private Sub New()
-    End Sub
 
     ' Méthode publique pour accéder à l'instance unique
     Public Shared Function GetInstance() As connexionDB
@@ -46,7 +44,6 @@ Public Class connexionDB
             Logger.GetInstance.ERR(ex.Message)
         End Try
     End Sub
-
 
     Public Function getRequete(indiceRequete As Integer) As String
         Return My.Settings.Requetes.Item(indiceRequete)

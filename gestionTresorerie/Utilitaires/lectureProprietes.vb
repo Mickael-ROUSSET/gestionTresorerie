@@ -6,13 +6,23 @@ Public Class lectureProprietes
 
     Public Sub New()
         ' Lire la variable d'environnement 
-        _env = Environ("envAgumaaa")
-        If _env = "Prod" Then
-            _repInstallation = My.Settings.repInstallationProd
-        Else
-            _repInstallation = My.Settings.repInstallationTest
+        Call litEnv()
+        Call litRepInstallation()
+    End Sub
+    Public Sub litEnv()
+        ' Lire la variable d'environnement 
+        If _env = String.Empty Then
+            _env = Environ("envAgumaaa")
+            Logger.GetInstance().INFO("Env = " & _env)
         End If
-        Logger.GetInstance().INFO("Env = " & _env)
+    End Sub
+    Public Sub litRepInstallation()
+        ' Lire la variable d'environnement 
+        If _env = "Test" Then
+            _repInstallation = My.Settings.repInstallationTest
+        Else
+            _repInstallation = My.Settings.repInstallationProd
+        End If
         Logger.GetInstance().INFO("repInstallation = " & _repInstallation)
     End Sub
 

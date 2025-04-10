@@ -80,8 +80,7 @@ Public Class batchAnalyseChq
     Public Sub analyseChq(cheminChq As String)
         Dim extraction As New appelMistral()
 
-        Logger.GetInstance().INFO("-------------------")
-        Logger.GetInstance().INFO("Analyse du chèque " & cheminChq)
+        Logger.GetInstance().INFO("-------------------" & vbCrLf & "Analyse du chèque " & cheminChq)
         Dim chqJson = extraction.litImage(cheminChq)
         cheminChq = RenommerFichier(cheminChq, chqJson.numero_du_cheque)
         chqJson.InsereEnBase(cheminChq)

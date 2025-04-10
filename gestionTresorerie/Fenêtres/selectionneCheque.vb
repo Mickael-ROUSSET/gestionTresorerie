@@ -37,11 +37,26 @@ Public Class selectionneCheque
             _idChqSel = idChq
         End If
     End Sub
-    Private Sub btnSelCheque_Click(sender As Object, e As EventArgs) Handles btnSelCheque.Click
-        Me.Hide()
+
+    Public Event IdChequeSelectionneChanged(ByVal idCheque As Integer)
+
+    Private Sub btnSelCheque_Click(sender As Object, e As EventArgs)
+        ' Supposons que l'idCheque est sélectionné ici
+        Dim idCheque As Integer = ObtenirIdChequeSelectionne()
+
+        ' Déclencher l'événement
+        RaiseEvent IdChequeSelectionneChanged(idCheque)
+
+        ' Fermer la fenêtre appelée
+        Me.Close()
     End Sub
 
-    Public Sub chargeListeChq(montant As Decimal)
+    Private Function ObtenirIdChequeSelectionne() As Integer
+            ' Logique pour obtenir l'idCheque sélectionné
+            Return 123 ' Exemple d'idCheque
+        End Function
+
+        Public Sub chargeListeChq(montant As Decimal)
         Dim tabCheques As New List(Of Cheque)()
 
         ' Convertir txtMontant.Text en Decimal 
@@ -93,7 +108,6 @@ Public Class selectionneCheque
             ' Créer une nouvelle ligne pour le ListView
             Dim item As New ListViewItem(cheque.id.ToString())
             item.SubItems.Add(cheque.montant_numerique.ToString())
-            'item.SubItems.Add(cheque.dateChq.ToString("yyyy-MM-dd"))
             item.SubItems.Add(cheque.dateChq)
             item.SubItems.Add(cheque.destinataire)
             ' Ajouter la ligne au ListView

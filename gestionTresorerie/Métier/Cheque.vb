@@ -1,10 +1,7 @@
 ﻿Imports System.Data.SqlClient
 Imports System.IO
 Imports System.Text.RegularExpressions
-Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
-Imports System.Drawing
-Imports System.Security.Principal
 Public Class Cheque
     Public _dateChq As String
     Public _numero_du_cheque As Integer
@@ -189,13 +186,8 @@ Public Class Cheque
                     Using ms As New IO.MemoryStream(imageBytes)
                         Dim image As Image = Image.FromStream(ms)
                         ' Afficher l'image dans le PictureBox
-                        ' Redimensionne l'image pour ne prendre que le haut où se trouve le chèque
-                        ' TODO : constante pour le ratio à utiliser pour les chèques
-                        Try
-                            pbBox.Image = AfficherTiersSuperieurImage(image, 0.33)
-                        Catch ex As Exception
-                            Logger.GetInstance().ERR("Erreur lors de l'extraction du tiers supérieur de l'image : " & ex.Message)
-                        End Try
+                        pbBox.SizeMode = PictureBoxSizeMode.Zoom
+                        pbBox.Image = AfficherTiersSuperieurImage(image, 0.33)
                     End Using
                 Else
                     Logger.GetInstance().INFO("Aucune image trouvée pour cet enregistrement.")
@@ -211,8 +203,6 @@ Public Class Cheque
         End Try
     End Sub
 
-
-
     Public Function AfficherTiersSuperieurImage(image As Image, ratio As Double) As Image
         AfficherTiersSuperieurImage = Nothing
         Try
@@ -223,7 +213,7 @@ Public Class Cheque
             Dim tiersSuperieurHauteur As Integer = CInt(image.Height * ratio)
 
             ' Créer un rectangle pour définir la zone à découper
-            Dim rectangleTiersSuperieur As New Rectangle(0, 0, image.Width, tiersSuperieurHauteur)
+            Dim rectangleTiersSuperieur As New Rectangle(450, 0, image.Width - 450, tiersSuperieurHauteur)
 
             ' Créer une nouvelle image pour le tiers supérieur
             Dim tiersSuperieurImage As Image = New Bitmap(rectangleTiersSuperieur.Width, rectangleTiersSuperieur.Height)

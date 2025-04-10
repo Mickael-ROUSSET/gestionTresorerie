@@ -1,11 +1,8 @@
 ﻿Imports System.Text.RegularExpressions
 Imports System.Data.SqlClient
 Imports System.IO
-Imports DocumentFormat.OpenXml.Office2019.Drawing.Model3D
-Imports DocumentFormat.OpenXml.Wordprocessing
 Imports Newtonsoft.Json.Linq
 Imports Newtonsoft.Json
-Imports System.Globalization
 
 Public Class FrmSaisie
 
@@ -14,6 +11,7 @@ Public Class FrmSaisie
     Private myReader As SqlDataReader
     Private results As String
     Private listeTiers As ListeTiers
+    Private _idCheque As Integer = 0
     Public Property Properties As Object
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -189,35 +187,7 @@ Public Class FrmSaisie
     '    cbSousCategorie.Items.Clear
     'End Sub
     Private Sub BtnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
-        Dim sCategorie As String, sSousCategorie As String
-        ', sNomTiers As String, sPrenomTiers As String, sRaisonSocialeTiers As String, sTiers As String
-        Dim idTiers As Integer
-
-        'Enregistre les informations sur le mouvement saisi en base de données
-        'Dim unMvt As New Mouvements(txtNote.Text, cbCategorie.SelectedItem, cbSousCategorie.SelectedItem, cbTiers.SelectedItem, dateMvt.Value, txtMontant.Text, rbCredit.Checked, rbRapproche.Checked, cbEvénement.SelectedItem, cbType.SelectedItem, False, txtRemise.Text)
-        sCategorie = dgvCategorie.Rows(dgvCategorie.SelectedRows(0).Index).Cells(1).Value
-        sSousCategorie = dgvSousCategorie.Rows(dgvSousCategorie.SelectedRows(0).Index).Cells(1).Value
-        idTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(0).Value
-        'sNomTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(1).Value
-        'sPrenomTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(2).Value
-        'sRaisonSocialeTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(3).Value
-        'Dim unMvt As New Mouvements(txtNote.Text, sCategorie, sSousCategorie, cbTiers.SelectedItem, dateMvt.Value, txtMontant.Text,        rbCredit.Checked, rbRapproche.Checked, cbEvénement.SelectedItem, cbType.SelectedItem, False, txtRemise.Text)
-        Dim unMvt As New Mouvements(txtNote.Text, sCategorie, sSousCategorie, idTiers, dateMvt.Value, txtMontant.Text,
-                                    rbCredit.Checked, rbRapproche.Checked, cbEvénement.SelectedItem, cbType.SelectedItem, False, txtRemise.Text)
-
-        Try
-            maCmd = New SqlCommand
-            With maCmd
-                .Connection = connexionDB.GetInstance.getConnexion
-                .CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers,dateCréation,dateMvt,montant,sens,etat,événement,type, modifiable,numeroRemise) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable,@numeroRemise);"
-            End With
-            maCmd = AjouteParam(maCmd, unMvt)
-            maCmd.ExecuteNonQuery()
-        Catch ex As Exception
-            MsgBox("Echec de l'insertion en base" & " " & ex.Message)
-            MsgBox(ex.Message)
-            End
-        End Try
+        Call insereChq()
         Me.Hide()
         FrmPrincipale.Show()
     End Sub
@@ -250,6 +220,8 @@ Public Class FrmSaisie
             .Item(11).Value = unMvt.Modifiable
             .Add("@numeroRemise", SqlDbType.Int)
             .Item(12).Value = unMvt.NumeroRemise
+            .Add("@idCheque", SqlDbType.Int)
+            .Item(13).Value = unMvt.idCheque
         End With
         Return myCmd
     End Function
@@ -341,8 +313,12 @@ Public Class FrmSaisie
         frmNouveauTiers.Show()
     End Sub
     Private Sub dgvCategorie_DoubleClick(sender As Object, e As EventArgs) Handles dgvCategorie.DoubleClick
-        'Teste si la feuille est déjà chargée
-        'TODO : ne marche pas
+        Call majSousCategorie()
+    End Sub
+    Private Sub dgvCategorie_Click(sender As Object, e As EventArgs) Handles dgvCategorie.Click
+        Call majSousCategorie()
+    End Sub
+    Private Sub majSousCategorie()
         If dgvCategorie.SelectedRows(0).Cells(0) IsNot Nothing Then
             Call ChargeDgvSousCategorie(connexionDB.GetInstance.getConnexion, dgvCategorie.SelectedRows(0).Cells(0).Value)
         End If
@@ -393,10 +369,51 @@ Public Class FrmSaisie
     Private Sub txtRechercheTiers_TextChanged(sender As Object, e As EventArgs) Handles txtRechercheTiers.TextChanged
         selectionneLigneParLibelle(dgvTiers, txtRechercheTiers.Text)
     End Sub
+    Private Sub insereChq()
+        Dim sCategorie As String, sSousCategorie As String
+        ', sNomTiers As String, sPrenomTiers As String, sRaisonSocialeTiers As String, sTiers As String
+        Dim idTiers As Integer
 
+        'Enregistre les informations sur le mouvement saisi en base de données
+        sCategorie = dgvCategorie.Rows(dgvCategorie.SelectedRows(0).Index).Cells(1).Value
+        sSousCategorie = dgvSousCategorie.Rows(dgvSousCategorie.SelectedRows(0).Index).Cells(1).Value
+        idTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(0).Value
+        'sNomTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(1).Value
+        'sPrenomTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(2).Value
+        'sRaisonSocialeTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(3).Value
+        'Dim unMvt As New Mouvements(txtNote.Text, sCategorie, sSousCategorie, cbTiers.SelectedItem, dateMvt.Value, txtMontant.Text,        rbCredit.Checked, rbRapproche.Checked, cbEvénement.SelectedItem, cbType.SelectedItem, False, txtRemise.Text)
+        Dim unMvt As New Mouvements(txtNote.Text, sCategorie, sSousCategorie, idTiers, dateMvt.Value, txtMontant.Text,
+                                    rbCredit.Checked, rbRapproche.Checked, cbEvénement.SelectedItem, cbType.SelectedItem, False, txtRemise.Text, _idCheque)
+
+        Try
+            maCmd = New SqlCommand
+            With maCmd
+                .Connection = connexionDB.GetInstance.getConnexion
+                .CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers,dateCréation,dateMvt,montant,sens,etat,événement,type, modifiable,numeroRemise, idCheque) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable,@numeroRemise, @IdCheque);"
+            End With
+            maCmd = AjouteParam(maCmd, unMvt)
+            maCmd.ExecuteNonQuery()
+            Logger.GetInstance.INFO("Insertion du mouvement pour : " & unMvt.Tiers)
+        Catch ex As Exception
+            MsgBox("Echec de l'insertion en base" & " " & ex.Message)
+            Logger.GetInstance.ERR("Erreur lors de l'insertion des données : " & ex.Message)
+            End
+        End Try
+    End Sub
     Private Sub btnSelChq_Click(sender As Object, e As EventArgs) Handles btnSelChq.Click
+        Dim selectionneCheque As New selectionneCheque()
+        AddHandler selectionneCheque.IdChequeSelectionneChanged, AddressOf IdChequeSelectionneChangedHandler
+        selectionneCheque.ShowDialog()
+
         selectionneCheque.chargeListeChq(CDec(Me.txtMontant.Text))
         selectionneCheque.Show()
+    End Sub
+
+    Private Sub IdChequeSelectionneChangedHandler(ByVal idCheque As Integer)
+        ' Faire quelque chose avec l'idCheque
+        'TODO  : reste à trouver le Mouvement
+        _idCheque = idCheque
+        'Call UpdateIdCheque(idMouvement, idCheque)
     End Sub
 
     Public Function CreerJsonCheque(_id As Integer, _montant_numerique As Decimal, _numero_du_cheque As String, _dateChq As DateTime, _emetteur_du_cheque As String, _destinataire As String) As String
@@ -414,6 +431,7 @@ Public Class FrmSaisie
 
         Return jsonString
     End Function
+
 
     'Private Sub dgvCategorie_SelectionChanged(sender As Object, e As EventArgs) Handles dgvCategorie.SelectionChanged
     '    If Not dgvCategorie.SelectedRows(0).Cells(0) Is Nothing Then
