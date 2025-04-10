@@ -371,29 +371,29 @@ Public Class FrmSaisie
     End Sub
     Private Sub insereChq()
         Dim sCategorie As String, sSousCategorie As String
-        ', sNomTiers As String, sPrenomTiers As String, sRaisonSocialeTiers As String, sTiers As String
         Dim idTiers As Integer
+
+        'Dim sNomTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(1).Value
+        'dim sPrenomTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(2).Value
+        'dim sRaisonSocialeTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(3).Value
 
         'Enregistre les informations sur le mouvement saisi en base de données
         sCategorie = dgvCategorie.Rows(dgvCategorie.SelectedRows(0).Index).Cells(1).Value
         sSousCategorie = dgvSousCategorie.Rows(dgvSousCategorie.SelectedRows(0).Index).Cells(1).Value
         idTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(0).Value
-        'sNomTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(1).Value
-        'sPrenomTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(2).Value
-        'sRaisonSocialeTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(3).Value
-        'Dim unMvt As New Mouvements(txtNote.Text, sCategorie, sSousCategorie, cbTiers.SelectedItem, dateMvt.Value, txtMontant.Text,        rbCredit.Checked, rbRapproche.Checked, cbEvénement.SelectedItem, cbType.SelectedItem, False, txtRemise.Text)
-        Dim unMvt As New Mouvements(txtNote.Text, sCategorie, sSousCategorie, idTiers, dateMvt.Value, txtMontant.Text,
-                                    rbCredit.Checked, rbRapproche.Checked, cbEvénement.SelectedItem, cbType.SelectedItem, False, txtRemise.Text, _idCheque)
+        Dim unMvt As New Mouvements(txtNote.Text, sCategorie, sSousCategorie, idTiers, dateMvt.Value, txtMontant.Text.Trim().Replace(" ", ""),
+        rbCredit.Checked, rbRapproche.Checked, cbEvénement.SelectedItem, cbType.SelectedItem, False, txtRemise.Text, _idCheque)
+
 
         Try
             maCmd = New SqlCommand
             With maCmd
                 .Connection = connexionDB.GetInstance.getConnexion
-                .CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers,dateCréation,dateMvt,montant,sens,etat,événement,type, modifiable,numeroRemise, idCheque) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable,@numeroRemise, @IdCheque);"
+                .CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers,dateCréation,dateMvt,montant,sens,etat,événement,type, modifiable,numeroRemise, idCheque) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable,@numeroRemise, @idCheque);"
             End With
             maCmd = AjouteParam(maCmd, unMvt)
             maCmd.ExecuteNonQuery()
-            Logger.GetInstance.INFO("Insertion du mouvement pour : " & unMvt.Tiers)
+            Logger.GetInstance.INFO("Insertion du mouvement pour : " & unMvt.ObtenirValeursConcatenees)
         Catch ex As Exception
             MsgBox("Echec de l'insertion en base" & " " & ex.Message)
             Logger.GetInstance.ERR("Erreur lors de l'insertion des données : " & ex.Message)

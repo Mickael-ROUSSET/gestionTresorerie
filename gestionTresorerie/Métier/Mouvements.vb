@@ -300,4 +300,27 @@ Public Class Mouvements
             End If
         End Set
     End Property
+    Public Function ObtenirValeursConcatenees() As String
+        ' Initialiser une chaîne vide pour stocker le résultat
+        Dim resultat As String = ""
+
+        ' Concaténer le nom de chaque variable avec sa valeur
+        resultat &= "Note: " & _note & ", "
+        resultat &= "Catégorie: " & _categorie & ", "
+        resultat &= "Sous-Catégorie: " & _sousCategorie & ", "
+        resultat &= "Tiers: " & _tiers.ToString() & ", "
+        resultat &= "Date de Création: " & _dateCréation.ToString("yyyy-MM-dd") & ", "
+        resultat &= "Date de Mouvement: " & _dateMvt.ToString("yyyy-MM-dd") & ", "
+        resultat &= "Montant: " & _montant.ToString() & ", "
+        resultat &= "Sens: " & _sens & ", "
+        resultat &= "État: " & _etat & ", "
+        resultat &= "Événement: " & _événement & ", "
+        resultat &= "Type: " & _type & ", "
+        resultat &= "Modifiable: " & _modifiable.ToString() & ", "
+        resultat &= "Numéro de Remise: " & _numeroRemise & ", "
+        resultat &= "ID Chèque: " & _idCheque.ToString() & vbCrLf
+
+        ' Retourner la chaîne concaténée
+        Return resultat
+    End Function
 End Class
