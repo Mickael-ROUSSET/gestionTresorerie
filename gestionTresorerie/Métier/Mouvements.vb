@@ -36,22 +36,39 @@ Public Class Mouvements
             End If
         End With
     End Sub
-    Public Shared Function existe(ByVal dateMvt As Date, ByVal montant As String, ByVal sens As String) As Boolean
-        ' Vérifie si le mouvement existe déjà
-        Dim bExiste As Boolean = False
-        Dim monMvt As SqlCommand
-        Dim myReader As SqlDataReader
-        Dim sDate As String
 
-        sDate = dateMvt.Year.ToString & "-" & dateMvt.Month.ToString & "-" & dateMvt.Day.ToString
-        monMvt = New SqlCommand("SELECT count(*) FROM Mouvements where dateMvt = '" & sDate & "' and montant = '" & montant & "' and sens = '" & sens & "';", FrmPrincipale.maConn)
-        myReader = monMvt.ExecuteReader()
-        Do While myReader.Read()
-            bExiste = (myReader.GetInt32(0) > 0)
-        Loop
-        myReader.Close()
-        Return bExiste
-    End Function
+
+    Public Shared Function Existe(ByVal dateMvt As Date, ByVal montant As Decimal, ByVal sens As String) As Boolean
+            ' Vérifie si le mouvement existe déjà
+            Dim query As String = "SELECT COUNT(*) FROM Mouvements WHERE dateMvt = @dateMvt AND montant = @montant AND sens = @sens;"
+            Dim bExiste As Boolean = False
+
+            Try
+            Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
+            Using cmd As New SqlCommand(query, conn)
+                cmd.Parameters.AddWithValue("@dateMvt", dateMvt.ToString("yyyy-MM-dd"))
+                cmd.Parameters.AddWithValue("@montant", montant)
+                cmd.Parameters.AddWithValue("@sens", sens)
+
+                Using reader As SqlDataReader = cmd.ExecuteReader()
+                    If reader.Read() Then
+                        bExiste = (reader.GetInt32(0) > 0)
+                    End If
+                End Using
+            End Using
+
+            ' Écrire un log d'information
+            Logger.GetInstance.INFO($"Vérification de l'existence du mouvement réussie. Date: {dateMvt}, Montant: {montant}, Sens: {sens}")
+
+            Catch ex As Exception
+                ' Écrire un log d'erreur
+                Logger.GetInstance.ERR($"Erreur lors de la vérification de l'existence du mouvement. Message: {ex.Message}")
+                Throw ' Re-lancer l'exception après l'avoir loggée
+            End Try
+
+            Return bExiste
+        End Function
+
 
     Public Shared Sub MettreAJourMouvement(id As Integer, categorie As String, sousCategorie As String, montant As Decimal, sens As Boolean, tiers As String, note As String, dateMvt As Date, etat As Boolean, evenement As String, type As String, modifiable As Boolean, numeroRemise As Integer?, Optional idCheque As Integer? = Nothing)
         Dim sqlConnexion As SqlConnection = Nothing

@@ -3,6 +3,7 @@ Imports System.Data.SqlClient
 Imports System.IO
 Imports Newtonsoft.Json.Linq
 Imports Newtonsoft.Json
+Imports System.Globalization
 
 Public Class FrmSaisie
 
@@ -15,7 +16,6 @@ Public Class FrmSaisie
     Public Property Properties As Object
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        'Dim indCategorie As Integer = 0
         Dim idCategorie As Integer, idSousCategorie As Integer
         Dim idTiers As Integer
         'Détection du tiers
@@ -24,22 +24,19 @@ Public Class FrmSaisie
         End If
         Dim indTiersDetecte As Integer = DetecteTiers(txtNote.Text)
         If indTiersDetecte > -1 Then
-            'dgvTiers.Rows.Item(indTiersDetecte).Selected = True
             idTiers = chercheIndiceDvg(indTiersDetecte, dgvTiers)
             dgvTiers.Rows.Item(idTiers).Selected = True
             dgvTiers.FirstDisplayedScrollingRowIndex = idTiers
         End If
         If dgvCategorie.RowCount = 0 Then
-            Call ChargeDgvCategorie(connexionDB.GetInstance.getConnexion, rbDebit.Checked)
+            Call ChargeDgvCategorie(rbDebit.Checked)
         End If
-        'TODO, il doit falloir trouver le libellé de la catégorie à partir de l'indice
-        'idCategorie = Tiers.getCategorieTiers(indTiersDetecte)
         idCategorie = chercheIndiceDvg(Tiers.getCategorieTiers(indTiersDetecte), dgvCategorie)
         dgvCategorie.Rows.Item(idCategorie).Selected = True
         dgvCategorie.FirstDisplayedScrollingRowIndex = idCategorie
 
         If dgvSousCategorie.RowCount = 0 Then
-            Call ChargeDgvSousCategorie(connexionDB.GetInstance.getConnexion, Tiers.getCategorieTiers(indTiersDetecte))
+            Call ChargeDgvSousCategorie(Tiers.getCategorieTiers(indTiersDetecte))
         End If
         idSousCategorie = chercheIndiceDvg(Tiers.getSousCategorieTiers(indTiersDetecte), dgvSousCategorie)
         dgvSousCategorie.Rows.Item(idSousCategorie).Selected = True
@@ -58,14 +55,14 @@ Public Class FrmSaisie
     End Function
 
 
-    Public Sub chargeListes(maConn As SqlConnection)
+    Public Sub chargeListes()
 
         Call ChargeDgvTiers(connexionDB.GetInstance.getConnexion)
-        Call ChargeDgvCategorie(maConn, rbDebit.Checked)
-        'Chargement du fichier contenant la liste des événements
-        Call ChargeFichierTexte(Me.cbEvénement, My.Settings.repInstallation & My.Settings.ficEvénement)
-        'Chargement du fichier contenant la liste des types
-        Call ChargeFichierTexte(Me.cbType, My.Settings.repInstallation & My.Settings.ficType)
+        'Call ChargeDgvCategorie(rbDebit.Checked)
+        'Chargement du fichier contenant la liste des événements 
+        Call ChargeFichierTexte(Me.cbEvénement, lectureProprietes.GetVariable("ficEvénement"))
+        'Chargement du fichier contenant la liste des types 
+        Call ChargeFichierTexte(Me.cbType, lectureProprietes.GetVariable("ficType"))
     End Sub
     Private Function DetecteTiers(sNote As String) As Integer
         'Essaie de déterminer le tiers en fonction du contenu de la note
@@ -75,7 +72,7 @@ Public Class FrmSaisie
         sMots = Split(txtNote.Text, Space(1),, CompareMethod.Text)
         'TODO : voir pourquoi il me ramène plein de mots vides
         For Each sMot In sMots
-            If Not sMot.Equals("") Then
+            If Not sMot.Equals(String.Empty) Then
                 i = listeTiers.getIdParRaisonSociale(Strings.UCase(sMot))
                 If i > -1 Then
                     Exit For
@@ -104,6 +101,7 @@ Public Class FrmSaisie
             monStreamReader.Close()
         Catch ex As Exception
             MsgBox("Une erreur est survenue au cours de l'accès en lecture du fichier de configuration du logiciel." & vbCrLf & vbCrLf & "Veuillez vérifier l'emplacement : " & fichierTexte, MsgBoxStyle.Critical, "Erreur lors e l'ouverture du fichier conf...")
+            Logger.GetInstance.ERR("Une erreur est survenue au cours de l'accès en lecture du fichier de configuration du logiciel." & vbCrLf & vbCrLf & "Veuillez vérifier l'emplacement : ")
         End Try
     End Sub
 
@@ -126,34 +124,36 @@ Public Class FrmSaisie
         'dgvTiers.Columns("id").Visible = False 
     End Sub
 
-    Private Sub ChargeDgvCategorie(maConn As SqlConnection, debit As Boolean)
+    Private Sub ChargeDgvCategorie(debit As Boolean)
         Dim bindingSource1 = New BindingSource()
-        'Dim sTopDebit As String
-
-        'Ne charge que les catégories correspondant au sens sélectionné
-        'sTopDebit = IIf(debit, 1, 0)
-        'Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, libelle FROM Categorie where debit =" & sTopDebit & ";", maConn)
-        'TODO : remettre la restriction sur le sens du mouvement
-        Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, libelle FROM Categorie;", maConn)
-
+        Dim query As String = "SELECT id, libelle FROM Categorie WHERE debit = @debit;"
         Dim dt As New DataTable
-        Dim adpt As New Data.SqlClient.SqlDataAdapter(command)
 
         Try
-            ' Place la connexion dans le bloc try : c'est typiquement le genre d'instruction qui peut lever une exception. 
-            adpt.Fill(dt)
+            Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
+            Using command As New SqlCommand(query, conn)
+                'TODO : vilain false => 0, true (-1) => 1 avec math.abs
+                command.Parameters.AddWithValue("@debit", Math.Abs(CInt(debit)))
+
+                Using adpt As New SqlDataAdapter(command)
+                    adpt.Fill(dt)
+                End Using
+            End Using
+
             dgvCategorie.DataSource = dt
+            dgvCategorie.Columns("id").Visible = False
+            dgvCategorie.Columns("libelle").Visible = True
+
+            Logger.GetInstance.INFO("Chargement des catégories réussi : " & dgvCategorie.RowCount)
         Catch ex As SqlException
-            ' On informe l'utilisateur qu'il y a eu un problème :
+            Logger.GetInstance.ERR($"Erreur lors du chargement des catégories. Message: {ex.Message}")
             MessageBox.Show("ChargeDgvCategorie : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
         End Try
-        dgvCategorie.Columns("id").Visible = False
-        dgvCategorie.Columns("libelle").Visible = True
     End Sub
-    Private Sub ChargeDgvSousCategorie(maConn As SqlConnection, idCategorie As Integer)
+    Private Sub ChargeDgvSousCategorie(idCategorie As Integer)
         Dim bindingSource1 = New BindingSource()
 
-        Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, libelle FROM SousCategorie where idCategorie = @idCategorie;", maConn)
+        Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, libelle FROM SousCategorie where idCategorie = @idCategorie;", connexionDB.GetInstance.getConnexion)
         command.Parameters.AddWithValue("@idCategorie", idCategorie)
 
         Dim dt As New DataTable
@@ -163,20 +163,21 @@ Public Class FrmSaisie
             ' Place la connexion dans le bloc try : c'est typiquement le genre d'instruction qui peut lever une exception.
             adpt.Fill(dt)
             dgvSousCategorie.DataSource = dt
+            Logger.GetInstance.INFO("Chargement des sous catégories réussi : " & dgvSousCategorie.RowCount)
 
             ' Vérifie si le DataGridView est vide
             If dgvSousCategorie.Rows.Count = 0 Then
-                MessageBox.Show("ChargeDgvSousCategorie : aucune ligne n'a été trouvée pour la catégorie spécifiée.")
-                MessageBox.Show("Ajouter une entrée dans la table SousCategorie.")
+                Logger.GetInstance.INFO("ChargeDgvSousCategorie : aucune ligne n'a été trouvée pour la catégorie spécifiée.")
+                Logger.GetInstance.INFO("Ajouter une entrée dans la table SousCategorie.")
                 'TODO : orienter vers une fenêtre qui permettra d'ajouter une entrée
                 End
             End If
         Catch ex As SqlException
             ' On informe l'utilisateur qu'il y a eu un problème :
-            MessageBox.Show("ChargeDgvSousCategorie : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
+            Logger.GetInstance.ERR("ChargeDgvSousCategorie : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
         Catch ex As Exception
             ' Gère toutes les autres erreurs
-            MessageBox.Show("ChargeDgvSousCategorie : une erreur inattendue s'est produite !" & vbCrLf & ex.ToString())
+            Logger.GetInstance.ERR("ChargeDgvSousCategorie : une erreur inattendue s'est produite !" & vbCrLf & ex.ToString())
         End Try
 
         dgvSousCategorie.Columns("id").Visible = False
@@ -191,44 +192,10 @@ Public Class FrmSaisie
         Me.Hide()
         FrmPrincipale.Show()
     End Sub
-    Private Function AjouteParam(myCmd As SqlCommand, unMvt As Mouvements) As SqlCommand
-        With myCmd.Parameters
-            .Clear()
-            .Add("@note", SqlDbType.NVarChar)
-            .Item(0).Value = unMvt.Note
-            .Add("@categorie", SqlDbType.VarChar)
-            .Item(1).Value = unMvt.Categorie
-            .Add("@sousCategorie", SqlDbType.VarChar)
-            .Item(2).Value = unMvt.SousCategorie
-            .Add("@tiers", SqlDbType.Decimal)
-            .Item(3).Value = unMvt.Tiers
-            .Add("@dateCréation", SqlDbType.Date)
-            .Item(4).Value = Now.Date
-            .Add("@dateMvt", SqlDbType.Date)
-            .Item(5).Value = unMvt.DateMvt
-            .Add("@montant", SqlDbType.Decimal)
-            .Item(6).Value = unMvt.Montant
-            .Add("@sens", SqlDbType.Bit)
-            .Item(7).Value = unMvt.Sens
-            .Add("@etat", SqlDbType.Bit)
-            .Item(8).Value = unMvt.Etat
-            .Add("@événement", SqlDbType.VarChar)
-            .Item(9).Value = unMvt.Événement
-            .Add("@type", SqlDbType.VarChar)
-            .Item(10).Value = unMvt.Type
-            .Add("@modifiable", SqlDbType.Bit)
-            .Item(11).Value = unMvt.Modifiable
-            .Add("@numeroRemise", SqlDbType.Int)
-            .Item(12).Value = unMvt.NumeroRemise
-            .Add("@idCheque", SqlDbType.Int)
-            .Item(13).Value = unMvt.idCheque
-        End With
-        Return myCmd
-    End Function
+
     Private Sub TxtMontant_TextChanged(sender As Object, e As EventArgs) Handles txtMontant.Leave
 
-        'If Not Regex.Match(txtMontant.Text, "^[0-9]*$", RegexOptions.IgnoreCase).Success Then
-        If Not Regex.Match(txtMontant.Text, "^[0-9]+(,[0-9]{0,2})*$", RegexOptions.IgnoreCase).Success Then
+        If Not Regex.Match(txtMontant.Text, Constantes.regExMontant, RegexOptions.IgnoreCase).Success Then
             MessageBox.Show("Le montant doit être numérique!")
             'Remet le focus sur la zone de saisie du montant
             txtMontant.Focus()
@@ -320,7 +287,7 @@ Public Class FrmSaisie
     End Sub
     Private Sub majSousCategorie()
         If dgvCategorie.SelectedRows(0).Cells(0) IsNot Nothing Then
-            Call ChargeDgvSousCategorie(connexionDB.GetInstance.getConnexion, dgvCategorie.SelectedRows(0).Cells(0).Value)
+            Call ChargeDgvSousCategorie(dgvCategorie.SelectedRows(0).Cells(0).Value)
         End If
     End Sub
 
@@ -369,37 +336,122 @@ Public Class FrmSaisie
     Private Sub txtRechercheTiers_TextChanged(sender As Object, e As EventArgs) Handles txtRechercheTiers.TextChanged
         selectionneLigneParLibelle(dgvTiers, txtRechercheTiers.Text)
     End Sub
-    Private Sub insereChq()
-        Dim sCategorie As String, sSousCategorie As String
-        Dim idTiers As Integer
-
-        'Dim sNomTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(1).Value
-        'dim sPrenomTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(2).Value
-        'dim sRaisonSocialeTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(3).Value
-
-        'Enregistre les informations sur le mouvement saisi en base de données
-        sCategorie = dgvCategorie.Rows(dgvCategorie.SelectedRows(0).Index).Cells(1).Value
-        sSousCategorie = dgvSousCategorie.Rows(dgvSousCategorie.SelectedRows(0).Index).Cells(1).Value
-        idTiers = dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(0).Value
-        Dim unMvt As New Mouvements(txtNote.Text, sCategorie, sSousCategorie, idTiers, dateMvt.Value, txtMontant.Text.Trim().Replace(" ", ""),
-        rbCredit.Checked, rbRapproche.Checked, cbEvénement.SelectedItem, cbType.SelectedItem, False, txtRemise.Text, _idCheque)
-
-
+    Private Sub InsereChq()
         Try
-            maCmd = New SqlCommand
-            With maCmd
-                .Connection = connexionDB.GetInstance.getConnexion
-                .CommandText = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers,dateCréation,dateMvt,montant,sens,etat,événement,type, modifiable,numeroRemise, idCheque) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable,@numeroRemise, @idCheque);"
-            End With
-            maCmd = AjouteParam(maCmd, unMvt)
-            maCmd.ExecuteNonQuery()
-            Logger.GetInstance.INFO("Insertion du mouvement pour : " & unMvt.ObtenirValeursConcatenees)
+            Dim mouvement As Mouvements = CreerMouvement()
+            InsererMouvementEnBase(mouvement)
+            Logger.GetInstance.INFO("Insertion du mouvement pour : " & mouvement.ObtenirValeursConcatenees)
         Catch ex As Exception
-            MsgBox("Echec de l'insertion en base" & " " & ex.Message)
+            MsgBox("Echec de l'insertion en base : " & ex.Message)
             Logger.GetInstance.ERR("Erreur lors de l'insertion des données : " & ex.Message)
-            End
         End Try
     End Sub
+
+    Private Function CreerMouvement() As Mouvements
+        Dim sCategorie As String = dgvCategorie.Rows(dgvCategorie.SelectedRows(0).Index).Cells(1).Value.ToString()
+        Dim sSousCategorie As String = dgvSousCategorie.Rows(dgvSousCategorie.SelectedRows(0).Index).Cells(1).Value.ToString()
+        Dim idTiers As Integer = Convert.ToInt32(dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(0).Value)
+
+        Return New Mouvements(
+            txtNote.Text,
+            sCategorie,
+            sSousCategorie,
+            idTiers,
+            dateMvt.Value,
+            txtMontant.Text.Trim().Replace(" ", ""),
+            rbCredit.Checked,
+            rbRapproche.Checked,
+            cbEvénement.SelectedItem,
+            cbType.SelectedItem,
+            False,
+            txtRemise.Text,
+            _idCheque
+        )
+    End Function
+
+    Private Sub InsererMouvementEnBase(mouvement As Mouvements)
+        Dim query As String = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers, dateCréation, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise, idCheque) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable, @numeroRemise, @idCheque);"
+
+        Try
+            Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
+            Dim cmd As New SqlCommand(query, conn)
+            cmd = AjouteParam(cmd, mouvement)
+            cmd.ExecuteNonQuery()
+            Logger.GetInstance.INFO("Insertion du mouvement réussie : " & mouvement.ObtenirValeursConcatenees)
+        Catch ex As SqlException
+            Logger.GetInstance.ERR("Erreur SQL lors de l'insertion du mouvement : " & ex.Message & vbCrLf & "Mouvement : " & mouvement.ObtenirValeursConcatenees)
+            Throw ' Re-lancer l'exception après l'avoir loggée
+        Catch ex As Exception
+            Logger.GetInstance.ERR("Erreur générale lors de l'insertion du mouvement : " & ex.Message)
+            Throw ' Re-lancer l'exception après l'avoir loggée
+        End Try
+    End Sub
+
+    Private Function AjouteParam(cmd As SqlCommand, mouvement As Mouvements) As SqlCommand
+        Dim montant As Decimal
+
+        ' Convertir la chaîne de caractères en Decimal en utilisant la culture française pour gérer les virgules
+        If Decimal.TryParse(mouvement.Montant, NumberStyles.Currency, CultureInfo.GetCultureInfo("fr-FR"), montant) Then
+            With cmd.Parameters
+                .AddWithValue("@note", mouvement.Note)
+                .AddWithValue("@categorie", mouvement.Categorie)
+                .AddWithValue("@sousCategorie", mouvement.SousCategorie)
+                .AddWithValue("@tiers", mouvement.Tiers)
+                .AddWithValue("@dateCréation", DateTime.Now)
+                .AddWithValue("@dateMvt", mouvement.DateMvt)
+                .AddWithValue("@montant", montant) ' Utiliser la variable montant convertie
+                .AddWithValue("@sens", mouvement.Sens)
+                .AddWithValue("@etat", mouvement.Etat)
+                .AddWithValue("@événement", mouvement.Événement)
+                .AddWithValue("@type", mouvement.Type)
+                .AddWithValue("@modifiable", mouvement.Modifiable)
+                .AddWithValue("@numeroRemise", mouvement.NumeroRemise)
+                .AddWithValue("@idCheque", mouvement.idCheque)
+            End With
+            Logger.GetInstance.INFO("Création du mouvement : " & mouvement.ObtenirValeursConcatenees)
+        Else
+            Logger.GetInstance.ERR("Erreur de conversion du montant : " & mouvement.Montant)
+            Throw New InvalidOperationException("Le montant n'est pas un nombre valide.")
+        End If
+
+        Return cmd
+    End Function
+
+    'Private Function AjouteParam(myCmd As SqlCommand, unMvt As Mouvements) As SqlCommand
+    '    With myCmd.Parameters
+    '        .Clear()
+    '        .Add("@note", SqlDbType.NVarChar)
+    '        .Item(0).Value = unMvt.Note
+    '        .Add("@categorie", SqlDbType.VarChar)
+    '        .Item(1).Value = unMvt.Categorie
+    '        .Add("@sousCategorie", SqlDbType.VarChar)
+    '        .Item(2).Value = unMvt.SousCategorie
+    '        .Add("@tiers", SqlDbType.Decimal)
+    '        .Item(3).Value = unMvt.Tiers
+    '        .Add("@dateCréation", SqlDbType.Date)
+    '        .Item(4).Value = Now.Date
+    '        .Add("@dateMvt", SqlDbType.Date)
+    '        .Item(5).Value = unMvt.DateMvt
+    '        .Add("@montant", SqlDbType.Decimal)
+    '        .Item(6).Value = unMvt.Montant
+    '        .Add("@sens", SqlDbType.Bit)
+    '        .Item(7).Value = unMvt.Sens
+    '        .Add("@etat", SqlDbType.Bit)
+    '        .Item(8).Value = unMvt.Etat
+    '        .Add("@événement", SqlDbType.VarChar)
+    '        .Item(9).Value = unMvt.Événement
+    '        .Add("@type", SqlDbType.VarChar)
+    '        .Item(10).Value = unMvt.Type
+    '        .Add("@modifiable", SqlDbType.Bit)
+    '        .Item(11).Value = unMvt.Modifiable
+    '        .Add("@numeroRemise", SqlDbType.Int)
+    '        .Item(12).Value = unMvt.NumeroRemise
+    '        .Add("@idCheque", SqlDbType.Int)
+    '        .Item(13).Value = unMvt.idCheque
+    '    End With
+    '    Return myCmd
+    'End Function
+
     Private Sub btnSelChq_Click(sender As Object, e As EventArgs) Handles btnSelChq.Click
         Dim selectionneCheque As New selectionneCheque()
         AddHandler selectionneCheque.IdChequeSelectionneChanged, AddressOf IdChequeSelectionneChangedHandler
@@ -433,17 +485,4 @@ Public Class FrmSaisie
     End Function
 
 
-    'Private Sub dgvCategorie_SelectionChanged(sender As Object, e As EventArgs) Handles dgvCategorie.SelectionChanged
-    '    If Not dgvCategorie.SelectedRows(0).Cells(0) Is Nothing Then
-    '        Call ChargeDgvSousCategorie(connexionDB.GetInstance.getConnexion, dgvCategorie.SelectedRows(0).Cells(0).Value)
-    '    End If
-    'End Sub
-
-    'Private Sub rbDebit_CheckedChanged(sender As Object, e As EventArgs) Handles rbDebit.CheckedChanged
-    '    ChargeDgvCategorie(connexionDB.GetInstance.getConnexion, rbDebit.Checked)
-    'End Sub
-
-    'Private Sub rbCredit_CheckedChanged(sender As Object, e As EventArgs) Handles rbCredit.CheckedChanged
-    '    ChargeDgvCategorie(connexionDB.GetInstance.getConnexion, rbCredit.Checked)
-    'End Sub
 End Class

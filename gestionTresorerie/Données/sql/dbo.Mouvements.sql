@@ -16,7 +16,7 @@ CREATE TABLE [dbo].[Mouvements] (
     [Id]               INT            IDENTITY (1, 1) NOT NULL,
     [catégorie]        NVARCHAR (100) NOT NULL,
     [sousCatégorie]    NVARCHAR (100) NULL,
-    [montant]          DECIMAL (5, 2) NOT NULL,
+    [montant]          DECIMAL (7, 2) NOT NULL,
     [sens]             BIT            NOT NULL,
     [tiers]            NVARCHAR (50)  NULL,
     [note]             NVARCHAR (MAX) NULL,

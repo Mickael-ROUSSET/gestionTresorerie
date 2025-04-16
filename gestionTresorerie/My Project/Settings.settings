@@ -11,16 +11,7 @@
     <Setting Name="repDonnées" Type="System.String" Scope="Application">
       <Value Profile="(Default)">gestionTresorerie\Données</Value>
     </Setting>
-    <Setting Name="ficEvénement" Type="System.String" Scope="User">
-      <Value Profile="(Default)">ressources\événement.ini</Value>
-    </Setting>
-    <Setting Name="ficType" Type="System.String" Scope="User">
-      <Value Profile="(Default)">ressources\type.ini</Value>
-    </Setting>
-    <Setting Name="ficBilan" Type="System.String" Scope="User">
-      <Value Profile="(Default)">gestionTresorerie\bin\Debug\net8.0-windows\monFichier.docx</Value>
-    </Setting>
-    <Setting Name="Requetes" Type="System.Collections.Specialized.StringCollection" Scope="User">
+    <Setting Name="Requetes" Type="System.Collections.Specialized.StringCollection" Scope="Application">
       <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
 &lt;ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
   &lt;string&gt;SELECT ssCat.libelle, sum(mvt.montant) FROM Mouvements mvt, sousCategorie ssCat where ssCat.id = mvt.tabCategorie and mvt.Categorie = '%Id' group by sscat.id order by sum(mvt.montant) desc;&lt;/string&gt;
@@ -37,9 +28,6 @@
     </Setting>
     <Setting Name="fichierLog" Type="System.String" Scope="Application">
       <Value Profile="(Default)">ressources\gestionTresorerie.log</Value>
-    </Setting>
-    <Setting Name="repInstallation" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\</Value>
     </Setting>
     <Setting Name="repInstallationProd" Type="System.String" Scope="Application">
       <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\</Value>
@@ -70,9 +58,6 @@
     <Setting Name="ficBddDonneesTest" Type="System.String" Scope="Application">
       <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf</Value>
     </Setting>
-    <Setting Name="AttachDbFilenameProd" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf</Value>
-    </Setting>
     <Setting Name="AttachDbFilenameTest" Type="System.String" Scope="Application">
       <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf</Value>
     </Setting>
@@ -87,6 +72,27 @@
     </Setting>
     <Setting Name="DataSource" Type="System.String" Scope="Application">
       <Value Profile="(Default)">Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=</Value>
+    </Setting>
+    <Setting Name="ficRelevéTraité" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ficRelevéTraité.txt</Value>
+    </Setting>
+    <Setting Name="AttachDbFilenameProd" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Bdd\bddAgumaaa.mdf</Value>
+    </Setting>
+    <Setting Name="ficEvénement" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ressources\événement.ini</Value>
+    </Setting>
+    <Setting Name="ficType" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ressources\type.ini</Value>
+    </Setting>
+    <Setting Name="ficBilan" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">gestionTresorerie\bin\Debug\net8.0-windows\monFichier.docx</Value>
+    </Setting>
+    <Setting Name="urlMistral" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">https://api.mistral.ai/v1/chat/completions</Value>
+    </Setting>
+    <Setting Name="repFichierBilan" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\ressources</Value>
     </Setting>
   </Settings>
 </SettingsFile>

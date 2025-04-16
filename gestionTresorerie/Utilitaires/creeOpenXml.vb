@@ -80,7 +80,6 @@ Module creeOpenXml
         Next
         doc.Body.Append(table)
         doc.Save()
-        'End Using
     End Sub
     Public Sub ajouteTableau(ByVal fileName As String, ByVal data(,) As String)
         'https://learn.microsoft.com/fr-fr/office/open-xml/word/how-to-add-tables-to-word-processing-documents?tabs=cs-0%2Cvb-1%2Ccs-2%2Ccs-3%2Ccs-4%2Ccs-5%2Ccs-6%2Ccs-7%2Ccs-8%2Cvb
@@ -228,7 +227,6 @@ Module creeOpenXml
         End Using
 
         AddImageToBody(document, mainPart.GetIdOfPart(imagePart))
-        'End Using
     End Sub
 
     Private Sub AddImageToBody(ByVal wordDoc As WordprocessingDocument, ByVal relationshipId As String)

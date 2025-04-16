@@ -18,10 +18,10 @@ Public Class lectureProprietes
     End Sub
     Public Sub litRepInstallation()
         ' Lire la variable d'environnement 
-        If _env = "Test" Then
-            _repInstallation = My.Settings.repInstallationTest
-        Else
+        If _env = "Prod" Then
             _repInstallation = My.Settings.repInstallationProd
+        Else
+            _repInstallation = My.Settings.repInstallationTest
         End If
         Logger.GetInstance().INFO("repInstallation = " & _repInstallation)
     End Sub
@@ -32,15 +32,6 @@ Public Class lectureProprietes
                 Return My.Settings.repInstallationProd
             Else
                 Return My.Settings.repInstallationTest
-            End If
-        End Get
-    End Property
-    Public ReadOnly Property repBdd() As String
-        Get
-            If _env = "Prod" Then
-                Return My.Settings.ficBddDonneesProd
-            Else
-                Return My.Settings.ficBddDonneesTest
             End If
         End Get
     End Property

@@ -6,7 +6,8 @@ Public Class frmNouveauTiers
         Dim listeTiers As ListeTiers
 
         If ListeTiers Is Nothing Then
-            ListeTiers = New ListeTiers(FrmPrincipale.maConnexionDB.getConnexion)
+            'listeTiers = New ListeTiers(FrmPrincipale.maConnexionDB.getConnexion)
+            listeTiers = New ListeTiers(connexionDB.GetInstance.getConnexion)
         End If
         If rbPersonneMorale.Checked = True Then
             insereNouveauTiers(listeTiers, txtRaisonSociale.Text, CInt(txtCategorie.Text), CInt(txtSousCategorie.Text))
@@ -88,7 +89,8 @@ Public Class frmNouveauTiers
 
         maCmd = New SqlCommand
         With maCmd
-            .Connection = FrmPrincipale.maConn
+            '.Connection = FrmPrincipale.maConn
+            .Connection = connexionDB.GetInstance.getConnexion
             .CommandText = sRequete
         End With
         Try

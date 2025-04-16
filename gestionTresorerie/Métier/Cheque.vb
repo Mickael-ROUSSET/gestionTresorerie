@@ -129,32 +129,31 @@ Public Class Cheque
         End If
     End Function
     Public Sub InsereEnBase(cheminChq As String)
-        Using connexionDB.GetInstance.getConnexion
-            Try
-                Dim query As String = "INSERT INTO [dbo].Cheque ([numero], [date], [emetteur], [montant], [banque], [destinataire], [imageChq]) VALUES (@numero, @date, @emetteur, @montant, @banque, @destinataire, @imageChq)"
 
-                Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
-                    With command.Parameters
-                        .AddWithValue("@numero", _numero_du_cheque)
-                        .AddWithValue("@date", Convert.ToDateTime(_dateChq))
-                        .AddWithValue("@emetteur", _emetteur_du_cheque)
-                        .AddWithValue("@montant", _montant_numerique)
-                        .AddWithValue("@banque", "CA43")
-                        .AddWithValue("@destinataire", _destinataire)
+        Try
+            Dim query As String = "INSERT INTO [dbo].Cheque ([numero], [date], [emetteur], [montant], [banque], [destinataire], [imageChq]) VALUES (@numero, @date, @emetteur, @montant, @banque, @destinataire, @imageChq)"
 
-                        ' Lire l'image en tant que tableau d'octets 
-                        Dim imageBytes As Byte() = File.ReadAllBytes(cheminChq)
+            Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
+                With command.Parameters
+                    .AddWithValue("@numero", _numero_du_cheque)
+                    .AddWithValue("@date", Convert.ToDateTime(_dateChq))
+                    .AddWithValue("@emetteur", _emetteur_du_cheque)
+                    .AddWithValue("@montant", _montant_numerique)
+                    .AddWithValue("@banque", "CA43")
+                    .AddWithValue("@destinataire", _destinataire)
 
-                        ' Ajouter le paramètre pour l'image
-                        .AddWithValue("@imageChq", imageBytes)
-                    End With
-                    command.ExecuteNonQuery()
-                End Using
-                Logger.GetInstance.INFO("Données insérées avec succès." & Command.ToString)
-            Catch ex As Exception
-                Logger.GetInstance.ERR("Erreur lors de l'insertion des données : " & ex.Message)
-            End Try
-        End Using
+                    ' Lire l'image en tant que tableau d'octets 
+                    Dim imageBytes As Byte() = File.ReadAllBytes(cheminChq)
+
+                    ' Ajouter le paramètre pour l'image
+                    .AddWithValue("@imageChq", imageBytes)
+                End With
+                command.ExecuteNonQuery()
+            End Using
+            Logger.GetInstance.INFO("Données insérées avec succès." & Command.ToString)
+        Catch ex As Exception
+            Logger.GetInstance.ERR("Erreur lors de l'insertion des données : " & ex.Message)
+        End Try
     End Sub
     Public Sub AfficherImage(idCheque As Integer, pbBox As PictureBox)
         Dim sqlConnexion As SqlConnection = Nothing

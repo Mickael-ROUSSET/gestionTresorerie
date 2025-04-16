@@ -68,90 +68,80 @@ Public Class DocumentAgumaaa
     End Property
 
     Public Sub InsererDocument(dateDoc As Date, contenuDoc As String, cheminDoc As String, categorieDoc As String, sousCategorieDoc As String, idMvtDoc As Integer)
-        'Using connection As New SqlConnection("Votre_Chaine_De_Connexion")
-        Using connexionDB.GetInstance.getConnexion
-            Try
-                Dim query As String = "INSERT INTO [dbo].[Documents] (dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc) VALUES (@dateDoc, @contenuDoc, @cheminDoc, @categorieDoc, @sousCategorieDoc, @idMvtDoc);"
 
-                Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
-                    command.Parameters.AddWithValue("@dateDoc", dateDoc)
-                    command.Parameters.AddWithValue("@contenuDoc", contenuDoc)
-                    command.Parameters.AddWithValue("@cheminDoc", cheminDoc)
-                    command.Parameters.AddWithValue("@categorieDoc", categorieDoc)
-                    command.Parameters.AddWithValue("@sousCategorieDoc", sousCategorieDoc)
-                    command.Parameters.AddWithValue("@idMvtDoc", idMvtDoc)
+        Try
+            Dim query As String = "INSERT INTO [dbo].[Documents] (dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc) VALUES (@dateDoc, @contenuDoc, @cheminDoc, @categorieDoc, @sousCategorieDoc, @idMvtDoc);"
 
-                    command.ExecuteNonQuery()
-                End Using
+            Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
+                command.Parameters.AddWithValue("@dateDoc", dateDoc)
+                command.Parameters.AddWithValue("@contenuDoc", contenuDoc)
+                command.Parameters.AddWithValue("@cheminDoc", cheminDoc)
+                command.Parameters.AddWithValue("@categorieDoc", categorieDoc)
+                command.Parameters.AddWithValue("@sousCategorieDoc", sousCategorieDoc)
+                command.Parameters.AddWithValue("@idMvtDoc", idMvtDoc)
 
-                Console.WriteLine("Document inséré avec succès.")
-            Catch ex As Exception
-                Console.WriteLine("Erreur lors de l'insertion du document : " & ex.Message)
-            End Try
-        End Using
+                command.ExecuteNonQuery()
+            End Using
+
+            Console.WriteLine("Document inséré avec succès.")
+        Catch ex As Exception
+            Console.WriteLine("Erreur lors de l'insertion du document : " & ex.Message)
+        End Try
     End Sub
     Public Function LireDocuments() As DataTable
         Dim table As New DataTable()
 
-        'Using connection As New SqlConnection("Votre_Chaine_De_Connexion")
-        Using connexionDB.GetInstance.getConnexion
-            Try
-                Dim query As String = "SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc FROM [dbo].[Documents];"
+        Try
+            Dim query As String = "SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc FROM [dbo].[Documents];"
 
-                Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
-                    Using adapter As New SqlDataAdapter(command)
-                        adapter.Fill(table)
-                    End Using
+            Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
+                Using adapter As New SqlDataAdapter(command)
+                    adapter.Fill(table)
                 End Using
-            Catch ex As Exception
-                Console.WriteLine("Erreur lors de la lecture des documents : " & ex.Message)
-            End Try
-        End Using
+            End Using
+        Catch ex As Exception
+            Console.WriteLine("Erreur lors de la lecture des documents : " & ex.Message)
+        End Try
 
         Return table
     End Function
     Public Sub MettreAJourDocument(idDoc As Integer, dateDoc As Date, contenuDoc As String, cheminDoc As String, categorieDoc As String, sousCategorieDoc As String, idMvtDoc As Integer)
-        'Using connection As New SqlConnection("Votre_Chaine_De_Connexion")
-        Using connexionDB.GetInstance.getConnexion
-            Try
-                Dim query As String = "UPDATE [dbo].[Documents] SET dateDoc = @dateDoc, contenuDoc = @contenuDoc, cheminDoc = @cheminDoc, categorieDoc = @categorieDoc, sousCategorieDoc = @sousCategorieDoc, idMvtDoc=@idMvtDoc WHERE idDoc = @idDoc;"
 
-                Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
-                    command.Parameters.AddWithValue("@idDoc", idDoc)
-                    command.Parameters.AddWithValue("@dateDoc", dateDoc)
-                    command.Parameters.AddWithValue("@contenuDoc", contenuDoc)
-                    command.Parameters.AddWithValue("@cheminDoc", cheminDoc)
-                    command.Parameters.AddWithValue("@categorieDoc", categorieDoc)
-                    command.Parameters.AddWithValue("@sousCategorieDoc", sousCategorieDoc)
-                    command.Parameters.AddWithValue("@idMvtDoc", idMvtDoc)
+        Try
+            Dim query As String = "UPDATE [dbo].[Documents] SET dateDoc = @dateDoc, contenuDoc = @contenuDoc, cheminDoc = @cheminDoc, categorieDoc = @categorieDoc, sousCategorieDoc = @sousCategorieDoc, idMvtDoc=@idMvtDoc WHERE idDoc = @idDoc;"
 
-                    command.ExecuteNonQuery()
-                End Using
+            Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
+                command.Parameters.AddWithValue("@idDoc", idDoc)
+                command.Parameters.AddWithValue("@dateDoc", dateDoc)
+                command.Parameters.AddWithValue("@contenuDoc", contenuDoc)
+                command.Parameters.AddWithValue("@cheminDoc", cheminDoc)
+                command.Parameters.AddWithValue("@categorieDoc", categorieDoc)
+                command.Parameters.AddWithValue("@sousCategorieDoc", sousCategorieDoc)
+                command.Parameters.AddWithValue("@idMvtDoc", idMvtDoc)
 
-                Console.WriteLine("Document mis à jour avec succès.")
-            Catch ex As Exception
-                Console.WriteLine("Erreur lors de la mise à jour du document : " & ex.Message)
-            End Try
-        End Using
+                command.ExecuteNonQuery()
+            End Using
+
+            Console.WriteLine("Document mis à jour avec succès.")
+        Catch ex As Exception
+            Console.WriteLine("Erreur lors de la mise à jour du document : " & ex.Message)
+        End Try
     End Sub
     Public Sub SupprimerDocument(idDoc As Integer)
-        'Using connection As New SqlConnection("Votre_Chaine_De_Connexion")
-        Using connexionDB.GetInstance.getConnexion
-            Try
-                'connection.Open()
-                Dim query As String = "DELETE FROM [dbo].[Documents] WHERE idDoc = @idDoc;"
+        Try
+            'connection.Open()
+            Dim query As String = "DELETE FROM [dbo].[Documents] WHERE idDoc = @idDoc;"
 
-                Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
-                    command.Parameters.AddWithValue("@idDoc", idDoc)
+            Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
+                command.Parameters.AddWithValue("@idDoc", idDoc)
 
-                    command.ExecuteNonQuery()
-                End Using
+                command.ExecuteNonQuery()
+            End Using
 
-                Console.WriteLine("Document supprimé avec succès.")
-            Catch ex As Exception
-                Console.WriteLine("Erreur lors de la suppression du document : " & ex.Message)
-            End Try
-        End Using
+            Console.WriteLine("Document supprimé avec succès.")
+        Catch ex As Exception
+            Console.WriteLine("Erreur lors de la suppression du document : " & ex.Message)
+        End Try
     End Sub
 
 End Class

@@ -81,43 +81,7 @@ Namespace My
             End Get
         End Property
         
-        <Global.System.Configuration.UserScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("ressources\événement.ini")>  _
-        Public Property ficEvénement() As String
-            Get
-                Return CType(Me("ficEvénement"),String)
-            End Get
-            Set
-                Me("ficEvénement") = value
-            End Set
-        End Property
-        
-        <Global.System.Configuration.UserScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("ressources\type.ini")>  _
-        Public Property ficType() As String
-            Get
-                Return CType(Me("ficType"),String)
-            End Get
-            Set
-                Me("ficType") = value
-            End Set
-        End Property
-        
-        <Global.System.Configuration.UserScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("gestionTresorerie\bin\Debug\net8.0-windows\monFichier.docx")>  _
-        Public Property ficBilan() As String
-            Get
-                Return CType(Me("ficBilan"),String)
-            End Get
-            Set
-                Me("ficBilan") = value
-            End Set
-        End Property
-        
-        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("<?xml version=""1.0"" encoding=""utf-16""?>"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"<ArrayOfString xmlns:xsd=""http://www.w3."& _ 
             "org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"  <s"& _ 
@@ -127,13 +91,10 @@ Namespace My
             "mvt.montant) FROM Mouvements mvt, Evenements evt where evt.id = mvt.tabCategorie"& _ 
             " and mvt.événement = '%Id' group by événement.id order by événement.id desc;</st"& _ 
             "ring>"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"  <string />"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"</ArrayOfString>")>  _
-        Public Property Requetes() As Global.System.Collections.Specialized.StringCollection
+        Public ReadOnly Property Requetes() As Global.System.Collections.Specialized.StringCollection
             Get
                 Return CType(Me("Requetes"),Global.System.Collections.Specialized.StringCollection)
             End Get
-            Set
-                Me("Requetes") = value
-            End Set
         End Property
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
@@ -153,15 +114,6 @@ Namespace My
         Public ReadOnly Property fichierLog() As String
             Get
                 Return CType(Me("fichierLog"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\source\repos\gestionTresorerie\")>  _
-        Public ReadOnly Property repInstallation() As String
-            Get
-                Return CType(Me("repInstallation"),String)
             End Get
         End Property
         
@@ -235,15 +187,6 @@ Namespace My
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf")>  _
-        Public ReadOnly Property AttachDbFilenameProd() As String
-            Get
-                Return CType(Me("AttachDbFilenameProd"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf")>  _
         Public ReadOnly Property AttachDbFilenameTest() As String
             Get
                 Return CType(Me("AttachDbFilenameTest"),String)
@@ -285,6 +228,69 @@ Namespace My
         Public ReadOnly Property DataSource() As String
             Get
                 Return CType(Me("DataSource"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("ficRelevéTraité.txt")>  _
+        Public ReadOnly Property ficRelevéTraité() As String
+            Get
+                Return CType(Me("ficRelevéTraité"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Bdd\bddAgumaaa.mdf")>  _
+        Public ReadOnly Property AttachDbFilenameProd() As String
+            Get
+                Return CType(Me("AttachDbFilenameProd"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("ressources\événement.ini")>  _
+        Public ReadOnly Property ficEvénement() As String
+            Get
+                Return CType(Me("ficEvénement"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("ressources\type.ini")>  _
+        Public ReadOnly Property ficType() As String
+            Get
+                Return CType(Me("ficType"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("gestionTresorerie\bin\Debug\net8.0-windows\monFichier.docx")>  _
+        Public ReadOnly Property ficBilan() As String
+            Get
+                Return CType(Me("ficBilan"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("https://api.mistral.ai/v1/chat/completions")>  _
+        Public ReadOnly Property urlMistral() As String
+            Get
+                Return CType(Me("urlMistral"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("\ressources")>  _
+        Public ReadOnly Property repFichierBilan() As String
+            Get
+                Return CType(Me("repFichierBilan"),String)
             End Get
         End Property
     End Class

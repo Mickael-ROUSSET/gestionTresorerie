@@ -68,7 +68,7 @@ Partial Class frmSaisie
         ' lblType
         ' 
         lblType.AutoSize = True
-        lblType.Location = New Point(698, 134)
+        lblType.Location = New Point(698, 300)
         lblType.Name = "lblType"
         lblType.Size = New Size(32, 15)
         lblType.TabIndex = 0
@@ -85,27 +85,30 @@ Partial Class frmSaisie
         ' lblTiers
         ' 
         lblTiers.AutoSize = True
+        lblTiers.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
         lblTiers.Location = New Point(17, 134)
         lblTiers.Name = "lblTiers"
-        lblTiers.Size = New Size(32, 15)
+        lblTiers.Size = New Size(34, 15)
         lblTiers.TabIndex = 4
         lblTiers.Text = "Tiers"
         ' 
         ' lblCategorie
         ' 
         lblCategorie.AutoSize = True
+        lblCategorie.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
         lblCategorie.Location = New Point(17, 302)
         lblCategorie.Name = "lblCategorie"
-        lblCategorie.Size = New Size(58, 15)
+        lblCategorie.Size = New Size(61, 15)
         lblCategorie.TabIndex = 5
         lblCategorie.Text = "Catégorie"
         ' 
         ' lblSousCategorie
         ' 
         lblSousCategorie.AutoSize = True
-        lblSousCategorie.Location = New Point(12, 442)
+        lblSousCategorie.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
+        lblSousCategorie.Location = New Point(698, 113)
         lblSousCategorie.Name = "lblSousCategorie"
-        lblSousCategorie.Size = New Size(86, 15)
+        lblSousCategorie.Size = New Size(91, 15)
         lblSousCategorie.TabIndex = 8
         lblSousCategorie.Text = "Sous-categorie"
         ' 
@@ -146,7 +149,7 @@ Partial Class frmSaisie
         ' btnValider
         ' 
         btnValider.AutoSize = True
-        btnValider.Location = New Point(832, 284)
+        btnValider.Location = New Point(832, 450)
         btnValider.Name = "btnValider"
         btnValider.Size = New Size(75, 25)
         btnValider.TabIndex = 13
@@ -172,7 +175,7 @@ Partial Class frmSaisie
         ' lblEvénement
         ' 
         lblEvénement.AutoSize = True
-        lblEvénement.Location = New Point(698, 176)
+        lblEvénement.Location = New Point(698, 342)
         lblEvénement.Name = "lblEvénement"
         lblEvénement.Size = New Size(66, 15)
         lblEvénement.TabIndex = 17
@@ -234,7 +237,7 @@ Partial Class frmSaisie
         ' lblRemise
         ' 
         lblRemise.AutoSize = True
-        lblRemise.Location = New Point(698, 214)
+        lblRemise.Location = New Point(698, 380)
         lblRemise.Name = "lblRemise"
         lblRemise.Size = New Size(45, 15)
         lblRemise.TabIndex = 23
@@ -242,14 +245,14 @@ Partial Class frmSaisie
         ' 
         ' txtRemise
         ' 
-        txtRemise.Location = New Point(809, 214)
+        txtRemise.Location = New Point(809, 380)
         txtRemise.Name = "txtRemise"
         txtRemise.Size = New Size(328, 23)
         txtRemise.TabIndex = 24
         ' 
         ' txtNote
         ' 
-        txtNote.Location = New Point(809, 252)
+        txtNote.Location = New Point(809, 418)
         txtNote.Name = "txtNote"
         txtNote.Size = New Size(328, 23)
         txtNote.TabIndex = 26
@@ -257,7 +260,7 @@ Partial Class frmSaisie
         ' lblNote
         ' 
         lblNote.AutoSize = True
-        lblNote.Location = New Point(698, 252)
+        lblNote.Location = New Point(698, 418)
         lblNote.Name = "lblNote"
         lblNote.Size = New Size(33, 15)
         lblNote.TabIndex = 25
@@ -267,7 +270,7 @@ Partial Class frmSaisie
         ' 
         cbType.DropDownStyle = ComboBoxStyle.DropDownList
         cbType.FormattingEnabled = True
-        cbType.Location = New Point(809, 134)
+        cbType.Location = New Point(809, 300)
         cbType.Name = "cbType"
         cbType.Size = New Size(328, 23)
         cbType.TabIndex = 27
@@ -275,7 +278,7 @@ Partial Class frmSaisie
         ' cbEvénement
         ' 
         cbEvénement.FormattingEnabled = True
-        cbEvénement.Location = New Point(809, 176)
+        cbEvénement.Location = New Point(809, 342)
         cbEvénement.Name = "cbEvénement"
         cbEvénement.Size = New Size(328, 23)
         cbEvénement.TabIndex = 31
@@ -329,7 +332,7 @@ Partial Class frmSaisie
         dgvCategorie.MultiSelect = False
         dgvCategorie.Name = "dgvCategorie"
         dgvCategorie.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvCategorie.Size = New Size(547, 112)
+        dgvCategorie.Size = New Size(547, 199)
         dgvCategorie.TabIndex = 34
         ' 
         ' dgvSousCategorie
@@ -339,7 +342,7 @@ Partial Class frmSaisie
         dgvSousCategorie.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
         dgvSousCategorie.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCells
         dgvSousCategorie.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvSousCategorie.Location = New Point(104, 442)
+        dgvSousCategorie.Location = New Point(698, 134)
         dgvSousCategorie.MultiSelect = False
         dgvSousCategorie.Name = "dgvSousCategorie"
         dgvSousCategorie.SelectionMode = DataGridViewSelectionMode.FullRowSelect
@@ -355,7 +358,7 @@ Partial Class frmSaisie
         ' 
         ' btnSelChq
         ' 
-        btnSelChq.Location = New Point(809, 391)
+        btnSelChq.Location = New Point(809, 489)
         btnSelChq.Name = "btnSelChq"
         btnSelChq.Size = New Size(168, 23)
         btnSelChq.TabIndex = 38

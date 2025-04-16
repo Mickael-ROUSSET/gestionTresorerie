@@ -61,6 +61,7 @@ Partial Class FrmPrincipale
         EnvironnementToolStripMenuItem = New ToolStripMenuItem()
         Button1 = New Button()
         btnBatch = New Button()
+        btnTraiteRelevé = New Button()
         CType(DataGridView1, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -89,7 +90,7 @@ Partial Class FrmPrincipale
         ' btnHistogramme
         ' 
         btnHistogramme.AccessibleDescription = resources.GetString("btnHistogramme.AccessibleDescription")
-        btnHistogramme.Location = New Point(23, 124)
+        btnHistogramme.Location = New Point(23, 160)
         btnHistogramme.Name = "btnHistogramme"
         btnHistogramme.Size = New Size(104, 23)
         btnHistogramme.TabIndex = 2
@@ -99,7 +100,7 @@ Partial Class FrmPrincipale
         ' btnConsultation
         ' 
         btnConsultation.AccessibleDescription = resources.GetString("btnConsultation.AccessibleDescription")
-        btnConsultation.Location = New Point(23, 189)
+        btnConsultation.Location = New Point(23, 228)
         btnConsultation.Name = "btnConsultation"
         btnConsultation.Size = New Size(104, 23)
         btnConsultation.TabIndex = 3
@@ -320,11 +321,22 @@ Partial Class FrmPrincipale
         btnBatch.TextImageRelation = TextImageRelation.TextBeforeImage
         btnBatch.UseVisualStyleBackColor = True
         ' 
+        ' btnTraiteRelevé
+        ' 
+        btnTraiteRelevé.Location = New Point(29, 120)
+        btnTraiteRelevé.Name = "btnTraiteRelevé"
+        btnTraiteRelevé.Size = New Size(94, 23)
+        btnTraiteRelevé.TabIndex = 9
+        btnTraiteRelevé.Text = "Traite relevé"
+        btnTraiteRelevé.TextAlign = ContentAlignment.BottomCenter
+        btnTraiteRelevé.UseVisualStyleBackColor = True
+        ' 
         ' FrmPrincipale
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(966, 541)
+        Controls.Add(btnTraiteRelevé)
         Controls.Add(btnBatch)
         Controls.Add(Button1)
         Controls.Add(btnCreeBilans)
@@ -383,4 +395,5 @@ Partial Class FrmPrincipale
     Friend WithEvents FermerToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents Button1 As Button
     Friend WithEvents btnBatch As Button
+    Friend WithEvents btnTraiteRelevé As Button
 End Class

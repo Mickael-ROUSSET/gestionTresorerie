@@ -41,12 +41,10 @@ le destinataire à droite de la mention ""à ""
         Return jsonChq
     End Function
 
-
     Function ConvertirImageEnBase64(cheminImage As String) As String
         Dim imageBytes As Byte() = File.ReadAllBytes(cheminImage)
         Return Convert.ToBase64String(imageBytes)
     End Function
-
 
     Public Function EncodeImageToBase64(filePath As String) As String
         ' Lire le fichier image en tant que tableau d'octets
@@ -106,8 +104,7 @@ le destinataire à droite de la mention ""à ""
         Using client As New HttpClient()
 
             ' Lire l'image en tant que tableau d'octets 
-            Dim jsonData As String = $"{{""model"": ""pixtral-12b-2409"", 
-""messages"": [{{""role"": ""user"",""content"": {{""type"": ""text"",""Content""{questionIA}""kk""}}]}}"
+            Dim jsonData As String = $"{{""model"": ""pixtral-12b-2409"", ""messages"": [{{""role"": ""user"",""content"": {{""type"": ""text"",""Content""{questionIA}""kk""}}]}}"
 
             ' Créer le contenu de la requête
             Dim content As New StringContent(

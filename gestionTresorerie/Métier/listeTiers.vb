@@ -10,18 +10,18 @@ Public Class ListeTiers
         End If
     End Sub
     Public Sub extraitListeTiers(maConn As SqlConnection)
-        Dim maCmdCategorie As SqlCommand
+        Dim lstTiers As SqlCommand
         Dim monReaderTiers As SqlDataReader
 
-        maCmdCategorie = New SqlCommand("SELECT id,nom, prenom FROM Tiers where nom is not null;", maConn)
-        monReaderTiers = maCmdCategorie.ExecuteReader()
+        lstTiers = New SqlCommand("SELECT id,nom, prenom FROM Tiers where nom is not null;", maConn)
+        monReaderTiers = lstTiers.ExecuteReader()
 
         Do While monReaderTiers.Read()
             _listeTiers.Add(New Tiers(monReaderTiers.GetInt32(0), monReaderTiers.GetString(1), monReaderTiers.GetString(2)))
         Loop
         monReaderTiers.Close()
-        maCmdCategorie = New SqlCommand("SELECT id,raisonSociale FROM Tiers where raisonSociale is not null;", maConn)
-        monReaderTiers = maCmdCategorie.ExecuteReader()
+        lstTiers = New SqlCommand("SELECT id,raisonSociale FROM Tiers where raisonSociale is not null;", maConn)
+        monReaderTiers = lstTiers.ExecuteReader()
         Do While monReaderTiers.Read()
             _listeTiers.Add(New Tiers(monReaderTiers.GetInt32(0), monReaderTiers.GetSqlString(1)))
         Loop
