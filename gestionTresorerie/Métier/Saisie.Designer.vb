@@ -342,7 +342,7 @@ Partial Class frmSaisie
         dgvSousCategorie.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
         dgvSousCategorie.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCells
         dgvSousCategorie.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvSousCategorie.Location = New Point(698, 134)
+        dgvSousCategorie.Location = New Point(627, 12)
         dgvSousCategorie.MultiSelect = False
         dgvSousCategorie.Name = "dgvSousCategorie"
         dgvSousCategorie.SelectionMode = DataGridViewSelectionMode.FullRowSelect

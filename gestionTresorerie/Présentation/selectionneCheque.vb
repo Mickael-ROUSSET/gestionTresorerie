@@ -52,11 +52,11 @@ Public Class selectionneCheque
     End Sub
 
     Private Function ObtenirIdChequeSelectionne() As Integer
-            ' Logique pour obtenir l'idCheque sélectionné
-            Return 123 ' Exemple d'idCheque
-        End Function
+        ' Logique pour obtenir l'idCheque sélectionné
+        Return 123 ' Exemple d'idCheque
+    End Function
 
-        Public Sub chargeListeChq(montant As Decimal)
+    Public Sub chargeListeChq(montant As Decimal)
         Dim tabCheques As New List(Of Cheque)()
 
         ' Convertir txtMontant.Text en Decimal 

@@ -32,10 +32,12 @@ Public Class Logger
 
             ' Obtenir le nom de la fonction appelante
             Dim stackTrace As New System.Diagnostics.StackTrace()
+            'Dim sTmp As String
             'For i = 0 To stackTrace.FrameCount - 1
-            '    MsgBox(stackTrace.GetFrame(i).GetMethod().Name)
+            '    sTmp += "i : " & i & " Méthode : " & stackTrace.GetFrame(i).GetMethod().Name & vbCrLf
             'Next
-            Dim nomFonctionAppelante As String = stackTrace.GetFrame(3).GetMethod().Name
+            'MsgBox("Liste méthodes : " & vbCrLf & sTmp)
+            Dim nomFonctionAppelante As String = stackTrace.GetFrame(2).GetMethod().Name
 
             ' Construire le message complet
             Dim messageComplet As String = $"{heureActuelle} - [{level}] - {nomFonctionAppelante} : {message}"

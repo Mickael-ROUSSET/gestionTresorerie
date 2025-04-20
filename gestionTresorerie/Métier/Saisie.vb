@@ -4,42 +4,58 @@ Imports System.IO
 Imports Newtonsoft.Json.Linq
 Imports Newtonsoft.Json
 Imports System.Globalization
+Imports System.Reflection.Metadata
 
 Public Class FrmSaisie
-
     Inherits System.Windows.Forms.Form
     Private maCmd As SqlCommand
     Private myReader As SqlDataReader
     Private results As String
     Private listeTiers As ListeTiers
     Private _idCheque As Integer = 0
+    Private _dtMvtsIdentiques As DataTable = Nothing
     Public Property Properties As Object
 
-    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        Dim idCategorie As Integer, idSousCategorie As Integer
-        Dim idTiers As Integer
-        'Détection du tiers
+    Private Sub frmSaisie_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Try
+            InitialiserListeTiers()
+            Dim indTiersDetecte As Integer = DetecteTiers()
+            If indTiersDetecte > -1 Then
+                SelectionnerTiers(indTiersDetecte)
+            End If
+            ChargerCategoriesEtSousCategories(indTiersDetecte)
+        Catch ex As Exception
+            Logger.GetInstance.ERR($"Erreur lors du chargement du formulaire : {ex.Message}")
+        End Try
+    End Sub
+
+    Private Sub InitialiserListeTiers()
         If listeTiers Is Nothing Then
             listeTiers = New ListeTiers(connexionDB.GetInstance.getConnexion)
         End If
-        Dim indTiersDetecte As Integer = DetecteTiers(txtNote.Text)
-        If indTiersDetecte > -1 Then
-            idTiers = chercheIndiceDvg(indTiersDetecte, dgvTiers)
-            dgvTiers.Rows.Item(idTiers).Selected = True
-            dgvTiers.FirstDisplayedScrollingRowIndex = idTiers
-        End If
+    End Sub
+
+    Private Sub SelectionnerTiers(indTiersDetecte As Integer)
+        Dim idTiers As Integer = chercheIndiceDvg(indTiersDetecte, dgvTiers)
+        dgvTiers.Rows(idTiers).Selected = True
+        dgvTiers.FirstDisplayedScrollingRowIndex = idTiers
+    End Sub
+
+    Private Sub ChargerCategoriesEtSousCategories(indTiersDetecte As Integer)
         If dgvCategorie.RowCount = 0 Then
-            Call ChargeDgvCategorie(rbDebit.Checked)
+            ChargeDgvCategorie(rbDebit.Checked)
         End If
-        idCategorie = chercheIndiceDvg(Tiers.getCategorieTiers(indTiersDetecte), dgvCategorie)
-        dgvCategorie.Rows.Item(idCategorie).Selected = True
+
+        Dim idCategorie As Integer = chercheIndiceDvg(Tiers.getCategorieTiers(indTiersDetecte), dgvCategorie)
+        dgvCategorie.Rows(idCategorie).Selected = True
         dgvCategorie.FirstDisplayedScrollingRowIndex = idCategorie
 
         If dgvSousCategorie.RowCount = 0 Then
-            Call ChargeDgvSousCategorie(Tiers.getCategorieTiers(indTiersDetecte))
+            ChargeDgvSousCategorie(Tiers.getCategorieTiers(indTiersDetecte))
         End If
-        idSousCategorie = chercheIndiceDvg(Tiers.getSousCategorieTiers(indTiersDetecte), dgvSousCategorie)
-        dgvSousCategorie.Rows.Item(idSousCategorie).Selected = True
+
+        Dim idSousCategorie As Integer = chercheIndiceDvg(Tiers.getSousCategorieTiers(indTiersDetecte), dgvSousCategorie)
+        dgvSousCategorie.Rows(idSousCategorie).Selected = True
         dgvSousCategorie.FirstDisplayedScrollingRowIndex = idSousCategorie
     End Sub
     Private Function chercheIndiceDvg(indiceCherche As Integer, dgv As DataGridView) As Integer
@@ -54,17 +70,15 @@ Public Class FrmSaisie
         Return ligneCible
     End Function
 
-
     Public Sub chargeListes()
 
         Call ChargeDgvTiers(connexionDB.GetInstance.getConnexion)
-        'Call ChargeDgvCategorie(rbDebit.Checked)
         'Chargement du fichier contenant la liste des événements 
         Call ChargeFichierTexte(Me.cbEvénement, lectureProprietes.GetVariable("ficEvénement"))
         'Chargement du fichier contenant la liste des types 
         Call ChargeFichierTexte(Me.cbType, lectureProprietes.GetVariable("ficType"))
     End Sub
-    Private Function DetecteTiers(sNote As String) As Integer
+    Private Function DetecteTiers() As Integer
         'Essaie de déterminer le tiers en fonction du contenu de la note
         Dim sMots() As String, sMot As String
         Dim i As Integer = -1
@@ -106,8 +120,6 @@ Public Class FrmSaisie
     End Sub
 
     Private Sub ChargeDgvTiers(maConn As SqlConnection)
-        Dim bindingSource1 = New BindingSource()
-
         Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, nom, prenom, raisonSociale, categorieDefaut, sousCategorieDefaut FROM Tiers;", maConn)
 
         Dim dt As New DataTable
@@ -125,7 +137,6 @@ Public Class FrmSaisie
     End Sub
 
     Private Sub ChargeDgvCategorie(debit As Boolean)
-        Dim bindingSource1 = New BindingSource()
         Dim query As String = "SELECT id, libelle FROM Categorie WHERE debit = @debit;"
         Dim dt As New DataTable
 
@@ -151,7 +162,6 @@ Public Class FrmSaisie
         End Try
     End Sub
     Private Sub ChargeDgvSousCategorie(idCategorie As Integer)
-        Dim bindingSource1 = New BindingSource()
 
         Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, libelle FROM SousCategorie where idCategorie = @idCategorie;", connexionDB.GetInstance.getConnexion)
         command.Parameters.AddWithValue("@idCategorie", idCategorie)
@@ -188,7 +198,7 @@ Public Class FrmSaisie
     '    cbSousCategorie.Items.Clear
     'End Sub
     Private Sub BtnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
-        Call insereChq()
+        Call InsereChq()
         Me.Hide()
         FrmPrincipale.Show()
     End Sub
@@ -231,8 +241,7 @@ Public Class FrmSaisie
                 sb.Append(Environment.NewLine)
                 i += 1
             Next
-            sb.Append("Total: " + selectedRowCount.ToString())
-            'MessageBox.Show(sb.ToString(), "Selected Rows")
+            sb.Append("Total: " & selectedRowCount.ToString())
         End If
         'Retrouver le Tiers
         dgvTiers.CurrentCell = dgvTiers.SelectedRows(0).Cells(0)
@@ -254,7 +263,6 @@ Public Class FrmSaisie
     '    monReaderSousCategorie.Close()
     'End Sub
     Private Sub dgvTiers_UserAddedRow(sender As Object, e As DataGridViewRowEventArgs) Handles dgvTiers.UserAddedRow
-        Dim bindingSource1 = New BindingSource()
         Dim id As Integer
         Dim sNom As String, sPrenom As String, sRaisonSociale As String
 
@@ -338,24 +346,49 @@ Public Class FrmSaisie
     End Sub
     Private Sub InsereChq()
         Try
+            'Les infos de création du mouvement sont récupérées sur la fenêtre de saisie
             Dim mouvement As Mouvements = CreerMouvement()
-            InsererMouvementEnBase(mouvement)
-            Logger.GetInstance.INFO("Insertion du mouvement pour : " & mouvement.ObtenirValeursConcatenees)
+            _dtMvtsIdentiques = Mouvements.ChargerMouvementsSimilaires(mouvement)
+            If _dtMvtsIdentiques.Rows.Count > 0 Then
+                'Un mouvement identique existe déjà
+                Dim frmListe As New frmListe(_dtMvtsIdentiques)
+                AddHandler frmListe.objetSelectionneChanged, AddressOf mvtSelectionneChangedHandler
+                frmListe.ShowDialog()
+                'frmListe.Show()
+                Logger.GetInstance.INFO("Le mouvement existe déjà : " & mouvement.ObtenirValeursConcatenees)
+            Else
+                InsererMouvementEnBase(mouvement)
+                Logger.GetInstance.INFO("Insertion du mouvement pour : " & mouvement.ObtenirValeursConcatenees)
+            End If
         Catch ex As Exception
             MsgBox("Echec de l'insertion en base : " & ex.Message)
             Logger.GetInstance.ERR("Erreur lors de l'insertion des données : " & ex.Message)
         End Try
     End Sub
 
+    Private Sub mvtSelectionneChangedHandler(sender As Object, index As Integer)
+        ' Vérifier si l'objet peut être converti en Mouvements
+        If index = -1 Then
+            Logger.GetInstance.ERR("L'objet sélectionné est nul => mouvement à insérer")
+        Else
+            With _dtMvtsIdentiques.Rows(index)
+                'Dim mvtModif As New Mouvements(.ItemArray(6), .ItemArray(1), .ItemArray(2), .ItemArray(5), .ItemArray(7), .ItemArray(3), .ItemArray(4), .ItemArray(10), .ItemArray(11), .ItemArray(12), .ItemArray(13), .ItemArray(14), .ItemArray(15))
+                'Mouvements.MettreAJourMouvement(mvtModif.Categorie, mvtModif.SousCategorie, mvtModif.Montant, mvtModif.Sens, mvtModif.Tiers, mvtModif.Note, mvtModif.DateCréation, mvtModif.Etat, mvtModif.Événement, mvtModif.Type, mvtModif.Modifiable, mvtModif.NumeroRemise, mvtModif.idCheque)
+                'TODO : récupérer les valeurs dans la fenêtre
+                Mouvements.MettreAJourMouvement(.ItemArray(1), .ItemArray(2), .ItemArray(3), .ItemArray(4), .ItemArray(5), .ItemArray(6), .ItemArray(7), .ItemArray(10), .ItemArray(11), .ItemArray(12), .ItemArray(13), .ItemArray(14), .ItemArray(15))
+            End With
+        End If
+    End Sub
+
     Private Function CreerMouvement() As Mouvements
-        Dim sCategorie As String = dgvCategorie.Rows(dgvCategorie.SelectedRows(0).Index).Cells(1).Value.ToString()
-        Dim sSousCategorie As String = dgvSousCategorie.Rows(dgvSousCategorie.SelectedRows(0).Index).Cells(1).Value.ToString()
+        Dim iCategorie As Integer = dgvCategorie.Rows(dgvCategorie.SelectedRows(0).Index).Cells(0).Value.ToString()
+        Dim iSousCategorie As Integer = dgvSousCategorie.Rows(dgvSousCategorie.SelectedRows(0).Index).Cells(0).Value.ToString()
         Dim idTiers As Integer = Convert.ToInt32(dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(0).Value)
 
         Return New Mouvements(
             txtNote.Text,
-            sCategorie,
-            sSousCategorie,
+            iCategorie,
+            iSousCategorie,
             idTiers,
             dateMvt.Value,
             txtMontant.Text.Trim().Replace(" ", ""),
@@ -483,6 +516,5 @@ Public Class FrmSaisie
 
         Return jsonString
     End Function
-
 
 End Class

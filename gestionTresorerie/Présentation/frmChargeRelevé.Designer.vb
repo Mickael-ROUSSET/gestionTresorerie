@@ -26,13 +26,13 @@ Partial Class FrmChargeRelevé
         Dim fldBrowserDialog As FolderBrowserDialog
         btnOuvreFichier = New Button()
         dgvRelevé = New DataGridView()
-        dgVDate = New DataGridViewTextBoxColumn()
-        dgVNOte = New DataGridViewTextBoxColumn()
-        dgVCrédit = New DataGridViewTextBoxColumn()
-        dgVDébit = New DataGridViewTextBoxColumn()
         BindingSource1 = New BindingSource(components)
         BindingSource2 = New BindingSource(components)
         btnOuvreSaisie = New Button()
+        dgVDate = New DataGridViewTextBoxColumn()
+        dgVNOte = New DataGridViewTextBoxColumn()
+        dgVDébit = New DataGridViewTextBoxColumn()
+        dgVCrédit = New DataGridViewTextBoxColumn()
         fldBrowserDialog = New FolderBrowserDialog()
         CType(dgvRelevé, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -51,12 +51,21 @@ Partial Class FrmChargeRelevé
         ' dgvRelevé
         ' 
         dgvRelevé.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvRelevé.Columns.AddRange(New DataGridViewColumn() {dgVDate, dgVNOte, dgVCrédit, dgVDébit})
+        dgvRelevé.Columns.AddRange(New DataGridViewColumn() {dgVDate, dgVNOte, dgVDébit, dgVCrédit})
         dgvRelevé.Location = New Point(12, 50)
         dgvRelevé.Name = "dgvRelevé"
         dgvRelevé.SelectionMode = DataGridViewSelectionMode.FullRowSelect
         dgvRelevé.Size = New Size(762, 364)
         dgvRelevé.TabIndex = 3
+        ' 
+        ' btnOuvreSaisie
+        ' 
+        btnOuvreSaisie.Location = New Point(310, 451)
+        btnOuvreSaisie.Name = "btnOuvreSaisie"
+        btnOuvreSaisie.Size = New Size(182, 23)
+        btnOuvreSaisie.TabIndex = 4
+        btnOuvreSaisie.Text = "Enregistrement du mouvement"
+        btnOuvreSaisie.UseVisualStyleBackColor = True
         ' 
         ' dgVDate
         ' 
@@ -72,13 +81,6 @@ Partial Class FrmChargeRelevé
         dgVNOte.Name = "dgVNOte"
         dgVNOte.Width = 500
         ' 
-        ' dgVCrédit
-        ' 
-        dgVCrédit.HeaderText = "Crédit"
-        dgVCrédit.MinimumWidth = 50
-        dgVCrédit.Name = "dgVCrédit"
-        dgVCrédit.Width = 75
-        ' 
         ' dgVDébit
         ' 
         dgVDébit.HeaderText = "Débit"
@@ -86,14 +88,12 @@ Partial Class FrmChargeRelevé
         dgVDébit.Name = "dgVDébit"
         dgVDébit.Width = 75
         ' 
-        ' btnOuvreSaisie
+        ' dgVCrédit
         ' 
-        btnOuvreSaisie.Location = New Point(310, 451)
-        btnOuvreSaisie.Name = "btnOuvreSaisie"
-        btnOuvreSaisie.Size = New Size(182, 23)
-        btnOuvreSaisie.TabIndex = 4
-        btnOuvreSaisie.Text = "Enregistrement du mouvement"
-        btnOuvreSaisie.UseVisualStyleBackColor = True
+        dgVCrédit.HeaderText = "Crédit"
+        dgVCrédit.MinimumWidth = 50
+        dgVCrédit.Name = "dgVCrédit"
+        dgVCrédit.Width = 75
         ' 
         ' FrmChargeRelevé
         ' 
@@ -112,11 +112,11 @@ Partial Class FrmChargeRelevé
     End Sub
     Friend WithEvents btnOuvreFichier As Button
     Friend WithEvents dgvRelevé As DataGridView
-    Friend WithEvents dgVDate As DataGridViewTextBoxColumn
-    Friend WithEvents dgVNOte As DataGridViewTextBoxColumn
-    Friend WithEvents dgVCrédit As DataGridViewTextBoxColumn
-    Friend WithEvents dgVDébit As DataGridViewTextBoxColumn
     Friend WithEvents BindingSource1 As BindingSource
     Friend WithEvents BindingSource2 As BindingSource
     Friend WithEvents btnOuvreSaisie As Button
+    Friend WithEvents dgVDate As DataGridViewTextBoxColumn
+    Friend WithEvents dgVNOte As DataGridViewTextBoxColumn
+    Friend WithEvents dgVDébit As DataGridViewTextBoxColumn
+    Friend WithEvents dgVCrédit As DataGridViewTextBoxColumn
 End Class

@@ -1,6 +1,4 @@
-﻿Imports System.Collections.ObjectModel
-Imports System.Configuration.Assemblies
-Imports System.Data.SqlClient
+﻿Imports System.Data.SqlClient
 
 ' Classe permettant de se connecter à une base de donnée SQLSERVER 
 
@@ -8,8 +6,8 @@ Public Class connexionDB
     Implements IDisposable
     Public _maConnexion As SqlConnection
     Public _maCommandeSql As New SqlCommand()
-    Public result As String
-    Public reader As SqlDataReader
+    'Public result As String
+    'Public reader As SqlDataReader
     Private Shared _instance As connexionDB
 
     ' Méthode publique pour accéder à l'instance unique
@@ -72,16 +70,16 @@ Public Class connexionDB
     '    End Try
     'End Sub
 
-    Public Function ConnexionExecuteReader() As SqlDataReader
-        Me._maCommandeSql.Connection = _maConnexion
-        Try
-            Me._maConnexion.Open()
-            Me.reader = _maCommandeSql.ExecuteReader(CommandBehavior.CloseConnection)
-        Catch ex As Exception
-        Finally
-        End Try
-        Return reader
-    End Function
+    'Public Function ConnexionExecuteReader() As SqlDataReader
+    '    Me._maCommandeSql.Connection = _maConnexion
+    '    Try
+    '        Me._maConnexion.Open()
+    '        Me.reader = _maCommandeSql.ExecuteReader(CommandBehavior.CloseConnection)
+    '    Catch ex As Exception
+    '    Finally
+    '    End Try
+    '    Return reader
+    'End Function
 
     Public Sub Dispose() Implements System.IDisposable.Dispose
         Try
@@ -89,8 +87,8 @@ Public Class connexionDB
             Me._maConnexion.Close()
             Me._maConnexion.Dispose()
             Me._maCommandeSql.Dispose()
-            Me.reader.Close()
-            Me.result = Nothing
+            'Me.reader.Close()
+            'Me.result = Nothing
         Catch ex As Exception
         End Try
     End Sub

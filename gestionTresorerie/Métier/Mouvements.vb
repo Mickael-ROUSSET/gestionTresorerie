@@ -1,9 +1,10 @@
 ﻿Imports System.Text.RegularExpressions
 Imports System.Data.SqlClient
+Imports System.IO
 Public Class Mouvements
     Private _note As String
-    Private _categorie As String
-    Private _sousCategorie As String
+    Private _categorie As Integer
+    Private _sousCategorie As Integer
     Private _tiers As Integer
     Private _dateCréation As Date
     Private _dateMvt As Date
@@ -15,7 +16,7 @@ Public Class Mouvements
     Private _modifiable As Boolean
     Private _numeroRemise As String
     Private _idCheque As Integer
-    Public Sub New(ByVal note As String, ByVal categorie As String, ByVal sousCategorie As String, ByVal tiers As Integer, ByVal dateMvt As Date, ByVal montant As String, ByVal sens As String, ByVal etat As String, ByVal événement As String, ByVal type As String, ByVal modifiable As Boolean, ByVal numeroRemise As String, ByVal idCheque As Integer)
+    Public Sub New(ByVal note As String, ByVal categorie As Integer, ByVal sousCategorie As Integer, ByVal tiers As Integer, ByVal dateMvt As Date, ByVal montant As String, ByVal sens As String, ByVal etat As String, ByVal événement As String, ByVal type As String, ByVal modifiable As Boolean, ByVal numeroRemise As String, ByVal idCheque As Integer)
         ' Set the property value.
         With Me
             If VerifParam(note, categorie, sousCategorie, tiers, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise, idCheque) Then
@@ -38,17 +39,16 @@ Public Class Mouvements
     End Sub
 
 
-    Public Shared Function Existe(ByVal dateMvt As Date, ByVal montant As Decimal, ByVal sens As String) As Boolean
-            ' Vérifie si le mouvement existe déjà
-            Dim query As String = "SELECT COUNT(*) FROM Mouvements WHERE dateMvt = @dateMvt AND montant = @montant AND sens = @sens;"
-            Dim bExiste As Boolean = False
+    Public Shared Function Existe(mouvement As Mouvements) As Boolean
+        ' Vérifie si le mouvement existe déjà
+        'Dim query As String = "SELECT COUNT(*) FROM Mouvements WHERE dateMvt = @dateMvt AND montant = @montant AND sens = @sens;"
+        Dim bExiste As Boolean = False
 
-            Try
-            Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
-            Using cmd As New SqlCommand(query, conn)
-                cmd.Parameters.AddWithValue("@dateMvt", dateMvt.ToString("yyyy-MM-dd"))
-                cmd.Parameters.AddWithValue("@montant", montant)
-                cmd.Parameters.AddWithValue("@sens", sens)
+        Try
+            Using cmd As New SqlCommand(lectureProprietes.GetVariable("reqNbMouvements"), connexionDB.GetInstance.getConnexion)
+                cmd.Parameters.AddWithValue("@dateMvt", mouvement.DateMvt.ToString("yyyy-MM-dd"))
+                cmd.Parameters.AddWithValue("@montant", mouvement.Montant)
+                cmd.Parameters.AddWithValue("@sens", mouvement.Sens)
 
                 Using reader As SqlDataReader = cmd.ExecuteReader()
                     If reader.Read() Then
@@ -58,19 +58,51 @@ Public Class Mouvements
             End Using
 
             ' Écrire un log d'information
-            Logger.GetInstance.INFO($"Vérification de l'existence du mouvement réussie. Date: {dateMvt}, Montant: {montant}, Sens: {sens}")
+            Logger.GetInstance.INFO($"Vérification de l'existence du mouvement réussie. Date: {mouvement.DateMvt}, Montant: {mouvement.Montant}, Sens:  {mouvement.Sens}")
 
-            Catch ex As Exception
-                ' Écrire un log d'erreur
-                Logger.GetInstance.ERR($"Erreur lors de la vérification de l'existence du mouvement. Message: {ex.Message}")
-                Throw ' Re-lancer l'exception après l'avoir loggée
-            End Try
+        Catch ex As Exception
+            ' Écrire un log d'erreur
+            Logger.GetInstance.ERR($"Erreur lors de la vérification de l'existence du mouvement. Message: {ex.Message} " & mouvement.ObtenirValeursConcatenees)
+            Throw ' Re-lancer l'exception après l'avoir loggée
+        End Try
 
-            Return bExiste
-        End Function
+        Return bExiste
+    End Function
+    Public Shared Function ChargerMouvementsSimilaires(mouvement As Mouvements) As DataTable
+        Dim dataTable As New DataTable()
+
+        Try
+            ' Définir la commande SQL pour appeler la procédure stockée
+            Using cmd As New SqlCommand(lectureProprietes.GetVariable("procMvtsIdentiques", False), connexionDB.GetInstance.getConnexion)
+                'cmd.CommandType = CommandType.StoredProcedure
+
+                ' Ajouter les paramètres à la commande
+                cmd.Parameters.AddWithValue("@dateMvt", mouvement.DateMvt)
+                cmd.Parameters.AddWithValue("@montant", CDec(mouvement.Montant))
+                cmd.Parameters.AddWithValue("@sens", mouvement.Sens)
+
+                ' Créer un DataAdapter pour remplir le DataTable
+                Using adapter As New SqlDataAdapter(cmd)
+                    ' Remplir le DataTable avec les données de la base de données
+                    adapter.Fill(dataTable)
+                End Using
+            End Using
+
+            ' Écrire un log d'information
+            Logger.GetInstance.INFO("Chargement des mouvements similaires réussi.")
+        Catch ex As SqlException
+            ' Écrire un log d'erreur en cas d'exception SQL
+            Logger.GetInstance.ERR($"Erreur SQL lors du chargement des mouvements similaires : {ex.Message}")
+        Catch ex As Exception
+            ' Écrire un log d'erreur en cas d'exception générale
+            Logger.GetInstance.ERR($"Erreur lors du chargement des mouvements similaires : {ex.Message}")
+        End Try
+
+        Return dataTable
+    End Function
 
 
-    Public Shared Sub MettreAJourMouvement(id As Integer, categorie As String, sousCategorie As String, montant As Decimal, sens As Boolean, tiers As String, note As String, dateMvt As Date, etat As Boolean, evenement As String, type As String, modifiable As Boolean, numeroRemise As Integer?, Optional idCheque As Integer? = Nothing)
+    Public Shared Sub MettreAJourMouvement(categorie As String, sousCategorie As String, montant As Decimal, sens As Boolean, tiers As String, note As String, dateMvt As Date, etat As Boolean, evenement As String, type As String, modifiable As Boolean, numeroRemise As Integer?, Optional idCheque As Integer? = Nothing)
         Dim sqlConnexion As SqlConnection = Nothing
         Dim rowsAffected As Integer = 0
 
@@ -84,16 +116,15 @@ Public Class Mouvements
             End If
 
             ' Requête SQL pour mettre à jour la table Mouvements
-            Dim query As String = "UPDATE [dbo].[Mouvements] SET [catégorie] = @Categorie, [sousCatégorie] = @SousCategorie, [montant] = @Montant, [sens] = @Sens, [tiers] = @Tiers, [note] = @Note, [dateMvt] = @DateMvt, [dateModification] = GETDATE(), [etat] = @Etat, [événement] = @Evenement, [type] = @Type, [modifiable] = @Modifiable, [numeroRemise] = @NumeroRemise"
+            'Dim query As String = "UPDATE [dbo].[Mouvements] SET [catégorie] = @Categorie, [sousCatégorie] = @SousCategorie, [montant] = @Montant, [sens] = @Sens, [tiers] = @Tiers, [note] = @Note, [dateMvt] = @DateMvt, [dateModification] = GETDATE(), [etat] = @Etat, [événement] = @Evenement, [type] = @Type, [modifiable] = @Modifiable, [numeroRemise] = @NumeroRemise"
+            Dim query As String = lectureProprietes.GetVariable("updMvt", False)
 
             ' Ajouter la partie conditionnelle pour idCheque
-            If idCheque.HasValue Then
-                query &= ", [idCheque] = @IdCheque"
-            Else
-                query &= ", [idCheque] = NULL"
-            End If
-
-            query &= " WHERE [Id] = @Id"
+            'If idCheque.HasValue Then
+            '    query &= ", [idCheque] = @IdCheque"
+            'Else
+            '    query &= ", [idCheque] = NULL"
+            'End If
 
             Using command As New SqlCommand(query, sqlConnexion)
                 ' Ajouter les paramètres à la requête
@@ -115,8 +146,6 @@ Public Class Mouvements
                     command.Parameters.AddWithValue("@IdCheque", idCheque.Value)
                 End If
 
-                command.Parameters.AddWithValue("@Id", id)
-
                 ' Exécuter la requête et obtenir le nombre de lignes affectées
                 rowsAffected = command.ExecuteNonQuery()
             End Using
@@ -125,7 +154,7 @@ Public Class Mouvements
             Logger.GetInstance().INFO($"Nombre de lignes mises à jour : {rowsAffected}")
 
             ' Trace indiquant les valeurs mises à jour
-            Logger.GetInstance().INFO($"Valeurs mises à jour - Id: {id}, Catégorie: {categorie}, Sous-Catégorie: {sousCategorie}, Montant: {montant}, Sens: {sens}, Tiers: {tiers}, Note: {note}, DateMvt: {dateMvt}, Etat: {etat}, Evénement: {evenement}, Type: {type}, Modifiable: {modifiable}, Numéro Remise: {numeroRemise}, IdChèque: {idCheque}")
+            Logger.GetInstance().INFO($"Valeurs mises à jour - Catégorie: {categorie}, Sous-Catégorie: {sousCategorie}, Montant: {montant}, Sens: {sens}, Tiers: {tiers}, Note: {note}, DateMvt: {dateMvt}, Etat: {etat}, Evénement: {evenement}, Type: {type}, Modifiable: {modifiable}, Numéro Remise: {numeroRemise}, IdChèque: {idCheque}")
 
         Catch ex As Exception
             ' Trace en cas d'erreur
@@ -184,7 +213,7 @@ Public Class Mouvements
         Dim bToutEstLa As Boolean = False
 
         'L'idCheque est facultatif
-        If categorie <> "" And sousCategorie <> "" And tiers <> 0 And IsDate(dateMvt) And sens <> "" And etat <> "" And type <> "" Then
+        If categorie <> "" AndAlso sousCategorie <> "" AndAlso tiers <> 0 AndAlso IsDate(dateMvt) AndAlso sens <> "" AndAlso etat <> "" AndAlso type <> "" Then
             bToutEstLa = True
         End If
         Return bToutEstLa

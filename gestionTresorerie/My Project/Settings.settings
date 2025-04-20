@@ -76,9 +76,6 @@
     <Setting Name="ficRelevéTraité" Type="System.String" Scope="Application">
       <Value Profile="(Default)">ficRelevéTraité.txt</Value>
     </Setting>
-    <Setting Name="AttachDbFilenameProd" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Bdd\bddAgumaaa.mdf</Value>
-    </Setting>
     <Setting Name="ficEvénement" Type="System.String" Scope="Application">
       <Value Profile="(Default)">ressources\événement.ini</Value>
     </Setting>
@@ -93,6 +90,78 @@
     </Setting>
     <Setting Name="repFichierBilan" Type="System.String" Scope="Application">
       <Value Profile="(Default)">\ressources</Value>
+    </Setting>
+    <Setting Name="AttachDbFilenameProd" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Bdd\bddAgumaaaProd.mdf</Value>
+    </Setting>
+    <Setting Name="reqSelectToutMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT * FROM Mouvements;</Value>
+    </Setting>
+    <Setting Name="reqNbMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT COUNT(*) FROM Mouvements WHERE dateMvt = @dateMvt AND montant = @montant AND sens = @sens;</Value>
+    </Setting>
+    <Setting Name="reqCategoriesMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT DISTINCT catégorie FROM Mouvements;</Value>
+    </Setting>
+    <Setting Name="reqImagesChq" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT [imageChq] FROM [dbo].Cheque WHERE [id] = @id</Value>
+    </Setting>
+    <Setting Name="reqIdentiteTiers" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT [nom], [prenom], [raisonSociale] FROM [dbo].Tiers</Value>
+    </Setting>
+    <Setting Name="reqCategoriesDefautMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT categorieDefaut FROM Tiers where id = '</Value>
+    </Setting>
+    <Setting Name="reqCategorie" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, libelle FROM Categorie WHERE debit = @debit;</Value>
+    </Setting>
+    <Setting Name="reqSousCategorie" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, libelle FROM SousCategorie where idCategorie = @idCategorie;</Value>
+    </Setting>
+    <Setting Name="reqIdentiteCatTiers" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, nom, prenom, raisonSociale, categorieDefaut, sousCategorieDefaut FROM Tiers;</Value>
+    </Setting>
+    <Setting Name="reqChq" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, numero, date, emetteur, destinataire FROM Cheque WHERE montant = @montant;</Value>
+    </Setting>
+    <Setting Name="reqIdentitePPTiers" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id,nom, prenom FROM Tiers where nom is not null;</Value>
+    </Setting>
+    <Setting Name="reqIdentitePMTiers" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id,raisonSociale FROM Tiers where raisonSociale is not null;</Value>
+    </Setting>
+    <Setting Name="reqDocs" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc FROM [dbo].[Documents];</Value>
+    </Setting>
+    <Setting Name="reqLibelleSousCategorie" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT libelle FROM SousCategorie where idCategorie =</Value>
+    </Setting>
+    <Setting Name="reqSousCategoriesDefautMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT sousCategorieDefaut FROM Tiers where id = '</Value>
+    </Setting>
+    <Setting Name="reqSommeCatMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT sousCatégorie, SUM(montant) FROM Mouvements WHERE catégorie = @category GROUP BY sousCatégorie ORDER BY SUM(montant) DESC;</Value>
+    </Setting>
+    <Setting Name="reqSommeSousCatMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT sousCatégorie, sum(montant) FROM Mouvements where catégorie = '</Value>
+    </Setting>
+    <Setting Name="sqlSelectMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">select Id , catégorie, sousCatégorie, montant , sens , tiers , note , dateMvt , dateCréation , dateModification , etat , événement , type , modifiable , numeroRemise , idCheque from Mouvements;</Value>
+    </Setting>
+    <Setting Name="sqlSelectMouvementsLibelles" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">select Id , (select libelle from Categorie where id = catégorie) as Catégorie, (select libelle from sousCategorie where id = sousCatégorie) as sousCatégorie, montant , sens , (select coalesce(nom + ' ' + prenom, raisonSociale ) from Tiers where id = tiers) as Tiers, note , dateMvt , dateCréation , dateModification , etat , événement , type , modifiable , numeroRemise , idCheque from Mouvements;</Value>
+    </Setting>
+    <Setting Name="selAleatoire" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">3rD/s9+aP2fG4h5jK7lMnO=</Value>
+    </Setting>
+    <Setting Name="procMvtsIdentiques" Description="Procécdure stockée d'identification des mouvements déjà saisis" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT Id, catégorie, sousCatégorie, montant, sens, tiers, note, dateMvt, dateCréation, dateModification, etat, événement, type, modifiable, numeroRemise, idCheque FROM [dbo].[Mouvements] WHERE dateMvt = @dateMvt AND montant = @montant AND sens = @sens;</Value>
+    </Setting>
+    <Setting Name="procMvtsIdentiquesEX" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">EXEC dbo.ObtenirMouvementsSimilaires @dateMvt, @montant, @sens</Value>
+    </Setting>
+    <Setting Name="updMvt" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE [dbo].[Mouvements] SET [catégorie] = @Categorie, [sousCatégorie] = @SousCategorie, [tiers] = @Tiers, [note] = @Note, [dateModification] = GETDATE(), [etat] = @Etat, [événement] = @Evenement, [type] = @Type, [modifiable] = @Modifiable, [numeroRemise] = @NumeroRemise where [montant] = @Montant and [sens] = @Sens and [dateMvt] = @DateMvt</Value>
     </Setting>
   </Settings>
 </SettingsFile>

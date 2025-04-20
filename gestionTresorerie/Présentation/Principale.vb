@@ -1,4 +1,5 @@
 ﻿Imports System.Data.SqlClient
+Imports DocumentFormat.OpenXml.Office2010.Excel
 Imports DocumentFormat.OpenXml.Packaging
 Imports DocumentFormat.OpenXml.Wordprocessing
 
@@ -13,6 +14,8 @@ Public Class FrmPrincipale
     End Sub
     Private Sub FrmPrincipale_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Try
+            'Charger dgvPrincipale avec le contenu de la table mouvements
+            Call ChargerDgvPrincipale()
             ' Chargement des listes dans le formulaire
             FrmSaisie.chargeListes()
         Catch ex As Exception
@@ -21,6 +24,96 @@ Public Class FrmPrincipale
             Logger.GetInstance.ERR("Une erreur est survenue lors de l'initialisation : " & ex.Message)
         End Try
     End Sub
+    Private Sub ChargerDgvPrincipale()
+        Try
+            ' Définir la requête SQL pour récupérer les données
+            Dim query As String = lectureProprietes.GetVariable("sqlSelectMouvementsLibelles")
+
+            ' Utiliser une connexion à la base de données
+            Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
+            ' Créer une commande SQL
+            Using cmd As New SqlCommand(query, conn)
+                ' Créer un DataAdapter pour remplir le DataTable
+                Using adapter As New SqlDataAdapter(cmd)
+                    ' Créer un DataTable pour stocker les données
+                    Dim dataTable As New DataTable()
+                    ' Remplir le DataTable avec les données de la base de données
+                    adapter.Fill(dataTable)
+                    ' Lier le DataTable au DataGridView
+                    dgvPrincipale.DataSource = dataTable
+                End Using
+            End Using
+            '' Forcer le rafraîchissement du DataGridView
+            'dgvPrincipale.Refresh()
+            ' Ajouter la colonne d'image pour l'état du mouvement
+            AjouterColonneEtatImage()
+
+            ' Écrire un log d'information
+            Logger.GetInstance.INFO("Chargement des données dans dgvPrincipale réussi.")
+        Catch ex As SqlException
+            ' Écrire un log d'erreur en cas d'exception SQL
+            Logger.GetInstance.ERR($"Erreur SQL lors du chargement des données dans dgvPrincipale : {ex.Message}")
+        Catch ex As Exception
+            ' Écrire un log d'erreur en cas d'exception générale
+            Logger.GetInstance.ERR($"Erreur lors du chargement des données dans dgvPrincipale : {ex.Message}")
+        End Try
+    End Sub
+
+    Private Sub AjouterColonneEtatImage()
+        ' Ajouter une colonne d'image pour l'état
+        Dim etatImageColumn As New DataGridViewImageColumn()
+        etatImageColumn.Name = "etatImage"
+        etatImageColumn.HeaderText = "État"
+        dgvPrincipale.Columns.Add(etatImageColumn)
+
+        ' Parcourir les lignes du DataGridView pour définir les images
+        For Each row As DataGridViewRow In dgvPrincipale.Rows
+            If Not row.IsNewRow Then
+                Try
+                    '8 correspond à la colonne "etat"
+                    Dim etat As Object = row.Cells(8).Value
+                    If etat IsNot Nothing AndAlso TypeOf etat Is Boolean Then
+                        row.Cells("etatImage").Value = If(CType(etat, Boolean), My.Resources.OK, My.Resources.KO)
+                    Else
+                        Logger.GetInstance.ERR($"Valeur invalide pour la colonne 'etat' dans la ligne {row.Index}: {etat}")
+                        row.Cells("etatImage").Value = My.Resources.KO ' Par défaut, si la valeur est invalide
+                    End If
+                Catch ex As Exception
+                    Logger.GetInstance.ERR($"Erreur lors de la définition de l'image pour la colonne 'etat' dans la ligne {row.Index}: {ex.Message}")
+                    row.Cells("etatImage").Value = My.Resources.KO ' Par défaut, en cas d'erreur
+                End Try
+            End If
+        Next
+    End Sub
+
+    'Private Sub chargeMouvements()
+    '    ' Evite de définir la chaine de connexion à chaque endroit où tu l'utilises : si tu dois la changer,
+    '    ' ça fait autant d'endroits à modifier, et ça force à recompiler. Il vaut mieux la définir dans les
+    '    ' paramètres de l'application, comme ça si tu dois la changer tu n'auras qu'un seul endroit à modifier.
+
+    '    ' Essaie de taper une apostrophe (') dans TextBox1, et observe le résultat ;)
+    '    ' Ensuite, va faire un tour ici pour apprendre à régler le problème :
+    '    ' http://johannblais.developpez.com/tutoriel/dotnet/bonnes-pratiques-acces-donnees/#LIV
+    '    'Dim command As New System.Data.SqlClient.SqlCommand("SELECT * FROM Mouvements", maConn)
+    '    Dim command As New System.Data.SqlClient.SqlCommand("SELECT * FROM Mouvements", connexionDB.GetInstance.getConnexion)
+
+    '    Dim dt As New DataTable
+    '    Dim adpt As New Data.SqlClient.SqlDataAdapter(command)
+
+    '    Try
+    '        ' Place la connexion dans le bloc try : c'est typiquement le genre d'instruction qui peut lever une exception. 
+    '        adpt.Fill(dt)
+    '        dgvPrincipale.DataSource = dt
+
+    '        ' Ajouter la colonne d'image pour l'état du mouvement
+    '        AjouterColonneEtatImage()
+    '    Catch ex As SqlException
+    '        ' On informe l'utilisateur qu'il y a eu un problème :
+    '        MessageBox.Show("Une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
+    '    Finally
+    '        ' Le code du bloc Finally est toujours exécuté, même en cas d'erreur dans le Try 
+    '    End Try
+    'End Sub
 
     'Private Sub LectureBase()
     '    Dim monReaderCategorie As SqlDataReader
@@ -141,7 +234,7 @@ Public Class FrmPrincipale
         Dim para As Paragraph = creeOpenXml.ajouteParagraphe(document, category)
         ApplyStyleToParagraph(document, "monStyle", "monStyle", para)
 
-        If subCategories.Any() Then
+        If subCategories.Count <> 0 Then
             CreateChartAndAddToDocument(document, category, subCategories)
             CreateTableAndAddToDocument(document, subCategories)
         End If
@@ -194,7 +287,6 @@ Public Class FrmPrincipale
         creeOpenXml.ajouteTableau(document, data)
     End Sub
 
-
     Private Sub FrmMain_Closing(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
         connexionDB.GetInstance.Dispose()
     End Sub
@@ -207,29 +299,7 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub BtnConsultation_Click(sender As Object, e As EventArgs) Handles btnConsultation.Click
-        ' Evite de définir la chaine de connexion à chaque endroit où tu l'utilises : si tu dois la changer,
-        ' ça fait autant d'endroits à modifier, et ça force à recompiler. Il vaut mieux la définir dans les
-        ' paramètres de l'application, comme ça si tu dois la changer tu n'auras qu'un seul endroit à modifier.
-
-        ' Essaie de taper une apostrophe (') dans TextBox1, et observe le résultat ;)
-        ' Ensuite, va faire un tour ici pour apprendre à régler le problème :
-        ' http://johannblais.developpez.com/tutoriel/dotnet/bonnes-pratiques-acces-donnees/#LIV
-        'Dim command As New System.Data.SqlClient.SqlCommand("SELECT * FROM Mouvements", maConn)
-        Dim command As New System.Data.SqlClient.SqlCommand("SELECT * FROM Mouvements", connexionDB.GetInstance.getConnexion)
-
-        Dim dt As New DataTable
-        Dim adpt As New Data.SqlClient.SqlDataAdapter(command)
-
-        Try
-            ' Place la connection dans le bloc try : c'est typiquement le genre d'instruction qui peut lever une exception. 
-            adpt.Fill(dt)
-            DataGridView1.DataSource = dt
-        Catch ex As SqlException
-            ' On informe l'utilisateur qu'il y a eu un problème :
-            MessageBox.Show("Une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
-            Finally
-            ' Le code du bloc Finally est toujours exécuté, même en cas d'erreur dans le Try 
-        End Try
+        Call ChargerDgvPrincipale()
     End Sub
 
     Private Sub FermerToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles FermerToolStripMenuItem.Click
@@ -242,21 +312,14 @@ Public Class FrmPrincipale
         MsgBox("fonction désactivée")
     End Sub
 
-    Private Sub DataGridView1_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles DataGridView1.CellContentClick
+    Private Sub dgvPrincipale_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvPrincipale.CellContentClick
         Dim dateMvt As Date
         Dim montant As Double
-        Dim sens As Boolean
-        Dim note As String
-        Dim bExiste As Boolean
-        Dim categorie As String
-        Dim sousCategorie As String
-        Dim tiers As String
-        Dim rapproche As String
-        Dim evenement As String
-        Dim monType As String
-        Dim remise As String
+        Dim sens As Boolean, etat As Boolean
+        Dim note As String, categorie As String, sousCategorie As String
+        Dim tiers As String, rapproche As String, evenement As String, monType As String, remise As String
 
-        With Me.DataGridView1.CurrentRow.Cells
+        With Me.dgvPrincipale.CurrentRow.Cells
             note = .Item(1).Value
             dateMvt = CDate(.Item(5).Value)
             montant = .Item(6).Value
@@ -268,8 +331,8 @@ Public Class FrmPrincipale
             evenement = .Item(9).Value
             monType = .Item(10).Value
             remise = .Item(12).Value
+            etat = .Item(11).Value
         End With
-        bExiste = Mouvements.existe(dateMvt, montant, sens)
         With FrmSaisie
             .chargeListes()
             .dateMvt.Value = dateMvt

@@ -8,6 +8,7 @@
     Public Const tiret As String = "-"
     Public Const euro As String = " €"
     Public Const plus As String = "+"
+    Public Const Vide As String = ""
     Public Const req1 As String = "SELECT distinct catégorie FROM Mouvements ;"
     Public Const req3 As String = "SELECT sousCatégorie, sum(montant) FROM Mouvements where catégorie = '"
     Public Const req5 As String = "SELECT DISTINCT catégorie FROM Mouvements;"

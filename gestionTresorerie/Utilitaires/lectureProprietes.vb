@@ -18,21 +18,19 @@ Public Class lectureProprietes
     End Sub
     Public Sub litRepInstallation()
         ' Lire la variable d'environnement 
-        If _env = "Prod" Then
-            _repInstallation = My.Settings.repInstallationProd
-        Else
-            _repInstallation = My.Settings.repInstallationTest
+        If _repInstallation = String.Empty Then
+            If _env = "Prod" Then
+                _repInstallation = My.Settings.repInstallationProd
+            Else
+                _repInstallation = My.Settings.repInstallationTest
+            End If
+            Logger.GetInstance().INFO("repInstallation = " & _repInstallation)
         End If
-        Logger.GetInstance().INFO("repInstallation = " & _repInstallation)
     End Sub
 
     Public ReadOnly Property repInstallation() As String
         Get
-            If _env = "Prod" Then
-                Return My.Settings.repInstallationProd
-            Else
-                Return My.Settings.repInstallationTest
-            End If
+            Return _repInstallation
         End Get
     End Property
     Public ReadOnly Property repChq() As String
@@ -54,9 +52,13 @@ Public Class lectureProprietes
             End If
         End Get
     End Property
-    Public Shared Function GetVariable(nomVariable As String) As String
+    Public Shared Function GetVariable(nomVariable As String, Optional avecChemin As Boolean = True) As String
         ' Retourner la variable demandée
         'N.B. : elle ne doit pas dépendre pas de l'environnement Prod / test
-        Return _repInstallation & My.Settings.Item(nomVariable)
+        If avecChemin Then
+            Return _repInstallation & My.Settings.Item(nomVariable)
+        Else
+            Return My.Settings.Item(nomVariable)
+        End If
     End Function
 End Class
