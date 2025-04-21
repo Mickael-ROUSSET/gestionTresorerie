@@ -1,9 +1,8 @@
 ﻿Imports System.Data.SqlClient
-Imports System.Runtime.InteropServices.JavaScript.JSType
 
 Public Class Tiers
 
-    Dim _id As Integer
+    ReadOnly _id As Integer
     Dim _raisonSociale As String
     Dim _nom As String
     Dim _prénom As String
@@ -77,7 +76,7 @@ Public Class Tiers
         Return iSousCategorie
     End Function
 
-    Public Function ExtraireTiers() As List(Of (nom As String, prenom As String, raisonSociale As String))
+    Public Shared Function ExtraireTiers() As List(Of (nom As String, prenom As String, raisonSociale As String))
         Dim sqlConnexion As SqlConnection = Nothing
         Dim ListeTiers As List(Of (nom As String, prenom As String, raisonSociale As String))
         Try

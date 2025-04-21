@@ -1,5 +1,4 @@
 ﻿Imports System.Runtime.InteropServices
-Imports System.IO
 Imports System.Text
 
 Public Class GestionFichierIni

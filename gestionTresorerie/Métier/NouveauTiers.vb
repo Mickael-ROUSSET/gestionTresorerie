@@ -9,7 +9,7 @@ Public Class frmNouveauTiers
             'listeTiers = New ListeTiers(FrmPrincipale.maConnexionDB.getConnexion)
             listeTiers = New ListeTiers(connexionDB.GetInstance.getConnexion)
         End If
-        If rbPersonneMorale.Checked = True Then
+        If rbPersonneMorale.Checked Then
             insereNouveauTiers(listeTiers, txtRaisonSociale.Text, CInt(txtCategorie.Text), CInt(txtSousCategorie.Text))
         Else
             insereNouveauTiers(listeTiers, txtNom.Text, txtPrenom.Text, CInt(txtCategorie.Text), CInt(txtSousCategorie.Text))

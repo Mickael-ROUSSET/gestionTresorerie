@@ -13,7 +13,7 @@ Public Class Compte
         Me.motDePasse = HashPasswordWithSalt(motDePasse)
         Me.TypeAcces = typeAcces
     End Sub
-    Private Function HashPasswordWithSalt(password As String, Optional sel As String = Constantes.Vide) As String
+    Private Shared Function HashPasswordWithSalt(password As String, Optional sel As String = Constantes.Vide) As String
         ' Vérifier si le mot de passe ou le sel est nul ou vide
         If String.IsNullOrEmpty(password) OrElse String.IsNullOrEmpty(sel) Then
             Throw New ArgumentException("Le mot de passe et le sel ne peuvent pas être nuls ou vides.")

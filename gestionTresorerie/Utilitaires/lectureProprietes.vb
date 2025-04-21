@@ -1,6 +1,4 @@
-﻿Imports System.Configuration
-
-Public Class lectureProprietes
+﻿Public Class lectureProprietes
     Private Shared _env As String
     Private Shared _repInstallation As String
 

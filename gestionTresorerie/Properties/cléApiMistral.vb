@@ -1,5 +1,5 @@
 ﻿Public Class cléApiMistral
-    Dim _apiKey As String = "uswXFN4VPYfYmrTmNbLY16D3fxFunwjm"
+    ReadOnly _apiKey As String = "uswXFN4VPYfYmrTmNbLY16D3fxFunwjm"
 
     Public ReadOnly Property getCle As String
         Get

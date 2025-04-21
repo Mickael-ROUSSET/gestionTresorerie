@@ -515,8 +515,7 @@ Namespace My
          Global.System.Configuration.DefaultSettingValueAttribute("UPDATE [dbo].[Mouvements] SET [catégorie] = @Categorie, [sousCatégorie] = @SousCa"& _ 
             "tegorie, [tiers] = @Tiers, [note] = @Note, [dateModification] = GETDATE(), [etat"& _ 
             "] = @Etat, [événement] = @Evenement, [type] = @Type, [modifiable] = @Modifiable,"& _ 
-            " [numeroRemise] = @NumeroRemise where [montant] = @Montant and [sens] = @Sens an"& _ 
-            "d [dateMvt] = @DateMvt")>  _
+            " [numeroRemise] = @NumeroRemise where [Id] = @Id")>  _
         Public ReadOnly Property updMvt() As String
             Get
                 Return CType(Me("updMvt"),String)

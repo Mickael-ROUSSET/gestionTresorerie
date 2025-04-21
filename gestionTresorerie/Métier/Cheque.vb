@@ -83,7 +83,7 @@ Public Class Cheque
 
     Sub ParseJson(json As String)
         ' Parse the JSON string
-        Dim jsonObject As JObject = JObject.Parse(json)
+        'Dim jsonObject As JObject = JObject.Parse(json)
 
         Dim objJson = JObject.Parse(json)
         Dim choix = objJson("choices")
@@ -109,13 +109,14 @@ Public Class Cheque
                         _emetteur_du_cheque = .Item("emetteur_du_cheque").ToString
                         _destinataire = .Item("le_destinataire").ToString
                     End With
-                    Exit Select
                 Case Else
-                    Exit Select
+                    ' Logger l'information
+                    Logger.GetInstance().INFO("Propriété non reconnue : " & item.Name)
             End Select
         Next
     End Sub
-    Function ExtractAndCleanJson(content As String) As String
+
+    Shared Function ExtractAndCleanJson(content As String) As String
         ' Use regex to extract text between the first '{' and the last '}'
         Dim match As Match = Regex.Match(content, "\{(.*?)\}", RegexOptions.Singleline)
 
@@ -203,11 +204,8 @@ Public Class Cheque
     End Sub
 
     Public Function AfficherTiersSuperieurImage(image As Image, ratio As Double) As Image
-        AfficherTiersSuperieurImage = Nothing
+        ' Renvoie seulement le ratio (33% par défaut) supérieur de l'image car les chèques sont scannés en A4
         Try
-            ' Charger l'image à partir du chemin spécifié
-            'Dim originalImage As Image = Image.FromFile(cheminImage)
-
             ' Calculer la hauteur du tiers supérieur
             Dim tiersSuperieurHauteur As Integer = CInt(image.Height * ratio)
 
@@ -215,19 +213,25 @@ Public Class Cheque
             Dim rectangleTiersSuperieur As New Rectangle(450, 0, image.Width - 450, tiersSuperieurHauteur)
 
             ' Créer une nouvelle image pour le tiers supérieur
-            Dim tiersSuperieurImage As Image = New Bitmap(rectangleTiersSuperieur.Width, rectangleTiersSuperieur.Height)
+            Dim tiersSuperieurImage As New Bitmap(rectangleTiersSuperieur.Width, rectangleTiersSuperieur.Height)
 
             ' Dessiner la partie supérieure de l'image originale sur la nouvelle image
             Using g As Graphics = Graphics.FromImage(tiersSuperieurImage)
                 g.DrawImage(image, New Rectangle(0, 0, rectangleTiersSuperieur.Width, rectangleTiersSuperieur.Height), rectangleTiersSuperieur, GraphicsUnit.Pixel)
             End Using
 
-            ' Afficher l'image du tiers supérieur dans la PictureBox
-            AfficherTiersSuperieurImage = tiersSuperieurImage
-
+            ' Logger l'information
             Logger.GetInstance().INFO("Tiers supérieur de l'image affiché avec succès.")
+
+            ' Retourner l'image du tiers supérieur
+            Return tiersSuperieurImage
+
         Catch ex As Exception
+            ' Logger l'erreur
             Logger.GetInstance().ERR("Erreur lors de l'extraction du tiers supérieur de l'image : " & ex.Message)
+            ' Retourner une image vide en cas d'erreur
+            Return New Bitmap(1, 1)
         End Try
     End Function
+
 End Class

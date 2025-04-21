@@ -1,17 +1,17 @@
-﻿Imports DocumentFormat.OpenXml
+﻿Imports System.IO
+Imports DocumentFormat.OpenXml
 Imports DocumentFormat.OpenXml.Packaging
 Imports DocumentFormat.OpenXml.Wordprocessing
+Imports A = DocumentFormat.OpenXml.Drawing
 Imports BottomBorder = DocumentFormat.OpenXml.Wordprocessing.BottomBorder
+Imports DW = DocumentFormat.OpenXml.Drawing.Wordprocessing
 Imports LeftBorder = DocumentFormat.OpenXml.Wordprocessing.LeftBorder
+Imports PIC = DocumentFormat.OpenXml.Drawing.Pictures
 Imports RightBorder = DocumentFormat.OpenXml.Wordprocessing.RightBorder
 Imports Run = DocumentFormat.OpenXml.Wordprocessing.Run
 Imports Table = DocumentFormat.OpenXml.Wordprocessing.Table
 Imports Text = DocumentFormat.OpenXml.Wordprocessing.Text
 Imports TopBorder = DocumentFormat.OpenXml.Wordprocessing.TopBorder
-Imports System.IO
-Imports A = DocumentFormat.OpenXml.Drawing
-Imports DW = DocumentFormat.OpenXml.Drawing.Wordprocessing
-Imports PIC = DocumentFormat.OpenXml.Drawing.Pictures
 
 
 Module creeOpenXml
@@ -209,11 +209,11 @@ Module creeOpenXml
 
             Dim imagePart As ImagePart = mainPart.AddImagePart(ImagePartType.Jpeg)
 
-        Using stream As New FileStream(fileName, FileMode.Open)
-            imagePart.FeedData(stream)
-        End Using
+            Using stream As New FileStream(fileName, FileMode.Open)
+                imagePart.FeedData(stream)
+            End Using
 
-        AddImageToBody(wordprocessingDocument, mainPart.GetIdOfPart(imagePart))
+            AddImageToBody(wordprocessingDocument, mainPart.GetIdOfPart(imagePart))
         End Using
     End Sub
     Public Sub ajouteImage(document As WordprocessingDocument, ByVal fileName As String)
@@ -280,10 +280,10 @@ Module creeOpenXml
         ' Assign a reference to the existing document body.
         Dim body As Body = document.MainDocumentPart.Document.Body
 
-            ' Add a paragraph with some text.            
-            Dim para As Paragraph = body.AppendChild(New Paragraph())
-            Dim run As Run = para.AppendChild(New Run())
-            run.AppendChild(New Text(txt))
+        ' Add a paragraph with some text.            
+        Dim para As Paragraph = body.AppendChild(New Paragraph())
+        Dim run As Run = para.AppendChild(New Run())
+        run.AppendChild(New Text(txt))
         Return para
     End Function
     Public Function ajouteParagraphe(ByVal filepath As String, ByVal txt As String) As Paragraph
@@ -334,7 +334,7 @@ Module creeOpenXml
                 AddNewStyle(part, styleid, stylename)
             Else
                 ' If the style is not in the document, add it.
-                If IsStyleIdInDocument(wordprocessingDocument, styleid) <> True Then
+                If Not IsStyleIdInDocument(wordprocessingDocument, styleid) Then
                     ' No match on styleid, so let's try style name.
                     Dim styleidFromName As String =
                     GetStyleIdFromStyleName(wordprocessingDocument, stylename)
@@ -370,7 +370,7 @@ Module creeOpenXml
             AddNewStyle(part, styleid, stylename)
         Else
             ' If the style is not in the document, add it.
-            If IsStyleIdInDocument(doc, styleid) <> True Then
+            If Not IsStyleIdInDocument(doc, styleid) Then
                 ' No match on styleid, so let's try style name.
                 Dim styleidFromName As String =
                     GetStyleIdFromStyleName(doc, stylename)

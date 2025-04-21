@@ -1,5 +1,4 @@
 ﻿Imports System.IO
-Imports System.Configuration
 
 Public Class Logger
     ' Instance unique de la classe
@@ -18,7 +17,7 @@ Public Class Logger
     End Function
 
     ' Méthode pour écrire dans le fichier de trace avec un niveau de log
-    Public Sub EcrireDansFichierTrace(level As String, message As String)
+    Public Shared Sub EcrireDansFichierTrace(level As String, message As String)
         Try
             ' Lire le chemin du fichier de trace à partir de app.config
             Dim cheminFichierTrace As String = lectureProprietes.GetVariable("fichierLog")

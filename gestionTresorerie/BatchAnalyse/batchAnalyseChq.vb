@@ -1,5 +1,4 @@
 ﻿Imports System.IO
-Imports System.Collections.Generic
 
 Public Class batchAnalyseChq
     Private nombreFichiersTraites As Integer = 0
@@ -77,11 +76,11 @@ Public Class batchAnalyseChq
         End Try
     End Sub
 
-    Public Sub analyseChq(cheminChq As String)
+    Public Shared Sub analyseChq(cheminChq As String)
         Dim extraction As New appelMistral()
 
         Logger.GetInstance().INFO("-------------------" & vbCrLf & "Analyse du chèque " & cheminChq)
-        Dim chqJson = extraction.litImage(cheminChq)
+        Dim chqJson = appelMistral.litImage(cheminChq)
         cheminChq = RenommerFichier(cheminChq, chqJson.numero_du_cheque)
         chqJson.InsereEnBase(cheminChq)
         Logger.GetInstance().INFO("Insertion en base du chèque " & cheminChq)

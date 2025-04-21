@@ -1,6 +1,5 @@
-﻿Imports System.Text.RegularExpressions
-Imports System.Data.SqlClient
-Imports System.IO
+﻿Imports System.Data.SqlClient
+Imports System.Text.RegularExpressions
 Public Class Mouvements
     Private _note As String
     Private _categorie As Integer
@@ -102,7 +101,7 @@ Public Class Mouvements
     End Function
 
 
-    Public Shared Sub MettreAJourMouvement(categorie As String, sousCategorie As String, montant As Decimal, sens As Boolean, tiers As String, note As String, dateMvt As Date, etat As Boolean, evenement As String, type As String, modifiable As Boolean, numeroRemise As Integer?, Optional idCheque As Integer? = Nothing)
+    Public Shared Sub MettreAJourMouvement(Id As Integer, categorie As Integer, sousCategorie As Integer, montant As Decimal, sens As Boolean, tiers As Integer, note As String, dateMvt As Date, etat As Boolean, evenement As String, type As String, modifiable As Boolean, numeroRemise As Integer?, Optional idCheque As Integer? = Nothing)
         Dim sqlConnexion As SqlConnection = Nothing
         Dim rowsAffected As Integer = 0
 
@@ -119,20 +118,14 @@ Public Class Mouvements
             'Dim query As String = "UPDATE [dbo].[Mouvements] SET [catégorie] = @Categorie, [sousCatégorie] = @SousCategorie, [montant] = @Montant, [sens] = @Sens, [tiers] = @Tiers, [note] = @Note, [dateMvt] = @DateMvt, [dateModification] = GETDATE(), [etat] = @Etat, [événement] = @Evenement, [type] = @Type, [modifiable] = @Modifiable, [numeroRemise] = @NumeroRemise"
             Dim query As String = lectureProprietes.GetVariable("updMvt", False)
 
-            ' Ajouter la partie conditionnelle pour idCheque
-            'If idCheque.HasValue Then
-            '    query &= ", [idCheque] = @IdCheque"
-            'Else
-            '    query &= ", [idCheque] = NULL"
-            'End If
-
             Using command As New SqlCommand(query, sqlConnexion)
                 ' Ajouter les paramètres à la requête
+                command.Parameters.AddWithValue("@Id", Id)
                 command.Parameters.AddWithValue("@Categorie", categorie)
-                command.Parameters.AddWithValue("@SousCategorie", If(sousCategorie Is Nothing, DBNull.Value, sousCategorie))
+                command.Parameters.AddWithValue("@SousCategorie", sousCategorie)
                 command.Parameters.AddWithValue("@Montant", montant)
                 command.Parameters.AddWithValue("@Sens", sens)
-                command.Parameters.AddWithValue("@Tiers", If(tiers Is Nothing, DBNull.Value, tiers))
+                command.Parameters.AddWithValue("@Tiers", tiers)
                 command.Parameters.AddWithValue("@Note", If(note Is Nothing, DBNull.Value, note))
                 command.Parameters.AddWithValue("@DateMvt", dateMvt)
                 command.Parameters.AddWithValue("@Etat", etat)
@@ -169,51 +162,58 @@ Public Class Mouvements
 
 
     Public Shared Sub SupprimerMouvement(id As Integer)
-            Dim sqlConnexion As SqlConnection = Nothing
-            Dim rowsAffected As Integer = 0
+        Dim sqlConnexion As SqlConnection = Nothing
+        Dim rowsAffected As Integer = 0
 
-            Try
-                ' Obtenir la connexion SQL
-                sqlConnexion = connexionDB.GetInstance.getConnexion
+        Try
+            ' Obtenir la connexion SQL
+            sqlConnexion = connexionDB.GetInstance.getConnexion
 
-                ' Ouvrir la connexion
-                If sqlConnexion.State <> ConnectionState.Open Then
-                    sqlConnexion.Open()
-                End If
+            ' Ouvrir la connexion
+            If sqlConnexion.State <> ConnectionState.Open Then
+                sqlConnexion.Open()
+            End If
 
-                ' Requête SQL pour supprimer l'enregistrement
-                Dim query As String = "DELETE FROM [dbo].[Mouvements] WHERE [Id] = @Id"
+            ' Requête SQL pour supprimer l'enregistrement
+            Dim query As String = "DELETE FROM [dbo].[Mouvements] WHERE [Id] = @Id"
 
-                Using command As New SqlCommand(query, sqlConnexion)
-                    ' Ajouter le paramètre Id à la requête
-                    command.Parameters.AddWithValue("@Id", id)
+            Using command As New SqlCommand(query, sqlConnexion)
+                ' Ajouter le paramètre Id à la requête
+                command.Parameters.AddWithValue("@Id", id)
 
-                    ' Exécuter la requête et obtenir le nombre de lignes affectées
-                    rowsAffected = command.ExecuteNonQuery()
-                End Using
+                ' Exécuter la requête et obtenir le nombre de lignes affectées
+                rowsAffected = command.ExecuteNonQuery()
+            End Using
 
-                ' Trace indiquant le nombre de lignes supprimées
-                Logger.GetInstance().INFO($"Nombre de lignes supprimées : {rowsAffected}")
+            ' Trace indiquant le nombre de lignes supprimées
+            Logger.GetInstance().INFO($"Nombre de lignes supprimées : {rowsAffected}")
 
-                ' Trace indiquant l'Id supprimé
-                Logger.GetInstance().INFO($"Enregistrement supprimé - Id: {id}")
+            ' Trace indiquant l'Id supprimé
+            Logger.GetInstance().INFO($"Enregistrement supprimé - Id: {id}")
 
-            Catch ex As Exception
-                ' Trace en cas d'erreur
-                Logger.GetInstance().ERR($"Erreur lors de la suppression du mouvement : {ex.Message}")
-            Finally
-                ' Fermer la connexion si elle est ouverte
-                If sqlConnexion IsNot Nothing AndAlso sqlConnexion.State = ConnectionState.Open Then
-                    sqlConnexion.Close()
-                End If
-            End Try
-        End Sub
+        Catch ex As Exception
+            ' Trace en cas d'erreur
+            Logger.GetInstance().ERR($"Erreur lors de la suppression du mouvement : {ex.Message}")
+        Finally
+            ' Fermer la connexion si elle est ouverte
+            If sqlConnexion IsNot Nothing AndAlso sqlConnexion.State = ConnectionState.Open Then
+                sqlConnexion.Close()
+            End If
+        End Try
+    End Sub
 
     Public Shared Function VerifParam(note As String, categorie As String, sousCategorie As String, tiers As Integer, dateMvt As Date, montant As String, sens As String, etat As String, événement As String, type As String, modifiable As Boolean, numeroRemise As String, ByVal idCheque As Integer) As Boolean
         Dim bToutEstLa As Boolean = False
 
         'L'idCheque est facultatif
-        If categorie <> "" AndAlso sousCategorie <> "" AndAlso tiers <> 0 AndAlso IsDate(dateMvt) AndAlso sens <> "" AndAlso etat <> "" AndAlso type <> "" Then
+        If categorie <> "" AndAlso
+            sousCategorie <> "" AndAlso
+            tiers <> 0 AndAlso
+            IsDate(dateMvt) AndAlso
+            sens <> "" AndAlso
+            etat <> "" AndAlso
+            type <> "" AndAlso
+            montant <> "" Then
             bToutEstLa = True
         End If
         Return bToutEstLa

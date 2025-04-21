@@ -1,6 +1,4 @@
-﻿Imports DocumentFormat.OpenXml.Office.Drawing
-
-Public Class frmListe
+﻿Public Class frmListe
 
     Public Property SelectedObject As Object
 

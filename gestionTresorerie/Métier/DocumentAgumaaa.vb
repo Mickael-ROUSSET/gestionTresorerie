@@ -67,7 +67,7 @@ Public Class DocumentAgumaaa
         End Set
     End Property
 
-    Public Sub InsererDocument(dateDoc As Date, contenuDoc As String, cheminDoc As String, categorieDoc As String, sousCategorieDoc As String, idMvtDoc As Integer)
+    Public Shared Sub InsererDocument(dateDoc As Date, contenuDoc As String, cheminDoc As String, categorieDoc As String, sousCategorieDoc As String, idMvtDoc As Integer)
 
         Try
             Dim query As String = "INSERT INTO [dbo].[Documents] (dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc) VALUES (@dateDoc, @contenuDoc, @cheminDoc, @categorieDoc, @sousCategorieDoc, @idMvtDoc);"
@@ -88,7 +88,7 @@ Public Class DocumentAgumaaa
             Console.WriteLine("Erreur lors de l'insertion du document : " & ex.Message)
         End Try
     End Sub
-    Public Function LireDocuments() As DataTable
+    Public Shared Function LireDocuments() As DataTable
         Dim table As New DataTable()
 
         Try
@@ -105,7 +105,7 @@ Public Class DocumentAgumaaa
 
         Return table
     End Function
-    Public Sub MettreAJourDocument(idDoc As Integer, dateDoc As Date, contenuDoc As String, cheminDoc As String, categorieDoc As String, sousCategorieDoc As String, idMvtDoc As Integer)
+    Public Shared Sub MettreAJourDocument(idDoc As Integer, dateDoc As Date, contenuDoc As String, cheminDoc As String, categorieDoc As String, sousCategorieDoc As String, idMvtDoc As Integer)
 
         Try
             Dim query As String = "UPDATE [dbo].[Documents] SET dateDoc = @dateDoc, contenuDoc = @contenuDoc, cheminDoc = @cheminDoc, categorieDoc = @categorieDoc, sousCategorieDoc = @sousCategorieDoc, idMvtDoc=@idMvtDoc WHERE idDoc = @idDoc;"
@@ -127,7 +127,7 @@ Public Class DocumentAgumaaa
             Console.WriteLine("Erreur lors de la mise à jour du document : " & ex.Message)
         End Try
     End Sub
-    Public Sub SupprimerDocument(idDoc As Integer)
+    Public Shared Sub SupprimerDocument(idDoc As Integer)
         Try
             'connection.Open()
             Dim query As String = "DELETE FROM [dbo].[Documents] WHERE idDoc = @idDoc;"

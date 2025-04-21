@@ -1,5 +1,4 @@
-﻿Imports System.Xml
-Public Class GereXml
+﻿Public Class GereXml
     'Public Shared Function LitXml(sFichier As String) As ListeTiers
     '    'creation d'une nouvelle instance du membre xmldocument
     '    Dim XmlDoc As New XmlDocument()

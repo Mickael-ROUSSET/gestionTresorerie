@@ -1,10 +1,9 @@
-﻿Imports System.Text.RegularExpressions
-Imports System.Data.SqlClient
-Imports System.IO
-Imports Newtonsoft.Json.Linq
-Imports Newtonsoft.Json
+﻿Imports System.Data.SqlClient
 Imports System.Globalization
-Imports System.Reflection.Metadata
+Imports System.IO
+Imports System.Text.RegularExpressions
+Imports Newtonsoft.Json
+Imports Newtonsoft.Json.Linq
 
 Public Class FrmSaisie
     Inherits System.Windows.Forms.Form
@@ -136,32 +135,41 @@ Public Class FrmSaisie
         'dgvTiers.Columns("id").Visible = False 
     End Sub
 
-    Private Sub ChargeDgvCategorie(debit As Boolean)
-        Dim query As String = "SELECT id, libelle FROM Categorie WHERE debit = @debit;"
+
+    Private Sub ChargeDgvCategorie(Optional debit As Boolean? = Nothing)
+            Dim query As String = "SELECT id, libelle FROM Categorie"
+
+        If debit.HasValue Then
+            Logger.GetInstance.INFO("Chargement des catégories avec sens : " & debit)
+            query += " WHERE debit = @debit"
+            End If
+
         Dim dt As New DataTable
-
         Try
-            Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
-            Using command As New SqlCommand(query, conn)
-                'TODO : vilain false => 0, true (-1) => 1 avec math.abs
-                command.Parameters.AddWithValue("@debit", Math.Abs(CInt(debit)))
+                Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
+                Using command As New SqlCommand(query, conn)
+                    If debit.HasValue Then
+                        command.Parameters.AddWithValue("@debit", Math.Abs(CInt(debit.Value)))
+                    End If
 
-                Using adpt As New SqlDataAdapter(command)
-                    adpt.Fill(dt)
+                    Using adpt As New SqlDataAdapter(command)
+                        adpt.Fill(dt)
+                    End Using
                 End Using
-            End Using
 
-            dgvCategorie.DataSource = dt
-            dgvCategorie.Columns("id").Visible = False
-            dgvCategorie.Columns("libelle").Visible = True
+                dgvCategorie.DataSource = dt
+                dgvCategorie.Columns("id").Visible = False
+                dgvCategorie.Columns("libelle").Visible = True
 
             Logger.GetInstance.INFO("Chargement des catégories réussi : " & dgvCategorie.RowCount)
         Catch ex As SqlException
             Logger.GetInstance.ERR($"Erreur lors du chargement des catégories. Message: {ex.Message}")
             MessageBox.Show("ChargeDgvCategorie : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
-        End Try
-    End Sub
-    Private Sub ChargeDgvSousCategorie(idCategorie As Integer)
+            End Try
+        End Sub
+
+
+        Private Sub ChargeDgvSousCategorie(idCategorie As Integer)
 
         Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, libelle FROM SousCategorie where idCategorie = @idCategorie;", connexionDB.GetInstance.getConnexion)
         command.Parameters.AddWithValue("@idCategorie", idCategorie)
@@ -228,25 +236,35 @@ Public Class FrmSaisie
     'End Sub
 
     Private Sub dgvTiers_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvTiers.CellContentClick
-        'Gérer les catégories par défaut
+        ' Gérer les catégories et sous-catégories par défaut 
 
-        Dim selectedRowCount As Int32 = dgvTiers.Rows.GetRowCount(DataGridViewElementStates.Selected)
-        Dim i As Integer, idTiers As Integer
+        If dgvTiers.Rows.GetRowCount(DataGridViewElementStates.Selected) > 0 Then
+            ' Récupérer la valeur du 4ème champ du tiers sélectionné
+            Dim idCategorieDefaut As Object = dgvTiers.SelectedRows(0).Cells(4).Value
+            Dim idSousCategorieDefaut As Object = dgvTiers.SelectedRows(0).Cells(5).Value
 
-        If (selectedRowCount > 0) Then
-            Dim sb As New System.Text.StringBuilder()
-            For i = 0 To selectedRowCount
-                sb.Append("Row: ")
-                sb.Append(dgvTiers.SelectedRows(i).Index)
-                sb.Append(Environment.NewLine)
-                i += 1
-            Next
-            sb.Append("Total: " & selectedRowCount.ToString())
+            ' Charger les catégories  
+            ChargeDgvCategorie()
+            ' Sélectionner la ligne correspondante dans dgvCategorie
+            SelectRowInDataGridView(dgvCategorie, idCategorieDefaut)
+
+            ' Charger les sous-catégories
+            majSousCategorie()
+            ' Sélectionner la ligne correspondante dans dgvSousCategorie
+            SelectRowInDataGridView(dgvSousCategorie, idSousCategorieDefaut)
         End If
-        'Retrouver le Tiers
-        dgvTiers.CurrentCell = dgvTiers.SelectedRows(0).Cells(0)
-        idTiers = dgvTiers.SelectedRows(0).Cells(0).Value
     End Sub
+
+    Private Sub SelectRowInDataGridView(dgv As DataGridView, id As Object)
+        For Each row As DataGridViewRow In dgv.Rows
+            If row.Cells(0).Value IsNot Nothing AndAlso row.Cells(0).Value.Equals(id) Then
+                row.Selected = True
+                dgv.FirstDisplayedScrollingRowIndex = row.Index
+                Exit For
+            End If
+        Next
+    End Sub
+
     'Private Sub ChargeSousCategorie(indiceCategorie As Integer)
     '    Dim monReaderSousCategorie As SqlDataReader
     '    Dim maCmdSousCategorie As SqlCommand
@@ -371,14 +389,40 @@ Public Class FrmSaisie
         If index = -1 Then
             Logger.GetInstance.ERR("L'objet sélectionné est nul => mouvement à insérer")
         Else
-            With _dtMvtsIdentiques.Rows(index)
-                'Dim mvtModif As New Mouvements(.ItemArray(6), .ItemArray(1), .ItemArray(2), .ItemArray(5), .ItemArray(7), .ItemArray(3), .ItemArray(4), .ItemArray(10), .ItemArray(11), .ItemArray(12), .ItemArray(13), .ItemArray(14), .ItemArray(15))
-                'Mouvements.MettreAJourMouvement(mvtModif.Categorie, mvtModif.SousCategorie, mvtModif.Montant, mvtModif.Sens, mvtModif.Tiers, mvtModif.Note, mvtModif.DateCréation, mvtModif.Etat, mvtModif.Événement, mvtModif.Type, mvtModif.Modifiable, mvtModif.NumeroRemise, mvtModif.idCheque)
-                'TODO : récupérer les valeurs dans la fenêtre
-                Mouvements.MettreAJourMouvement(.ItemArray(1), .ItemArray(2), .ItemArray(3), .ItemArray(4), .ItemArray(5), .ItemArray(6), .ItemArray(7), .ItemArray(10), .ItemArray(11), .ItemArray(12), .ItemArray(13), .ItemArray(14), .ItemArray(15))
-            End With
+            'Dim mvtModif As New Mouvements(.ItemArray(6), .ItemArray(1), .ItemArray(2), .ItemArray(5), .ItemArray(7), .ItemArray(3), .ItemArray(4), .ItemArray(10), .ItemArray(11), .ItemArray(12), .ItemArray(13), .ItemArray(14), .ItemArray(15))
+            'Mouvements.MettreAJourMouvement(mvtModif.Categorie, mvtModif.SousCategorie, mvtModif.Montant, mvtModif.Sens, mvtModif.Tiers, mvtModif.Note, mvtModif.DateCréation, mvtModif.Etat, mvtModif.Événement, mvtModif.Type, mvtModif.Modifiable, mvtModif.NumeroRemise, mvtModif.idCheque)
+            'Mouvements.MettreAJourMouvement(.ItemArray(1), .ItemArray(2), .ItemArray(3), .ItemArray(4), .ItemArray(5), .ItemArray(6), .ItemArray(7), .ItemArray(10), .ItemArray(11), .ItemArray(12), .ItemArray(13), .ItemArray(14), .ItemArray(15))
+            Mouvements.MettreAJourMouvement(
+                     _dtMvtsIdentiques.Rows(index).ItemArray(0),
+                     dgvCategorie.Rows(dgvCategorie.SelectedRows(0).Index).Cells(0).Value,
+                     dgvSousCategorie.Rows(dgvSousCategorie.SelectedRows(0).Index).Cells(0).Value,
+                     txtMontant.Text.Trim().Replace(" ", ""),
+                     rbCredit.Checked,
+                     Convert.ToInt32(dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(0).Value),
+                     txtNote.Text,
+                     dateMvt.Value,
+                     rbRapproche.Checked,
+                     cbEvénement.SelectedItem,
+                     cbType.SelectedItem,
+                     False,
+                     GetRemiseValue(txtRemise.Text),
+                     _idCheque)
         End If
     End Sub
+
+    Private Function GetRemiseValue(texteRemise As String) As Integer
+
+        If String.IsNullOrEmpty(texteRemise) Then
+            Return 0 ' Retourne 0 si le texte est vide
+        End If
+
+        Dim remiseValue As Integer
+        If Integer.TryParse(texteRemise, remiseValue) Then
+            Return remiseValue ' Retourne la valeur convertie en entier
+        Else
+            Return 0 ' Retourne 0 si la conversion échoue
+        End If
+    End Function
 
     Private Function CreerMouvement() As Mouvements
         Dim iCategorie As Integer = dgvCategorie.Rows(dgvCategorie.SelectedRows(0).Index).Cells(0).Value.ToString()
@@ -501,7 +545,7 @@ Public Class FrmSaisie
         'Call UpdateIdCheque(idMouvement, idCheque)
     End Sub
 
-    Public Function CreerJsonCheque(_id As Integer, _montant_numerique As Decimal, _numero_du_cheque As String, _dateChq As DateTime, _emetteur_du_cheque As String, _destinataire As String) As String
+    Public Shared Function CreerJsonCheque(_id As Integer, _montant_numerique As Decimal, _numero_du_cheque As String, _dateChq As DateTime, _emetteur_du_cheque As String, _destinataire As String) As String
         ' Créer un objet JObject pour construire le JSON
         Dim jsonObject As New JObject()
         jsonObject("id") = _id

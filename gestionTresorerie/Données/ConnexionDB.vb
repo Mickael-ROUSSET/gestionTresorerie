@@ -6,9 +6,8 @@ Public Class connexionDB
     Implements IDisposable
     Public _maConnexion As SqlConnection
     Public _maCommandeSql As New SqlCommand()
-    'Public result As String
-    'Public reader As SqlDataReader
     Private Shared _instance As connexionDB
+    Private disposed As Boolean = False ' Pour détecter les appels redondants
 
     ' Méthode publique pour accéder à l'instance unique
     Public Shared Function GetInstance() As connexionDB
@@ -55,41 +54,38 @@ Public Class connexionDB
         _maConnexion.Close()
         Logger.GetInstance.INFO("Connexion : " & _maConnexion.ConnectionString & " fermée")
     End Sub
-    'Public Sub creeConnexion()
-    '    Me.maCommandeSql.Connection = maConnexion
-    '    'Me.maCommandeSql.CommandText = Me.sRequete
-    '    Try
-    '        Me.maConnexion.Open()
-    '        Me.result = maCommandeSql.ExecuteScalar().ToString
-    '    Catch ex As Exception
-    '        MsgBox("Erreur : " & ex.Message)
-    '    Finally
-    '        Me.maCommandeSql.Dispose()
-    '        Me.maConnexion.Close()
-    '        Me.maConnexion.Dispose()
-    '    End Try
-    'End Sub
 
-    'Public Function ConnexionExecuteReader() As SqlDataReader
-    '    Me._maCommandeSql.Connection = _maConnexion
-    '    Try
-    '        Me._maConnexion.Open()
-    '        Me.reader = _maCommandeSql.ExecuteReader(CommandBehavior.CloseConnection)
-    '    Catch ex As Exception
-    '    Finally
-    '    End Try
-    '    Return reader
-    'End Function
+    ' Destructeur
+    Protected Overrides Sub Finalize()
+        Dispose(False)
+        MyBase.Finalize()
+    End Sub
 
-    Public Sub Dispose() Implements System.IDisposable.Dispose
-        Try
-            'Me.sRequete = Nothing
-            Me._maConnexion.Close()
-            Me._maConnexion.Dispose()
-            Me._maCommandeSql.Dispose()
-            'Me.reader.Close()
-            'Me.result = Nothing
-        Catch ex As Exception
-        End Try
+    ' Implémentation de IDisposable
+    Public Sub Dispose() Implements IDisposable.Dispose
+        Dispose(True)
+        GC.SuppressFinalize(Me)
+    End Sub
+    Protected Overridable Sub Dispose(disposing As Boolean)
+        If Not disposed Then
+            If disposing Then
+                ' Libérer les ressources managées ici.
+                If _maConnexion IsNot Nothing Then
+                    If _maConnexion.State = ConnectionState.Open Then
+                        _maConnexion.Close()
+                    End If
+                    _maConnexion.Dispose()
+                    _maConnexion = Nothing
+                End If
+                If _maCommandeSql IsNot Nothing Then
+                    _maCommandeSql.Dispose()
+                    _maCommandeSql = Nothing
+                End If
+                ' Libérer d'autres ressources managées ici si nécessaire.
+            End If
+
+            ' Libérer les ressources non managées ici (si vous en avez).
+            disposed = True
+        End If
     End Sub
 End Class

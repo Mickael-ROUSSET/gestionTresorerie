@@ -27,7 +27,7 @@ le destinataire à droite de la mention ""à ""
     'Prompt demande d'analyse du chèque
     ReadOnly promptAnalyse As String = "Analyse l'image du chèque pour en extraire le texte"
 
-    Public Function litImage(chequeImagePath As String) As Cheque
+    Public Shared Function litImage(chequeImagePath As String) As Cheque
         ' Clé API Mistral
         Dim valCle = New cléApiMistral
         Dim apiKey As String = valCle.getCle
@@ -41,19 +41,19 @@ le destinataire à droite de la mention ""à ""
         Return jsonChq
     End Function
 
-    Function ConvertirImageEnBase64(cheminImage As String) As String
+    Shared Function ConvertirImageEnBase64(cheminImage As String) As String
         Dim imageBytes As Byte() = File.ReadAllBytes(cheminImage)
         Return Convert.ToBase64String(imageBytes)
     End Function
 
-    Public Function EncodeImageToBase64(filePath As String) As String
+    Public Shared Function EncodeImageToBase64(filePath As String) As String
         ' Lire le fichier image en tant que tableau d'octets
         Dim imageBytes As Byte() = File.ReadAllBytes(filePath)
         ' Convertir le tableau d'octets en une chaîne base64
         Return Convert.ToBase64String(imageBytes)
     End Function
 
-    Function ExtractTextFromImage(apiUrl As String, imageFilePath As String, apiKey As String) As String
+    Shared Function ExtractTextFromImage(apiUrl As String, imageFilePath As String, apiKey As String) As String
         ' Chemin du fichier image
         'Dim imageFilePath As String = "C:\Users\User\Downloads\SKM_C25825030514310.pdf"
 
@@ -99,7 +99,8 @@ le destinataire à droite de la mention ""à ""
             End Using
         End Using
     End Function
-    Function trouveTiers(apiUrl As String, questionIA As String, apiKey As String) As String
+
+    Shared Function trouveTiers(apiUrl As String, questionIA As String, apiKey As String) As String
 
         Using client As New HttpClient()
 

@@ -161,7 +161,7 @@
       <Value Profile="(Default)">EXEC dbo.ObtenirMouvementsSimilaires @dateMvt, @montant, @sens</Value>
     </Setting>
     <Setting Name="updMvt" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">UPDATE [dbo].[Mouvements] SET [catégorie] = @Categorie, [sousCatégorie] = @SousCategorie, [tiers] = @Tiers, [note] = @Note, [dateModification] = GETDATE(), [etat] = @Etat, [événement] = @Evenement, [type] = @Type, [modifiable] = @Modifiable, [numeroRemise] = @NumeroRemise where [montant] = @Montant and [sens] = @Sens and [dateMvt] = @DateMvt</Value>
+      <Value Profile="(Default)">UPDATE [dbo].[Mouvements] SET [catégorie] = @Categorie, [sousCatégorie] = @SousCategorie, [tiers] = @Tiers, [note] = @Note, [dateModification] = GETDATE(), [etat] = @Etat, [événement] = @Evenement, [type] = @Type, [modifiable] = @Modifiable, [numeroRemise] = @NumeroRemise where [Id] = @Id</Value>
     </Setting>
   </Settings>
 </SettingsFile>
