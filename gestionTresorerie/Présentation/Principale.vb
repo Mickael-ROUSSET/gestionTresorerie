@@ -20,7 +20,7 @@ Public Class FrmPrincipale
         Catch ex As Exception
             ' Gestion des erreurs
             MessageBox.Show("Une erreur est survenue lors de l'initialisation : " & ex.Message, "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Logger.GetInstance.ERR("Une erreur est survenue lors de l'initialisation : " & ex.Message)
+            Logger.ERR("Une erreur est survenue lors de l'initialisation : " & ex.Message)
         End Try
     End Sub
     Private Sub ChargerDgvPrincipale()
@@ -48,37 +48,38 @@ Public Class FrmPrincipale
             AjouterColonneEtatImage()
 
             ' Écrire un log d'information
-            Logger.GetInstance.INFO("Chargement des données dans dgvPrincipale réussi.")
+            Logger.INFO("Chargement des données dans dgvPrincipale réussi.")
         Catch ex As SqlException
             ' Écrire un log d'erreur en cas d'exception SQL
-            Logger.GetInstance.ERR($"Erreur SQL lors du chargement des données dans dgvPrincipale : {ex.Message}")
+            Logger.ERR($"Erreur SQL lors du chargement des données dans dgvPrincipale : {ex.Message}")
         Catch ex As Exception
             ' Écrire un log d'erreur en cas d'exception générale
-            Logger.GetInstance.ERR($"Erreur lors du chargement des données dans dgvPrincipale : {ex.Message}")
+            Logger.ERR($"Erreur lors du chargement des données dans dgvPrincipale : {ex.Message}")
         End Try
     End Sub
 
     Private Sub AjouterColonneEtatImage()
         ' Ajouter une colonne d'image pour l'état
-        Dim etatImageColumn As New DataGridViewImageColumn()
-        etatImageColumn.Name = "etatImage"
-        etatImageColumn.HeaderText = "État"
+        Dim etatImageColumn As New DataGridViewImageColumn With {
+            .Name = "etatImage",
+            .HeaderText = "État"
+        }
         dgvPrincipale.Columns.Add(etatImageColumn)
 
         ' Parcourir les lignes du DataGridView pour définir les images
         For Each row As DataGridViewRow In dgvPrincipale.Rows
             If Not row.IsNewRow Then
                 Try
-                    '8 correspond à la colonne "etat"
-                    Dim etat As Object = row.Cells(8).Value
+                    '7 correspond à la colonne "etat"
+                    Dim etat As Object = row.Cells(7).Value
                     If etat IsNot Nothing AndAlso TypeOf etat Is Boolean Then
                         row.Cells("etatImage").Value = If(CType(etat, Boolean), My.Resources.OK, My.Resources.KO)
                     Else
-                        Logger.GetInstance.ERR($"Valeur invalide pour la colonne 'etat' dans la ligne {row.Index}: {etat}")
+                        Logger.ERR($"Valeur invalide pour la colonne 'etat' dans la ligne {row.Index}: {etat}")
                         row.Cells("etatImage").Value = My.Resources.KO ' Par défaut, si la valeur est invalide
                     End If
                 Catch ex As Exception
-                    Logger.GetInstance.ERR($"Erreur lors de la définition de l'image pour la colonne 'etat' dans la ligne {row.Index}: {ex.Message}")
+                    Logger.ERR($"Erreur lors de la définition de l'image pour la colonne 'etat' dans la ligne {row.Index}: {ex.Message}")
                     row.Cells("etatImage").Value = My.Resources.KO ' Par défaut, en cas d'erreur
                 End Try
             End If
@@ -222,7 +223,7 @@ Public Class FrmPrincipale
         Dim cmd As New SqlCommand("SELECT DISTINCT catégorie FROM Mouvements;", connexionDB.GetInstance.getConnexion)
         Using reader As SqlDataReader = cmd.ExecuteReader()
             While reader.Read()
-                categories.Add(reader.GetSqlString(0))
+                categories.Add(reader.GetSqlInt32(0))
             End While
         End Using
         Return categories
@@ -245,7 +246,7 @@ Public Class FrmPrincipale
         cmd.Parameters.AddWithValue("@category", category)
         Using reader As SqlDataReader = cmd.ExecuteReader()
             While reader.Read()
-                subCategories.Add((reader.GetSqlString(0), reader.GetDecimal(1)))
+                subCategories.Add((reader.GetSqlInt32(0), reader.GetDecimal(1)))
             End While
         End Using
         Return subCategories

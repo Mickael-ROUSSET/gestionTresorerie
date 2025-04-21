@@ -1,5 +1,6 @@
 ﻿Imports System.IO
 Imports System.Security
+Imports System.Text
 Imports System.Text.RegularExpressions
 Module LitRelevé
 
@@ -29,7 +30,7 @@ Module LitRelevé
                 TraiteFichierPourri(ficRelevéTraité, filePath)
             Catch SecEx As SecurityException
                 MessageBox.Show($"Security error:{vbCrLf}{SecEx.Message}{vbCrLf}" & $"Details:{vbCrLf}{SecEx.StackTrace}")
-                Logger.GetInstance.ERR($"Security error:{SecEx.Message}" & $"Details:{SecEx.StackTrace}")
+                Logger.ERR($"Security error:{SecEx.Message}" & $"Details:{SecEx.StackTrace}")
             End Try
         End If
         Return ficRelevéTraité
@@ -38,45 +39,44 @@ Module LitRelevé
         Try
             ' Ouvrir le fichier en mode écriture pour le vider 
             System.IO.File.WriteAllText(cheminFichier, String.Empty)
-            Logger.GetInstance.INFO("Le fichier " & cheminFichier & " a été vidé avec succès.")
+            Logger.INFO("Le fichier " & cheminFichier & " a été vidé avec succès.")
         Catch ex As Exception
             ' Gérer les exceptions en cas d'erreur 
             MsgBox("ViderFichier, erreur : " & ex.Message)
-            Logger.GetInstance.ERR("ViderFichier, erreur : " & ex.Message)
+            Logger.ERR("ViderFichier, erreur : " & ex.Message)
         End Try
     End Sub
     Private Sub TraiteFichierCsvMensuel(sFicTemp As String, sFichier As String)
-        Dim sLigneEntiere As String = String.Empty
+        Dim sLigneEntiere As New StringBuilder()
         Dim bLigne1 As Boolean = True
-        Try
-            Dim monStreamReader As New StreamReader(sFichier) 'Stream pour la lecture
-            Dim ligne As String ' Variable contenant le texte de la ligne
-            Dim file As System.IO.StreamWriter
-            file = My.Computer.FileSystem.OpenTextFileWriter(sFicTemp, True)
 
-            ligne = monStreamReader.ReadLine
-            While ligne IsNot Nothing
-                ' Match ignoring case of letters.
-                Dim match As Match = Regex.Match(ligne, Constantes.regDateReleve & ";", RegexOptions.IgnoreCase)
-                If match.Success Then
-                    'On est au début d'une ligne => on écrit le ligne en cours et on en commence une autre
-                    'Mais pas sur la 1ère qui contient des entêtes
-                    If Not bLigne1 Then
-                        file.WriteLine(sLigneEntiere)
-                    Else
-                        bLigne1 = False
-                    End If
-                    sLigneEntiere = ligne
-                Else
-                    sLigneEntiere &= ligne
-                End If
-                ligne = monStreamReader.ReadLine
-            End While
-            monStreamReader.Close()
-            file.Close()
+        Try
+            Using monStreamReader As New StreamReader(sFichier) ' Stream pour la lecture
+                Using file As New StreamWriter(sFicTemp, True)
+                    Dim ligne As String = monStreamReader.ReadLine()
+                    While ligne IsNot Nothing
+                        ' Match ignoring case of letters.
+                        Dim match As Match = Regex.Match(ligne, Constantes.regDateReleve & ";", RegexOptions.IgnoreCase)
+                        If match.Success Then
+                            ' On est au début d'une ligne => on écrit la ligne en cours et on en commence une autre
+                            ' Mais pas sur la 1ère qui contient des entêtes
+                            If Not bLigne1 Then
+                                file.WriteLine(sLigneEntiere.ToString())
+                            Else
+                                bLigne1 = False
+                            End If
+                            sLigneEntiere.Clear()
+                            sLigneEntiere.Append(ligne)
+                        Else
+                            sLigneEntiere.Append(ligne)
+                        End If
+                        ligne = monStreamReader.ReadLine()
+                    End While
+                End Using
+            End Using
         Catch ex As Exception
             MsgBox("Une erreur est survenue sur la lecture du relevé : " & sFichier, MsgBoxStyle.Critical)
-            Logger.GetInstance.ERR("Une erreur est survenue sur la lecture du relevé : " & sFichier)
+            Logger.ERR("Une erreur est survenue sur la lecture du relevé : " & sFichier)
         End Try
     End Sub
     Private Sub TraiteFichierPourri(sFicTemp As String, sFichier As String)
@@ -87,7 +87,7 @@ Module LitRelevé
             Using monStreamReader As New StreamReader(sFichier) ' Stream pour la lecture
                 Dim ligne As String ' Variable contenant le texte de la ligne
                 Using file As New System.IO.StreamWriter(sFicTemp, True)
-                    Logger.GetInstance.INFO("TraiteFichierPourri : traitement du fichier : " & sFicTemp)
+                    Logger.INFO("TraiteFichierPourri : traitement du fichier : " & sFicTemp)
 
                     ligne = monStreamReader.ReadLine
                     While ligne IsNot Nothing
@@ -109,7 +109,7 @@ Module LitRelevé
             End Using
         Catch ex As Exception
             MsgBox("TraiteFichierPourri : Une erreur est survenue sur la lecture du relevé : " & sFichier, MsgBoxStyle.Critical)
-            Logger.GetInstance.ERR("TraiteFichierPourri : Une erreur est survenue sur la lecture du relevé : " & sFichier)
+            Logger.ERR("TraiteFichierPourri : Une erreur est survenue sur la lecture du relevé : " & sFichier)
         End Try
     End Sub
 

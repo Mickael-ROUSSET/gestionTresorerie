@@ -24,13 +24,13 @@ Public Class FrmSaisie
             End If
             ChargerCategoriesEtSousCategories(indTiersDetecte)
         Catch ex As Exception
-            Logger.GetInstance.ERR($"Erreur lors du chargement du formulaire : {ex.Message}")
+            Logger.ERR($"Erreur lors du chargement du formulaire : {ex.Message}")
         End Try
     End Sub
 
     Private Sub InitialiserListeTiers()
         If listeTiers Is Nothing Then
-            listeTiers = New ListeTiers(connexionDB.GetInstance.getConnexion)
+            listeTiers = New ListeTiers()
         End If
     End Sub
 
@@ -114,7 +114,7 @@ Public Class FrmSaisie
             monStreamReader.Close()
         Catch ex As Exception
             MsgBox("Une erreur est survenue au cours de l'accès en lecture du fichier de configuration du logiciel." & vbCrLf & vbCrLf & "Veuillez vérifier l'emplacement : " & fichierTexte, MsgBoxStyle.Critical, "Erreur lors e l'ouverture du fichier conf...")
-            Logger.GetInstance.ERR("Une erreur est survenue au cours de l'accès en lecture du fichier de configuration du logiciel." & vbCrLf & vbCrLf & "Veuillez vérifier l'emplacement : ")
+            Logger.ERR("Une erreur est survenue au cours de l'accès en lecture du fichier de configuration du logiciel." & vbCrLf & vbCrLf & "Veuillez vérifier l'emplacement : ")
         End Try
     End Sub
 
@@ -137,39 +137,39 @@ Public Class FrmSaisie
 
 
     Private Sub ChargeDgvCategorie(Optional debit As Boolean? = Nothing)
-            Dim query As String = "SELECT id, libelle FROM Categorie"
+        Dim query As String = "SELECT id, libelle FROM Categorie"
 
         If debit.HasValue Then
-            Logger.GetInstance.INFO("Chargement des catégories avec sens : " & debit)
+            Logger.INFO("Chargement des catégories avec sens : " & debit)
             query += " WHERE debit = @debit"
-            End If
+        End If
 
         Dim dt As New DataTable
         Try
-                Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
-                Using command As New SqlCommand(query, conn)
-                    If debit.HasValue Then
-                        command.Parameters.AddWithValue("@debit", Math.Abs(CInt(debit.Value)))
-                    End If
+            Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
+            Using command As New SqlCommand(query, conn)
+                If debit.HasValue Then
+                    command.Parameters.AddWithValue("@debit", Math.Abs(CInt(debit.Value)))
+                End If
 
-                    Using adpt As New SqlDataAdapter(command)
-                        adpt.Fill(dt)
-                    End Using
+                Using adpt As New SqlDataAdapter(command)
+                    adpt.Fill(dt)
                 End Using
+            End Using
 
-                dgvCategorie.DataSource = dt
-                dgvCategorie.Columns("id").Visible = False
-                dgvCategorie.Columns("libelle").Visible = True
+            dgvCategorie.DataSource = dt
+            dgvCategorie.Columns("id").Visible = False
+            dgvCategorie.Columns("libelle").Visible = True
 
-            Logger.GetInstance.INFO("Chargement des catégories réussi : " & dgvCategorie.RowCount)
+            Logger.INFO("Chargement des catégories réussi : " & dgvCategorie.RowCount)
         Catch ex As SqlException
-            Logger.GetInstance.ERR($"Erreur lors du chargement des catégories. Message: {ex.Message}")
+            Logger.ERR($"Erreur lors du chargement des catégories. Message: {ex.Message}")
             MessageBox.Show("ChargeDgvCategorie : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
-            End Try
-        End Sub
+        End Try
+    End Sub
 
 
-        Private Sub ChargeDgvSousCategorie(idCategorie As Integer)
+    Private Sub ChargeDgvSousCategorie(idCategorie As Integer)
 
         Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, libelle FROM SousCategorie where idCategorie = @idCategorie;", connexionDB.GetInstance.getConnexion)
         command.Parameters.AddWithValue("@idCategorie", idCategorie)
@@ -181,21 +181,21 @@ Public Class FrmSaisie
             ' Place la connexion dans le bloc try : c'est typiquement le genre d'instruction qui peut lever une exception.
             adpt.Fill(dt)
             dgvSousCategorie.DataSource = dt
-            Logger.GetInstance.INFO("Chargement des sous catégories réussi : " & dgvSousCategorie.RowCount)
+            Logger.INFO("Chargement des sous catégories réussi : " & dgvSousCategorie.RowCount)
 
             ' Vérifie si le DataGridView est vide
             If dgvSousCategorie.Rows.Count = 0 Then
-                Logger.GetInstance.INFO("ChargeDgvSousCategorie : aucune ligne n'a été trouvée pour la catégorie spécifiée.")
-                Logger.GetInstance.INFO("Ajouter une entrée dans la table SousCategorie.")
+                Logger.INFO("ChargeDgvSousCategorie : aucune ligne n'a été trouvée pour la catégorie spécifiée.")
+                Logger.INFO("Ajouter une entrée dans la table SousCategorie.")
                 'TODO : orienter vers une fenêtre qui permettra d'ajouter une entrée
                 End
             End If
         Catch ex As SqlException
             ' On informe l'utilisateur qu'il y a eu un problème :
-            Logger.GetInstance.ERR("ChargeDgvSousCategorie : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
+            Logger.ERR("ChargeDgvSousCategorie : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
         Catch ex As Exception
             ' Gère toutes les autres erreurs
-            Logger.GetInstance.ERR("ChargeDgvSousCategorie : une erreur inattendue s'est produite !" & vbCrLf & ex.ToString())
+            Logger.ERR("ChargeDgvSousCategorie : une erreur inattendue s'est produite !" & vbCrLf & ex.ToString())
         End Try
 
         dgvSousCategorie.Columns("id").Visible = False
@@ -373,25 +373,22 @@ Public Class FrmSaisie
                 AddHandler frmListe.objetSelectionneChanged, AddressOf mvtSelectionneChangedHandler
                 frmListe.ShowDialog()
                 'frmListe.Show()
-                Logger.GetInstance.INFO("Le mouvement existe déjà : " & mouvement.ObtenirValeursConcatenees)
+                Logger.INFO("Le mouvement existe déjà : " & mouvement.ObtenirValeursConcatenees)
             Else
                 InsererMouvementEnBase(mouvement)
-                Logger.GetInstance.INFO("Insertion du mouvement pour : " & mouvement.ObtenirValeursConcatenees)
+                Logger.INFO("Insertion du mouvement pour : " & mouvement.ObtenirValeursConcatenees)
             End If
         Catch ex As Exception
             MsgBox("Echec de l'insertion en base : " & ex.Message)
-            Logger.GetInstance.ERR("Erreur lors de l'insertion des données : " & ex.Message)
+            Logger.ERR("Erreur lors de l'insertion des données : " & ex.Message)
         End Try
     End Sub
 
     Private Sub mvtSelectionneChangedHandler(sender As Object, index As Integer)
         ' Vérifier si l'objet peut être converti en Mouvements
         If index = -1 Then
-            Logger.GetInstance.ERR("L'objet sélectionné est nul => mouvement à insérer")
+            Logger.ERR("L'objet sélectionné est nul => mouvement à insérer")
         Else
-            'Dim mvtModif As New Mouvements(.ItemArray(6), .ItemArray(1), .ItemArray(2), .ItemArray(5), .ItemArray(7), .ItemArray(3), .ItemArray(4), .ItemArray(10), .ItemArray(11), .ItemArray(12), .ItemArray(13), .ItemArray(14), .ItemArray(15))
-            'Mouvements.MettreAJourMouvement(mvtModif.Categorie, mvtModif.SousCategorie, mvtModif.Montant, mvtModif.Sens, mvtModif.Tiers, mvtModif.Note, mvtModif.DateCréation, mvtModif.Etat, mvtModif.Événement, mvtModif.Type, mvtModif.Modifiable, mvtModif.NumeroRemise, mvtModif.idCheque)
-            'Mouvements.MettreAJourMouvement(.ItemArray(1), .ItemArray(2), .ItemArray(3), .ItemArray(4), .ItemArray(5), .ItemArray(6), .ItemArray(7), .ItemArray(10), .ItemArray(11), .ItemArray(12), .ItemArray(13), .ItemArray(14), .ItemArray(15))
             Mouvements.MettreAJourMouvement(
                      _dtMvtsIdentiques.Rows(index).ItemArray(0),
                      dgvCategorie.Rows(dgvCategorie.SelectedRows(0).Index).Cells(0).Value,
@@ -454,12 +451,12 @@ Public Class FrmSaisie
             Dim cmd As New SqlCommand(query, conn)
             cmd = AjouteParam(cmd, mouvement)
             cmd.ExecuteNonQuery()
-            Logger.GetInstance.INFO("Insertion du mouvement réussie : " & mouvement.ObtenirValeursConcatenees)
+            Logger.INFO("Insertion du mouvement réussie : " & mouvement.ObtenirValeursConcatenees)
         Catch ex As SqlException
-            Logger.GetInstance.ERR("Erreur SQL lors de l'insertion du mouvement : " & ex.Message & vbCrLf & "Mouvement : " & mouvement.ObtenirValeursConcatenees)
+            Logger.ERR("Erreur SQL lors de l'insertion du mouvement : " & ex.Message & vbCrLf & "Mouvement : " & mouvement.ObtenirValeursConcatenees)
             Throw ' Re-lancer l'exception après l'avoir loggée
         Catch ex As Exception
-            Logger.GetInstance.ERR("Erreur générale lors de l'insertion du mouvement : " & ex.Message)
+            Logger.ERR("Erreur générale lors de l'insertion du mouvement : " & ex.Message)
             Throw ' Re-lancer l'exception après l'avoir loggée
         End Try
     End Sub
@@ -485,9 +482,9 @@ Public Class FrmSaisie
                 .AddWithValue("@numeroRemise", mouvement.NumeroRemise)
                 .AddWithValue("@idCheque", mouvement.idCheque)
             End With
-            Logger.GetInstance.INFO("Création du mouvement : " & mouvement.ObtenirValeursConcatenees)
+            Logger.INFO("Création du mouvement : " & mouvement.ObtenirValeursConcatenees)
         Else
-            Logger.GetInstance.ERR("Erreur de conversion du montant : " & mouvement.Montant)
+            Logger.ERR("Erreur de conversion du montant : " & mouvement.Montant)
             Throw New InvalidOperationException("Le montant n'est pas un nombre valide.")
         End If
 
@@ -561,4 +558,7 @@ Public Class FrmSaisie
         Return jsonString
     End Function
 
+    Private Sub btnCreerTiers_Click(sender As Object, e As EventArgs) Handles btnCreerTiers.Click
+        frmNouveauTiers.Show()
+    End Sub
 End Class

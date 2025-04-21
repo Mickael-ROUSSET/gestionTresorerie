@@ -55,6 +55,7 @@ Partial Class frmSaisie
         dgvSousCategorie = New DataGridView()
         txtRechercheTiers = New TextBox()
         btnSelChq = New Button()
+        btnCreerTiers = New Button()
         grpSens.SuspendLayout()
         GroupBox1.SuspendLayout()
         CType(dgvTiers, ComponentModel.ISupportInitialize).BeginInit()
@@ -365,11 +366,21 @@ Partial Class frmSaisie
         btnSelChq.Text = "Sélectionne chèque"
         btnSelChq.UseVisualStyleBackColor = True
         ' 
+        ' btnCreerTiers
+        ' 
+        btnCreerTiers.Location = New Point(20, 163)
+        btnCreerTiers.Name = "btnCreerTiers"
+        btnCreerTiers.Size = New Size(75, 23)
+        btnCreerTiers.TabIndex = 39
+        btnCreerTiers.Text = "Créer"
+        btnCreerTiers.UseVisualStyleBackColor = True
+        ' 
         ' FrmSaisie
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(1506, 542)
+        Controls.Add(btnCreerTiers)
         Controls.Add(btnSelChq)
         Controls.Add(txtRechercheTiers)
         Controls.Add(dgvSousCategorie)
@@ -443,5 +454,6 @@ Partial Class frmSaisie
     Friend WithEvents TiersBindingSource As BindingSource
     Friend WithEvents txtRechercheTiers As TextBox
     Friend WithEvents btnSelChq As Button
+    Friend WithEvents btnCreerTiers As Button
 
 End Class

@@ -21,7 +21,7 @@ Public Class batchAnalyseChq
                 ' Appeler la méthode récursive pour parcourir le répertoire et ses sous-dossiers
                 ParcourirEtAnalyserRecursif(sRepChq)
             Else
-                Logger.GetInstance().INFO("Le répertoire spécifié : " & sRepChq & " n'existe pas.")
+                Logger.INFO("Le répertoire spécifié : " & sRepChq & " n'existe pas.")
             End If
 
             ' Enregistrer la date et l'heure de fin
@@ -31,10 +31,10 @@ Public Class batchAnalyseChq
             GenererCompteRendu()
 
             ' Message final
-            Logger.GetInstance().INFO("Analyse terminée pour tous les fichiers.")
+            Logger.INFO("Analyse terminée pour tous les fichiers.")
 
         Catch ex As Exception
-            Logger.GetInstance().ERR("Erreur lors du parcours du répertoire : " & sRepChq & " " & ex.Message)
+            Logger.ERR("Erreur lors du parcours du répertoire : " & sRepChq & " " & ex.Message)
         End Try
     End Sub
 
@@ -57,7 +57,7 @@ Public Class batchAnalyseChq
                     Dim compteur = compteursParRepertoire(repertoire)
                     compteursParRepertoire(repertoire) = (compteur.fichiersTraites + 1, compteur.traitementOK + 1, compteur.traitementKO)
                 Catch ex As Exception
-                    Logger.GetInstance().ERR($"Erreur lors de l'analyse du fichier : {cheminFichier} - {ex.Message}")
+                    Logger.ERR($"Erreur lors de l'analyse du fichier : {cheminFichier} - {ex.Message}")
                     nombreTraitementKO += 1
                     Dim compteur = compteursParRepertoire(repertoire)
                     compteursParRepertoire(repertoire) = (compteur.fichiersTraites + 1, compteur.traitementOK, compteur.traitementKO + 1)
@@ -72,18 +72,18 @@ Public Class batchAnalyseChq
                 ParcourirEtAnalyserRecursif(sousDossier)
             Next
         Catch ex As Exception
-            Logger.GetInstance().ERR("Erreur lors du parcours du répertoire : " & repertoire & " " & ex.Message)
+            Logger.ERR("Erreur lors du parcours du répertoire : " & repertoire & " " & ex.Message)
         End Try
     End Sub
 
     Public Shared Sub analyseChq(cheminChq As String)
         Dim extraction As New appelMistral()
 
-        Logger.GetInstance().INFO("-------------------" & vbCrLf & "Analyse du chèque " & cheminChq)
+        Logger.INFO("-------------------" & vbCrLf & "Analyse du chèque " & cheminChq)
         Dim chqJson = appelMistral.litImage(cheminChq)
         cheminChq = RenommerFichier(cheminChq, chqJson.numero_du_cheque)
         chqJson.InsereEnBase(cheminChq)
-        Logger.GetInstance().INFO("Insertion en base du chèque " & cheminChq)
+        Logger.INFO("Insertion en base du chèque " & cheminChq)
     End Sub
 
     ' Méthode pour renommer un fichier et renvoyer le nouveau nom
@@ -104,40 +104,40 @@ Public Class batchAnalyseChq
             ' Vérifier si un fichier avec le même nom existe déjà
             If File.Exists(nouveauNomFichier) Then
                 ' Écrire un log de niveau INFO
-                Logger.GetInstance().INFO($"Un fichier avec le nom '{nouveauNomFichier}' existe déjà. Renommage annulé.")
+                Logger.INFO($"Un fichier avec le nom '{nouveauNomFichier}' existe déjà. Renommage annulé.")
                 Return cheminFichier ' Retourne le nom d'origine si le renommage est annulé
             End If
 
             ' Renommer le fichier
             File.Move(cheminFichier, nouveauNomFichier)
-            Logger.GetInstance().INFO($"Fichier renommé avec succès en '{nouveauNomFichier}'.")
+            Logger.INFO($"Fichier renommé avec succès en '{nouveauNomFichier}'.")
 
             ' Retourner le nouveau nom du fichier
             Return nouveauNomFichier
 
         Catch ex As Exception
             ' Écrire un log d'erreur en cas d'exception
-            Logger.GetInstance().ERR($"Erreur lors du renommage du fichier : {ex.Message}")
+            Logger.ERR($"Erreur lors du renommage du fichier : {ex.Message}")
             Return cheminFichier ' Retourne le nom d'origine en cas d'erreur
         End Try
     End Function
 
     ' Méthode dédiée pour générer le compte rendu de traitement
     Private Sub GenererCompteRendu()
-        Logger.GetInstance().INFO($"Compte rendu de traitement :")
-        Logger.GetInstance().INFO($"Nombre de fichiers traités : {nombreFichiersTraites}")
-        Logger.GetInstance().INFO($"Nombre de traitements OK : {nombreTraitementOK}")
-        Logger.GetInstance().INFO($"Nombre de traitements KO : {nombreTraitementKO}")
-        Logger.GetInstance().INFO($"Date/Heure de début : {dateHeureDebut}")
-        Logger.GetInstance().INFO($"Date/Heure de fin : {dateHeureFin}")
+        Logger.INFO($"Compte rendu de traitement :")
+        Logger.INFO($"Nombre de fichiers traités : {nombreFichiersTraites}")
+        Logger.INFO($"Nombre de traitements OK : {nombreTraitementOK}")
+        Logger.INFO($"Nombre de traitements KO : {nombreTraitementKO}")
+        Logger.INFO($"Date/Heure de début : {dateHeureDebut}")
+        Logger.INFO($"Date/Heure de fin : {dateHeureFin}")
 
         ' Log des compteurs par répertoire
-        Logger.GetInstance().INFO($"Compte rendu par répertoire :")
+        Logger.INFO($"Compte rendu par répertoire :")
         For Each kvp As KeyValuePair(Of String, (Integer, Integer, Integer)) In compteursParRepertoire
-            Logger.GetInstance().INFO($"Répertoire : {kvp.Key}")
-            Logger.GetInstance().INFO($"  Fichiers traités : {kvp.Value.Item1}")
-            Logger.GetInstance().INFO($"  Traitements OK : {kvp.Value.Item2}")
-            Logger.GetInstance().INFO($"  Traitements KO : {kvp.Value.Item3}")
+            Logger.INFO($"Répertoire : {kvp.Key}")
+            Logger.INFO($"  Fichiers traités : {kvp.Value.Item1}")
+            Logger.INFO($"  Traitements OK : {kvp.Value.Item2}")
+            Logger.INFO($"  Traitements KO : {kvp.Value.Item3}")
         Next
     End Sub
 End Class

@@ -111,7 +111,7 @@ Public Class Cheque
                     End With
                 Case Else
                     ' Logger l'information
-                    Logger.GetInstance().INFO("Propriété non reconnue : " & item.Name)
+                    Logger.INFO("Propriété non reconnue : " & item.Name)
             End Select
         Next
     End Sub
@@ -151,9 +151,9 @@ Public Class Cheque
                 End With
                 command.ExecuteNonQuery()
             End Using
-            Logger.GetInstance.INFO("Données insérées avec succès." & Command.ToString)
+            Logger.INFO("Données insérées avec succès." & Command.ToString)
         Catch ex As Exception
-            Logger.GetInstance.ERR("Erreur lors de l'insertion des données : " & ex.Message)
+            Logger.ERR("Erreur lors de l'insertion des données : " & ex.Message)
         End Try
     End Sub
     Public Sub AfficherImage(idCheque As Integer, pbBox As PictureBox)
@@ -190,11 +190,11 @@ Public Class Cheque
                         pbBox.Image = AfficherTiersSuperieurImage(image, 0.33)
                     End Using
                 Else
-                    Logger.GetInstance().INFO("Aucune image trouvée pour cet enregistrement.")
+                    Logger.INFO("Aucune image trouvée pour cet enregistrement.")
                 End If
             End Using
         Catch ex As Exception
-            Logger.GetInstance().ERR("Erreur lors de la récupération de l'image : " & ex.Message)
+            Logger.ERR("Erreur lors de la récupération de l'image : " & ex.Message)
         Finally
             ' Fermer la connexion si elle est ouverte
             If sqlConnexion IsNot Nothing AndAlso sqlConnexion.State = ConnectionState.Open Then
@@ -203,7 +203,7 @@ Public Class Cheque
         End Try
     End Sub
 
-    Public Function AfficherTiersSuperieurImage(image As Image, ratio As Double) As Image
+    Public Shared Function AfficherTiersSuperieurImage(image As Image, ratio As Double) As Image
         ' Renvoie seulement le ratio (33% par défaut) supérieur de l'image car les chèques sont scannés en A4
         Try
             ' Calculer la hauteur du tiers supérieur
@@ -221,14 +221,14 @@ Public Class Cheque
             End Using
 
             ' Logger l'information
-            Logger.GetInstance().INFO("Tiers supérieur de l'image affiché avec succès.")
+            Logger.INFO("Tiers supérieur de l'image affiché avec succès.")
 
             ' Retourner l'image du tiers supérieur
             Return tiersSuperieurImage
 
         Catch ex As Exception
             ' Logger l'erreur
-            Logger.GetInstance().ERR("Erreur lors de l'extraction du tiers supérieur de l'image : " & ex.Message)
+            Logger.ERR("Erreur lors de l'extraction du tiers supérieur de l'image : " & ex.Message)
             ' Retourner une image vide en cas d'erreur
             Return New Bitmap(1, 1)
         End Try

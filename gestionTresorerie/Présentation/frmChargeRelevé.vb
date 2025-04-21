@@ -17,7 +17,7 @@ Public Class FrmChargeRelevé
             monStreamReader.Close()
         Catch ex As Exception
             MsgBox("Une erreur " & ex.Message & " est survenue sur la lecture du relevé : " & sFichier, MsgBoxStyle.Critical)
-            Logger.GetInstance.ERR("Une erreur " & ex.Message & " est survenue sur la lecture du relevé : " & sFichier)
+            Logger.ERR("Une erreur " & ex.Message & " est survenue sur la lecture du relevé : " & sFichier)
         End Try
     End Sub
 

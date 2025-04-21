@@ -31,7 +31,9 @@ le destinataire à droite de la mention ""à ""
         ' Clé API Mistral
         Dim valCle = New cléApiMistral
         Dim apiKey As String = valCle.getCle
-        Dim apiUrl As String = "https://api.mistral.ai/v1/chat/completions"
+        'Dim apiUrl As String = "https://api.mistral.ai/v1/chat/completions"
+        Dim apiUrl As String = lectureProprietes.GetVariable("urlMistral")
+
 
         ' Appeler la fonction pour extraire le texte
         Dim extractedText As String = ExtractTextFromImage(apiUrl, chequeImagePath, apiKey)
@@ -85,7 +87,7 @@ le destinataire à droite de la mention ""à ""
 
                     ' Lire la réponse
                     Dim responseBody As String = response.Content.ReadAsStringAsync().Result
-                    Logger.GetInstance().INFO(responseBody)
+                    Logger.INFO(responseBody)
 
                     ' Supposons que la réponse soit un JSON contenant le texte extrait
                     ' Vous pouvez utiliser JsonConvert pour désérialiser si nécessaire
@@ -93,7 +95,7 @@ le destinataire à droite de la mention ""à ""
 
                 Catch ex As HttpRequestException
                     MsgBox($"Erreur de requête : {ex.Message}")
-                    Logger.GetInstance().ERR("ex.Message")
+                    Logger.ERR("ex.Message")
                     Return String.Empty
                 End Try
             End Using
@@ -125,7 +127,7 @@ le destinataire à droite de la mention ""à ""
 
                     ' Lire la réponse
                     Dim responseBody As String = response.Content.ReadAsStringAsync().Result
-                    Logger.GetInstance().INFO(responseBody)
+                    Logger.INFO(responseBody)
 
                     ' Supposons que la réponse soit un JSON contenant le texte extrait
                     ' Vous pouvez utiliser JsonConvert pour désérialiser si nécessaire
@@ -133,7 +135,7 @@ le destinataire à droite de la mention ""à ""
 
                 Catch ex As HttpRequestException
                     MsgBox($"Erreur de requête : {ex.Message}")
-                    Logger.GetInstance().ERR("ex.Message")
+                    Logger.ERR("ex.Message")
                     Return String.Empty
                 End Try
             End Using

@@ -29,16 +29,16 @@ Public Class connexionDB
             If _maConnexion Is Nothing Then
                 _maConnexion = New SqlConnection(connexionString)
                 _maConnexion.Open()
-                Logger.GetInstance.INFO("Connexion à la base : " & connexionString)
+                Logger.INFO("Connexion à la base : " & connexionString)
             End If
         Catch ex As SqlException
             ' Gère les erreurs de connexion SQL
             MsgBox("creeConnexion : erreur SQL : " & ex.Message)
-            Logger.GetInstance.ERR(ex.Message)
+            Logger.ERR(ex.Message)
         Catch ex As Exception
             ' Gère toutes les autres erreurs
             MsgBox("Erreur : " & ex.Message)
-            Logger.GetInstance.ERR(ex.Message)
+            Logger.ERR(ex.Message)
         End Try
     End Sub
 
@@ -47,12 +47,12 @@ Public Class connexionDB
     End Function
     Public Sub setRequete(sRequete As String)
         My.Settings.Requetes.Add(sRequete)
-        Logger.GetInstance.INFO("Requête : " & sRequete & " ajoutée")
+        Logger.INFO("Requête : " & sRequete & " ajoutée")
     End Sub
     Private Sub SuprimeConnexion()
         'Close the reader and the database connection. 
         _maConnexion.Close()
-        Logger.GetInstance.INFO("Connexion : " & _maConnexion.ConnectionString & " fermée")
+        Logger.INFO("Connexion : " & _maConnexion.ConnectionString & " fermée")
     End Sub
 
     ' Destructeur

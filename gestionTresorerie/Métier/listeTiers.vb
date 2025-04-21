@@ -3,29 +3,40 @@
 Public Class ListeTiers
 
     ReadOnly _listeTiers As New List(Of Tiers)
-    Public Sub New(maConn As SqlConnection)
+    Public Sub New()
 
         If _listeTiers.Count = 0 Then
-            extraitListeTiers(maConn)
+            extraitListeTiers(connexionDB.GetInstance.getConnexion)
         End If
     End Sub
     Public Sub extraitListeTiers(maConn As SqlConnection)
-        Dim lstTiers As SqlCommand
-        Dim monReaderTiers As SqlDataReader
+        Try
+            ' Ouvrir la connexion si elle n'est pas déjà ouverte
+            If maConn.State <> ConnectionState.Open Then
+                maConn.Open()
+            End If
 
-        lstTiers = New SqlCommand("SELECT id,nom, prenom FROM Tiers where nom is not null;", maConn)
-        monReaderTiers = lstTiers.ExecuteReader()
+            ' Requête pour récupérer les tiers avec nom et prénom
+            Dim lstTiersPhysique As New SqlCommand("SELECT id, nom, prenom FROM Tiers WHERE nom IS NOT NULL;", maConn)
+            Using monReaderTiers As SqlDataReader = lstTiersPhysique.ExecuteReader()
+                While monReaderTiers.Read()
+                    _listeTiers.Add(New Tiers(monReaderTiers.GetInt32(0), monReaderTiers.GetString(1), monReaderTiers.GetString(2)))
+                End While
+            End Using
 
-        Do While monReaderTiers.Read()
-            _listeTiers.Add(New Tiers(monReaderTiers.GetInt32(0), monReaderTiers.GetString(1), monReaderTiers.GetString(2)))
-        Loop
-        monReaderTiers.Close()
-        lstTiers = New SqlCommand("SELECT id,raisonSociale FROM Tiers where raisonSociale is not null;", maConn)
-        monReaderTiers = lstTiers.ExecuteReader()
-        Do While monReaderTiers.Read()
-            _listeTiers.Add(New Tiers(monReaderTiers.GetInt32(0), monReaderTiers.GetSqlString(1)))
-        Loop
-        monReaderTiers.Close()
+            ' Requête pour récupérer les tiers avec raison sociale
+            Dim lstTiersMorale As New SqlCommand("SELECT id, raisonSociale FROM Tiers WHERE raisonSociale IS NOT NULL;", maConn)
+            Using monReaderTiers As SqlDataReader = lstTiersMorale.ExecuteReader()
+                While monReaderTiers.Read()
+                    _listeTiers.Add(New Tiers(monReaderTiers.GetInt32(0), monReaderTiers.GetString(1)))
+                End While
+            End Using
+
+            Logger.INFO("Extraction de la liste des tiers réussie.")
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors de l'extraction de la liste des tiers : {ex.Message}")
+            Throw
+        End Try
     End Sub
     Public Function getListeTiers() As List(Of Tiers)
         Return _listeTiers
@@ -83,7 +94,6 @@ Public Class ListeTiers
         Return monTiers
     End Function
     Public Sub SupprimeTiers(tiers As Tiers)
-        'Todo : voir si je crée des trous de séquence
         _listeTiers.Remove(tiers)
     End Sub
     Public Function CompteTiers() As Integer

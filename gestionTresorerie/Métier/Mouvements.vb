@@ -57,11 +57,11 @@ Public Class Mouvements
             End Using
 
             ' Écrire un log d'information
-            Logger.GetInstance.INFO($"Vérification de l'existence du mouvement réussie. Date: {mouvement.DateMvt}, Montant: {mouvement.Montant}, Sens:  {mouvement.Sens}")
+            Logger.INFO($"Vérification de l'existence du mouvement réussie. Date: {mouvement.DateMvt}, Montant: {mouvement.Montant}, Sens:  {mouvement.Sens}")
 
         Catch ex As Exception
             ' Écrire un log d'erreur
-            Logger.GetInstance.ERR($"Erreur lors de la vérification de l'existence du mouvement. Message: {ex.Message} " & mouvement.ObtenirValeursConcatenees)
+            Logger.ERR($"Erreur lors de la vérification de l'existence du mouvement. Message: {ex.Message} " & mouvement.ObtenirValeursConcatenees)
             Throw ' Re-lancer l'exception après l'avoir loggée
         End Try
 
@@ -88,13 +88,13 @@ Public Class Mouvements
             End Using
 
             ' Écrire un log d'information
-            Logger.GetInstance.INFO("Chargement des mouvements similaires réussi.")
+            Logger.INFO("Chargement des mouvements similaires réussi.")
         Catch ex As SqlException
             ' Écrire un log d'erreur en cas d'exception SQL
-            Logger.GetInstance.ERR($"Erreur SQL lors du chargement des mouvements similaires : {ex.Message}")
+            Logger.ERR($"Erreur SQL lors du chargement des mouvements similaires : {ex.Message}")
         Catch ex As Exception
             ' Écrire un log d'erreur en cas d'exception générale
-            Logger.GetInstance.ERR($"Erreur lors du chargement des mouvements similaires : {ex.Message}")
+            Logger.ERR($"Erreur lors du chargement des mouvements similaires : {ex.Message}")
         End Try
 
         Return dataTable
@@ -144,14 +144,14 @@ Public Class Mouvements
             End Using
 
             ' Trace indiquant le nombre de lignes mises à jour
-            Logger.GetInstance().INFO($"Nombre de lignes mises à jour : {rowsAffected}")
+            Logger.INFO($"Nombre de lignes mises à jour : {rowsAffected}")
 
             ' Trace indiquant les valeurs mises à jour
-            Logger.GetInstance().INFO($"Valeurs mises à jour - Catégorie: {categorie}, Sous-Catégorie: {sousCategorie}, Montant: {montant}, Sens: {sens}, Tiers: {tiers}, Note: {note}, DateMvt: {dateMvt}, Etat: {etat}, Evénement: {evenement}, Type: {type}, Modifiable: {modifiable}, Numéro Remise: {numeroRemise}, IdChèque: {idCheque}")
+            Logger.INFO($"Valeurs mises à jour - Catégorie: {categorie}, Sous-Catégorie: {sousCategorie}, Montant: {montant}, Sens: {sens}, Tiers: {tiers}, Note: {note}, DateMvt: {dateMvt}, Etat: {etat}, Evénement: {evenement}, Type: {type}, Modifiable: {modifiable}, Numéro Remise: {numeroRemise}, IdChèque: {idCheque}")
 
         Catch ex As Exception
             ' Trace en cas d'erreur
-            Logger.GetInstance().ERR($"Erreur lors de la mise à jour du mouvement : {ex.Message}")
+            Logger.ERR($"Erreur lors de la mise à jour du mouvement : {ex.Message}")
         Finally
             ' Fermer la connexion si elle est ouverte
             If sqlConnexion IsNot Nothing AndAlso sqlConnexion.State = ConnectionState.Open Then
@@ -186,14 +186,14 @@ Public Class Mouvements
             End Using
 
             ' Trace indiquant le nombre de lignes supprimées
-            Logger.GetInstance().INFO($"Nombre de lignes supprimées : {rowsAffected}")
+            Logger.INFO($"Nombre de lignes supprimées : {rowsAffected}")
 
             ' Trace indiquant l'Id supprimé
-            Logger.GetInstance().INFO($"Enregistrement supprimé - Id: {id}")
+            Logger.INFO($"Enregistrement supprimé - Id: {id}")
 
         Catch ex As Exception
             ' Trace en cas d'erreur
-            Logger.GetInstance().ERR($"Erreur lors de la suppression du mouvement : {ex.Message}")
+            Logger.ERR($"Erreur lors de la suppression du mouvement : {ex.Message}")
         Finally
             ' Fermer la connexion si elle est ouverte
             If sqlConnexion IsNot Nothing AndAlso sqlConnexion.State = ConnectionState.Open Then

@@ -260,15 +260,6 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("gestionTresorerie\bin\Debug\net8.0-windows\monFichier.docx")>  _
-        Public ReadOnly Property ficBilan() As String
-            Get
-                Return CType(Me("ficBilan"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("https://api.mistral.ai/v1/chat/completions")>  _
         Public ReadOnly Property urlMistral() As String
             Get
@@ -519,6 +510,15 @@ Namespace My
         Public ReadOnly Property updMvt() As String
             Get
                 Return CType(Me("updMvt"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("gestionTresorerie\monFichier.docx")>  _
+        Public ReadOnly Property ficBilan() As String
+            Get
+                Return CType(Me("ficBilan"),String)
             End Get
         End Property
     End Class

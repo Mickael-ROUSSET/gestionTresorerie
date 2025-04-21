@@ -53,19 +53,19 @@ Public Class Logger
     End Sub
 
     ' Méthodes pour les différents niveaux de log
-    Public Sub DBG(message As String)
+    Public Shared Sub DBG(message As String)
         EcrireDansFichierTrace("DBG", message)
     End Sub
 
-    Public Sub INFO(message As String)
+    Public Shared Sub INFO(message As String)
         EcrireDansFichierTrace("INFO", message)
     End Sub
 
-    Public Sub WARN(message As String)
+    Public Shared Sub WARN(message As String)
         EcrireDansFichierTrace("WARN", message)
     End Sub
 
-    Public Sub ERR(message As String)
+    Public Shared Sub ERR(message As String)
         EcrireDansFichierTrace("ERR", message)
     End Sub
 End Class

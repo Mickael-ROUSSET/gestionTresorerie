@@ -11,7 +11,7 @@
         ' Lire la variable d'environnement 
         If _env = String.Empty Then
             _env = Environ("envAgumaaa")
-            Logger.GetInstance().INFO("Env = " & _env)
+            Logger.INFO("Env = " & _env)
         End If
     End Sub
     Public Sub litRepInstallation()
@@ -22,7 +22,7 @@
             Else
                 _repInstallation = My.Settings.repInstallationTest
             End If
-            Logger.GetInstance().INFO("repInstallation = " & _repInstallation)
+            Logger.INFO("repInstallation = " & _repInstallation)
         End If
     End Sub
 

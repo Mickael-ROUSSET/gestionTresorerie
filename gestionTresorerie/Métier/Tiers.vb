@@ -36,7 +36,6 @@ Public Class Tiers
 
         maCmd = New SqlCommand
         With maCmd
-            'connexionDB.GetInstance.getConnexion.Open()
             .Connection = connexionDB.GetInstance.getConnexion
             .CommandText = "SELECT categorieDefaut FROM Tiers where id = '" & idTiers & "';"
         End With
@@ -106,7 +105,7 @@ Public Class Tiers
                 End Using
             End Using
         Catch ex As Exception
-            Logger.GetInstance().ERR("Erreur lors de l'extraction des données de la table Tiers : " & ex.Message)
+            Logger.ERR("Erreur lors de l'extraction des données de la table Tiers : " & ex.Message)
         Finally
             ' Fermer la connexion si elle est ouverte
             If sqlConnexion IsNot Nothing AndAlso sqlConnexion.State = ConnectionState.Open Then
