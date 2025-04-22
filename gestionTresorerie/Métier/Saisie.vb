@@ -134,73 +134,136 @@ Public Class FrmSaisie
         End Try
         'dgvTiers.Columns("id").Visible = False 
     End Sub
-
-
     Private Sub ChargeDgvCategorie(Optional debit As Boolean? = Nothing)
         Dim query As String = "SELECT id, libelle FROM Categorie"
+        Dim parameters As New Dictionary(Of String, Object)
 
         If debit.HasValue Then
             Logger.INFO("Chargement des catégories avec sens : " & debit)
             query += " WHERE debit = @debit"
+            parameters.Add("@debit", Math.Abs(CInt(debit.Value)))
         End If
 
+        ChargerDonneesDansDataGridView(query, parameters, dgvCategorie)
+    End Sub
+
+    Private Sub ChargeDgvSousCategorie(idCategorie As Integer)
+        Dim query As String = "SELECT id, libelle FROM SousCategorie WHERE idCategorie = @idCategorie"
+        Dim parameters As New Dictionary(Of String, Object)
+        parameters.Add("@idCategorie", idCategorie)
+
+        ChargerDonneesDansDataGridView(query, parameters, dgvSousCategorie)
+    End Sub
+    Private Sub ChargerDonneesDansDataGridView(query As String, parameters As Dictionary(Of String, Object), dataGridView As DataGridView)
         Dim dt As New DataTable
         Try
             Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
+            If conn.State <> ConnectionState.Open Then
+                conn.Open()
+            End If
+
             Using command As New SqlCommand(query, conn)
-                If debit.HasValue Then
-                    command.Parameters.AddWithValue("@debit", Math.Abs(CInt(debit.Value)))
-                End If
+                For Each param In parameters
+                    command.Parameters.AddWithValue(param.Key, param.Value)
+                Next
 
                 Using adpt As New SqlDataAdapter(command)
                     adpt.Fill(dt)
                 End Using
             End Using
 
-            dgvCategorie.DataSource = dt
-            dgvCategorie.Columns("id").Visible = False
-            dgvCategorie.Columns("libelle").Visible = True
+            dataGridView.DataSource = dt
+            dataGridView.Columns("id").Visible = False
+            dataGridView.Columns("libelle").Visible = True
 
-            Logger.INFO("Chargement des catégories réussi : " & dgvCategorie.RowCount)
-        Catch ex As SqlException
-            Logger.ERR($"Erreur lors du chargement des catégories. Message: {ex.Message}")
-            MessageBox.Show("ChargeDgvCategorie : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
-        End Try
-    End Sub
-
-
-    Private Sub ChargeDgvSousCategorie(idCategorie As Integer)
-
-        Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, libelle FROM SousCategorie where idCategorie = @idCategorie;", connexionDB.GetInstance.getConnexion)
-        command.Parameters.AddWithValue("@idCategorie", idCategorie)
-
-        Dim dt As New DataTable
-        Dim adpt As New Data.SqlClient.SqlDataAdapter(command)
-
-        Try
-            ' Place la connexion dans le bloc try : c'est typiquement le genre d'instruction qui peut lever une exception.
-            adpt.Fill(dt)
-            dgvSousCategorie.DataSource = dt
-            Logger.INFO("Chargement des sous catégories réussi : " & dgvSousCategorie.RowCount)
+            Logger.INFO($"Chargement des données réussi : {dataGridView.RowCount}")
 
             ' Vérifie si le DataGridView est vide
-            If dgvSousCategorie.Rows.Count = 0 Then
-                Logger.INFO("ChargeDgvSousCategorie : aucune ligne n'a été trouvée pour la catégorie spécifiée.")
-                Logger.INFO("Ajouter une entrée dans la table SousCategorie.")
-                'TODO : orienter vers une fenêtre qui permettra d'ajouter une entrée
-                End
+            If dataGridView.Rows.Count = 0 Then
+                Logger.INFO($"Aucune ligne n'a été trouvée pour la requête spécifiée.")
+                Logger.INFO("Ajouter une entrée dans la table correspondante.")
+                ' TODO : orienter vers une fenêtre qui permettra d'ajouter une entrée
+                Return
             End If
         Catch ex As SqlException
-            ' On informe l'utilisateur qu'il y a eu un problème :
-            Logger.ERR("ChargeDgvSousCategorie : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
+            Logger.ERR($"Erreur SQL lors du chargement des données. Message: {ex.Message}")
+            MessageBox.Show($"Une erreur SQL s'est produite lors du chargement des données !{vbCrLf}{ex.ToString()}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
-            ' Gère toutes les autres erreurs
-            Logger.ERR("ChargeDgvSousCategorie : une erreur inattendue s'est produite !" & vbCrLf & ex.ToString())
+            Logger.ERR($"Erreur inattendue lors du chargement des données. Message: {ex.Message}")
+            MessageBox.Show($"Une erreur inattendue s'est produite !{vbCrLf}{ex.ToString()}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
-
-        dgvSousCategorie.Columns("id").Visible = False
-        dgvSousCategorie.Columns("libelle").Visible = True
     End Sub
+
+
+    'Private Sub ChargeDgvCategorie(Optional debit As Boolean? = Nothing)
+    '    Dim query As String = "SELECT id, libelle FROM Categorie"
+
+    '    If debit.HasValue Then
+    '        Logger.INFO("Chargement des catégories avec sens : " & debit)
+    '        query += " WHERE debit = @debit"
+    '    End If
+
+    '    Dim dt As New DataTable
+    '    Try
+    '        Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
+    '        Using command As New SqlCommand(query, conn)
+    '            If debit.HasValue Then
+    '                command.Parameters.AddWithValue("@debit", Math.Abs(CInt(debit.Value)))
+    '            End If
+
+    '            Using adpt As New SqlDataAdapter(command)
+    '                adpt.Fill(dt)
+    '            End Using
+    '        End Using
+
+    '        dgvCategorie.DataSource = dt
+    '        dgvCategorie.Columns("id").Visible = False
+    '        dgvCategorie.Columns("libelle").Visible = True
+
+    '        Logger.INFO("Chargement des catégories réussi : " & dgvCategorie.RowCount)
+    '        ' Vérifie si le DataGridView est vide
+    '        If dgvCategorie.Rows.Count = 0 Then
+    '            Logger.INFO("ChargeDgvSousCategorie : aucune ligne n'a été trouvée pour la catégorie spécifiée.")
+    '            Logger.INFO("Ajouter une entrée dans la table SousCategorie.")
+    '            End
+    '        End If
+    '    Catch ex As SqlException
+    '        Logger.ERR($"Erreur lors du chargement des catégories. Message: {ex.Message}")
+    '        MessageBox.Show("ChargeDgvCategorie : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
+    '    End Try
+    'End Sub
+    'Private Sub ChargeDgvSousCategorie(idCategorie As Integer)
+
+    '    Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, libelle FROM SousCategorie where idCategorie = @idCategorie;", connexionDB.GetInstance.getConnexion)
+    '    command.Parameters.AddWithValue("@idCategorie", idCategorie)
+
+    '    Dim dt As New DataTable
+    '    Dim adpt As New Data.SqlClient.SqlDataAdapter(command)
+
+    '    Try
+    '        ' Place la connexion dans le bloc try : c'est typiquement le genre d'instruction qui peut lever une exception.
+    '        adpt.Fill(dt)
+    '        dgvSousCategorie.DataSource = dt
+    '        Logger.INFO("Chargement des sous catégories réussi : " & dgvSousCategorie.RowCount)
+
+    '        ' Vérifie si le DataGridView est vide
+    '        If dgvSousCategorie.Rows.Count = 0 Then
+    '            Logger.INFO("ChargeDgvSousCategorie : aucune ligne n'a été trouvée pour la catégorie spécifiée.")
+    '            Logger.INFO("Ajouter une entrée dans la table SousCategorie.")
+    '            'TODO : orienter vers une fenêtre qui permettra d'ajouter une entrée
+    '            End
+    '        End If
+    '    Catch ex As SqlException
+    '        ' On informe l'utilisateur qu'il y a eu un problème :
+    '        Logger.ERR("ChargeDgvSousCategorie : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
+    '    Catch ex As Exception
+    '        ' Gère toutes les autres erreurs
+    '        Logger.ERR("ChargeDgvSousCategorie : une erreur inattendue s'est produite !" & vbCrLf & ex.ToString())
+    '    End Try
+
+    '    dgvSousCategorie.Columns("id").Visible = False
+    '    dgvSousCategorie.Columns("libelle").Visible = True
+    'End Sub
 
     'Private Sub CbCategorie_SelectedIndexChanged(sender As Object, e As EventArgs)
     '    cbSousCategorie.Items.Clear
