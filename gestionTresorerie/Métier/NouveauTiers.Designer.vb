@@ -36,7 +36,11 @@ Partial Class frmNouveauTiers
         txtSousCategorie = New TextBox()
         lblSousCategorie = New Label()
         btnCreerTiers = New Button()
+        dgvNTCategorie = New DataGridView()
+        dgvNTSousCategorie = New DataGridView()
         grpPersonne.SuspendLayout()
+        CType(dgvNTCategorie, ComponentModel.ISupportInitialize).BeginInit()
+        CType(dgvNTSousCategorie, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
         ' 
         ' lblNom
@@ -137,7 +141,7 @@ Partial Class frmNouveauTiers
         ' 
         ' txtSousCategorie
         ' 
-        txtSousCategorie.Location = New Point(227, 303)
+        txtSousCategorie.Location = New Point(227, 463)
         txtSousCategorie.Name = "txtSousCategorie"
         txtSousCategorie.Size = New Size(100, 23)
         txtSousCategorie.TabIndex = 11
@@ -145,7 +149,7 @@ Partial Class frmNouveauTiers
         ' lblSousCategorie
         ' 
         lblSousCategorie.AutoSize = True
-        lblSousCategorie.Location = New Point(45, 306)
+        lblSousCategorie.Location = New Point(45, 466)
         lblSousCategorie.Name = "lblSousCategorie"
         lblSousCategorie.Size = New Size(83, 15)
         lblSousCategorie.TabIndex = 10
@@ -153,18 +157,40 @@ Partial Class frmNouveauTiers
         ' 
         ' btnCreerTiers
         ' 
-        btnCreerTiers.Location = New Point(56, 367)
+        btnCreerTiers.Location = New Point(56, 527)
         btnCreerTiers.Name = "btnCreerTiers"
         btnCreerTiers.Size = New Size(75, 23)
         btnCreerTiers.TabIndex = 12
         btnCreerTiers.Text = "Créer Tiers"
         btnCreerTiers.UseVisualStyleBackColor = True
         ' 
+        ' dgvNTCategorie
+        ' 
+        dgvNTCategorie.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+        dgvNTCategorie.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        dgvNTCategorie.Location = New Point(358, 258)
+        dgvNTCategorie.Name = "dgvNTCategorie"
+        dgvNTCategorie.SelectionMode = DataGridViewSelectionMode.FullRowSelect
+        dgvNTCategorie.Size = New Size(402, 150)
+        dgvNTCategorie.TabIndex = 13
+        ' 
+        ' dgvNTSousCategorie
+        ' 
+        dgvNTSousCategorie.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+        dgvNTSousCategorie.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        dgvNTSousCategorie.Location = New Point(358, 463)
+        dgvNTSousCategorie.Name = "dgvNTSousCategorie"
+        dgvNTSousCategorie.SelectionMode = DataGridViewSelectionMode.FullRowSelect
+        dgvNTSousCategorie.Size = New Size(402, 150)
+        dgvNTSousCategorie.TabIndex = 14
+        ' 
         ' frmNouveauTiers
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(506, 450)
+        ClientSize = New Size(1001, 717)
+        Controls.Add(dgvNTSousCategorie)
+        Controls.Add(dgvNTCategorie)
         Controls.Add(btnCreerTiers)
         Controls.Add(txtSousCategorie)
         Controls.Add(lblSousCategorie)
@@ -181,6 +207,8 @@ Partial Class frmNouveauTiers
         Text = "Nouveau Tiers"
         grpPersonne.ResumeLayout(False)
         grpPersonne.PerformLayout()
+        CType(dgvNTCategorie, ComponentModel.ISupportInitialize).EndInit()
+        CType(dgvNTSousCategorie, ComponentModel.ISupportInitialize).EndInit()
         ResumeLayout(False)
         PerformLayout()
     End Sub
@@ -199,4 +227,6 @@ Partial Class frmNouveauTiers
     Friend WithEvents txtSousCategorie As TextBox
     Friend WithEvents lblSousCategorie As Label
     Friend WithEvents btnCreerTiers As Button
+    Friend WithEvents dgvNTCategorie As DataGridView
+    Friend WithEvents dgvNTSousCategorie As DataGridView
 End Class

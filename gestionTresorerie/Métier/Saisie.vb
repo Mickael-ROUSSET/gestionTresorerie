@@ -135,6 +135,7 @@ Public Class FrmSaisie
         'dgvTiers.Columns("id").Visible = False 
     End Sub
     Private Sub ChargeDgvCategorie(Optional debit As Boolean? = Nothing)
+        Dim categorie As New Categorie()
         Dim query As String = "SELECT id, libelle FROM Categorie"
         Dim parameters As New Dictionary(Of String, Object)
 
@@ -144,33 +145,21 @@ Public Class FrmSaisie
             parameters.Add("@debit", Math.Abs(CInt(debit.Value)))
         End If
 
-        ChargerDonneesDansDataGridView(query, parameters, dgvCategorie)
+        ChargerDonneesDansDataGridView(categorie, query, parameters, dgvCategorie)
     End Sub
 
     Private Sub ChargeDgvSousCategorie(idCategorie As Integer)
+        Dim sousCategorie As New SousCategorie()
         Dim query As String = "SELECT id, libelle FROM SousCategorie WHERE idCategorie = @idCategorie"
         Dim parameters As New Dictionary(Of String, Object)
         parameters.Add("@idCategorie", idCategorie)
 
-        ChargerDonneesDansDataGridView(query, parameters, dgvSousCategorie)
+        ChargerDonneesDansDataGridView(sousCategorie, query, parameters, dgvSousCategorie)
     End Sub
-    Private Sub ChargerDonneesDansDataGridView(query As String, parameters As Dictionary(Of String, Object), dataGridView As DataGridView)
-        Dim dt As New DataTable
+    Private Sub ChargerDonneesDansDataGridView(dataService As IDataService, query As String, parameters As Dictionary(Of String, Object), dataGridView As DataGridView)
+
         Try
-            Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
-            If conn.State <> ConnectionState.Open Then
-                conn.Open()
-            End If
-
-            Using command As New SqlCommand(query, conn)
-                For Each param In parameters
-                    command.Parameters.AddWithValue(param.Key, param.Value)
-                Next
-
-                Using adpt As New SqlDataAdapter(command)
-                    adpt.Fill(dt)
-                End Using
-            End Using
+            Dim dt As DataTable = dataService.ExecuterRequete(query, parameters)
 
             dataGridView.DataSource = dt
             dataGridView.Columns("id").Visible = False
@@ -182,7 +171,6 @@ Public Class FrmSaisie
             If dataGridView.Rows.Count = 0 Then
                 Logger.INFO($"Aucune ligne n'a été trouvée pour la requête spécifiée.")
                 Logger.INFO("Ajouter une entrée dans la table correspondante.")
-                ' TODO : orienter vers une fenêtre qui permettra d'ajouter une entrée
                 Return
             End If
         Catch ex As SqlException
@@ -194,6 +182,43 @@ Public Class FrmSaisie
         End Try
     End Sub
 
+    'Private Sub ChargerDonneesDansDataGridView(query As String, parameters As Dictionary(Of String, Object), dataGridView As DataGridView)
+    '    Dim dt As New DataTable
+    '    Try
+    '        Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
+    '        If conn.State <> ConnectionState.Open Then
+    '            conn.Open()
+    '        End If
+    '        Using command As New SqlCommand(query, conn)
+    '            For Each param In parameters
+    '                command.Parameters.AddWithValue(param.Key, param.Value)
+    '            Next
+
+    '            Using adpt As New SqlDataAdapter(command)
+    '                adpt.Fill(dt)
+    '            End Using
+    '        End Using
+
+    '        dataGridView.DataSource = dt
+    '        dataGridView.Columns("id").Visible = False
+    '        dataGridView.Columns("libelle").Visible = True
+    '        Logger.INFO($"Chargement des données réussi : {dataGridView.RowCount}")
+
+    '        ' Vérifie si le DataGridView est vide
+    '        If dataGridView.Rows.Count = 0 Then
+    '            Logger.INFO($"Aucune ligne n'a été trouvée pour la requête spécifiée.")
+    '            Logger.INFO("Ajouter une entrée dans la table correspondante.")
+    '            ' TODO : orienter vers une fenêtre qui permettra d'ajouter une entrée
+    '            Return
+    '        End If
+    '    Catch ex As SqlException
+    '        Logger.ERR($"Erreur SQL lors du chargement des données. Message: {ex.Message}")
+    '        MessageBox.Show($"Une erreur SQL s'est produite lors du chargement des données !{vbCrLf}{ex.ToString()}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+    '    Catch ex As Exception
+    '        Logger.ERR($"Erreur inattendue lors du chargement des données. Message: {ex.Message}")
+    '        MessageBox.Show($"Une erreur inattendue s'est produite !{vbCrLf}{ex.ToString()}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+    '    End Try
+    'End Sub
 
     'Private Sub ChargeDgvCategorie(Optional debit As Boolean? = Nothing)
     '    Dim query As String = "SELECT id, libelle FROM Categorie"
