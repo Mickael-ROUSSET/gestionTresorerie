@@ -521,6 +521,37 @@ Namespace My
                 Return CType(Me("ficBilan"),String)
             End Get
         End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, libelle FROM Categorie;")>  _
+        Public ReadOnly Property reqCategorieTout() As String
+            Get
+                Return CType(Me("reqCategorieTout"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers, dateCréati"& _ 
+            "on, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise, idC"& _ 
+            "heque) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMv"& _ 
+            "t, @montant, @sens, @etat, @événement, @type, @modifiable, @numeroRemise, @idChe"& _ 
+            "que);")>  _
+        Public ReadOnly Property insertMvts() As String
+            Get
+                Return CType(Me("insertMvts"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE Mouvements SET idCheque = @nouvelIdCheque WHERE Id = @idMouvement")>  _
+        Public ReadOnly Property updMvtIdChq() As String
+            Get
+                Return CType(Me("updMvtIdChq"),String)
+            End Get
+        End Property
     End Class
 End Namespace
 

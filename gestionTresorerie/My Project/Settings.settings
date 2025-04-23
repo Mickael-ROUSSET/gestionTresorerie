@@ -163,5 +163,14 @@
     <Setting Name="ficBilan" Type="System.String" Scope="Application">
       <Value Profile="(Default)">gestionTresorerie\monFichier.docx</Value>
     </Setting>
+    <Setting Name="reqCategorieTout" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, libelle FROM Categorie;</Value>
+    </Setting>
+    <Setting Name="insertMvts" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers, dateCréation, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise, idCheque) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable, @numeroRemise, @idCheque);</Value>
+    </Setting>
+    <Setting Name="updMvtIdChq" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE Mouvements SET idCheque = @nouvelIdCheque WHERE Id = @idMouvement</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

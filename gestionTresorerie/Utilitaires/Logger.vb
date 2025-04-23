@@ -9,12 +9,12 @@ Public Class Logger
     End Sub
 
     ' Méthode publique pour accéder à l'instance unique
-    Public Shared Function GetInstance() As Logger
-        If _instance Is Nothing Then
-            _instance = New Logger()
-        End If
-        Return _instance
-    End Function
+    'Public Shared Function GetInstance() As Logger
+    '    If _instance Is Nothing Then
+    '        _instance = New Logger()
+    '    End If
+    '    Return _instance
+    'End Function
 
     ' Méthode pour écrire dans le fichier de trace avec un niveau de log
     Public Shared Sub EcrireDansFichierTrace(level As String, message As String)

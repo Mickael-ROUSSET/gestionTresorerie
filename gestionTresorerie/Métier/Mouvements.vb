@@ -41,7 +41,6 @@ Public Class Mouvements
 
     Public Shared Function Existe(mouvement As Mouvements) As Boolean
         ' Vérifie si le mouvement existe déjà
-        'Dim query As String = "SELECT COUNT(*) FROM Mouvements WHERE dateMvt = @dateMvt AND montant = @montant AND sens = @sens;"
         Dim bExiste As Boolean = False
 
         Try
@@ -103,23 +102,10 @@ Public Class Mouvements
 
 
     Public Shared Sub MettreAJourMouvement(Id As Integer, categorie As Integer, sousCategorie As Integer, montant As Decimal, sens As Boolean, tiers As Integer, note As String, dateMvt As Date, etat As Boolean, evenement As String, type As String, modifiable As Boolean, numeroRemise As Integer?, Optional idCheque As Integer? = Nothing)
-        Dim sqlConnexion As SqlConnection = Nothing
         Dim rowsAffected As Integer = 0
 
         Try
-            ' Obtenir la connexion SQL
-            sqlConnexion = connexionDB.GetInstance.getConnexion
-
-            ' Ouvrir la connexion
-            If sqlConnexion.State <> ConnectionState.Open Then
-                sqlConnexion.Open()
-            End If
-
-            ' Requête SQL pour mettre à jour la table Mouvements
-            'Dim query As String = "UPDATE [dbo].[Mouvements] SET [catégorie] = @Categorie, [sousCatégorie] = @SousCategorie, [montant] = @Montant, [sens] = @Sens, [tiers] = @Tiers, [note] = @Note, [dateMvt] = @DateMvt, [dateModification] = GETDATE(), [etat] = @Etat, [événement] = @Evenement, [type] = @Type, [modifiable] = @Modifiable, [numeroRemise] = @NumeroRemise"
-            Dim query As String = lectureProprietes.GetVariable("updMvt", False)
-
-            Using command As New SqlCommand(query, sqlConnexion)
+            Using command As New SqlCommand(lectureProprietes.GetVariable("updMvt", False), connexionDB.GetInstance.getConnexion)
                 ' Ajouter les paramètres à la requête
                 command.Parameters.AddWithValue("@Id", Id)
                 command.Parameters.AddWithValue("@Categorie", categorie)
@@ -153,11 +139,6 @@ Public Class Mouvements
         Catch ex As Exception
             ' Trace en cas d'erreur
             Logger.ERR($"Erreur lors de la mise à jour du mouvement : {ex.Message}")
-        Finally
-            ' Fermer la connexion si elle est ouverte
-            If sqlConnexion IsNot Nothing AndAlso sqlConnexion.State = ConnectionState.Open Then
-                sqlConnexion.Close()
-            End If
         End Try
     End Sub
 
@@ -167,24 +148,14 @@ Public Class Mouvements
         Dim rowsAffected As Integer = 0
 
         Try
-            ' Obtenir la connexion SQL
-            sqlConnexion = connexionDB.GetInstance.getConnexion
+            'Using command As New SqlCommand(lectureProprietes.GetVariable("delMvt"), connexionDB.GetInstance.getConnexion) 
+            Dim command = SqlCommandBuilder.CreateSqlCommand("delMvt")
+            ' Ajouter le paramètre Id à la requête
+            command.Parameters.AddWithValue("@Id", id)
 
-            ' Ouvrir la connexion
-            If sqlConnexion.State <> ConnectionState.Open Then
-                sqlConnexion.Open()
-            End If
-
-            ' Requête SQL pour supprimer l'enregistrement
-            Dim query As String = "DELETE FROM [dbo].[Mouvements] WHERE [Id] = @Id"
-
-            Using command As New SqlCommand(query, sqlConnexion)
-                ' Ajouter le paramètre Id à la requête
-                command.Parameters.AddWithValue("@Id", id)
-
-                ' Exécuter la requête et obtenir le nombre de lignes affectées
-                rowsAffected = command.ExecuteNonQuery()
-            End Using
+            ' Exécuter la requête et obtenir le nombre de lignes affectées
+            rowsAffected = command.ExecuteNonQuery()
+            'End Using
 
             ' Trace indiquant le nombre de lignes supprimées
             Logger.INFO($"Nombre de lignes supprimées : {rowsAffected}")
