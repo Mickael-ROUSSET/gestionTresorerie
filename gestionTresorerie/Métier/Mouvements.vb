@@ -1,6 +1,7 @@
 ﻿Imports System.Data.SqlClient
 Imports System.Text.RegularExpressions
 Public Class Mouvements
+    Private ReadOnly _Id As Integer
     Private _note As String
     Private _categorie As Integer
     Private _sousCategorie As Integer
@@ -239,6 +240,11 @@ Public Class Mouvements
             'Suppression des doubles quotes
             _note = Regex.Replace(value, "(.*)""(.*)", String.Empty)
         End Set
+    End Property
+    Public ReadOnly Property Id() As Integer
+        Get
+            Return _Id
+        End Get
     End Property
     Public Property Categorie() As String
         Get

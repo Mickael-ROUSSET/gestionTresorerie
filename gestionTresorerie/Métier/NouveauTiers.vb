@@ -167,10 +167,10 @@ Public Class frmNouveauTiers
             End If
         Catch ex As SqlException
             Logger.ERR($"Erreur SQL lors du chargement des données. Message: {ex.Message}")
-            MessageBox.Show($"Une erreur SQL s'est produite lors du chargement des données !{vbCrLf}{ex.ToString()}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show($"Une erreur SQL s'est produite lors du chargement des données !{vbCrLf}{ex}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
             Logger.ERR($"Erreur inattendue lors du chargement des données. Message: {ex.Message}")
-            MessageBox.Show($"Une erreur inattendue s'est produite !{vbCrLf}{ex.ToString()}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show($"Une erreur inattendue s'est produite !{vbCrLf}{ex}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 End Class

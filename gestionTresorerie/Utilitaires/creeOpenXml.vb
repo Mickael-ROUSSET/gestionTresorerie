@@ -318,7 +318,7 @@ Module creeOpenXml
 
         Using wordprocessingDocument As WordprocessingDocument = WordprocessingDocument.Open(filepath, True)
             ' If the paragraph has no ParagraphProperties object, create one.
-            If p.Elements(Of ParagraphProperties)().Count() = 0 Then
+            If Not p.Elements(Of ParagraphProperties)().Any() Then
                 p.PrependChild(Of ParagraphProperties)(New ParagraphProperties)
             End If
 
@@ -354,7 +354,7 @@ Module creeOpenXml
     Public Sub ApplyStyleToParagraph(ByVal doc As WordprocessingDocument, ByVal styleid As String, ByVal stylename As String, ByVal p As Paragraph)
 
         ' If the paragraph has no ParagraphProperties object, create one.
-        If p.Elements(Of ParagraphProperties)().Count() = 0 Then
+        If Not p.Elements(Of ParagraphProperties)().Any() Then
             p.PrependChild(Of ParagraphProperties)(New ParagraphProperties)
         End If
 

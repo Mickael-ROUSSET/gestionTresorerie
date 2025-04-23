@@ -11,7 +11,7 @@ Public Class FrmSaisie
     Private myReader As SqlDataReader
     Private results As String
     Private listeTiers As ListeTiers
-    Private _idCheque As Integer = 0
+    Private _Mvt As Mouvements
     Private _dtMvtsIdentiques As DataTable = Nothing
     Public Property Properties As Object
 
@@ -78,22 +78,22 @@ Public Class FrmSaisie
         Call ChargeFichierTexte(Me.cbType, lectureProprietes.GetVariable("ficType"))
     End Sub
     Private Function DetecteTiers() As Integer
-        'Essaie de déterminer le tiers en fonction du contenu de la note
-        Dim sMots() As String, sMot As String
+        ' Essaie de déterminer le tiers en fonction du contenu de la note
+        Dim sMots() As String = txtNote.Text.Split(New Char() {" "c}, StringSplitOptions.RemoveEmptyEntries)
         Dim i As Integer = -1
 
-        sMots = Split(txtNote.Text, Space(1),, CompareMethod.Text)
-        'TODO : voir pourquoi il me ramène plein de mots vides
-        For Each sMot In sMots
-            If Not sMot.Equals(String.Empty) Then
-                i = listeTiers.getIdParRaisonSociale(Strings.UCase(sMot))
+        For Each sMot As String In sMots
+            If Not String.IsNullOrWhiteSpace(sMot) Then
+                i = listeTiers.getIdParRaisonSociale(sMot.ToUpper())
                 If i > -1 Then
                     Exit For
                 End If
             End If
         Next
+
         Return i
     End Function
+
     Private Sub Désélectionne()
         'Désélectionne les items des comboBox
 
@@ -136,7 +136,8 @@ Public Class FrmSaisie
     End Sub
     Private Sub ChargeDgvCategorie(Optional debit As Boolean? = Nothing)
         Dim categorie As New Categorie()
-        Dim query As String = "SELECT id, libelle FROM Categorie"
+        'Dim query As String = "SELECT id, libelle FROM Categorie"
+        Dim query As String = lectureProprietes.GetVariable("reqCategorieTout")
         Dim parameters As New Dictionary(Of String, Object)
 
         If debit.HasValue Then
@@ -150,7 +151,8 @@ Public Class FrmSaisie
 
     Private Sub ChargeDgvSousCategorie(idCategorie As Integer)
         Dim sousCategorie As New SousCategorie()
-        Dim query As String = "SELECT id, libelle FROM SousCategorie WHERE idCategorie = @idCategorie"
+        'Dim query As String = "SELECT id, libelle FROM SousCategorie WHERE idCategorie = @idCategorie"
+        Dim query As String = lectureProprietes.GetVariable("reqSousCategorie")
         Dim parameters As New Dictionary(Of String, Object)
         parameters.Add("@idCategorie", idCategorie)
 
@@ -175,124 +177,12 @@ Public Class FrmSaisie
             End If
         Catch ex As SqlException
             Logger.ERR($"Erreur SQL lors du chargement des données. Message: {ex.Message}")
-            MessageBox.Show($"Une erreur SQL s'est produite lors du chargement des données !{vbCrLf}{ex.ToString()}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show($"Une erreur SQL s'est produite lors du chargement des données !{vbCrLf}{ex}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
             Logger.ERR($"Erreur inattendue lors du chargement des données. Message: {ex.Message}")
-            MessageBox.Show($"Une erreur inattendue s'est produite !{vbCrLf}{ex.ToString()}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show($"Une erreur inattendue s'est produite !{vbCrLf}{ex}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
-
-    'Private Sub ChargerDonneesDansDataGridView(query As String, parameters As Dictionary(Of String, Object), dataGridView As DataGridView)
-    '    Dim dt As New DataTable
-    '    Try
-    '        Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
-    '        If conn.State <> ConnectionState.Open Then
-    '            conn.Open()
-    '        End If
-    '        Using command As New SqlCommand(query, conn)
-    '            For Each param In parameters
-    '                command.Parameters.AddWithValue(param.Key, param.Value)
-    '            Next
-
-    '            Using adpt As New SqlDataAdapter(command)
-    '                adpt.Fill(dt)
-    '            End Using
-    '        End Using
-
-    '        dataGridView.DataSource = dt
-    '        dataGridView.Columns("id").Visible = False
-    '        dataGridView.Columns("libelle").Visible = True
-    '        Logger.INFO($"Chargement des données réussi : {dataGridView.RowCount}")
-
-    '        ' Vérifie si le DataGridView est vide
-    '        If dataGridView.Rows.Count = 0 Then
-    '            Logger.INFO($"Aucune ligne n'a été trouvée pour la requête spécifiée.")
-    '            Logger.INFO("Ajouter une entrée dans la table correspondante.")
-    '            ' TODO : orienter vers une fenêtre qui permettra d'ajouter une entrée
-    '            Return
-    '        End If
-    '    Catch ex As SqlException
-    '        Logger.ERR($"Erreur SQL lors du chargement des données. Message: {ex.Message}")
-    '        MessageBox.Show($"Une erreur SQL s'est produite lors du chargement des données !{vbCrLf}{ex.ToString()}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
-    '    Catch ex As Exception
-    '        Logger.ERR($"Erreur inattendue lors du chargement des données. Message: {ex.Message}")
-    '        MessageBox.Show($"Une erreur inattendue s'est produite !{vbCrLf}{ex.ToString()}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
-    '    End Try
-    'End Sub
-
-    'Private Sub ChargeDgvCategorie(Optional debit As Boolean? = Nothing)
-    '    Dim query As String = "SELECT id, libelle FROM Categorie"
-
-    '    If debit.HasValue Then
-    '        Logger.INFO("Chargement des catégories avec sens : " & debit)
-    '        query += " WHERE debit = @debit"
-    '    End If
-
-    '    Dim dt As New DataTable
-    '    Try
-    '        Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
-    '        Using command As New SqlCommand(query, conn)
-    '            If debit.HasValue Then
-    '                command.Parameters.AddWithValue("@debit", Math.Abs(CInt(debit.Value)))
-    '            End If
-
-    '            Using adpt As New SqlDataAdapter(command)
-    '                adpt.Fill(dt)
-    '            End Using
-    '        End Using
-
-    '        dgvCategorie.DataSource = dt
-    '        dgvCategorie.Columns("id").Visible = False
-    '        dgvCategorie.Columns("libelle").Visible = True
-
-    '        Logger.INFO("Chargement des catégories réussi : " & dgvCategorie.RowCount)
-    '        ' Vérifie si le DataGridView est vide
-    '        If dgvCategorie.Rows.Count = 0 Then
-    '            Logger.INFO("ChargeDgvSousCategorie : aucune ligne n'a été trouvée pour la catégorie spécifiée.")
-    '            Logger.INFO("Ajouter une entrée dans la table SousCategorie.")
-    '            End
-    '        End If
-    '    Catch ex As SqlException
-    '        Logger.ERR($"Erreur lors du chargement des catégories. Message: {ex.Message}")
-    '        MessageBox.Show("ChargeDgvCategorie : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
-    '    End Try
-    'End Sub
-    'Private Sub ChargeDgvSousCategorie(idCategorie As Integer)
-
-    '    Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, libelle FROM SousCategorie where idCategorie = @idCategorie;", connexionDB.GetInstance.getConnexion)
-    '    command.Parameters.AddWithValue("@idCategorie", idCategorie)
-
-    '    Dim dt As New DataTable
-    '    Dim adpt As New Data.SqlClient.SqlDataAdapter(command)
-
-    '    Try
-    '        ' Place la connexion dans le bloc try : c'est typiquement le genre d'instruction qui peut lever une exception.
-    '        adpt.Fill(dt)
-    '        dgvSousCategorie.DataSource = dt
-    '        Logger.INFO("Chargement des sous catégories réussi : " & dgvSousCategorie.RowCount)
-
-    '        ' Vérifie si le DataGridView est vide
-    '        If dgvSousCategorie.Rows.Count = 0 Then
-    '            Logger.INFO("ChargeDgvSousCategorie : aucune ligne n'a été trouvée pour la catégorie spécifiée.")
-    '            Logger.INFO("Ajouter une entrée dans la table SousCategorie.")
-    '            'TODO : orienter vers une fenêtre qui permettra d'ajouter une entrée
-    '            End
-    '        End If
-    '    Catch ex As SqlException
-    '        ' On informe l'utilisateur qu'il y a eu un problème :
-    '        Logger.ERR("ChargeDgvSousCategorie : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
-    '    Catch ex As Exception
-    '        ' Gère toutes les autres erreurs
-    '        Logger.ERR("ChargeDgvSousCategorie : une erreur inattendue s'est produite !" & vbCrLf & ex.ToString())
-    '    End Try
-
-    '    dgvSousCategorie.Columns("id").Visible = False
-    '    dgvSousCategorie.Columns("libelle").Visible = True
-    'End Sub
-
-    'Private Sub CbCategorie_SelectedIndexChanged(sender As Object, e As EventArgs)
-    '    cbSousCategorie.Items.Clear
-    'End Sub
     Private Sub BtnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
         Call InsereChq()
         Me.Hide()
@@ -310,18 +200,6 @@ Public Class FrmSaisie
     Private Sub BtnHistogramme_Click(sender As Object, e As EventArgs) Handles btnHistogramme.Click
         frmHistogramme.ShowDialog()
     End Sub
-
-    'Private Sub CbTiers_TextChanged(ByVal sender As Object, ByVal e As EventArgs)
-    '    'Recherche à la volée dans la cb
-    '    With cbTiers
-    '        If .FindString(cbTiers.Text) > 0 Then
-    '            Dim Pos = .Text.Length
-    '            .SelectedIndex = cbTiers.FindString(cbTiers.Text)
-    '            .SelectionStart = Pos
-    '            .SelectionLength = cbTiers.Text.Length - Pos
-    '        End If
-    '    End With
-    'End Sub
 
     Private Sub dgvTiers_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvTiers.CellContentClick
         ' Gérer les catégories et sous-catégories par défaut 
@@ -352,44 +230,28 @@ Public Class FrmSaisie
             End If
         Next
     End Sub
+    'Private Sub dgvTiers_UserAddedRow(sender As Object, e As DataGridViewRowEventArgs) Handles dgvTiers.UserAddedRow
+    '    Dim id As Integer
+    '    Dim sNom As String, sPrenom As String, sRaisonSociale As String
 
-    'Private Sub ChargeSousCategorie(indiceCategorie As Integer)
-    '    Dim monReaderSousCategorie As SqlDataReader
-    '    Dim maCmdSousCategorie As SqlCommand
+    '    id = CInt(dgvTiers.CurrentRow.Cells(0).Value.ToString)
+    '    sNom = dgvTiers.CurrentRow.Cells(0).Value.ToString
+    '    sPrenom = dgvTiers.CurrentRow.Cells(0).Value.ToString
+    '    sRaisonSociale = dgvTiers.CurrentRow.Cells(0).Value.ToString
+    '    Dim command As New System.Data.SqlClient.SqlCommand("insert into Tiers (id, nom, prenom, raisonSoicale) values ('" & id & "', '" & sNom & "' ,'" & sPrenom & "', '" & sRaisonSociale & "';", connexionDB.GetInstance.getConnexion)
 
-    '    maCmdSousCategorie = New SqlCommand("SELECT libelle FROM SousCategorie where idCategorie =" & indiceCategorie & ";", connexionDB.GetInstance.getConnexion)
-    '    monReaderSousCategorie = maCmdSousCategorie.ExecuteReader()
-    '    Do While monReaderSousCategorie.Read()
-    '        Try
-    '            Me.cbSousCategorie.Items.Add(monReaderSousCategorie.GetSqlString(0))
-    '        Catch ex As Exception
-    '            msgbox(ex.Message)
-    '        End Try
-    '    Loop
-    '    monReaderSousCategorie.Close()
+    '    Dim dt As New DataTable
+    '    Dim adpt As New Data.SqlClient.SqlDataAdapter(command)
+
+    '    Try
+    '        ' Place la connexion dans le bloc try : c'est typiquement le genre d'instruction qui peut lever une exception. 
+    '        adpt.Fill(dt)
+    '        dgvCategorie.DataSource = dt
+    '    Catch ex As SqlException
+    '        ' On informe l'utilisateur qu'il y a eu un problème :
+    '        MessageBox.Show("dgvTiers_UserAddedRow : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
+    '    End Try
     'End Sub
-    Private Sub dgvTiers_UserAddedRow(sender As Object, e As DataGridViewRowEventArgs) Handles dgvTiers.UserAddedRow
-        Dim id As Integer
-        Dim sNom As String, sPrenom As String, sRaisonSociale As String
-
-        id = CInt(dgvTiers.CurrentRow.Cells(0).Value.ToString)
-        sNom = dgvTiers.CurrentRow.Cells(0).Value.ToString
-        sPrenom = dgvTiers.CurrentRow.Cells(0).Value.ToString
-        sRaisonSociale = dgvTiers.CurrentRow.Cells(0).Value.ToString
-        Dim command As New System.Data.SqlClient.SqlCommand("insert into Tiers (id, nom, prenom, raisonSoicale) values ('" & id & "', '" & sNom & "' ,'" & sPrenom & "', '" & sRaisonSociale & "';", connexionDB.GetInstance.getConnexion)
-
-        Dim dt As New DataTable
-        Dim adpt As New Data.SqlClient.SqlDataAdapter(command)
-
-        Try
-            ' Place la connexion dans le bloc try : c'est typiquement le genre d'instruction qui peut lever une exception. 
-            adpt.Fill(dt)
-            dgvCategorie.DataSource = dt
-        Catch ex As SqlException
-            ' On informe l'utilisateur qu'il y a eu un problème :
-            MessageBox.Show("dgvTiers_UserAddedRow : une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
-        End Try
-    End Sub
     Private Sub btnInsereTiers_Click(sender As Object, e As EventArgs) Handles btnInsereTiers.Click
         frmNouveauTiers.Show()
     End Sub
@@ -404,20 +266,6 @@ Public Class FrmSaisie
             Call ChargeDgvSousCategorie(dgvCategorie.SelectedRows(0).Cells(0).Value)
         End If
     End Sub
-
-    'Private Sub selectionneLigneParLibelle(libelle As String)
-    '    'Sélectionne la ligne dont le libellé correspond au paramètre (sur le nombre de caractères renseignés)
-    '    Dim i As Long
-
-    '    If Len(libelle) > 1 Then
-    '        For i = 0 To dgvCategorie.RowCount - 1
-    '            If Strings.Left(dgvCategorie.SelectedRows(i).Cells(1).Value, Len(libelle)) = libelle Then
-    '                dgvCategorie.Rows(i).Selected = True
-    '                dgvCategorie.Rows(i).Visible = True
-    '            End If
-    '        Next
-    '    End If
-    'End Sub
     Private Sub selectionneLigneParLibelle(dgv As DataGridView, libelle As String)
         'Sélectionne la ligne dont le libellé correspond au paramètre (sur le nombre de caractères renseignés)
         Dim i As Long
@@ -464,6 +312,7 @@ Public Class FrmSaisie
                 Logger.INFO("Le mouvement existe déjà : " & mouvement.ObtenirValeursConcatenees)
             Else
                 InsererMouvementEnBase(mouvement)
+                _Mvt = mouvement
                 Logger.INFO("Insertion du mouvement pour : " & mouvement.ObtenirValeursConcatenees)
             End If
         Catch ex As Exception
@@ -491,7 +340,8 @@ Public Class FrmSaisie
                      cbType.SelectedItem,
                      False,
                      GetRemiseValue(txtRemise.Text),
-                     _idCheque)
+                     0
+                     )
         End If
     End Sub
 
@@ -527,13 +377,13 @@ Public Class FrmSaisie
             cbType.SelectedItem,
             False,
             txtRemise.Text,
-            _idCheque
+            0
         )
     End Function
 
     Private Sub InsererMouvementEnBase(mouvement As Mouvements)
-        Dim query As String = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers, dateCréation, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise, idCheque) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable, @numeroRemise, @idCheque);"
-
+        'Dim query As String = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers, dateCréation, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise, idCheque) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable, @numeroRemise, @idCheque);"
+        Dim query As String = lectureProprietes.GetVariable("insertMvts")
         Try
             Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
             Dim cmd As New SqlCommand(query, conn)
@@ -624,10 +474,34 @@ Public Class FrmSaisie
     End Sub
 
     Private Sub IdChequeSelectionneChangedHandler(ByVal idCheque As Integer)
-        ' Faire quelque chose avec l'idCheque
-        'TODO  : reste à trouver le Mouvement
-        _idCheque = idCheque
-        'Call UpdateIdCheque(idMouvement, idCheque)
+        'Mettre à jour le Mouvement 
+        MettreAJourIdCheque(_Mvt.Id, idCheque)
+    End Sub
+    Public Shared Sub MettreAJourIdCheque(idMouvement As Integer, nouvelIdCheque As Integer)
+        Dim query As String = lectureProprietes.GetVariable("updMvtIdChq")
+
+        Try
+            Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
+
+            Using command As New SqlCommand(query, conn)
+                command.Parameters.AddWithValue("@nouvelIdCheque", nouvelIdCheque)
+                command.Parameters.AddWithValue("@idMouvement", idMouvement)
+
+                Dim rowsAffected As Integer = command.ExecuteNonQuery()
+
+                If rowsAffected > 0 Then
+                    Logger.INFO($"Mise à jour réussie de idCheque pour le mouvement avec Id = {idMouvement}")
+                Else
+                    Logger.WARN($"Aucune ligne n'a été mise à jour pour le mouvement avec Id = {idMouvement}")
+                End If
+            End Using
+        Catch ex As SqlException
+            Logger.ERR($"Erreur SQL lors de la mise à jour de idCheque. Message: {ex.Message}")
+            Throw
+        Catch ex As Exception
+            Logger.ERR($"Erreur inattendue lors de la mise à jour de idCheque. Message: {ex.Message}")
+            Throw
+        End Try
     End Sub
 
     Public Shared Function CreerJsonCheque(_id As Integer, _montant_numerique As Decimal, _numero_du_cheque As String, _dateChq As DateTime, _emetteur_du_cheque As String, _destinataire As String) As String

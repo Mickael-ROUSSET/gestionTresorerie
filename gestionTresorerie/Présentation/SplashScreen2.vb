@@ -1,8 +1,7 @@
 ﻿Public NotInheritable Class SplashScreen2
 
-    'TODO: ce formulaire peut facilement être configuré comme écran de démarrage de l'application en accédant à l'onglet "Application"
+    'Ce formulaire peut facilement être configuré comme écran de démarrage de l'application en accédant à l'onglet "Application"
     '  du Concepteur de projets ("Propriétés" sous le menu "Projet").
-
 
     Private Sub SplashScreen2_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
         'Configurez le texte de la boîte de dialogue au moment de l'exécution en fonction des informations d'assembly de l'application.  
