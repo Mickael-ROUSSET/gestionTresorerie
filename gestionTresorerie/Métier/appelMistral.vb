@@ -3,7 +3,7 @@ Imports System.IO
 Imports System.Net.Http
 Imports System.Text
 
-Public Class appelMistral
+Public Class AppelMistral
 
     '' URL de l'API Mistral 
     'Dim apiUrl As String = "https://api.mistral.ai/v1/chat/completions"
@@ -32,7 +32,7 @@ le destinataire à droite de la mention ""à ""
         Dim valCle = New cléApiMistral
         Dim apiKey As String = valCle.getCle
         'Dim apiUrl As String = "https://api.mistral.ai/v1/chat/completions"
-        Dim apiUrl As String = lectureProprietes.GetVariable("urlMistral")
+        Dim apiUrl As String = LectureProprietes.GetVariable("urlMistral")
 
 
         ' Appeler la fonction pour extraire le texte

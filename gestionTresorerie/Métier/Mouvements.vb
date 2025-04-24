@@ -44,7 +44,7 @@ Public Class Mouvements
         Dim bExiste As Boolean = False
 
         Try
-            Using cmd As New SqlCommand(lectureProprietes.GetVariable("reqNbMouvements"), connexionDB.GetInstance.getConnexion)
+            Using cmd As New SqlCommand(LectureProprietes.GetVariable("reqNbMouvements"), ConnexionDB.GetInstance.getConnexion)
                 cmd.Parameters.AddWithValue("@dateMvt", mouvement.DateMvt.ToString("yyyy-MM-dd"))
                 cmd.Parameters.AddWithValue("@montant", mouvement.Montant)
                 cmd.Parameters.AddWithValue("@sens", mouvement.Sens)
@@ -72,7 +72,7 @@ Public Class Mouvements
 
         Try
             ' Définir la commande SQL pour appeler la procédure stockée
-            Using cmd As New SqlCommand(lectureProprietes.GetVariable("procMvtsIdentiques", False), connexionDB.GetInstance.getConnexion)
+            Using cmd As New SqlCommand(LectureProprietes.GetVariable("procMvtsIdentiques"), ConnexionDB.GetInstance.getConnexion)
                 'cmd.CommandType = CommandType.StoredProcedure
 
                 ' Ajouter les paramètres à la commande
@@ -105,7 +105,7 @@ Public Class Mouvements
         Dim rowsAffected As Integer = 0
 
         Try
-            Using command As New SqlCommand(lectureProprietes.GetVariable("updMvt", False), connexionDB.GetInstance.getConnexion)
+            Using command As New SqlCommand(LectureProprietes.GetVariable("updMvt"), ConnexionDB.GetInstance.getConnexion)
                 ' Ajouter les paramètres à la requête
                 command.Parameters.AddWithValue("@Id", Id)
                 command.Parameters.AddWithValue("@Categorie", categorie)

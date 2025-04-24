@@ -72,7 +72,7 @@ Public Class DocumentAgumaaa
         Try
             Dim query As String = "INSERT INTO [dbo].[Documents] (dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc) VALUES (@dateDoc, @contenuDoc, @cheminDoc, @categorieDoc, @sousCategorieDoc, @idMvtDoc);"
 
-            Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
+            Using command As New SqlCommand(query, ConnexionDB.GetInstance.getConnexion)
                 command.Parameters.AddWithValue("@dateDoc", dateDoc)
                 command.Parameters.AddWithValue("@contenuDoc", contenuDoc)
                 command.Parameters.AddWithValue("@cheminDoc", cheminDoc)
@@ -94,7 +94,7 @@ Public Class DocumentAgumaaa
         Try
             Dim query As String = "SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc FROM [dbo].[Documents];"
 
-            Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
+            Using command As New SqlCommand(query, ConnexionDB.GetInstance.getConnexion)
                 Using adapter As New SqlDataAdapter(command)
                     adapter.Fill(table)
                 End Using
@@ -110,7 +110,7 @@ Public Class DocumentAgumaaa
         Try
             Dim query As String = "UPDATE [dbo].[Documents] SET dateDoc = @dateDoc, contenuDoc = @contenuDoc, cheminDoc = @cheminDoc, categorieDoc = @categorieDoc, sousCategorieDoc = @sousCategorieDoc, idMvtDoc=@idMvtDoc WHERE idDoc = @idDoc;"
 
-            Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
+            Using command As New SqlCommand(query, ConnexionDB.GetInstance.getConnexion)
                 command.Parameters.AddWithValue("@idDoc", idDoc)
                 command.Parameters.AddWithValue("@dateDoc", dateDoc)
                 command.Parameters.AddWithValue("@contenuDoc", contenuDoc)
@@ -132,7 +132,7 @@ Public Class DocumentAgumaaa
             'connection.Open()
             Dim query As String = "DELETE FROM [dbo].[Documents] WHERE idDoc = @idDoc;"
 
-            Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
+            Using command As New SqlCommand(query, ConnexionDB.GetInstance.getConnexion)
                 command.Parameters.AddWithValue("@idDoc", idDoc)
 
                 command.ExecuteNonQuery()

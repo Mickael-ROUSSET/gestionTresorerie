@@ -1,4 +1,4 @@
-﻿Public Class lectureProprietes
+﻿Public Class LectureProprietes
     Private Shared _env As String
     Private Shared _repInstallation As String
 
@@ -50,13 +50,13 @@
             End If
         End Get
     End Property
-    Public Shared Function GetVariable(nomVariable As String, Optional avecChemin As Boolean = True) As String
+    Public Shared Function GetVariable(nomVariable As String) As String
+        ' Retourner la variable demandée 
+        Return My.Settings.Item(nomVariable)
+    End Function
+    Public Shared Function GetCheminEtVariable(nomVariable As String) As String
         ' Retourner la variable demandée
-        'N.B. : elle ne doit pas dépendre pas de l'environnement Prod / test
-        If avecChemin Then
-            Return _repInstallation & My.Settings.Item(nomVariable)
-        Else
-            Return My.Settings.Item(nomVariable)
-        End If
+        'N.B. : elle ne doit pas dépendre pas de l'environnement Prod / test 
+        Return _repInstallation & My.Settings.Item(nomVariable)
     End Function
 End Class

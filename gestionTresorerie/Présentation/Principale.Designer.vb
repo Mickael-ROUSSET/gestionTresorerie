@@ -60,7 +60,7 @@ Partial Class FrmPrincipale
         ÉvénementDataGridViewTextBoxColumn = New DataGridViewTextBoxColumn()
         NoteDataGridViewTextBoxColumn = New DataGridViewTextBoxColumn()
         TypeDataGridViewTextBoxColumn = New DataGridViewTextBoxColumn()
-        ModifiableDataGridViewCheckBoxColumn = New DataGridViewCheckBoxColumn()
+        ModifiableDataGridViewCheckBoxColumn = New DataGridViewTextBoxColumn()
         NumeroRemiseDataGridViewTextBoxColumn = New DataGridViewTextBoxColumn()
         CType(dgvPrincipale, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
@@ -327,6 +327,8 @@ Partial Class FrmPrincipale
         ModifiableDataGridViewCheckBoxColumn.DataPropertyName = "Modifiable"
         ModifiableDataGridViewCheckBoxColumn.HeaderText = "Modifiable"
         ModifiableDataGridViewCheckBoxColumn.Name = "ModifiableDataGridViewCheckBoxColumn"
+        ModifiableDataGridViewCheckBoxColumn.Resizable = DataGridViewTriState.True
+        ModifiableDataGridViewCheckBoxColumn.SortMode = DataGridViewColumnSortMode.NotSortable
         ' 
         ' NumeroRemiseDataGridViewTextBoxColumn
         ' 
@@ -399,6 +401,6 @@ Partial Class FrmPrincipale
     Friend WithEvents ÉvénementDataGridViewTextBoxColumn As DataGridViewTextBoxColumn
     Friend WithEvents NoteDataGridViewTextBoxColumn As DataGridViewTextBoxColumn
     Friend WithEvents TypeDataGridViewTextBoxColumn As DataGridViewTextBoxColumn
-    Friend WithEvents ModifiableDataGridViewCheckBoxColumn As DataGridViewCheckBoxColumn
+    Friend WithEvents ModifiableDataGridViewCheckBoxColumn As DataGridViewTextBoxColumn
     Friend WithEvents NumeroRemiseDataGridViewTextBoxColumn As DataGridViewTextBoxColumn
 End Class

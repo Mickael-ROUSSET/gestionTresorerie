@@ -6,7 +6,7 @@ Public Class Categorie
     Public Function ExecuterRequete(query As String, Optional parameters As Dictionary(Of String, Object) = Nothing) As DataTable Implements IDataService.ExecuterRequete
         Dim dt As New DataTable
         Try
-            Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
+            Dim conn As SqlConnection = ConnexionDB.GetInstance.getConnexion
             If conn.State <> ConnectionState.Open Then
                 conn.Open()
             End If
@@ -25,7 +25,7 @@ Public Class Categorie
 
             Logger.INFO($"Requête exécutée avec succès : {query}")
         Catch ex As SqlException
-            Logger.ERR($"Erreur SQL lors de l'exécution de la requête. Message: {ex.Message}")
+            Logger.ERR($"Erreur SQL lors de l'exécution de la requête. Message: {ex.Message} sur la requête {query}")
             Throw
         Catch ex As Exception
             Logger.ERR($"Erreur inattendue lors de l'exécution de la requête. Message: {ex.Message}")

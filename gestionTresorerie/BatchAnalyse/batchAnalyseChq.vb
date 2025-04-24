@@ -9,7 +9,7 @@ Public Class batchAnalyseChq
     Private compteursParRepertoire As New Dictionary(Of String, (fichiersTraites As Integer, traitementOK As Integer, traitementKO As Integer))
 
     Public Sub ParcourirRepertoireEtAnalyser()
-        Dim lectureProprietes As New lectureProprietes()
+        Dim lectureProprietes As New LectureProprietes()
         Dim sRepChq As String = lectureProprietes.repChq & DateTime.Now.Year
 
         Try
@@ -77,10 +77,10 @@ Public Class batchAnalyseChq
     End Sub
 
     Public Shared Sub analyseChq(cheminChq As String)
-        Dim extraction As New appelMistral()
+        Dim extraction As New AppelMistral()
 
         Logger.INFO("-------------------" & vbCrLf & "Analyse du chèque " & cheminChq)
-        Dim chqJson = appelMistral.litImage(cheminChq)
+        Dim chqJson = AppelMistral.litImage(cheminChq)
         cheminChq = RenommerFichier(cheminChq, chqJson.numero_du_cheque)
         chqJson.InsereEnBase(cheminChq)
         Logger.INFO("Insertion en base du chèque " & cheminChq)

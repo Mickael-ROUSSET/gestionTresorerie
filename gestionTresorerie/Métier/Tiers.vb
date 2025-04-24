@@ -36,7 +36,7 @@ Public Class Tiers
 
         maCmd = New SqlCommand
         With maCmd
-            .Connection = connexionDB.GetInstance.getConnexion
+            .Connection = ConnexionDB.GetInstance.getConnexion
             .CommandText = "SELECT categorieDefaut FROM Tiers where id = '" & idTiers & "';"
         End With
         monReader = maCmd.ExecuteReader()
@@ -59,7 +59,7 @@ Public Class Tiers
 
         maCmd = New SqlCommand
         With maCmd
-            .Connection = connexionDB.GetInstance.getConnexion
+            .Connection = ConnexionDB.GetInstance.getConnexion
             .CommandText = "SELECT sousCategorieDefaut FROM Tiers where id = '" & idTiers & "';"
         End With
         monReader = maCmd.ExecuteReader()
@@ -80,7 +80,7 @@ Public Class Tiers
         Dim ListeTiers As List(Of (nom As String, prenom As String, raisonSociale As String))
         Try
             ' Obtenir la connexion SQL
-            sqlConnexion = connexionDB.GetInstance.getConnexion
+            sqlConnexion = ConnexionDB.GetInstance.getConnexion
 
             ' Ouvrir la connexion
             If sqlConnexion.State <> ConnectionState.Open Then

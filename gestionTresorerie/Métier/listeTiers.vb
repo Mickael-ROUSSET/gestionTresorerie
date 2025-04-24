@@ -6,7 +6,7 @@ Public Class ListeTiers
     Public Sub New()
 
         If _listeTiers.Count = 0 Then
-            extraitListeTiers(connexionDB.GetInstance.getConnexion)
+            extraitListeTiers(ConnexionDB.GetInstance.getConnexion)
         End If
     End Sub
     Public Sub extraitListeTiers(maConn As SqlConnection)

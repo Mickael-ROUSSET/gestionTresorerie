@@ -22,7 +22,7 @@ Public Class Compte
         ' Combiner le mot de passe et le sel
         ' TODO : pour simplifier, sel unique et en paramètre de l'appli
         If sel = Constantes.Vide Then
-            sel = lectureProprietes.GetVariable("selAleatoire")
+            sel = LectureProprietes.GetVariable("selAleatoire")
         End If
         Dim passwordWithSalt As String = password & sel
 
@@ -45,7 +45,7 @@ Public Class Compte
 
 
     Public Sub AjouterCompte()
-        Dim connection As SqlConnection = connexionDB.GetInstance.getConnexion()
+        Dim connection As SqlConnection = ConnexionDB.GetInstance.getConnexion()
         If connection.State <> ConnectionState.Open Then
             connection.Open()
         End If
@@ -61,7 +61,7 @@ Public Class Compte
 
     Public Sub ReinitialiserMotDePasse(nouveauMotDePasse As String)
         Me.motDePasse = HashPasswordWithSalt(nouveauMotDePasse)
-        Dim connection As SqlConnection = connexionDB.GetInstance.getConnexion()
+        Dim connection As SqlConnection = ConnexionDB.GetInstance.getConnexion()
         If connection.State <> ConnectionState.Open Then
             connection.Open()
         End If
@@ -75,7 +75,7 @@ Public Class Compte
     End Sub
 
     Public Sub SupprimerCompte()
-        Dim connection As SqlConnection = connexionDB.GetInstance.getConnexion()
+        Dim connection As SqlConnection = ConnexionDB.GetInstance.getConnexion()
         If connection.State <> ConnectionState.Open Then
             connection.Open()
         End If

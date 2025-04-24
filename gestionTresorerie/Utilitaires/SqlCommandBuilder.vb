@@ -9,12 +9,10 @@ Public Class SqlCommandBuilder
     ' Méthode pour créer et renvoyer un SqlCommand
     Public Shared Function CreateSqlCommand(query As String, Optional parameters As Dictionary(Of String, Object) = Nothing) As SqlCommand
         Try
-
-            Dim command As New SqlCommand(lectureProprietes.GetVariable(query))
+            Dim command As New SqlCommand(LectureProprietes.GetVariable(query))
 
             ' Associer la connexion à la commande
-            command.Connection = connexionDB.GetInstance.getConnexion
-
+            command.Connection = ConnexionDB.GetInstance.getConnexion
             ' Ajouter les paramètres à la commande si fournis
             If parameters IsNot Nothing Then
                 For Each param In parameters
@@ -40,4 +38,3 @@ Public Class SqlCommandBuilder
     End Sub
 
 End Class
-

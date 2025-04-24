@@ -26,10 +26,10 @@ Public Class FrmPrincipale
     Private Sub ChargerDgvPrincipale()
         Try
             ' Définir la requête SQL pour récupérer les données
-            Dim query As String = lectureProprietes.GetVariable("sqlSelectMouvementsLibelles")
+            Dim query As String = LectureProprietes.GetVariable("sqlSelectMouvementsLibelles")
 
             ' Utiliser une connexion à la base de données
-            Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
+            Dim conn As SqlConnection = ConnexionDB.GetInstance.getConnexion
             ' Créer une commande SQL
             Using cmd As New SqlCommand(query, conn)
                 ' Créer un DataAdapter pour remplir le DataTable
@@ -61,17 +61,21 @@ Public Class FrmPrincipale
     Private Sub AjouterColonneEtatImage()
         ' Ajouter une colonne d'image pour l'état
         Dim etatImageColumn As New DataGridViewImageColumn With {
-            .Name = "etatImage",
-            .HeaderText = "État"
+        .Name = "etatImage",
+        .HeaderText = "État",
+        .ImageLayout = DataGridViewImageCellLayout.Zoom, ' Agrandir l'image
+        .Width = 30 ' Réduire la largeur de la colonne
         }
-        dgvPrincipale.Columns.Add(etatImageColumn)
+
+        ' Insérer la colonne en première position
+        dgvPrincipale.Columns.Insert(0, etatImageColumn)
 
         ' Parcourir les lignes du DataGridView pour définir les images
         For Each row As DataGridViewRow In dgvPrincipale.Rows
             If Not row.IsNewRow Then
                 Try
-                    '7 correspond à la colonne "etat"
-                    Dim etat As Object = row.Cells(7).Value
+                    ' 8 correspond à la colonne "etat" après l'insertion de la nouvelle colonne
+                    Dim etat As Object = row.Cells(8).Value
                     If etat IsNot Nothing AndAlso TypeOf etat Is Boolean Then
                         row.Cells("etatImage").Value = If(CType(etat, Boolean), My.Resources.OK, My.Resources.KO)
                     Else
@@ -211,8 +215,8 @@ Public Class FrmPrincipale
     End Sub
 
     Private Function OpenDocument() As WordprocessingDocument
-        creeOpenXml.creeDoc(lectureProprietes.GetVariable("ficBilan"))
-        Dim document As WordprocessingDocument = WordprocessingDocument.Open(lectureProprietes.GetVariable("ficBilan"), True)
+        creeOpenXml.creeDoc(LectureProprietes.GetCheminEtVariable("ficBilan"))
+        Dim document As WordprocessingDocument = WordprocessingDocument.Open(LectureProprietes.GetCheminEtVariable("ficBilan"), True)
         Dim styleDefinitionsPart As StyleDefinitionsPart = creeOpenXml.AddStylesPartToPackage(document)
         creeOpenXml.CreateAndAddParagraphStyle(styleDefinitionsPart, "monStyle", "monStyle")
         Return document
@@ -220,7 +224,7 @@ Public Class FrmPrincipale
 
     Private Function GetCategories() As List(Of String)
         Dim categories As New List(Of String)
-        Dim cmd As New SqlCommand("SELECT DISTINCT catégorie FROM Mouvements;", connexionDB.GetInstance.getConnexion)
+        Dim cmd As New SqlCommand("SELECT DISTINCT catégorie FROM Mouvements;", ConnexionDB.GetInstance.getConnexion)
         Using reader As SqlDataReader = cmd.ExecuteReader()
             While reader.Read()
                 categories.Add(reader.GetSqlInt32(0))
@@ -242,7 +246,7 @@ Public Class FrmPrincipale
 
     Private Function GetSubCategories(category As String) As List(Of (Legend As String, Value As Decimal))
         Dim subCategories As New List(Of (Legend As String, Value As Decimal))
-        Dim cmd As New SqlCommand("SELECT sousCatégorie, SUM(montant) FROM Mouvements WHERE catégorie = @category GROUP BY sousCatégorie ORDER BY SUM(montant) DESC;", connexionDB.GetInstance.getConnexion)
+        Dim cmd As New SqlCommand("SELECT sousCatégorie, SUM(montant) FROM Mouvements WHERE catégorie = @category GROUP BY sousCatégorie ORDER BY SUM(montant) DESC;", ConnexionDB.GetInstance.getConnexion)
         cmd.Parameters.AddWithValue("@category", category)
         Using reader As SqlDataReader = cmd.ExecuteReader()
             While reader.Read()
@@ -259,7 +263,7 @@ Public Class FrmPrincipale
         frmHistogramme.creeChart($"Montants par sous-catégorie : {category}", values, legends)
         frmHistogramme.Show()
 
-        Dim imagePath As String = $"{lectureProprietes.GetVariable("repFichierBilan")}frmHistogramme{category}.png"
+        Dim imagePath As String = $"{LectureProprietes.GetCheminEtVariable("repFichierBilan")}frmHistogramme{category}.png"
         SaveFormAsImage(frmHistogramme, imagePath)
         creeOpenXml.ajouteImage(document, imagePath)
     End Sub
@@ -288,7 +292,7 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub FrmMain_Closing(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
-        connexionDB.GetInstance.Dispose()
+        ConnexionDB.GetInstance.Dispose()
     End Sub
     Private Sub BtnSaisie_Click(sender As Object, e As EventArgs) Handles btnSaisie.Click
         FrmSaisie.Show()
@@ -352,7 +356,7 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub btnTraiteRelevé_Click(sender As Object, e As EventArgs) Handles btnTraiteRelevé.Click
-        Call FrmChargeRelevé.AlimenteLstMvtCA(lectureProprietes.GetVariable("ficRelevéTraité"))
+        Call FrmChargeRelevé.AlimenteLstMvtCA(LectureProprietes.GetCheminEtVariable("ficRelevéTraité"))
         FrmChargeRelevé.Show()
     End Sub
 

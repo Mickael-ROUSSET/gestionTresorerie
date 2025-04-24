@@ -25,6 +25,7 @@ Partial Class frmListe
         dgvListe = New DataGridView()
         btnSel = New Button()
         btnAnnuler = New Button()
+        btnSansSelection = New Button()
         CType(dgvListe, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
         ' 
@@ -43,7 +44,7 @@ Partial Class frmListe
         btnSel.Name = "btnSel"
         btnSel.Size = New Size(111, 23)
         btnSel.TabIndex = 1
-        btnSel.Text = "&Sélectionner"
+        btnSel.Text = "&Envoyer sélection"
         btnSel.UseVisualStyleBackColor = True
         ' 
         ' btnAnnuler
@@ -55,11 +56,21 @@ Partial Class frmListe
         btnAnnuler.Text = "&Annuler"
         btnAnnuler.UseVisualStyleBackColor = True
         ' 
+        ' btnSansSelection
+        ' 
+        btnSansSelection.Location = New Point(215, 382)
+        btnSansSelection.Name = "btnSansSelection"
+        btnSansSelection.Size = New Size(128, 23)
+        btnSansSelection.TabIndex = 3
+        btnSansSelection.Text = "Ne rien sélectionner"
+        btnSansSelection.UseVisualStyleBackColor = True
+        ' 
         ' frmListe
         ' 
-        AutoScaleDimensions = New SizeF(7.0F, 15.0F)
+        AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(800, 450)
+        Controls.Add(btnSansSelection)
         Controls.Add(btnAnnuler)
         Controls.Add(btnSel)
         Controls.Add(dgvListe)
@@ -72,4 +83,5 @@ Partial Class frmListe
     Friend WithEvents dgvListe As DataGridView
     Friend WithEvents btnSel As Button
     Friend WithEvents btnAnnuler As Button
+    Friend WithEvents btnSansSelection As Button
 End Class

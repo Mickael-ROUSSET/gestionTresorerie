@@ -2,23 +2,23 @@
 
 ' Classe permettant de se connecter à une base de donnée SQLSERVER 
 
-Public Class connexionDB
+Public Class ConnexionDB
     Implements IDisposable
     Public _maConnexion As SqlConnection
     Public _maCommandeSql As New SqlCommand()
-    Private Shared _instance As connexionDB
+    Private Shared _instance As ConnexionDB
     Private disposed As Boolean = False ' Pour détecter les appels redondants
 
     ' Méthode publique pour accéder à l'instance unique
-    Public Shared Function GetInstance() As connexionDB
+    Public Shared Function GetInstance() As ConnexionDB
         If _instance Is Nothing Then
-            _instance = New connexionDB()
+            _instance = New ConnexionDB()
         End If
         Return _instance
     End Function
     Public Function getConnexion() As SqlConnection
         'Crée la connexion si elle n'existe pas, sinon renvoie celle existante 
-        Dim lectureProprietes As New lectureProprietes()
+        Dim lectureProprietes As New LectureProprietes()
 
         creeConnexion(lectureProprietes.connexionString)
         Return _maConnexion

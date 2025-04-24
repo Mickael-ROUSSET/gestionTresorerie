@@ -134,7 +134,7 @@ Public Class Cheque
         Try
             Dim query As String = "INSERT INTO [dbo].Cheque ([numero], [date], [emetteur], [montant], [banque], [destinataire], [imageChq]) VALUES (@numero, @date, @emetteur, @montant, @banque, @destinataire, @imageChq)"
 
-            Using command As New SqlCommand(query, connexionDB.GetInstance.getConnexion)
+            Using command As New SqlCommand(query, ConnexionDB.GetInstance.getConnexion)
                 With command.Parameters
                     .AddWithValue("@numero", _numero_du_cheque)
                     .AddWithValue("@date", Convert.ToDateTime(_dateChq))
@@ -164,7 +164,7 @@ Public Class Cheque
             pbBox.Image = Nothing
 
             ' Obtenir la connexion SQL
-            sqlConnexion = connexionDB.GetInstance.getConnexion
+            sqlConnexion = ConnexionDB.GetInstance.getConnexion
 
             ' Ouvrir la connexion
             If sqlConnexion.State <> ConnectionState.Open Then

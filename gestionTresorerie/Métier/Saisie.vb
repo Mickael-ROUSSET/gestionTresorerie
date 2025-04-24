@@ -18,6 +18,7 @@ Public Class FrmSaisie
     Private Sub frmSaisie_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Try
             InitialiserListeTiers()
+            Call initZonesSaisies
             Dim indTiersDetecte As Integer = DetecteTiers()
             If indTiersDetecte > -1 Then
                 SelectionnerTiers(indTiersDetecte)
@@ -28,6 +29,13 @@ Public Class FrmSaisie
         End Try
     End Sub
 
+    Private Sub initZonesSaisies()
+        txtRechercheTiers.Text = Constantes.Vide
+        dgvCategorie.ClearSelection()
+        dgvSousCategorie.ClearSelection()
+        dgvTiers.ClearSelection()
+        cbEvénement.SelectedItem = Nothing
+    End Sub
     Private Sub InitialiserListeTiers()
         If listeTiers Is Nothing Then
             listeTiers = New ListeTiers()
@@ -71,11 +79,11 @@ Public Class FrmSaisie
 
     Public Sub chargeListes()
 
-        Call ChargeDgvTiers(connexionDB.GetInstance.getConnexion)
+        Call ChargeDgvTiers(ConnexionDB.GetInstance.getConnexion)
         'Chargement du fichier contenant la liste des événements 
-        Call ChargeFichierTexte(Me.cbEvénement, lectureProprietes.GetVariable("ficEvénement"))
+        Call ChargeFichierTexte(Me.cbEvénement, LectureProprietes.GetCheminEtVariable("ficEvénement"))
         'Chargement du fichier contenant la liste des types 
-        Call ChargeFichierTexte(Me.cbType, lectureProprietes.GetVariable("ficType"))
+        Call ChargeFichierTexte(Me.cbType, LectureProprietes.GetCheminEtVariable("ficType"))
     End Sub
     Private Function DetecteTiers() As Integer
         ' Essaie de déterminer le tiers en fonction du contenu de la note
@@ -137,7 +145,7 @@ Public Class FrmSaisie
     Private Sub ChargeDgvCategorie(Optional debit As Boolean? = Nothing)
         Dim categorie As New Categorie()
         'Dim query As String = "SELECT id, libelle FROM Categorie"
-        Dim query As String = lectureProprietes.GetVariable("reqCategorieTout")
+        Dim query As String = LectureProprietes.GetVariable("reqCategorieTout")
         Dim parameters As New Dictionary(Of String, Object)
 
         If debit.HasValue Then
@@ -152,7 +160,7 @@ Public Class FrmSaisie
     Private Sub ChargeDgvSousCategorie(idCategorie As Integer)
         Dim sousCategorie As New SousCategorie()
         'Dim query As String = "SELECT id, libelle FROM SousCategorie WHERE idCategorie = @idCategorie"
-        Dim query As String = lectureProprietes.GetVariable("reqSousCategorie")
+        Dim query As String = LectureProprietes.GetVariable("reqSousCategorie")
         Dim parameters As New Dictionary(Of String, Object)
         parameters.Add("@idCategorie", idCategorie)
 
@@ -186,6 +194,7 @@ Public Class FrmSaisie
     Private Sub BtnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
         Call InsereChq()
         Me.Hide()
+        Call initZonesSaisies()
         FrmPrincipale.Show()
     End Sub
 
@@ -302,6 +311,7 @@ Public Class FrmSaisie
         Try
             'Les infos de création du mouvement sont récupérées sur la fenêtre de saisie
             Dim mouvement As Mouvements = CreerMouvement()
+            _Mvt = mouvement
             _dtMvtsIdentiques = Mouvements.ChargerMouvementsSimilaires(mouvement)
             If _dtMvtsIdentiques.Rows.Count > 0 Then
                 'Un mouvement identique existe déjà
@@ -312,7 +322,6 @@ Public Class FrmSaisie
                 Logger.INFO("Le mouvement existe déjà : " & mouvement.ObtenirValeursConcatenees)
             Else
                 InsererMouvementEnBase(mouvement)
-                _Mvt = mouvement
                 Logger.INFO("Insertion du mouvement pour : " & mouvement.ObtenirValeursConcatenees)
             End If
         Catch ex As Exception
@@ -324,7 +333,8 @@ Public Class FrmSaisie
     Private Sub mvtSelectionneChangedHandler(sender As Object, index As Integer)
         ' Vérifier si l'objet peut être converti en Mouvements
         If index = -1 Then
-            Logger.ERR("L'objet sélectionné est nul => mouvement à insérer")
+            Logger.INFO("L'objet sélectionné est nul => mouvement à insérer")
+            InsererMouvementEnBase(_Mvt)
         Else
             Mouvements.MettreAJourMouvement(
                      _dtMvtsIdentiques.Rows(index).ItemArray(0),
@@ -338,7 +348,7 @@ Public Class FrmSaisie
                      rbRapproche.Checked,
                      cbEvénement.SelectedItem,
                      cbType.SelectedItem,
-                     False,
+                     True,
                      GetRemiseValue(txtRemise.Text),
                      0
                      )
@@ -383,9 +393,9 @@ Public Class FrmSaisie
 
     Private Sub InsererMouvementEnBase(mouvement As Mouvements)
         'Dim query As String = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers, dateCréation, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise, idCheque) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable, @numeroRemise, @idCheque);"
-        Dim query As String = lectureProprietes.GetVariable("insertMvts")
+        Dim query As String = LectureProprietes.GetVariable("insertMvts")
         Try
-            Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
+            Dim conn As SqlConnection = ConnexionDB.GetInstance.getConnexion
             Dim cmd As New SqlCommand(query, conn)
             cmd = AjouteParam(cmd, mouvement)
             cmd.ExecuteNonQuery()
@@ -478,10 +488,10 @@ Public Class FrmSaisie
         MettreAJourIdCheque(_Mvt.Id, idCheque)
     End Sub
     Public Shared Sub MettreAJourIdCheque(idMouvement As Integer, nouvelIdCheque As Integer)
-        Dim query As String = lectureProprietes.GetVariable("updMvtIdChq")
+        Dim query As String = LectureProprietes.GetVariable("updMvtIdChq")
 
         Try
-            Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
+            Dim conn As SqlConnection = ConnexionDB.GetInstance.getConnexion
 
             Using command As New SqlCommand(query, conn)
                 command.Parameters.AddWithValue("@nouvelIdCheque", nouvelIdCheque)

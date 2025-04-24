@@ -7,7 +7,7 @@ Public Class SousCategorie
     Public Function ExecuterRequete(query As String, Optional parameters As Dictionary(Of String, Object) = Nothing) As DataTable Implements IDataService.ExecuterRequete
         Dim dt As New DataTable
         Try
-            Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
+            Dim conn As SqlConnection = ConnexionDB.GetInstance.getConnexion
             If conn.State <> ConnectionState.Open Then
                 conn.Open()
             End If

@@ -19,7 +19,7 @@ Module LitRelevé
     End Sub
 
     Public Function OuvreFichier() As String
-        Dim ficRelevéTraité As String = lectureProprietes.GetVariable("ficRelevéTraité")
+        Dim ficRelevéTraité As String = LectureProprietes.GetCheminEtVariable("ficRelevéTraité")
         'Un seul fichier peut être sélectionné
         openFileDialog1.Multiselect = False
         If openFileDialog1.ShowDialog() = DialogResult.OK Then

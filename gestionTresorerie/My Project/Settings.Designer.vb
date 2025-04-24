@@ -456,19 +456,6 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("select Id , (select libelle from Categorie where id = catégorie) as Catégorie, (s"& _ 
-            "elect libelle from sousCategorie where id = sousCatégorie) as sousCatégorie, mon"& _ 
-            "tant , sens , (select coalesce(nom + ' ' + prenom, raisonSociale ) from Tiers wh"& _ 
-            "ere id = tiers) as Tiers, note , dateMvt , dateCréation , dateModification , eta"& _ 
-            "t , événement , type , modifiable , numeroRemise , idCheque from Mouvements;")>  _
-        Public ReadOnly Property sqlSelectMouvementsLibelles() As String
-            Get
-                Return CType(Me("sqlSelectMouvementsLibelles"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("3rD/s9+aP2fG4h5jK7lMnO=")>  _
         Public ReadOnly Property selAleatoire() As String
             Get
@@ -524,15 +511,6 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, libelle FROM Categorie;")>  _
-        Public ReadOnly Property reqCategorieTout() As String
-            Get
-                Return CType(Me("reqCategorieTout"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers, dateCréati"& _ 
             "on, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise, idC"& _ 
             "heque) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMv"& _ 
@@ -550,6 +528,39 @@ Namespace My
         Public ReadOnly Property updMvtIdChq() As String
             Get
                 Return CType(Me("updMvtIdChq"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, libelle FROM Categorie")>  _
+        Public ReadOnly Property reqCategorieTout() As String
+            Get
+                Return CType(Me("reqCategorieTout"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("DELETE FROM [dbo].[Mouvements] WHERE [Id] = @Id")>  _
+        Public ReadOnly Property delMvt() As String
+            Get
+                Return CType(Me("delMvt"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("select Id , (select libelle from Categorie where id = catégorie) as Catégorie, (s"& _ 
+            "elect libelle from sousCategorie where id = sousCatégorie) as sousCatégorie, mon"& _ 
+            "tant , CASE sens"&Global.Microsoft.VisualBasic.ChrW(9)&"WHEN 1 THEN 'Crédit'"&Global.Microsoft.VisualBasic.ChrW(9)&"ELSE 'Débit' END as 'Sens', (select coales"& _ 
+            "ce(nom + ' ' + prenom, raisonSociale ) from Tiers where id = tiers) as Tiers, no"& _ 
+            "te , dateMvt , dateCréation , dateModification , etat, événement , type ,  CASE "& _ 
+            "modifiable"&Global.Microsoft.VisualBasic.ChrW(9)&"WHEN 1 THEN 'modifiable'"&Global.Microsoft.VisualBasic.ChrW(9)&"ELSE 'Non modifiable' END  as 'Modifiable', "& _ 
+            "numeroRemise , idCheque from Mouvements;")>  _
+        Public ReadOnly Property sqlSelectMouvementsLibelles() As String
+            Get
+                Return CType(Me("sqlSelectMouvementsLibelles"),String)
             End Get
         End Property
     End Class

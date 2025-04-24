@@ -18,22 +18,28 @@
     Public Event objetSelectionneChanged As EventHandler(Of Integer)
 
     Private Sub btnSel_Click(sender As Object, e As EventArgs) Handles btnSel.Click
+
         ' Vérifier si une ligne est sélectionnée
         If dgvListe.SelectedRows.Count > 0 Then
             ' Déclencher l'événement avec l'index de la ligne sélectionnée
             RaiseEvent objetSelectionneChanged(sender, dgvListe.SelectedRows(0).Index)
-        Else
-            ' Déclencher l'événement avec -1 si aucune ligne n'est sélectionnée
-            RaiseEvent objetSelectionneChanged(sender, -1)
         End If
 
         ' Fermer la fenêtre appelée
         Me.Close()
     End Sub
+    Private Sub btnSansSelection_Click(sender As Object, e As EventArgs) Handles btnSansSelection.Click
 
+        ' Déclencher l'événement avec -1 si aucune ligne n'est sélectionnée
+        RaiseEvent objetSelectionneChanged(sender, -1)
+
+        ' Fermer la fenêtre appelée
+        Me.Close()
+    End Sub
 
     Private Sub btnCancel_Click(sender As Object, e As EventArgs) Handles btnAnnuler.Click
         DialogResult = DialogResult.Cancel
         Close()
     End Sub
+
 End Class

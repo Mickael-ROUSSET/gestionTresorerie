@@ -44,7 +44,7 @@ Public Class frmNouveauTiers
         Dim count As Integer = 0
 
         Try
-            Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
+            Dim conn As SqlConnection = ConnexionDB.GetInstance.getConnexion
             Using cmd As New SqlCommand(query, conn)
                 cmd.Parameters.AddWithValue("@nom", txtNom.Text.Trim())
                 cmd.Parameters.AddWithValue("@prenom", txtPrenom.Text.Trim())
@@ -63,7 +63,7 @@ Public Class frmNouveauTiers
         Dim query As String = "INSERT INTO Tiers (nom, prenom, raisonSociale, categorieDefaut, sousCategorieDefaut, dateCreation, dateModification) VALUES (@nom, @prenom, @raisonSociale, @categorieDefaut, @sousCategorieDefaut, @dateCreation, @dateModification)"
 
         Try
-            Dim conn As SqlConnection = connexionDB.GetInstance.getConnexion
+            Dim conn As SqlConnection = ConnexionDB.GetInstance.getConnexion
             Using cmd As New SqlCommand(query, conn)
                 cmd.Parameters.AddWithValue("@nom", sNom.Trim())
                 cmd.Parameters.AddWithValue("@prenom", sPrenom.Trim())
