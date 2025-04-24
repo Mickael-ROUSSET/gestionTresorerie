@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/gestionTresorerie/Resources/ModifiedIcon.ico
+/gestionTresorerie/Resources/_KO.png
+/gestionTresorerie/Resources/_OK.png
