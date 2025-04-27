@@ -17,7 +17,9 @@ CREATE TABLE [dbo].[Categorie] (
     [libelle]   VARCHAR (50) NOT NULL,
     [dateDebut] DATE         NOT NULL,
     [dateFin]   DATE         NULL,
-    [debit]     INT          NOT NULL
+    [debit]     INT          DEFAULT ((1)) NOT NULL,
+    PRIMARY KEY CLUSTERED ([Id] ASC)
 );
+
 
 

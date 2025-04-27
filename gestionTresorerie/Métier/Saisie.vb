@@ -14,11 +14,10 @@ Public Class FrmSaisie
     Private _Mvt As Mouvements
     Private _dtMvtsIdentiques As DataTable = Nothing
     Public Property Properties As Object
-
     Private Sub frmSaisie_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Try
             InitialiserListeTiers()
-            Call initZonesSaisies
+            Call initZonesSaisies()
             Dim indTiersDetecte As Integer = DetecteTiers()
             If indTiersDetecte > -1 Then
                 SelectionnerTiers(indTiersDetecte)
@@ -28,7 +27,6 @@ Public Class FrmSaisie
             Logger.ERR($"Erreur lors du chargement du formulaire : {ex.Message}")
         End Try
     End Sub
-
     Private Sub initZonesSaisies()
         txtRechercheTiers.Text = Constantes.Vide
         dgvCategorie.ClearSelection()
@@ -41,13 +39,11 @@ Public Class FrmSaisie
             listeTiers = New ListeTiers()
         End If
     End Sub
-
     Private Sub SelectionnerTiers(indTiersDetecte As Integer)
         Dim idTiers As Integer = chercheIndiceDvg(indTiersDetecte, dgvTiers)
         dgvTiers.Rows(idTiers).Selected = True
         dgvTiers.FirstDisplayedScrollingRowIndex = idTiers
     End Sub
-
     Private Sub ChargerCategoriesEtSousCategories(indTiersDetecte As Integer)
         If dgvCategorie.RowCount = 0 Then
             ChargeDgvCategorie(rbDebit.Checked)
@@ -76,10 +72,8 @@ Public Class FrmSaisie
         Next
         Return ligneCible
     End Function
-
     Public Sub chargeListes()
-
-        Call ChargeDgvTiers(ConnexionDB.GetInstance.getConnexion)
+        Call ChargeDgvTiers()
         'Chargement du fichier contenant la liste des événements 
         Call ChargeFichierTexte(Me.cbEvénement, LectureProprietes.GetCheminEtVariable("ficEvénement"))
         'Chargement du fichier contenant la liste des types 
@@ -101,7 +95,6 @@ Public Class FrmSaisie
 
         Return i
     End Function
-
     Private Sub Désélectionne()
         'Désélectionne les items des comboBox
 
@@ -125,10 +118,9 @@ Public Class FrmSaisie
             Logger.ERR("Une erreur est survenue au cours de l'accès en lecture du fichier de configuration du logiciel." & vbCrLf & vbCrLf & "Veuillez vérifier l'emplacement : ")
         End Try
     End Sub
-
-    Private Sub ChargeDgvTiers(maConn As SqlConnection)
-        Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, nom, prenom, raisonSociale, categorieDefaut, sousCategorieDefaut FROM Tiers;", maConn)
-
+    Private Sub ChargeDgvTiers()
+        'Dim command As New System.Data.SqlClient.SqlCommand("SELECT id, nom, prenom, raisonSociale, categorieDefaut, sousCategorieDefaut FROM Tiers;", maConn)
+        Dim command = SqlCommandBuilder.CreateSqlCommand("reqIdentiteCatTiers")
         Dim dt As New DataTable
         Dim adpt As New Data.SqlClient.SqlDataAdapter(command)
 
@@ -144,19 +136,17 @@ Public Class FrmSaisie
     End Sub
     Private Sub ChargeDgvCategorie(Optional debit As Boolean? = Nothing)
         Dim categorie As New Categorie()
-        'Dim query As String = "SELECT id, libelle FROM Categorie"
         Dim query As String = LectureProprietes.GetVariable("reqCategorieTout")
         Dim parameters As New Dictionary(Of String, Object)
 
-        If debit.HasValue Then
-            Logger.INFO("Chargement des catégories avec sens : " & debit)
-            query += " WHERE debit = @debit"
-            parameters.Add("@debit", Math.Abs(CInt(debit.Value)))
-        End If
+        'If debit.HasValue Then
+        '    Logger.INFO("Chargement des catégories avec sens : " & debit)
+        '    query += " WHERE debit = @debit"
+        '    parameters.Add("@debit", Math.Abs(CInt(debit.Value)))
+        'End If
 
         ChargerDonneesDansDataGridView(categorie, query, parameters, dgvCategorie)
     End Sub
-
     Private Sub ChargeDgvSousCategorie(idCategorie As Integer)
         Dim sousCategorie As New SousCategorie()
         'Dim query As String = "SELECT id, libelle FROM SousCategorie WHERE idCategorie = @idCategorie"
@@ -180,7 +170,6 @@ Public Class FrmSaisie
             ' Vérifie si le DataGridView est vide
             If dataGridView.Rows.Count = 0 Then
                 Logger.INFO($"Aucune ligne n'a été trouvée pour la requête spécifiée.")
-                Logger.INFO("Ajouter une entrée dans la table correspondante.")
                 Return
             End If
         Catch ex As SqlException
@@ -209,7 +198,6 @@ Public Class FrmSaisie
     Private Sub BtnHistogramme_Click(sender As Object, e As EventArgs) Handles btnHistogramme.Click
         frmHistogramme.ShowDialog()
     End Sub
-
     Private Sub dgvTiers_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvTiers.CellContentClick
         ' Gérer les catégories et sous-catégories par défaut 
 
@@ -276,27 +264,20 @@ Public Class FrmSaisie
         End If
     End Sub
     Private Sub selectionneLigneParLibelle(dgv As DataGridView, libelle As String)
-        'Sélectionne la ligne dont le libellé correspond au paramètre (sur le nombre de caractères renseignés)
-        Dim i As Long
-        Dim sLibMajuscule As String
+        ' Sélectionne la ligne dont le libellé correspond au paramètre (sur le nombre de caractères renseignés)
+        If libelle.Length > 1 Then
+            Dim libelleMajuscule As String = libelle.ToUpper()
 
-        sLibMajuscule = UCase(libelle)
-        If Len(libelle) > 1 Then
-            'Il faut gérer les cas personnes morales / physiques
-            For i = 0 To dgv.RowCount - 1
-                Select Case True
-                    Case Not IsDBNull(dgv.Rows(i).Cells(1).Value)
-                        If UCase(Strings.Left(dgv.Rows(i).Cells(1).Value, Len(libelle))) = sLibMajuscule Then
-                            afficheLigneTrouvée(dgv, i)
+            For Each row As DataGridViewRow In dgv.Rows
+                If Not row.IsNewRow Then
+                    For Each cellIndex As Integer In {1, 3}
+                        Dim cellValue As Object = row.Cells(cellIndex).Value
+                        If Not IsDBNull(cellValue) AndAlso cellValue.ToString().StartsWith(libelleMajuscule, StringComparison.CurrentCultureIgnoreCase) Then
+                            afficheLigneTrouvée(dgv, row.Index)
+                            Exit For
                         End If
-                    Case Not IsDBNull(dgv.Rows(i).Cells(3).Value)
-                        If UCase(Strings.Left(dgv.Rows(i).Cells(3).Value, Len(libelle))) = sLibMajuscule Then
-                            afficheLigneTrouvée(dgv, i)
-                        End If
-                    Case Else
-                        MsgBox("selectionneLigneParLibelle : erreur critique sur recherche : " & dgv.Name & " libellé : " & libelle)
-                        End
-                End Select
+                    Next
+                End If
             Next
         End If
     End Sub
@@ -329,7 +310,6 @@ Public Class FrmSaisie
             Logger.ERR("Erreur lors de l'insertion des données : " & ex.Message)
         End Try
     End Sub
-
     Private Sub mvtSelectionneChangedHandler(sender As Object, index As Integer)
         ' Vérifier si l'objet peut être converti en Mouvements
         If index = -1 Then
@@ -354,7 +334,6 @@ Public Class FrmSaisie
                      )
         End If
     End Sub
-
     Private Function GetRemiseValue(texteRemise As String) As Integer
 
         If String.IsNullOrEmpty(texteRemise) Then
@@ -368,7 +347,6 @@ Public Class FrmSaisie
             Return 0 ' Retourne 0 si la conversion échoue
         End If
     End Function
-
     Private Function CreerMouvement() As Mouvements
         Dim iCategorie As Integer = dgvCategorie.Rows(dgvCategorie.SelectedRows(0).Index).Cells(0).Value.ToString()
         Dim iSousCategorie As Integer = dgvSousCategorie.Rows(dgvSousCategorie.SelectedRows(0).Index).Cells(0).Value.ToString()
@@ -390,13 +368,12 @@ Public Class FrmSaisie
             0
         )
     End Function
-
     Private Sub InsererMouvementEnBase(mouvement As Mouvements)
         'Dim query As String = "INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers, dateCréation, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise, idCheque) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable, @numeroRemise, @idCheque);"
-        Dim query As String = LectureProprietes.GetVariable("insertMvts")
+        'Dim query As String = LectureProprietes.GetVariable("insertMvts")
         Try
-            Dim conn As SqlConnection = ConnexionDB.GetInstance.getConnexion
-            Dim cmd As New SqlCommand(query, conn)
+            'Dim cmd As New SqlCommand(query, ConnexionDB.GetInstance.getConnexion)
+            Dim cmd = SqlCommandBuilder.CreateSqlCommand("insertMvts")
             cmd = AjouteParam(cmd, mouvement)
             cmd.ExecuteNonQuery()
             Logger.INFO("Insertion du mouvement réussie : " & mouvement.ObtenirValeursConcatenees)
@@ -488,29 +465,22 @@ Public Class FrmSaisie
         MettreAJourIdCheque(_Mvt.Id, idCheque)
     End Sub
     Public Shared Sub MettreAJourIdCheque(idMouvement As Integer, nouvelIdCheque As Integer)
-        Dim query As String = LectureProprietes.GetVariable("updMvtIdChq")
-
         Try
-            Dim conn As SqlConnection = ConnexionDB.GetInstance.getConnexion
-
-            Using command As New SqlCommand(query, conn)
-                command.Parameters.AddWithValue("@nouvelIdCheque", nouvelIdCheque)
-                command.Parameters.AddWithValue("@idMouvement", idMouvement)
-
-                Dim rowsAffected As Integer = command.ExecuteNonQuery()
-
-                If rowsAffected > 0 Then
-                    Logger.INFO($"Mise à jour réussie de idCheque pour le mouvement avec Id = {idMouvement}")
-                Else
-                    Logger.WARN($"Aucune ligne n'a été mise à jour pour le mouvement avec Id = {idMouvement}")
-                End If
-            End Using
+            Dim rowsAffected As Integer = SqlCommandBuilder.CreateSqlCommand("updMvtIdChq",
+                                      New Dictionary(Of String, Object) From {
+                                      {"@nouvelIdCheque", nouvelIdCheque},
+                                      {"@idMouvement", idMouvement}}).ExecuteNonQuery
+            If rowsAffected > 0 Then
+                Logger.INFO($"Mise à jour réussie de idCheque pour le mouvement avec Id = {idMouvement}")
+            Else
+                Logger.WARN($"Aucune ligne n'a été mise à jour pour le mouvement avec Id = {idMouvement}")
+            End If
         Catch ex As SqlException
             Logger.ERR($"Erreur SQL lors de la mise à jour de idCheque. Message: {ex.Message}")
             Throw
         Catch ex As Exception
             Logger.ERR($"Erreur inattendue lors de la mise à jour de idCheque. Message: {ex.Message}")
-            Throw
+        Throw
         End Try
     End Sub
 

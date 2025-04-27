@@ -278,15 +278,6 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Bdd\bddAgumaaaProd.mdf")>  _
-        Public ReadOnly Property AttachDbFilenameProd() As String
-            Get
-                Return CType(Me("AttachDbFilenameProd"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("SELECT * FROM Mouvements;")>  _
         Public ReadOnly Property reqSelectToutMouvements() As String
             Get
@@ -553,14 +544,51 @@ Namespace My
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("select Id , (select libelle from Categorie where id = catégorie) as Catégorie, (s"& _ 
             "elect libelle from sousCategorie where id = sousCatégorie) as sousCatégorie, mon"& _ 
-            "tant , CASE sens"&Global.Microsoft.VisualBasic.ChrW(9)&"WHEN 1 THEN 'Crédit'"&Global.Microsoft.VisualBasic.ChrW(9)&"ELSE 'Débit' END as 'Sens', (select coales"& _ 
+            "tant , CASE sens WHEN 1 THEN 'Crédit' ELSE 'Débit' END as 'Sens', (select coales"& _ 
             "ce(nom + ' ' + prenom, raisonSociale ) from Tiers where id = tiers) as Tiers, no"& _ 
-            "te , dateMvt , dateCréation , dateModification , etat, événement , type ,  CASE "& _ 
-            "modifiable"&Global.Microsoft.VisualBasic.ChrW(9)&"WHEN 1 THEN 'modifiable'"&Global.Microsoft.VisualBasic.ChrW(9)&"ELSE 'Non modifiable' END  as 'Modifiable', "& _ 
-            "numeroRemise , idCheque from Mouvements;")>  _
+            "te, dateMvt, dateCréation, dateModification, etat, événement, type, CASE modifia"& _ 
+            "ble WHEN 1 THEN 'modifiable' ELSE 'Non modifiable' END as 'Modifiable', numeroRe"& _ 
+            "mise, idCheque from Mouvements;")>  _
         Public ReadOnly Property sqlSelectMouvementsLibelles() As String
             Get
                 Return CType(Me("sqlSelectMouvementsLibelles"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Bdd\bddAgumaaaProd.mdf")>  _
+        Public ReadOnly Property AttachDbFilenameProd() As String
+            Get
+                Return CType(Me("AttachDbFilenameProd"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("DELETE FROM [dbo].[Comptes] WHERE [login] = @login")>  _
+        Public ReadOnly Property delCompte() As String
+            Get
+                Return CType(Me("delCompte"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE [dbo].[Comptes] SET [motDePasse] = @motDePasse WHERE [login] = @login")>  _
+        Public ReadOnly Property updCompte() As String
+            Get
+                Return CType(Me("updCompte"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO [dbo].[Comptes] ([login], [motDePasse], [typeAcces]) VALUES (@login, "& _ 
+            "@motDePasse, @typeAcces)")>  _
+        Public ReadOnly Property insertCompte() As String
+            Get
+                Return CType(Me("insertCompte"),String)
             End Get
         End Property
     End Class

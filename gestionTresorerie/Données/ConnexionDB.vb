@@ -24,23 +24,28 @@ Public Class ConnexionDB
         Return _maConnexion
     End Function
     Public Sub creeConnexion(connexionString As String)
+        Dim connexionOuverte As Boolean = False
         Try
             ' Crée la connexion si elle n'existe pas, sinon renvoie celle existante
             If _maConnexion Is Nothing Then
                 _maConnexion = New SqlConnection(connexionString)
                 _maConnexion.Open()
+                connexionOuverte = True
                 Logger.INFO("Connexion à la base : " & connexionString)
             End If
         Catch ex As SqlException
             ' Gère les erreurs de connexion SQL
             MsgBox("creeConnexion : erreur SQL : " & ex.Message)
             Logger.ERR(ex.Message)
+            End
         Catch ex As Exception
             ' Gère toutes les autres erreurs
             MsgBox("Erreur : " & ex.Message)
             Logger.ERR(ex.Message)
+            End
         End Try
     End Sub
+
 
     Public Function getRequete(indiceRequete As Integer) As String
         Return My.Settings.Requetes.Item(indiceRequete)

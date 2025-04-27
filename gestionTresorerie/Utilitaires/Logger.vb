@@ -4,7 +4,6 @@ Public Class Logger
     ' Constructeur privé pour empêcher l'instanciation directe
     Private Sub New()
     End Sub
-
     ' Méthode pour écrire dans le fichier de trace avec un niveau de log
     Public Shared Sub EcrireDansFichierTrace(level As String, message As String)
         Try
@@ -35,20 +34,16 @@ Public Class Logger
             Console.WriteLine("Erreur lors de l'écriture dans le fichier de trace : " & ex.Message)
         End Try
     End Sub
-
     ' Méthodes pour les différents niveaux de log
     Public Shared Sub DBG(message As String)
         EcrireDansFichierTrace("DBG", message)
     End Sub
-
     Public Shared Sub INFO(message As String)
         EcrireDansFichierTrace("INFO", message)
     End Sub
-
     Public Shared Sub WARN(message As String)
         EcrireDansFichierTrace("WARN", message)
     End Sub
-
     Public Shared Sub ERR(message As String)
         EcrireDansFichierTrace("ERR", message)
     End Sub

@@ -1,13 +1,10 @@
-﻿Imports System.Data.SqlClient
-Imports System.Security.Cryptography
+﻿Imports System.Security.Cryptography
 Imports System.Text
-
 Public Class Compte
     Public Property Id As Integer
     Public Property Login As String
-    Private motDePasse As String
+    Private ReadOnly motDePasse As String
     Public Property TypeAcces As String
-
     Public Sub New(login As String, motDePasse As String, typeAcces As String)
         Me.Login = login
         Me.motDePasse = HashPasswordWithSalt(motDePasse)
@@ -41,66 +38,27 @@ Public Class Compte
         ' Retourner la chaîne hexadécimale
         Return builder.ToString()
     End Function
-
-
-
     Public Sub AjouterCompte()
-        Dim connection As SqlConnection = ConnexionDB.GetInstance.getConnexion()
-        If connection.State <> ConnectionState.Open Then
-            connection.Open()
-        End If
-
-        Dim query As String = "INSERT INTO [dbo].[Comptes] ([login], [motDePasse], [typeAcces]) VALUES (@login, @motDePasse, @typeAcces)"
-        Using command As New SqlCommand(query, connection)
-            command.Parameters.AddWithValue("@login", Me.Login)
-            command.Parameters.AddWithValue("@motDePasse", Me.motDePasse)
-            command.Parameters.AddWithValue("@typeAcces", Me.TypeAcces)
-            command.ExecuteNonQuery()
-        End Using
+        SqlCommandBuilder.
+            CreateSqlCommand(LectureProprietes.GetVariable("insertCompte"),
+                             New Dictionary(Of String, Object) From {{"@login", Me.Login},
+                                                                     {"@motDePasse", Me.motDePasse},
+                                                                     {"@typeAcces", Me.TypeAcces}}
+                             ).
+                             ExecuteNonQuery()
     End Sub
-
     Public Sub ReinitialiserMotDePasse(nouveauMotDePasse As String)
-        Me.motDePasse = HashPasswordWithSalt(nouveauMotDePasse)
-        Dim connection As SqlConnection = ConnexionDB.GetInstance.getConnexion()
-        If connection.State <> ConnectionState.Open Then
-            connection.Open()
-        End If
-
-        Dim query As String = "UPDATE [dbo].[Comptes] SET [motDePasse] = @motDePasse WHERE [login] = @login"
-        Using command As New SqlCommand(query, connection)
-            command.Parameters.AddWithValue("@motDePasse", Me.motDePasse)
-            command.Parameters.AddWithValue("@login", Me.Login)
-            command.ExecuteNonQuery()
-        End Using
+        SqlCommandBuilder.
+            CreateSqlCommand(LectureProprietes.GetVariable("updCompte"),
+                             New Dictionary(Of String, Object) From {{"@login", Me.Login},
+                                                                     {"@motDePasse", nouveauMotDePasse}}
+                             ).
+                             ExecuteNonQuery()
     End Sub
-
     Public Sub SupprimerCompte()
-        Dim connection As SqlConnection = ConnexionDB.GetInstance.getConnexion()
-        If connection.State <> ConnectionState.Open Then
-            connection.Open()
-        End If
-
-        Dim query As String = "DELETE FROM [dbo].[Comptes] WHERE [login] = @login"
-        Using command As New SqlCommand(query, connection)
-            command.Parameters.AddWithValue("@login", Me.Login)
-            command.ExecuteNonQuery()
-        End Using
+        SqlCommandBuilder.CreateSqlCommand(LectureProprietes.GetVariable("delCompte"),
+                                           New Dictionary(Of String, Object) From {{"@login", Me.Login}
+                                            }).
+                                            ExecuteNonQuery()
     End Sub
 End Class
-'Sub Main()
-'    ' Ajouter un nouveau compte
-'    Dim nouveauCompte As New Compte("utilisateur1", "motdepasse123", "admin")
-'    nouveauCompte.AjouterCompte()
-'    Console.WriteLine("Compte ajouté avec succès.")
-
-'    ' Réinitialiser le mot de passe du compte
-'    Dim compteExistant As New Compte("utilisateur1", "", "") ' Le mot de passe et le type d'accès ne sont pas nécessaires ici
-'    compteExistant.ReinitialiserMotDePasse("nouveaumotdepasse")
-'    Console.WriteLine("Mot de passe réinitialisé avec succès.")
-
-'    ' Supprimer le compte
-'    Dim compteASupprimer As New Compte("utilisateur1", "", "") ' Le mot de passe et le type d'accès ne sont pas nécessaires ici
-'    compteASupprimer.SupprimerCompte()
-'    Console.WriteLine("Compte supprimé avec succès.")
-'End Sub
-

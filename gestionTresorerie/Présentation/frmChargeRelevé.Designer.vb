@@ -26,13 +26,13 @@ Partial Class FrmChargeRelevé
         Dim fldBrowserDialog As FolderBrowserDialog
         btnOuvreFichier = New Button()
         dgvRelevé = New DataGridView()
-        BindingSource1 = New BindingSource(components)
-        BindingSource2 = New BindingSource(components)
-        btnOuvreSaisie = New Button()
         dgVDate = New DataGridViewTextBoxColumn()
         dgVNOte = New DataGridViewTextBoxColumn()
         dgVDébit = New DataGridViewTextBoxColumn()
         dgVCrédit = New DataGridViewTextBoxColumn()
+        BindingSource1 = New BindingSource(components)
+        BindingSource2 = New BindingSource(components)
+        btnOuvreSaisie = New Button()
         fldBrowserDialog = New FolderBrowserDialog()
         CType(dgvRelevé, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -55,17 +55,8 @@ Partial Class FrmChargeRelevé
         dgvRelevé.Location = New Point(12, 50)
         dgvRelevé.Name = "dgvRelevé"
         dgvRelevé.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvRelevé.Size = New Size(762, 364)
+        dgvRelevé.Size = New Size(976, 364)
         dgvRelevé.TabIndex = 3
-        ' 
-        ' btnOuvreSaisie
-        ' 
-        btnOuvreSaisie.Location = New Point(310, 451)
-        btnOuvreSaisie.Name = "btnOuvreSaisie"
-        btnOuvreSaisie.Size = New Size(182, 23)
-        btnOuvreSaisie.TabIndex = 4
-        btnOuvreSaisie.Text = "Enregistrement du mouvement"
-        btnOuvreSaisie.UseVisualStyleBackColor = True
         ' 
         ' dgVDate
         ' 
@@ -95,11 +86,20 @@ Partial Class FrmChargeRelevé
         dgVCrédit.Name = "dgVCrédit"
         dgVCrédit.Width = 75
         ' 
+        ' btnOuvreSaisie
+        ' 
+        btnOuvreSaisie.Location = New Point(310, 451)
+        btnOuvreSaisie.Name = "btnOuvreSaisie"
+        btnOuvreSaisie.Size = New Size(182, 23)
+        btnOuvreSaisie.TabIndex = 4
+        btnOuvreSaisie.Text = "Enregistrement du mouvement"
+        btnOuvreSaisie.UseVisualStyleBackColor = True
+        ' 
         ' FrmChargeRelevé
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(800, 506)
+        ClientSize = New Size(1000, 506)
         Controls.Add(btnOuvreSaisie)
         Controls.Add(dgvRelevé)
         Controls.Add(btnOuvreFichier)

@@ -25,25 +25,17 @@ Public Class FrmPrincipale
     End Sub
     Private Sub ChargerDgvPrincipale()
         Try
-            ' Définir la requête SQL pour récupérer les données
-            Dim query As String = LectureProprietes.GetVariable("sqlSelectMouvementsLibelles")
-
-            ' Utiliser une connexion à la base de données
-            Dim conn As SqlConnection = ConnexionDB.GetInstance.getConnexion
-            ' Créer une commande SQL
-            Using cmd As New SqlCommand(query, conn)
-                ' Créer un DataAdapter pour remplir le DataTable
-                Using adapter As New SqlDataAdapter(cmd)
-                    ' Créer un DataTable pour stocker les données
-                    Dim dataTable As New DataTable()
-                    ' Remplir le DataTable avec les données de la base de données
-                    adapter.Fill(dataTable)
-                    ' Lier le DataTable au DataGridView
-                    dgvPrincipale.DataSource = dataTable
-                End Using
+            ' Créer une commande SQL 
+            Dim cmd = SqlCommandBuilder.CreateSqlCommand("sqlSelectMouvementsLibelles")
+            ' Créer un DataAdapter pour remplir le DataTable
+            Using adapter As New SqlDataAdapter(cmd)
+                ' Créer un DataTable pour stocker les données
+                Dim dataTable As New DataTable()
+                ' Remplir le DataTable avec les données de la base de données
+                adapter.Fill(dataTable)
+                ' Lier le DataTable au DataGridView
+                dgvPrincipale.DataSource = dataTable
             End Using
-            '' Forcer le rafraîchissement du DataGridView
-            'dgvPrincipale.Refresh()
             ' Ajouter la colonne d'image pour l'état du mouvement
             AjouterColonneEtatImage()
 
@@ -59,23 +51,15 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub AjouterColonneEtatImage()
-        ' Ajouter une colonne d'image pour l'état
-        Dim etatImageColumn As New DataGridViewImageColumn With {
-        .Name = "etatImage",
-        .HeaderText = "État",
-        .ImageLayout = DataGridViewImageCellLayout.Zoom, ' Agrandir l'image
-        .Width = 30 ' Réduire la largeur de la colonne
-        }
-
-        ' Insérer la colonne en première position
-        dgvPrincipale.Columns.Insert(0, etatImageColumn)
+        ' Ajouter une colonne d'image pour l'état : appel de la procédure pour ajouter une colonne d'image
+        UtilControles.AjouterColonneImage(dgvPrincipale, "etatImage", "État", DataGridViewImageCellLayout.Zoom, 30)
 
         ' Parcourir les lignes du DataGridView pour définir les images
         For Each row As DataGridViewRow In dgvPrincipale.Rows
             If Not row.IsNewRow Then
                 Try
-                    ' 8 correspond à la colonne "etat" après l'insertion de la nouvelle colonne
-                    Dim etat As Object = row.Cells(8).Value
+                    ' 1 correspond à la colonne "etat" après l'insertion de la nouvelle colonne
+                    Dim etat As Object = row.Cells(1).Value
                     If etat IsNot Nothing AndAlso TypeOf etat Is Boolean Then
                         row.Cells("etatImage").Value = If(CType(etat, Boolean), My.Resources.OK, My.Resources.KO)
                     Else
@@ -89,35 +73,6 @@ Public Class FrmPrincipale
             End If
         Next
     End Sub
-
-    'Private Sub chargeMouvements()
-    '    ' Evite de définir la chaine de connexion à chaque endroit où tu l'utilises : si tu dois la changer,
-    '    ' ça fait autant d'endroits à modifier, et ça force à recompiler. Il vaut mieux la définir dans les
-    '    ' paramètres de l'application, comme ça si tu dois la changer tu n'auras qu'un seul endroit à modifier.
-
-    '    ' Essaie de taper une apostrophe (') dans TextBox1, et observe le résultat ;)
-    '    ' Ensuite, va faire un tour ici pour apprendre à régler le problème :
-    '    ' http://johannblais.developpez.com/tutoriel/dotnet/bonnes-pratiques-acces-donnees/#LIV
-    '    'Dim command As New System.Data.SqlClient.SqlCommand("SELECT * FROM Mouvements", maConn)
-    '    Dim command As New System.Data.SqlClient.SqlCommand("SELECT * FROM Mouvements", connexionDB.GetInstance.getConnexion)
-
-    '    Dim dt As New DataTable
-    '    Dim adpt As New Data.SqlClient.SqlDataAdapter(command)
-
-    '    Try
-    '        ' Place la connexion dans le bloc try : c'est typiquement le genre d'instruction qui peut lever une exception. 
-    '        adpt.Fill(dt)
-    '        dgvPrincipale.DataSource = dt
-
-    '        ' Ajouter la colonne d'image pour l'état du mouvement
-    '        AjouterColonneEtatImage()
-    '    Catch ex As SqlException
-    '        ' On informe l'utilisateur qu'il y a eu un problème :
-    '        MessageBox.Show("Une erreur s'est produite lors du chargement des données !" & vbCrLf & ex.ToString())
-    '    Finally
-    '        ' Le code du bloc Finally est toujours exécuté, même en cas d'erreur dans le Try 
-    '    End Try
-    'End Sub
 
     'Private Sub LectureBase()
     '    Dim monReaderCategorie As SqlDataReader
@@ -209,7 +164,6 @@ Public Class FrmPrincipale
         For Each category As String In categories
             ProcessCategory(document, category)
         Next
-
         document.Save()
         document.Dispose()
     End Sub
@@ -224,12 +178,12 @@ Public Class FrmPrincipale
 
     Private Function GetCategories() As List(Of String)
         Dim categories As New List(Of String)
-        Dim cmd As New SqlCommand("SELECT DISTINCT catégorie FROM Mouvements;", ConnexionDB.GetInstance.getConnexion)
-        Using reader As SqlDataReader = cmd.ExecuteReader()
-            While reader.Read()
+        'Dim cmd As New SqlCommand("SELECT DISTINCT catégorie FROM Mouvements;", ConnexionDB.GetInstance.getConnexion)
+        'Using reader As SqlDataReader = cmd.ExecuteReader()
+        Dim reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqCategoriesMouvements").ExecuteReader()
+        While reader.Read()
                 categories.Add(reader.GetSqlInt32(0))
-            End While
-        End Using
+        End While
         Return categories
     End Function
 
@@ -246,13 +200,17 @@ Public Class FrmPrincipale
 
     Private Function GetSubCategories(category As String) As List(Of (Legend As String, Value As Decimal))
         Dim subCategories As New List(Of (Legend As String, Value As Decimal))
-        Dim cmd As New SqlCommand("SELECT sousCatégorie, SUM(montant) FROM Mouvements WHERE catégorie = @category GROUP BY sousCatégorie ORDER BY SUM(montant) DESC;", ConnexionDB.GetInstance.getConnexion)
-        cmd.Parameters.AddWithValue("@category", category)
-        Using reader As SqlDataReader = cmd.ExecuteReader()
-            While reader.Read()
-                subCategories.Add((reader.GetSqlInt32(0), reader.GetDecimal(1)))
-            End While
-        End Using
+        'Dim cmd As New SqlCommand("SELECT sousCatégorie, SUM(montant) FROM Mouvements WHERE catégorie = @category GROUP BY sousCatégorie ORDER BY SUM(montant) DESC;", ConnexionDB.GetInstance.getConnexion)
+        'cmd.Parameters.AddWithValue("@category", category)
+        'Using reader As SqlDataReader = cmd.ExecuteReader()
+        Dim reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqSommeCatMouvements",
+                                           New Dictionary(Of String, Object) From {{"@category", category}
+                                            }).
+                                            ExecuteReader()
+
+        While reader.Read()
+            subCategories.Add((reader.GetSqlInt32(0), reader.GetDecimal(1)))
+        End While
         Return subCategories
     End Function
 

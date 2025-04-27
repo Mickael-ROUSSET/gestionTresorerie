@@ -73,6 +73,16 @@ Namespace My.Resources
         '''<summary>
         '''  Recherche une ressource localisée de type System.Byte[].
         '''</summary>
+        Friend ReadOnly Property ModifiedIcon() As Byte()
+            Get
+                Dim obj As Object = ResourceManager.GetObject("ModifiedIcon", resourceCulture)
+                Return CType(obj,Byte())
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Recherche une ressource localisée de type System.Byte[].
+        '''</summary>
         Friend ReadOnly Property OK() As Byte()
             Get
                 Dim obj As Object = ResourceManager.GetObject("OK", resourceCulture)

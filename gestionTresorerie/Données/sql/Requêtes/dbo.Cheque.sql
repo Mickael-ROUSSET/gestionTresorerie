@@ -18,9 +18,8 @@ CREATE TABLE [dbo].[Cheque] (
     [date]         DATE            NULL,
     [emetteur]     NVARCHAR (50)   NOT NULL,
     [montant]      DECIMAL (10, 2) NULL,
-    [banque]       NVARCHAR (50)   NOT NULL,
-    [destinataire] NVARCHAR (50)   NULL,
-    [imageChq]     VARBINARY (MAX) NULL
+    [banque]       NVARCHAR (50)   DEFAULT ('A déterminer') NOT NULL,
+    [destinataire] NVARCHAR (50)   DEFAULT ('A déterminer') NULL,
+    [imageChq]     VARBINARY (MAX) NULL,
+    PRIMARY KEY CLUSTERED ([Id] ASC)
 );
-
-

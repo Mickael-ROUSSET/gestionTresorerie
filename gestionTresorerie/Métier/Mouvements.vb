@@ -37,24 +37,32 @@ Public Class Mouvements
             End If
         End With
     End Sub
-
-
+    Public Sub New()
+        If Not IsDate(DateMvt) AndAlso Sens = Constantes.Vide AndAlso Montant = Constantes.Vide Then
+            Err.Raise("Erreur dans la création du mouvement : " & ObtenirValeursConcatenees())
+        End If
+    End Sub
     Public Shared Function Existe(mouvement As Mouvements) As Boolean
         ' Vérifie si le mouvement existe déjà
         Dim bExiste As Boolean = False
 
         Try
-            Using cmd As New SqlCommand(LectureProprietes.GetVariable("reqNbMouvements"), ConnexionDB.GetInstance.getConnexion)
-                cmd.Parameters.AddWithValue("@dateMvt", mouvement.DateMvt.ToString("yyyy-MM-dd"))
-                cmd.Parameters.AddWithValue("@montant", mouvement.Montant)
-                cmd.Parameters.AddWithValue("@sens", mouvement.Sens)
+            'Using cmd As New SqlCommand(LectureProprietes.GetVariable("reqNbMouvements"), ConnexionDB.GetInstance.getConnexion)
+            '    cmd.Parameters.AddWithValue("@dateMvt", mouvement.DateMvt.ToString("yyyy-MM-dd"))
+            '    cmd.Parameters.AddWithValue("@montant", CDec(mouvement.Montant))
+            '    cmd.Parameters.AddWithValue("@sens", mouvement.Sens)
 
-                Using reader As SqlDataReader = cmd.ExecuteReader()
-                    If reader.Read() Then
+            '    Using reader As SqlDataReader = cmd.ExecuteReader()
+            Dim reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(LectureProprietes.GetVariable("reqNbMouvements"),
+                                           New Dictionary(Of String, Object) From {{"@dateMvt", mouvement.DateMvt.ToString("yyyy-MM-dd")},
+                                           {"@montant", CDec(mouvement.Montant)},
+                                           {"@sens", mouvement.Sens}
+                                            }).ExecuteReader()
+            If reader.Read() Then
                         bExiste = (reader.GetInt32(0) > 0)
                     End If
-                End Using
-            End Using
+            'End Using
+            'End Using
 
             ' Écrire un log d'information
             Logger.INFO($"Vérification de l'existence du mouvement réussie. Date: {mouvement.DateMvt}, Montant: {mouvement.Montant}, Sens:  {mouvement.Sens}")
@@ -67,25 +75,41 @@ Public Class Mouvements
 
         Return bExiste
     End Function
+    ' Surcharge de la méthode Existe pour vérifier l'existence d'un mouvement avec les paramètres date, montant et sens
+    ' Surcharge de la méthode Existe pour vérifier l'existence d'un mouvement avec les paramètres date, montant et sens
+    Public Shared Function Existe(dateMvt As Date, montant As Decimal, sens As Boolean) As Boolean
+        ' Créer un objet Mouvements temporaire
+        Dim mouvement As New Mouvements()
+        mouvement.DateMvt = dateMvt
+        mouvement.Montant = montant
+        mouvement.Sens = sens
+
+        ' Appeler la méthode originale Existe avec l'objet Mouvements temporaire
+        Return Existe(mouvement)
+    End Function
     Public Shared Function ChargerMouvementsSimilaires(mouvement As Mouvements) As DataTable
         Dim dataTable As New DataTable()
 
         Try
             ' Définir la commande SQL pour appeler la procédure stockée
-            Using cmd As New SqlCommand(LectureProprietes.GetVariable("procMvtsIdentiques"), ConnexionDB.GetInstance.getConnexion)
-                'cmd.CommandType = CommandType.StoredProcedure
+            'Using cmd As New SqlCommand(LectureProprietes.GetVariable("procMvtsIdentiques"), ConnexionDB.GetInstance.getConnexion)
+            '    'cmd.CommandType = CommandType.StoredProcedure
 
-                ' Ajouter les paramètres à la commande
-                cmd.Parameters.AddWithValue("@dateMvt", mouvement.DateMvt)
-                cmd.Parameters.AddWithValue("@montant", CDec(mouvement.Montant))
-                cmd.Parameters.AddWithValue("@sens", mouvement.Sens)
-
-                ' Créer un DataAdapter pour remplir le DataTable
-                Using adapter As New SqlDataAdapter(cmd)
+            '    ' Ajouter les paramètres à la commande
+            '    cmd.Parameters.AddWithValue("@dateMvt", mouvement.DateMvt)
+            '    cmd.Parameters.AddWithValue("@montant", CDec(mouvement.Montant))
+            '    cmd.Parameters.AddWithValue("@sens", mouvement.Sens)
+            Dim cmd As SqlCommand = SqlCommandBuilder.CreateSqlCommand(LectureProprietes.GetVariable("reqNbMouvements"),
+                                           New Dictionary(Of String, Object) From {{"@dateMvt", mouvement.DateMvt},
+                                           {"@montant", CDec(mouvement.Montant)},
+                                           {"@sens", mouvement.Sens}
+                                            })
+            ' Créer un DataAdapter pour remplir le DataTable
+            Using adapter As New SqlDataAdapter(cmd)
                     ' Remplir le DataTable avec les données de la base de données
                     adapter.Fill(dataTable)
                 End Using
-            End Using
+            'End Using
 
             ' Écrire un log d'information
             Logger.INFO("Chargement des mouvements similaires réussi.")
@@ -99,15 +123,15 @@ Public Class Mouvements
 
         Return dataTable
     End Function
-
-
     Public Shared Sub MettreAJourMouvement(Id As Integer, categorie As Integer, sousCategorie As Integer, montant As Decimal, sens As Boolean, tiers As Integer, note As String, dateMvt As Date, etat As Boolean, evenement As String, type As String, modifiable As Boolean, numeroRemise As Integer?, Optional idCheque As Integer? = Nothing)
         Dim rowsAffected As Integer = 0
 
         Try
-            Using command As New SqlCommand(LectureProprietes.GetVariable("updMvt"), ConnexionDB.GetInstance.getConnexion)
-                ' Ajouter les paramètres à la requête
-                command.Parameters.AddWithValue("@Id", Id)
+            'Using command As New SqlCommand(LectureProprietes.GetVariable("updMvt"), ConnexionDB.GetInstance.getConnexion)
+            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand(LectureProprietes.GetVariable("updMvt"))
+            'End Using
+            ' Ajouter les paramètres à la requête
+            command.Parameters.AddWithValue("@Id", Id)
                 command.Parameters.AddWithValue("@Categorie", categorie)
                 command.Parameters.AddWithValue("@SousCategorie", sousCategorie)
                 command.Parameters.AddWithValue("@Montant", montant)
@@ -128,10 +152,10 @@ Public Class Mouvements
 
                 ' Exécuter la requête et obtenir le nombre de lignes affectées
                 rowsAffected = command.ExecuteNonQuery()
-            End Using
+                'End Using
 
-            ' Trace indiquant le nombre de lignes mises à jour
-            Logger.INFO($"Nombre de lignes mises à jour : {rowsAffected}")
+                ' Trace indiquant le nombre de lignes mises à jour
+                Logger.INFO($"Nombre de lignes mises à jour : {rowsAffected}")
 
             ' Trace indiquant les valeurs mises à jour
             Logger.INFO($"Valeurs mises à jour - Catégorie: {categorie}, Sous-Catégorie: {sousCategorie}, Montant: {montant}, Sens: {sens}, Tiers: {tiers}, Note: {note}, DateMvt: {dateMvt}, Etat: {etat}, Evénement: {evenement}, Type: {type}, Modifiable: {modifiable}, Numéro Remise: {numeroRemise}, IdChèque: {idCheque}")
@@ -141,8 +165,6 @@ Public Class Mouvements
             Logger.ERR($"Erreur lors de la mise à jour du mouvement : {ex.Message}")
         End Try
     End Sub
-
-
     Public Shared Sub SupprimerMouvement(id As Integer)
         Dim sqlConnexion As SqlConnection = Nothing
         Dim rowsAffected As Integer = 0
@@ -173,7 +195,6 @@ Public Class Mouvements
             End If
         End Try
     End Sub
-
     Public Shared Function VerifParam(note As String, categorie As String, sousCategorie As String, tiers As Integer, dateMvt As Date, montant As String, sens As String, etat As String, événement As String, type As String, modifiable As Boolean, numeroRemise As String, ByVal idCheque As Integer) As Boolean
         Dim bToutEstLa As Boolean = False
 

@@ -6,18 +6,14 @@ Public Class ListeTiers
     Public Sub New()
 
         If _listeTiers.Count = 0 Then
-            extraitListeTiers(ConnexionDB.GetInstance.getConnexion)
+            extraitListeTiers()
         End If
     End Sub
-    Public Sub extraitListeTiers(maConn As SqlConnection)
+    Public Sub extraitListeTiers()
         Try
-            ' Ouvrir la connexion si elle n'est pas déjà ouverte
-            If maConn.State <> ConnectionState.Open Then
-                maConn.Open()
-            End If
-
             ' Requête pour récupérer les tiers avec nom et prénom
-            Dim lstTiersPhysique As New SqlCommand("SELECT id, nom, prenom FROM Tiers WHERE nom IS NOT NULL;", maConn)
+            'Dim lstTiersPhysique As New SqlCommand("SELECT id, nom, prenom FROM Tiers WHERE nom IS NOT NULL;", maConn)
+            Dim lstTiersPhysique = SqlCommandBuilder.CreateSqlCommand("selTiersPhysique")
             Using monReaderTiers As SqlDataReader = lstTiersPhysique.ExecuteReader()
                 While monReaderTiers.Read()
                     _listeTiers.Add(New Tiers(monReaderTiers.GetInt32(0), monReaderTiers.GetString(1), monReaderTiers.GetString(2)))
@@ -25,7 +21,8 @@ Public Class ListeTiers
             End Using
 
             ' Requête pour récupérer les tiers avec raison sociale
-            Dim lstTiersMorale As New SqlCommand("SELECT id, raisonSociale FROM Tiers WHERE raisonSociale IS NOT NULL;", maConn)
+            'Dim lstTiersMorale As New SqlCommand("SELECT id, raisonSociale FROM Tiers WHERE raisonSociale IS NOT NULL;", maConn)
+            Dim lstTiersMorale = SqlCommandBuilder.CreateSqlCommand("selTiersMorale")
             Using monReaderTiers As SqlDataReader = lstTiersMorale.ExecuteReader()
                 While monReaderTiers.Read()
                     _listeTiers.Add(New Tiers(monReaderTiers.GetInt32(0), monReaderTiers.GetString(1)))
