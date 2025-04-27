@@ -1,4 +1,4 @@
-﻿Public Class frmListe
+﻿Public Class FrmListe
 
     Public Property SelectedObject As Object
 

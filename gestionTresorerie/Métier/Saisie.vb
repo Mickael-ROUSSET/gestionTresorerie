@@ -296,7 +296,7 @@ Public Class FrmSaisie
             _dtMvtsIdentiques = Mouvements.ChargerMouvementsSimilaires(mouvement)
             If _dtMvtsIdentiques.Rows.Count > 0 Then
                 'Un mouvement identique existe déjà
-                Dim frmListe As New frmListe(_dtMvtsIdentiques)
+                Dim frmListe As New FrmListe(_dtMvtsIdentiques)
                 AddHandler frmListe.objetSelectionneChanged, AddressOf mvtSelectionneChangedHandler
                 frmListe.ShowDialog()
                 'frmListe.Show()
@@ -452,7 +452,7 @@ Public Class FrmSaisie
     'End Function
 
     Private Sub btnSelChq_Click(sender As Object, e As EventArgs) Handles btnSelChq.Click
-        Dim selectionneCheque As New selectionneCheque()
+        Dim selectionneCheque As New FrmSelectionneCheque()
         AddHandler selectionneCheque.IdChequeSelectionneChanged, AddressOf IdChequeSelectionneChangedHandler
         selectionneCheque.ShowDialog()
 

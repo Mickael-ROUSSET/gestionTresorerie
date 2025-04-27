@@ -1,6 +1,6 @@
 ﻿
 Imports System.Windows.Forms.DataVisualization.Charting
-Public Class frmHistogramme
+Public Class FrmHistogramme
     Public Sub creeChart(ByVal titre As String, ByVal valeurs() As Decimal, ByVal legende() As String)
         'https://plasserre.developpez.com/cours/chart/#LIII-C-1
         Dim i As Integer

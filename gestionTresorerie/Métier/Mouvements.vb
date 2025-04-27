@@ -53,15 +53,15 @@ Public Class Mouvements
             '    cmd.Parameters.AddWithValue("@sens", mouvement.Sens)
 
             '    Using reader As SqlDataReader = cmd.ExecuteReader()
-            Dim reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(LectureProprietes.GetVariable("reqNbMouvements"),
+            Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqNbMouvements",
                                            New Dictionary(Of String, Object) From {{"@dateMvt", mouvement.DateMvt.ToString("yyyy-MM-dd")},
                                            {"@montant", CDec(mouvement.Montant)},
                                            {"@sens", mouvement.Sens}
                                             }).ExecuteReader()
-            If reader.Read() Then
-                        bExiste = (reader.GetInt32(0) > 0)
-                    End If
-            'End Using
+                If reader.Read() Then
+                    bExiste = (reader.GetInt32(0) > 0)
+                End If
+            End Using
             'End Using
 
             ' Écrire un log d'information
@@ -99,7 +99,7 @@ Public Class Mouvements
             '    cmd.Parameters.AddWithValue("@dateMvt", mouvement.DateMvt)
             '    cmd.Parameters.AddWithValue("@montant", CDec(mouvement.Montant))
             '    cmd.Parameters.AddWithValue("@sens", mouvement.Sens)
-            Dim cmd As SqlCommand = SqlCommandBuilder.CreateSqlCommand(LectureProprietes.GetVariable("reqNbMouvements"),
+            Dim cmd As SqlCommand = SqlCommandBuilder.CreateSqlCommand("reqNbMouvements",
                                            New Dictionary(Of String, Object) From {{"@dateMvt", mouvement.DateMvt},
                                            {"@montant", CDec(mouvement.Montant)},
                                            {"@sens", mouvement.Sens}
@@ -128,7 +128,7 @@ Public Class Mouvements
 
         Try
             'Using command As New SqlCommand(LectureProprietes.GetVariable("updMvt"), ConnexionDB.GetInstance.getConnexion)
-            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand(LectureProprietes.GetVariable("updMvt"))
+            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand("updMvt")
             'End Using
             ' Ajouter les paramètres à la requête
             command.Parameters.AddWithValue("@Id", Id)

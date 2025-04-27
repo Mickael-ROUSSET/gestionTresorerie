@@ -1,7 +1,7 @@
 ﻿Imports System.Data.SqlClient
 Imports System.Globalization
 
-Public Class selectionneCheque
+Public Class FrmSelectionneCheque
     Private _idChqSel As Integer
     Public Property idChqSel() As Integer
         Get
@@ -62,33 +62,35 @@ Public Class selectionneCheque
         ' Convertir txtMontant.Text en Decimal 
         If Decimal.TryParse(FrmSaisie.txtMontant.Text.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, montant) Then
             ' Utilisation de Using pour garantir la fermeture des objets
-            Using cmdLstCheques As New SqlCommand("SELECT id, numero, date, emetteur, destinataire FROM Cheque WHERE montant = @montant;", ConnexionDB.GetInstance.getConnexion)
-                cmdLstCheques.Parameters.AddWithValue("@montant", montant)
-
-                Try
-                    Using readerChq As SqlDataReader = cmdLstCheques.ExecuteReader()
-                        While readerChq.Read()
-                            Try
-                                ' Construire le JSON et créer un objet Cheque
-                                '    Dim chqSel As New Cheque(CreerJsonCheque(
-                                '    readerChq.GetInt32(0),
-                                '    montant,
-                                '    readerChq.GetInt32(1),
-                                '    readerChq.GetDateTime(2),
-                                '    readerChq.GetString(3),
-                                '    readerChq.GetString(4)
-                                '))
-                                Dim chqSel As New Cheque(readerChq.GetInt32(0), CStr(montant), readerChq.GetInt32(1), readerChq.GetDateTime(2), readerChq.GetString(3), readerChq.GetString(4))
-                                tabCheques.Add(chqSel)
-                            Catch ex As Exception
-                                MessageBox.Show("Erreur lors de la lecture des données : " & ex.Message)
-                            End Try
-                        End While
-                    End Using
-                Catch ex As Exception
-                    MessageBox.Show("Erreur lors de l'exécution de la commande SQL : " & ex.Message)
+            'Using cmdLstCheques As New SqlCommand("SELECT id, numero, date, emetteur, destinataire FROM Cheque WHERE montant = @montant;", ConnexionDB.GetInstance.getConnexion)
+            '    cmdLstCheques.Parameters.AddWithValue("@montant", montant)
+            Try
+                'Using readerChq As SqlDataReader = cmdLstCheques.ExecuteReader()
+                Using readerChq As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqChq",
+                             New Dictionary(Of String, Object) From {{"@montant", montant}}
+                             ).ExecuteReader()
+                    While readerChq.Read()
+                        Try
+                            ' Construire le JSON et créer un objet Cheque
+                            '    Dim chqSel As New Cheque(CreerJsonCheque(
+                            '    readerChq.GetInt32(0),
+                            '    montant,
+                            '    readerChq.GetInt32(1),
+                            '    readerChq.GetDateTime(2),
+                            '    readerChq.GetString(3),
+                            '    readerChq.GetString(4)
+                            '))
+                            Dim chqSel As New Cheque(readerChq.GetInt32(0), CStr(montant), readerChq.GetInt32(1), readerChq.GetDateTime(2), readerChq.GetString(3), readerChq.GetString(4))
+                            tabCheques.Add(chqSel)
+                        Catch ex As Exception
+                            MessageBox.Show("Erreur lors de la lecture des données : " & ex.Message)
+                        End Try
+                    End While
+                End Using
+            Catch ex As Exception
+                MessageBox.Show("Erreur lors de l'exécution de la commande SQL : " & ex.Message)
                 End Try
-            End Using
+            'End Using
         Else
             MessageBox.Show("Valeur de montant invalide.")
         End If

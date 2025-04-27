@@ -169,10 +169,10 @@ Public Class FrmPrincipale
     End Sub
 
     Private Function OpenDocument() As WordprocessingDocument
-        creeOpenXml.creeDoc(LectureProprietes.GetCheminEtVariable("ficBilan"))
+        CreeOpenXml.creeDoc(LectureProprietes.GetCheminEtVariable("ficBilan"))
         Dim document As WordprocessingDocument = WordprocessingDocument.Open(LectureProprietes.GetCheminEtVariable("ficBilan"), True)
-        Dim styleDefinitionsPart As StyleDefinitionsPart = creeOpenXml.AddStylesPartToPackage(document)
-        creeOpenXml.CreateAndAddParagraphStyle(styleDefinitionsPart, "monStyle", "monStyle")
+        Dim styleDefinitionsPart As StyleDefinitionsPart = CreeOpenXml.AddStylesPartToPackage(document)
+        CreeOpenXml.CreateAndAddParagraphStyle(styleDefinitionsPart, "monStyle", "monStyle")
         Return document
     End Function
 
@@ -182,14 +182,14 @@ Public Class FrmPrincipale
         'Using reader As SqlDataReader = cmd.ExecuteReader()
         Dim reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqCategoriesMouvements").ExecuteReader()
         While reader.Read()
-                categories.Add(reader.GetSqlInt32(0))
+            categories.Add(reader.GetSqlInt32(0))
         End While
         Return categories
     End Function
 
     Private Sub ProcessCategory(document As WordprocessingDocument, category As String)
         Dim subCategories As List(Of (Legend As String, Value As Decimal)) = GetSubCategories(category)
-        Dim para As Paragraph = creeOpenXml.ajouteParagraphe(document, category)
+        Dim para As Paragraph = CreeOpenXml.ajouteParagraphe(document, category)
         ApplyStyleToParagraph(document, "monStyle", "monStyle", para)
 
         If subCategories.Count <> 0 Then
@@ -218,12 +218,12 @@ Public Class FrmPrincipale
         Dim legends As String() = subCategories.Select(Function(sc) sc.Legend).ToArray()
         Dim values As Decimal() = subCategories.Select(Function(sc) sc.Value).ToArray()
 
-        frmHistogramme.creeChart($"Montants par sous-catégorie : {category}", values, legends)
-        frmHistogramme.Show()
+        FrmHistogramme.creeChart($"Montants par sous-catégorie : {category}", values, legends)
+        FrmHistogramme.Show()
 
         Dim imagePath As String = $"{LectureProprietes.GetCheminEtVariable("repFichierBilan")}frmHistogramme{category}.png"
-        SaveFormAsImage(frmHistogramme, imagePath)
-        creeOpenXml.ajouteImage(document, imagePath)
+        SaveFormAsImage(FrmHistogramme, imagePath)
+        CreeOpenXml.ajouteImage(document, imagePath)
     End Sub
 
     Private Sub SaveFormAsImage(form As Form, imagePath As String)
@@ -245,8 +245,8 @@ Public Class FrmPrincipale
             data(1, i) = subCategories(i).Value.ToString()
         Next
 
-        Dim para As Paragraph = creeOpenXml.ajouteParagraphe(document, vbCrLf)
-        creeOpenXml.ajouteTableau(document, data)
+        Dim para As Paragraph = CreeOpenXml.ajouteParagraphe(document, vbCrLf)
+        CreeOpenXml.ajouteTableau(document, data)
     End Sub
 
     Private Sub FrmMain_Closing(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing

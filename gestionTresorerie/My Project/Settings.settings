@@ -130,9 +130,6 @@
     <Setting Name="reqLibelleSousCategorie" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT libelle FROM SousCategorie where idCategorie =</Value>
     </Setting>
-    <Setting Name="reqSousCategoriesDefautMouvements" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">SELECT sousCategorieDefaut FROM Tiers where id = '</Value>
-    </Setting>
     <Setting Name="reqSommeCatMouvements" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT sousCatégorie, SUM(montant) FROM Mouvements WHERE catégorie = @category GROUP BY sousCatégorie ORDER BY SUM(montant) DESC;</Value>
     </Setting>
@@ -183,6 +180,33 @@
     </Setting>
     <Setting Name="insertCompte" Type="System.String" Scope="Application">
       <Value Profile="(Default)">INSERT INTO [dbo].[Comptes] ([login], [motDePasse], [typeAcces]) VALUES (@login, @motDePasse, @typeAcces)</Value>
+    </Setting>
+    <Setting Name="insertChq" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INSERT INTO [dbo].Cheque ([numero], [date], [emetteur], [montant], [banque], [destinataire], [imageChq]) VALUES (@numero, @date, @emetteur, @montant, @banque, @destinataire, @imageChq);</Value>
+    </Setting>
+    <Setting Name="updDocs" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE [dbo].[Documents] SET dateDoc = @dateDoc, contenuDoc = @contenuDoc, cheminDoc = @cheminDoc, categorieDoc = @categorieDoc, sousCategorieDoc = @sousCategorieDoc, idMvtDoc=@idMvtDoc WHERE idDoc = @idDoc;</Value>
+    </Setting>
+    <Setting Name="delDocs" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DELETE FROM [dbo].[Documents] WHERE idDoc = @idDoc	;</Value>
+    </Setting>
+    <Setting Name="selTiersPhysique" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, nom, prenom FROM Tiers WHERE nom IS NOT NULL;</Value>
+    </Setting>
+    <Setting Name="selTiersMorale" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, raisonSociale FROM Tiers WHERE raisonSociale IS NOT NULL;</Value>
+    </Setting>
+    <Setting Name="selIdLibCat" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, libelle FROM Categorie;</Value>
+    </Setting>
+    <Setting Name="cptTiers" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT COUNT(*) FROM Tiers WHERE (nom = @nom AND prenom = @prenom and raisonSociale is null) OR raisonSociale = @raisonSociale and nom is null AND prenom is null;</Value>
+    </Setting>
+    <Setting Name="reqSousCategoriesDefautMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT sousCategorieDefaut FROM Tiers where id = @id;</Value>
+    </Setting>
+    <Setting Name="insertDocAgumaaa" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INSERT INTO [dbo].[Documents] (dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc) VALUES (@dateDoc, @contenuDoc, @cheminDoc, @categorieDoc, @sousCategorieDoc, @idMvtDoc);</Value>
     </Setting>
   </Settings>
 </SettingsFile>

@@ -408,15 +408,6 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT sousCategorieDefaut FROM Tiers where id = '")>  _
-        Public ReadOnly Property reqSousCategoriesDefautMouvements() As String
-            Get
-                Return CType(Me("reqSousCategoriesDefautMouvements"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("SELECT sousCatégorie, SUM(montant) FROM Mouvements WHERE catégorie = @category GR"& _ 
             "OUP BY sousCatégorie ORDER BY SUM(montant) DESC;")>  _
         Public ReadOnly Property reqSommeCatMouvements() As String
@@ -589,6 +580,95 @@ Namespace My
         Public ReadOnly Property insertCompte() As String
             Get
                 Return CType(Me("insertCompte"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO [dbo].Cheque ([numero], [date], [emetteur], [montant], [banque], [des"& _ 
+            "tinataire], [imageChq]) VALUES (@numero, @date, @emetteur, @montant, @banque, @d"& _ 
+            "estinataire, @imageChq);")>  _
+        Public ReadOnly Property insertChq() As String
+            Get
+                Return CType(Me("insertChq"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE [dbo].[Documents] SET dateDoc = @dateDoc, contenuDoc = @contenuDoc, chemin"& _ 
+            "Doc = @cheminDoc, categorieDoc = @categorieDoc, sousCategorieDoc = @sousCategori"& _ 
+            "eDoc, idMvtDoc=@idMvtDoc WHERE idDoc = @idDoc;")>  _
+        Public ReadOnly Property updDocs() As String
+            Get
+                Return CType(Me("updDocs"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("DELETE FROM [dbo].[Documents] WHERE idDoc = @idDoc"&Global.Microsoft.VisualBasic.ChrW(9)&";")>  _
+        Public ReadOnly Property delDocs() As String
+            Get
+                Return CType(Me("delDocs"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, nom, prenom FROM Tiers WHERE nom IS NOT NULL;")>  _
+        Public ReadOnly Property selTiersPhysique() As String
+            Get
+                Return CType(Me("selTiersPhysique"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, raisonSociale FROM Tiers WHERE raisonSociale IS NOT NULL;")>  _
+        Public ReadOnly Property selTiersMorale() As String
+            Get
+                Return CType(Me("selTiersMorale"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, libelle FROM Categorie;")>  _
+        Public ReadOnly Property selIdLibCat() As String
+            Get
+                Return CType(Me("selIdLibCat"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT COUNT(*) FROM Tiers WHERE (nom = @nom AND prenom = @prenom and raisonSocia"& _ 
+            "le is null) OR raisonSociale = @raisonSociale and nom is null AND prenom is null"& _ 
+            ";")>  _
+        Public ReadOnly Property cptTiers() As String
+            Get
+                Return CType(Me("cptTiers"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT sousCategorieDefaut FROM Tiers where id = @id;")>  _
+        Public ReadOnly Property reqSousCategoriesDefautMouvements() As String
+            Get
+                Return CType(Me("reqSousCategoriesDefautMouvements"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO [dbo].[Documents] (dateDoc, contenuDoc, cheminDoc, categorieDoc, sous"& _ 
+            "CategorieDoc, idMvtDoc) VALUES (@dateDoc, @contenuDoc, @cheminDoc, @categorieDoc"& _ 
+            ", @sousCategorieDoc, @idMvtDoc);")>  _
+        Public ReadOnly Property insertDocAgumaaa() As String
+            Get
+                Return CType(Me("insertDocAgumaaa"),String)
             End Get
         End Property
     End Class

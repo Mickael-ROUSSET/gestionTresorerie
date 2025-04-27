@@ -22,13 +22,14 @@ Public Class FrmChargeRelevé
         End Try
     End Sub
 
-    Private Sub AjouterColonneTraite()
+    Public Sub AjouterColonneTraite()
         ' Ajouter une colonne d'image pour "Traité" : appel de la procédure pour ajouter une colonne d'image
         UtilControles.AjouterColonneImage(dgvRelevé, "traiteImage", "Traité", DataGridViewImageCellLayout.Zoom, 30)
 
         ' Parcourir les lignes du DataGridView pour définir les images
         For Each row As DataGridViewRow In dgvRelevé.Rows
-            If Not row.IsNewRow Then
+            'On ne traite pas la 1ère ligne qui est l'entête
+            If Not row.IsNewRow AndAlso row.Index > 0 Then
                 Try
                     ' Supposons que les colonnes "dateMvt", "montant" et "sens" sont respectivement aux indices 1, 2 et 3
                     Dim dateMvt As Date = CDate(row.Cells(1).Value)
@@ -56,23 +57,6 @@ Public Class FrmChargeRelevé
             End If
         Next
     End Sub
-
-
-    'Private Sub DataGridView1_SelectionChanged(sender As Object, e As DataGridViewCellEventArgs) Handles dgvRelevé.CellContentClick
-    '    Dim sMontant As String
-
-    '    FrmSaisie.dateMvt.Value = Convert.ToDateTime(dgvRelevé.CurrentRow.Cells.Item(0).FormattedValue)
-    '    FrmSaisie.txtNote.Text = dgvRelevé.CurrentRow.Cells.Item(1).FormattedValue
-    '    If dgvRelevé.CurrentRow.Cells.Item(2).FormattedValue <> "" Then
-    '        sMontant = dgvRelevé.CurrentRow.Cells.Item(2).FormattedValue
-    '        FrmSaisie.rbDebit.Checked = True
-    '    Else
-    '        sMontant = dgvRelevé.CurrentRow.Cells.Item(3).FormattedValue
-    '        FrmSaisie.rbCredit.Checked = True
-    '    End If
-    '    FrmSaisie.txtMontant.Text = sMontant
-    '    FrmSaisie.Show()
-    'End Sub
     Private Sub btnOuvreSaisie_Click(sender As Object, e As EventArgs) Handles btnOuvreSaisie.Click
         Dim sMontant As String
         Dim cellules As DataGridViewCellCollection

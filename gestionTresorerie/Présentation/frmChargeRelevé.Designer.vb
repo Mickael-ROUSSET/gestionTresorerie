@@ -52,7 +52,7 @@ Partial Class FrmChargeRelevé
         ' 
         dgvRelevé.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
         dgvRelevé.Columns.AddRange(New DataGridViewColumn() {dgVDate, dgVNOte, dgVDébit, dgVCrédit})
-        dgvRelevé.Location = New Point(12, 50)
+        dgvRelevé.Location = New Point(12, 33)
         dgvRelevé.Name = "dgvRelevé"
         dgvRelevé.SelectionMode = DataGridViewSelectionMode.FullRowSelect
         dgvRelevé.Size = New Size(976, 364)
@@ -111,7 +111,6 @@ Partial Class FrmChargeRelevé
         ResumeLayout(False)
     End Sub
     Friend WithEvents btnOuvreFichier As Button
-    Friend WithEvents dgvRelevé As DataGridView
     Friend WithEvents BindingSource1 As BindingSource
     Friend WithEvents BindingSource2 As BindingSource
     Friend WithEvents btnOuvreSaisie As Button
@@ -119,4 +118,5 @@ Partial Class FrmChargeRelevé
     Friend WithEvents dgVNOte As DataGridViewTextBoxColumn
     Friend WithEvents dgVDébit As DataGridViewTextBoxColumn
     Friend WithEvents dgVCrédit As DataGridViewTextBoxColumn
+    Public WithEvents dgvRelevé As DataGridView
 End Class

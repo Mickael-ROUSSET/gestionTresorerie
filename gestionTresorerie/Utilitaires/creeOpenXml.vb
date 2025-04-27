@@ -14,7 +14,7 @@ Imports Text = DocumentFormat.OpenXml.Wordprocessing.Text
 Imports TopBorder = DocumentFormat.OpenXml.Wordprocessing.TopBorder
 
 
-Module creeOpenXml
+Module CreeOpenXml
     'https://learn.microsoft.com/fr-fr/office/open-xml/word/overview
 
 

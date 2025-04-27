@@ -103,10 +103,10 @@ Public Class Cheque
                     With objResultat
                         'TODO : je ne l'ai pas encore
                         '_id = CInt(.Item("id").ToString)
-                        _montant_numerique = .Item("montant_numerique").ToString
-                        _numero_du_cheque = CInt(.Item("numero_du_cheque").ToString)
-                        _dateChq = CDate(.Item("dateChq").ToString)
-                        _emetteur_du_cheque = .Item("emetteur_du_cheque").ToString
+                        _montant_numerique = .Item(NameOf(montant_numerique)).ToString
+                        _numero_du_cheque = CInt(.Item(NameOf(numero_du_cheque)).ToString)
+                        _dateChq = CDate(.Item(NameOf(dateChq)).ToString)
+                        _emetteur_du_cheque = .Item(NameOf(emetteur_du_cheque)).ToString
                         _destinataire = .Item("le_destinataire").ToString
                     End With
                 Case Else
@@ -132,74 +132,81 @@ Public Class Cheque
     Public Sub InsereEnBase(cheminChq As String)
 
         Try
-            Dim query As String = "INSERT INTO [dbo].Cheque ([numero], [date], [emetteur], [montant], [banque], [destinataire], [imageChq]) VALUES (@numero, @date, @emetteur, @montant, @banque, @destinataire, @imageChq)"
+            'Dim query As String = "INSERT INTO [dbo].Cheque ([numero], [date], [emetteur], [montant], [banque], [destinataire], [imageChq]) VALUES (@numero, @date, @emetteur, @montant, @banque, @destinataire, @imageChq)"
 
-            Using command As New SqlCommand(query, ConnexionDB.GetInstance.getConnexion)
-                With command.Parameters
-                    .AddWithValue("@numero", _numero_du_cheque)
-                    .AddWithValue("@date", Convert.ToDateTime(_dateChq))
-                    .AddWithValue("@emetteur", _emetteur_du_cheque)
-                    .AddWithValue("@montant", _montant_numerique)
-                    .AddWithValue("@banque", "CA43")
-                    .AddWithValue("@destinataire", _destinataire)
+            'Using command As New SqlCommand(query, ConnexionDB.GetInstance.getConnexion)
+            '    With command.Parameters
+            '        .AddWithValue("@numero", _numero_du_cheque)
+            '        .AddWithValue("@date", Convert.ToDateTime(_dateChq))
+            '        .AddWithValue("@emetteur", _emetteur_du_cheque)
+            '        .AddWithValue("@montant", _montant_numerique)
+            '        .AddWithValue("@banque", "CA43")
+            '        .AddWithValue("@destinataire", _destinataire)
 
-                    ' Lire l'image en tant que tableau d'octets 
-                    Dim imageBytes As Byte() = File.ReadAllBytes(cheminChq)
+            '        ' Lire l'image en tant que tableau d'octets 
+            '        Dim imageBytes As Byte() = File.ReadAllBytes(cheminChq)
 
-                    ' Ajouter le paramètre pour l'image
-                    .AddWithValue("@imageChq", imageBytes)
-                End With
+            '        ' Ajouter le paramètre pour l'image
+            '        .AddWithValue("@imageChq", imageBytes)
+            '    End With
+            ' Lire l'image en tant que tableau d'octets 
+            Dim imageBytes As Byte() = File.ReadAllBytes(cheminChq)
+            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand("insertChq",
+                             New Dictionary(Of String, Object) From {{"@numero", _numero_du_cheque},
+                                                                     {"@date", Convert.ToDateTime(_dateChq)},
+                                                                     {"@emetteur", _emetteur_du_cheque},
+                                                                     {"@montant", _montant_numerique},
+                                                                     {"@banque", "CA43"},
+                                                                     {"@destinataire", _destinataire},
+                                                                     {"@imageChq", imageBytes}}
+                             )
+            command.ExecuteNonQuery()
                 command.ExecuteNonQuery()
-            End Using
+            'End Using
             Logger.INFO("Données insérées avec succès." & Command.ToString)
         Catch ex As Exception
             Logger.ERR("Erreur lors de l'insertion des données : " & ex.Message)
         End Try
     End Sub
     Public Sub AfficherImage(idCheque As Integer, pbBox As PictureBox)
-        Dim sqlConnexion As SqlConnection = Nothing
+        'Dim sqlConnexion As SqlConnection = Nothing
 
         Try
             ' Effacer l'image précédemment affichée
             pbBox.Image = Nothing
 
-            ' Obtenir la connexion SQL
-            sqlConnexion = ConnexionDB.GetInstance.getConnexion
+            '' Obtenir la connexion SQL
+            'sqlConnexion = ConnexionDB.GetInstance.getConnexion
+            '' Ouvrir la connexion
+            'If sqlConnexion.State <> ConnectionState.Open Then
+            '    sqlConnexion.Open()
+            'End If
+            '' Requête SQL pour récupérer l'image
+            'Dim query As String = "SELECT [imageChq] FROM [dbo].Cheque WHERE [id] = @id"
+            'Using command As New SqlCommand(query, sqlConnexion)
+            '    command.Parameters.AddWithValue("@id", idCheque)
+            ' Exécuter la requête et récupérer les données binaires de l'image
+            'Dim imageData As Object = command.ExecuteScalar()
 
-            ' Ouvrir la connexion
-            If sqlConnexion.State <> ConnectionState.Open Then
-                sqlConnexion.Open()
-            End If
-
-            ' Requête SQL pour récupérer l'image
-            Dim query As String = "SELECT [imageChq] FROM [dbo].Cheque WHERE [id] = @id"
-
-            Using command As New SqlCommand(query, sqlConnexion)
-                command.Parameters.AddWithValue("@id", idCheque)
-
-                ' Exécuter la requête et récupérer les données binaires de l'image
-                Dim imageData As Object = command.ExecuteScalar()
-
-                If imageData IsNot Nothing AndAlso TypeOf imageData Is Byte() Then
-                    ' Convertir les données binaires en objet Image
-                    Dim imageBytes As Byte() = DirectCast(imageData, Byte())
-                    Using ms As New IO.MemoryStream(imageBytes)
-                        Dim image As Image = Image.FromStream(ms)
-                        ' Afficher l'image dans le PictureBox
-                        pbBox.SizeMode = PictureBoxSizeMode.Zoom
-                        pbBox.Image = AfficherTiersSuperieurImage(image, 0.33)
-                    End Using
+            Dim imageData As Object = SqlCommandBuilder.CreateSqlCommand("reqImagesChq",
+                                           New Dictionary(Of String, Object) From {{"@id", idCheque}
+                                            }).
+                                            ExecuteScalar()
+            If imageData IsNot Nothing AndAlso TypeOf imageData Is Byte() Then
+                ' Convertir les données binaires en objet Image
+                Dim imageBytes As Byte() = DirectCast(imageData, Byte())
+                Using ms As New IO.MemoryStream(imageBytes)
+                    Dim image As Image = Image.FromStream(ms)
+                    ' Afficher l'image dans le PictureBox
+                    pbBox.SizeMode = PictureBoxSizeMode.Zoom
+                    pbBox.Image = AfficherTiersSuperieurImage(image, 0.33)
+                End Using
                 Else
                     Logger.INFO("Aucune image trouvée pour cet enregistrement.")
                 End If
-            End Using
+            'End Using
         Catch ex As Exception
             Logger.ERR("Erreur lors de la récupération de l'image : " & ex.Message)
-        Finally
-            ' Fermer la connexion si elle est ouverte
-            If sqlConnexion IsNot Nothing AndAlso sqlConnexion.State = ConnectionState.Open Then
-                sqlConnexion.Close()
-            End If
         End Try
     End Sub
 
