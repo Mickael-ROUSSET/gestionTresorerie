@@ -22,7 +22,7 @@ Public Class FrmHistogramme
         'Le LightStyle modifie la lumière : la couleur des côtés et du dessus des colonnes change  
         ChartBilan.ChartAreas("ChartArea1").Area3DStyle.LightStyle = LightStyle.Realistic
         ChartBilan.Series("Series1").BorderColor = Color.Bisque
-        For i = 0 To UBound(valeurs) - 1
+        For i = 0 To UBound(valeurs)
             'Ne marche pas pour mettre le libellé
             'sLegende = Str(i) & "_" & Strings.Replace(legende(i), " ", "")
             'ChartBilan.Series("Series1").Points.AddXY(sLegende, valeurs(i)
@@ -52,57 +52,5 @@ Public Class FrmHistogramme
     'Pour test
     Private maFont As New Font("Verdana", 7)
     Private maFontBold As New Font("Verdana", 7, FontStyle.Bold)
-
-
-    'TODO à sortir dans un module de copie d'écran si cela marche
-    'Private Declare Function BitBlt Lib "GDI32" (ByVal hDestDC As IntPtr, ByVal X As Integer, ByVal Y As Integer, ByVal nWidth As Integer, ByVal nHeight As Integer, ByVal hSrcDC As IntPtr, ByVal SrcX As Integer, ByVal SrcY As Integer, ByVal Rop As Integer) As Integer
-    'Private Declare Function GetForegroundWindow Lib "user32" () As IntPtr
-    'Private Declare Function GetWindowRect Lib "user32.dll" (ByVal hWnd As IntPtr, ByRef lpRect As Rectangle) As Integer
-    'Private Declare Function GetDesktopWindow Lib "user32" () As IntPtr
-    'Capture tout l'écran
-    'Public Shared Function ShotScreen() As Bitmap
-    '    Try
-    '        Dim DesktopRect As Rectangle = Screen.GetBounds(New Point(0, 0)) 'obtient la taille du bureau sous forme de rectangle dans DesktopRect
-    '        Return ShotScreenPart(DesktopRect.Width, DesktopRect.Height) 'appele la fonction ShotScreenPart avec les dimensions du bureau. 
-    '    Catch ex As Exception
-    '        MsgBox(ex.ToString)
-    '    End Try
-    'End Function
-    'Capture la fenetre active
-    'Public Function ShotActiveWin() As Bitmap
-    '    Dim WinRect As Rectangle
-    '    Try
-    '        If GetWindowRect(GetForegroundWindow, WinRect) Then 'obtient la taille et la position de la fenetre active sous forme de rectangle (WinRect)
-    '            Return ShotScreenPart(WinRect.Size.Width - WinRect.Left, WinRect.Size.Height - WinRect.Top, WinRect.Left, WinRect.Top)  'appele la fonction ShotLoc avec les dimensions et la position de la fenetre. 
-    '        End If
-    '    Catch ex As Exception
-    '        MsgBox(ex.ToString)
-    '    End Try
-    'End Function
-    'Capture une partie de l'ecran, defini par les deux variable width et height (dimensions du rectangle), et des valeur optionels X et Y (base du rectangle)
-    'Public Shared Function ShotScreenPart(ByVal nwidth As Integer, ByVal nheight As Integer, Optional ByVal x As Integer = 0, Optional ByVal y As Integer = 0) As Bitmap
-    '    Dim resultBmp As New Bitmap(nwidth, nheight) 'crée l'objet bitmap cible
-    '    Dim SrcGraph As Graphics = Graphics.FromHwnd(GetDesktopWindow) 'crée l'objet "graphics" SelGraph a partir du handdle du bureau
-    '    Dim BmpGraph As Graphics = Graphics.FromImage(resultBmp) 'crée un objet graphics à partir du bitmap
-    '    Dim bmpDC As IntPtr = BmpGraph.GetHdc() 'obtient le device context du bitmap
-    '    Dim hDC As IntPtr = SrcGraph.GetHdc() 'obtient le device context du bureau
-    '    BitBlt(bmpDC, 0, 0, nwidth, nheight, hDC, x, y, &HCC0020) '"bit-block transfer" : copie chaque bits affichés dans le device context hDC dans le device context du bitmap 
-    '    SrcGraph.ReleaseHdc(hDC) 'relache le device context du bureau
-    '    BmpGraph.ReleaseHdc(bmpDC) 'relache le device context du bitmap
-    '    SrcGraph.Dispose()
-    '    BmpGraph.Dispose() 'libere toutes les ressources crées par l'objet (useless?)
-    '    Return resultBmp
-    'End Function
-    'Private Function MaxTableau(tab() As Decimal) As Decimal
-    '    'TODO gérer les valeurs négatives
-    '    Dim i As Integer
-    '    Dim maxTemp As Decimal = 0
-    '    For i = 0 To UBound(tab) - 1
-    '        If tab(i) > maxTemp Then
-    '            maxTemp = tab(i)
-    '        End If
-    '    Next
-    '    Return maxTemp
-    'End Function
 
 End Class

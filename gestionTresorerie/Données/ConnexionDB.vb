@@ -18,9 +18,8 @@ Public Class ConnexionDB
     End Function
     Public Function getConnexion() As SqlConnection
         'Crée la connexion si elle n'existe pas, sinon renvoie celle existante 
-        Dim lectureProprietes As New LectureProprietes()
 
-        creeConnexion(lectureProprietes.connexionString)
+        creeConnexion(LectureProprietes.connexionString)
         Return _maConnexion
     End Function
     Public Sub creeConnexion(connexionString As String)

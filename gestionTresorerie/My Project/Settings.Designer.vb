@@ -399,16 +399,6 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT sousCatégorie, SUM(montant) FROM Mouvements WHERE catégorie = @category GR"& _ 
-            "OUP BY sousCatégorie ORDER BY SUM(montant) DESC;")>  _
-        Public ReadOnly Property reqSommeCatMouvements() As String
-            Get
-                Return CType(Me("reqSommeCatMouvements"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("SELECT sousCatégorie, sum(montant) FROM Mouvements where catégorie = '")>  _
         Public ReadOnly Property reqSommeSousCatMouvements() As String
             Get
@@ -665,16 +655,6 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT DISTINCT libelle from categorie where id in (select catégorie FROM Mouveme"& _ 
-            "nts);")>  _
-        Public ReadOnly Property reqCategoriesMouvements() As String
-            Get
-                Return CType(Me("reqCategoriesMouvements"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("SELECT COUNT(*) FROM Tiers WHERE (nom = @nom AND prenom = @prenom) OR raisonSocia"& _ 
             "le = @raisonSociale);")>  _
         Public ReadOnly Property selExisteTiers() As String
@@ -700,6 +680,45 @@ Namespace My
         Public ReadOnly Property parametresJson() As String
             Get
                 Return CType(Me("parametresJson"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT DISTINCT catégorie FROM Mouvements;")>  _
+        Public ReadOnly Property reqCategoriesMouvements() As String
+            Get
+                Return CType(Me("reqCategoriesMouvements"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT DISTINCT libelle from categorie where id in (select catégorie FROM Mouveme"& _ 
+            "nts);")>  _
+        Public ReadOnly Property reqCategoriesMouvementsOld() As String
+            Get
+                Return CType(Me("reqCategoriesMouvementsOld"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT libelle FROM Categorie where Id = @id")>  _
+        Public ReadOnly Property reqLibCat() As String
+            Get
+                Return CType(Me("reqLibCat"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("with sel as (SELECT distinct sousCatégorie as sousCat, SUM(montant) as mnt FROM M"& _ 
+            "ouvements Mvt WHERE Mvt.catégorie = @categorie group by sousCatégorie) select sC"& _ 
+            ".libelle, mnt from sel, sousCategorie sC where sC.id = sousCat;")>  _
+        Public ReadOnly Property reqSommeCatMouvements() As String
+            Get
+                Return CType(Me("reqSommeCatMouvements"),String)
             End Get
         End Property
     End Class

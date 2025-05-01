@@ -18,5 +18,21 @@ Public Class Categorie
         End Try
         Return dt
     End Function
+    Public Shared Function libelleParId(Id As Integer) As String
+        Dim sLib As String
+        Try
+            sLib = SqlCommandBuilder.
+            CreateSqlCommand("reqLibCat",
+                             New Dictionary(Of String, Object) From {{"@Id", Id}}
+                             ).
+                             ExecuteScalar
+
+            Logger.INFO($"Requête exécutée avec succès : reqLibCat pour le param {Id} => {sLib}")
+        Catch ex As Exception
+            Logger.ERR($"Erreur inattendue lors de l'exécution de la requête. Message: {ex.Message}")
+            Throw
+        End Try
+        Return sLib
+    End Function
 End Class
 

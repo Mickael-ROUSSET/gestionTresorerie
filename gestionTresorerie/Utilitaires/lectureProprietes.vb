@@ -40,7 +40,7 @@
             End If
         End Get
     End Property
-    Public ReadOnly Property connexionString() As String
+    Public Shared ReadOnly Property connexionString() As String
         Get
             If _env = "Prod" Then
                 '"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=&quot;G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf&quot;;Integrated Security=True;Connect Timeout=30" /> 

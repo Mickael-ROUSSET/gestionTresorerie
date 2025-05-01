@@ -4,6 +4,11 @@ Imports System.IO
 'Imports Newtonsoft.Json
 
 Public Class GererJson
+    Private Sub New()
+        ' Constructeur privé pour empêcher l'instanciation directe
+    End Sub
+    ' Déclaration d'une variable globale
+    Public Shared dicoClesValeurs As Dictionary(Of String, String)
 
     'Public Shared Sub KeyValuePairsExample() ' Exemple de dictionnaire de paramètres
     '    Dim parameters As New Dictionary(Of String, String) From {
@@ -31,14 +36,14 @@ Public Class GererJson
     End Sub
 
     ' Méthode pour lire les paramètres depuis un fichier JSON
-    Private Shared Function LoadParametersFromFile() As Dictionary(Of String, String)
+    Public Shared Sub LoadParametersFromFile()
         Dim sFicParam As String = LectureProprietes.GetCheminEtVariable("parametresJson")
         If Not File.Exists(sFicParam) Then
-            Return New Dictionary(Of String, String)
+            Logger.ERR($"Le fichier {sFicParam} n'existe pas.")
         End If
 
         Dim json As String = File.ReadAllText(sFicParam)
-        Return JsonConvert.DeserializeObject(Of Dictionary(Of String, String))(json)
-    End Function
+        dicoClesValeurs = JsonConvert.DeserializeObject(Of Dictionary(Of String, String))(json)
+    End Sub
 
 End Class
