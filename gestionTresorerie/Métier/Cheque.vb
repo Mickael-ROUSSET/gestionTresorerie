@@ -130,25 +130,7 @@ Public Class Cheque
         End If
     End Function
     Public Sub InsereEnBase(cheminChq As String)
-
         Try
-            'Dim query As String = "INSERT INTO [dbo].Cheque ([numero], [date], [emetteur], [montant], [banque], [destinataire], [imageChq]) VALUES (@numero, @date, @emetteur, @montant, @banque, @destinataire, @imageChq)"
-
-            'Using command As New SqlCommand(query, ConnexionDB.GetInstance.getConnexion)
-            '    With command.Parameters
-            '        .AddWithValue("@numero", _numero_du_cheque)
-            '        .AddWithValue("@date", Convert.ToDateTime(_dateChq))
-            '        .AddWithValue("@emetteur", _emetteur_du_cheque)
-            '        .AddWithValue("@montant", _montant_numerique)
-            '        .AddWithValue("@banque", "CA43")
-            '        .AddWithValue("@destinataire", _destinataire)
-
-            '        ' Lire l'image en tant que tableau d'octets 
-            '        Dim imageBytes As Byte() = File.ReadAllBytes(cheminChq)
-
-            '        ' Ajouter le paramètre pour l'image
-            '        .AddWithValue("@imageChq", imageBytes)
-            '    End With
             ' Lire l'image en tant que tableau d'octets 
             Dim imageBytes As Byte() = File.ReadAllBytes(cheminChq)
             Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand("insertChq",
@@ -161,33 +143,17 @@ Public Class Cheque
                                                                      {"@imageChq", imageBytes}}
                              )
             command.ExecuteNonQuery()
-                command.ExecuteNonQuery()
+            command.ExecuteNonQuery()
             'End Using
-            Logger.INFO("Données insérées avec succès." & Command.ToString)
+            Logger.INFO("Données insérées avec succès." & command.ToString)
         Catch ex As Exception
             Logger.ERR("Erreur lors de l'insertion des données : " & ex.Message)
         End Try
     End Sub
     Public Sub AfficherImage(idCheque As Integer, pbBox As PictureBox)
-        'Dim sqlConnexion As SqlConnection = Nothing
-
         Try
             ' Effacer l'image précédemment affichée
             pbBox.Image = Nothing
-
-            '' Obtenir la connexion SQL
-            'sqlConnexion = ConnexionDB.GetInstance.getConnexion
-            '' Ouvrir la connexion
-            'If sqlConnexion.State <> ConnectionState.Open Then
-            '    sqlConnexion.Open()
-            'End If
-            '' Requête SQL pour récupérer l'image
-            'Dim query As String = "SELECT [imageChq] FROM [dbo].Cheque WHERE [id] = @id"
-            'Using command As New SqlCommand(query, sqlConnexion)
-            '    command.Parameters.AddWithValue("@id", idCheque)
-            ' Exécuter la requête et récupérer les données binaires de l'image
-            'Dim imageData As Object = command.ExecuteScalar()
-
             Dim imageData As Object = SqlCommandBuilder.CreateSqlCommand("reqImagesChq",
                                            New Dictionary(Of String, Object) From {{"@id", idCheque}
                                             }).
@@ -201,9 +167,9 @@ Public Class Cheque
                     pbBox.SizeMode = PictureBoxSizeMode.Zoom
                     pbBox.Image = AfficherTiersSuperieurImage(image, 0.33)
                 End Using
-                Else
-                    Logger.INFO("Aucune image trouvée pour cet enregistrement.")
-                End If
+            Else
+                Logger.INFO("Aucune image trouvée pour cet enregistrement.")
+            End If
             'End Using
         Catch ex As Exception
             Logger.ERR("Erreur lors de la récupération de l'image : " & ex.Message)

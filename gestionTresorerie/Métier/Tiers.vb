@@ -23,17 +23,8 @@ Public Class Tiers
         End If
     End Sub
     Public Shared Function getCategorieTiers(idTiers As Double) As Integer
-        ' Renvoie la catégorie et la sous catégorie d'un tiers 
-        'Dim maCmd As SqlCommand
-        'Dim monReader As SqlDataReader
+        ' Renvoie la catégorie et la sous catégorie d'un tiers  
         Dim iCategorie As Integer
-
-        'maCmd = New SqlCommand
-        'With maCmd
-        '    .Connection = ConnexionDB.GetInstance.getConnexion
-        '    .CommandText = "SELECT categorieDefaut FROM Tiers where id = '" & idTiers & "';"
-        'End With
-        'monReader = maCmd.ExecuteReader()
         Dim monReader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqCategoriesDefautMouvements",
                              New Dictionary(Of String, Object) From {{"@id", idTiers}}
                              ).ExecuteReader()
@@ -49,17 +40,8 @@ Public Class Tiers
         Return iCategorie
     End Function
     Public Shared Function getSousCategorieTiers(idTiers As Double) As Integer
-        ' Renvoie la sous catégorie d'un tiers 
-        'Dim maCmd As SqlCommand
-        'Dim monReader As SqlDataReader
+        ' Renvoie la sous catégorie d'un tiers  
         Dim iSousCategorie As Integer
-
-        'maCmd = New SqlCommand
-        'With maCmd
-        '    .Connection = ConnexionDB.GetInstance.getConnexion
-        '    .CommandText = "SELECT sousCategorieDefaut FROM Tiers where id = '" & idTiers & "';"
-        'End With
-        'monReader = maCmd.ExecuteReader()
         Dim monReader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqSousCategoriesDefautMouvements",
                              New Dictionary(Of String, Object) From {{"@id", idTiers}}
                              ).ExecuteReader()
@@ -76,23 +58,8 @@ Public Class Tiers
     End Function
 
     Public Shared Function ExtraireTiers() As List(Of (nom As String, prenom As String, raisonSociale As String))
-        'Dim sqlConnexion As SqlConnection = Nothing
         Dim ListeTiers As List(Of (nom As String, prenom As String, raisonSociale As String))
         Try
-            ' Obtenir la connexion SQL
-            'sqlConnexion = ConnexionDB.GetInstance.getConnexion
-
-            '' Ouvrir la connexion
-            'If sqlConnexion.State <> ConnectionState.Open Then
-            '    sqlConnexion.Open()
-            'End If
-
-            '' Requête SQL pour extraire les données
-            'Dim query As String = "SELECT [nom], [prenom], [raisonSociale] FROM [dbo].Tiers"
-
-            'Using command As New SqlCommand(query, sqlConnexion)
-            ' Exécuter la requête et récupérer les résultats
-            'Using reader As SqlDataReader = command.ExecuteReader()
             Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqIdentiteTiers"
                              ).ExecuteReader()
                 ' Parcourir les résultats et ajouter chaque enregistrement à la liste

@@ -62,10 +62,7 @@ Public Class FrmSelectionneCheque
         ' Convertir txtMontant.Text en Decimal 
         If Decimal.TryParse(FrmSaisie.txtMontant.Text.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, montant) Then
             ' Utilisation de Using pour garantir la fermeture des objets
-            'Using cmdLstCheques As New SqlCommand("SELECT id, numero, date, emetteur, destinataire FROM Cheque WHERE montant = @montant;", ConnexionDB.GetInstance.getConnexion)
-            '    cmdLstCheques.Parameters.AddWithValue("@montant", montant)
             Try
-                'Using readerChq As SqlDataReader = cmdLstCheques.ExecuteReader()
                 Using readerChq As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqChq",
                              New Dictionary(Of String, Object) From {{"@montant", montant}}
                              ).ExecuteReader()

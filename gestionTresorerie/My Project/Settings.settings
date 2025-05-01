@@ -94,9 +94,6 @@
     <Setting Name="reqNbMouvements" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT COUNT(*) FROM Mouvements WHERE dateMvt = @dateMvt AND montant = @montant AND sens = @sens;</Value>
     </Setting>
-    <Setting Name="reqCategoriesMouvements" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">SELECT DISTINCT catégorie FROM Mouvements;</Value>
-    </Setting>
     <Setting Name="reqImagesChq" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT [imageChq] FROM [dbo].Cheque WHERE [id] = @id</Value>
     </Setting>
@@ -207,6 +204,18 @@
     </Setting>
     <Setting Name="insertDocAgumaaa" Type="System.String" Scope="Application">
       <Value Profile="(Default)">INSERT INTO [dbo].[Documents] (dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc) VALUES (@dateDoc, @contenuDoc, @cheminDoc, @categorieDoc, @sousCategorieDoc, @idMvtDoc);</Value>
+    </Setting>
+    <Setting Name="reqCategoriesMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT DISTINCT libelle from categorie where id in (select catégorie FROM Mouvements);</Value>
+    </Setting>
+    <Setting Name="selExisteTiers" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT COUNT(*) FROM Tiers WHERE (nom = @nom AND prenom = @prenom) OR raisonSociale = @raisonSociale);</Value>
+    </Setting>
+    <Setting Name="insertTiers" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INSERT INTO Tiers (nom, prenom, raisonSociale, categorieDefaut, sousCategorieDefaut, dateCreation, dateModification) VALUES (@nom, @prenom, @raisonSociale, @categorieDefaut, @sousCategorieDefaut, @dateCreation, @dateModification);</Value>
+    </Setting>
+    <Setting Name="parametresJson" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">parametresAppli.json</Value>
     </Setting>
   </Settings>
 </SettingsFile>

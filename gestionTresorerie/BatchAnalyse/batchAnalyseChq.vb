@@ -37,7 +37,6 @@ Public Class batchAnalyseChq
             Logger.ERR("Erreur lors du parcours du répertoire : " & sRepChq & " " & ex.Message)
         End Try
     End Sub
-
     Private Sub ParcourirEtAnalyserRecursif(repertoire As String)
         Try
             ' Initialiser les compteurs pour le répertoire courant
@@ -75,9 +74,8 @@ Public Class batchAnalyseChq
             Logger.ERR("Erreur lors du parcours du répertoire : " & repertoire & " " & ex.Message)
         End Try
     End Sub
-
     Public Shared Sub analyseChq(cheminChq As String)
-        Dim extraction As New AppelMistral()
+        'Dim extraction As New AppelMistral()
 
         Logger.INFO("-------------------" & vbCrLf & "Analyse du chèque " & cheminChq)
         Dim chqJson = AppelMistral.litImage(cheminChq)
@@ -110,7 +108,7 @@ Public Class batchAnalyseChq
 
             ' Renommer le fichier
             File.Move(cheminFichier, nouveauNomFichier)
-            Logger.INFO($"Fichier renommé avec succès en '{nouveauNomFichier}'.")
+            Logger.INFO($"Fichier {cheminFichier} renommé avec succès en '{nouveauNomFichier}'.")
 
             ' Retourner le nouveau nom du fichier
             Return nouveauNomFichier

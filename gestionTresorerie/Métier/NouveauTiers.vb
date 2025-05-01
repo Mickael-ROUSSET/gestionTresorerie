@@ -40,17 +40,9 @@ Public Class frmNouveauTiers
     End Function
 
     Private Function TiersExisteDeja() As Boolean
-        'Dim query As String = "SELECT COUNT(*) FROM Tiers WHERE (nom = @nom AND prenom = @prenom and raisonSociale is null) OR raisonSociale = @raisonSociale and nom is null AND prenom is null "
         Dim count As Integer = 0
 
         Try
-            'Dim conn As SqlConnection = ConnexionDB.GetInstance.getConnexion
-            'Using cmd As New SqlCommand(query, conn)
-            '    cmd.Parameters.AddWithValue("@nom", txtNom.Text.Trim())
-            '    cmd.Parameters.AddWithValue("@prenom", txtPrenom.Text.Trim())
-            '    cmd.Parameters.AddWithValue("@raisonSociale", txtRaisonSociale.Text.Trim())
-
-            '    count = CInt(cmd.ExecuteScalar())
             count = CInt(SqlCommandBuilder.
                      CreateSqlCommand("cptTiers",
                      New Dictionary(Of String, Object) From {{"@nom", txtNom.Text.Trim()},
@@ -68,21 +60,7 @@ Public Class frmNouveauTiers
         Return count > 0
     End Function
     Sub insereNouveauTiers(sRaisonSociale As String, sPrenom As String, sNom As String, iCategorie As Integer?, iSousCategorie As Integer?)
-        'Dim query As String = "INSERT INTO Tiers (nom, prenom, raisonSociale, categorieDefaut, sousCategorieDefaut, dateCreation, dateModification) VALUES (@nom, @prenom, @raisonSociale, @categorieDefaut, @sousCategorieDefaut, @dateCreation, @dateModification)"
-
         Try
-            'Dim conn As SqlConnection = ConnexionDB.GetInstance.getConnexion
-            'Using cmd As New SqlCommand(query, conn)
-            '    cmd.Parameters.AddWithValue("@nom", sNom.Trim())
-            '    cmd.Parameters.AddWithValue("@prenom", sPrenom.Trim())
-            '    cmd.Parameters.AddWithValue("@raisonSociale", sRaisonSociale)
-            '    cmd.Parameters.AddWithValue("@categorieDefaut", iCategorie)
-            '    cmd.Parameters.AddWithValue("@sousCategorieDefaut", iSousCategorie)
-            '    cmd.Parameters.AddWithValue("@dateCreation", DateTime.Now)
-            '    cmd.Parameters.AddWithValue("@dateModification", DateTime.Now)
-
-            '    cmd.ExecuteNonQuery()
-            'End Using
             SqlCommandBuilder.
             CreateSqlCommand("insertTiers",
                              New Dictionary(Of String, Object) From {{"@nom", sNom.Trim()},
@@ -145,9 +123,9 @@ Public Class frmNouveauTiers
         ChargeDgvSousCategorie()
     End Sub
     Private Sub initChamps()
-        txtNom.Text = Constantes.Vide
-        txtPrenom.Text = Constantes.Vide
-        txtRaisonSociale.Text = Constantes.Vide
+        txtNom.Text = Constantes.vide
+        txtPrenom.Text = Constantes.vide
+        txtRaisonSociale.Text = Constantes.vide
         dgvNTCategorie.ClearSelection()
         dgvNTSousCategorie.ClearSelection()
     End Sub

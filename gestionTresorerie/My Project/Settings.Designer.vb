@@ -297,15 +297,6 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT DISTINCT catégorie FROM Mouvements;")>  _
-        Public ReadOnly Property reqCategoriesMouvements() As String
-            Get
-                Return CType(Me("reqCategoriesMouvements"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("SELECT [imageChq] FROM [dbo].Cheque WHERE [id] = @id")>  _
         Public ReadOnly Property reqImagesChq() As String
             Get
@@ -669,6 +660,46 @@ Namespace My
         Public ReadOnly Property insertDocAgumaaa() As String
             Get
                 Return CType(Me("insertDocAgumaaa"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT DISTINCT libelle from categorie where id in (select catégorie FROM Mouveme"& _ 
+            "nts);")>  _
+        Public ReadOnly Property reqCategoriesMouvements() As String
+            Get
+                Return CType(Me("reqCategoriesMouvements"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT COUNT(*) FROM Tiers WHERE (nom = @nom AND prenom = @prenom) OR raisonSocia"& _ 
+            "le = @raisonSociale);")>  _
+        Public ReadOnly Property selExisteTiers() As String
+            Get
+                Return CType(Me("selExisteTiers"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO Tiers (nom, prenom, raisonSociale, categorieDefaut, sousCategorieDefa"& _ 
+            "ut, dateCreation, dateModification) VALUES (@nom, @prenom, @raisonSociale, @cate"& _ 
+            "gorieDefaut, @sousCategorieDefaut, @dateCreation, @dateModification);")>  _
+        Public ReadOnly Property insertTiers() As String
+            Get
+                Return CType(Me("insertTiers"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("parametresAppli.json")>  _
+        Public ReadOnly Property parametresJson() As String
+            Get
+                Return CType(Me("parametresJson"),String)
             End Get
         End Property
     End Class

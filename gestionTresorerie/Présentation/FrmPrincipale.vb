@@ -3,12 +3,42 @@ Imports DocumentFormat.OpenXml.Packaging
 Imports DocumentFormat.OpenXml.Wordprocessing
 
 Public Class FrmPrincipale
-
     Inherits System.Windows.Forms.Form
+
+    ' Utiliser l'index des colonnes du datagridview
+    Private _icolEtat As Integer
+    Private _icolEtatMasque As Integer
+    Private _icolTiers As Integer
+    Private _icolCategorie As Integer
+    Private _icolSousCategorie As Integer
+    Private _icolDateMvt As Integer
+    Private _icolMontant As Integer
+    Private _icolSens As Integer
+    Private _icolEvenement As Integer
+    Private _icolNote As Integer
+    Private _icolType As Integer
+    Private _icolModifiable As Integer
+    Private _icolNumeroRemise As Integer
 
     Public Property Properties As Object
 
     Private Sub BtnHistogramme_Click(sender As Object, e As EventArgs) Handles btnHistogramme.Click
+        'Récupère le rang des colonnes du datagridview
+        With dgvPrincipale
+            _icolEtat = .Columns("colEtat").Index
+            '_icolEtatMasque = .Columns("colEtatMasque").Index
+            _icolTiers = .Columns("colTiers").Index
+            _icolCategorie = .Columns("colCategorie").Index
+            _icolSousCategorie = .Columns("colSousCategorie").Index
+            _icolDateMvt = .Columns("colDateMvt").Index
+            _icolMontant = .Columns("colMontant").Index
+            _icolSens = .Columns("colSens").Index
+            _icolEvenement = .Columns("colEvenement").Index
+            _icolNote = .Columns("colNote").Index
+            _icolType = .Columns("colType").Index
+            _icolModifiable = .Columns("colModifiable").Index
+            _icolNumeroRemise = .Columns("colNumeroRemise").Index
+        End With
         Call LectureBase()
     End Sub
     Private Sub FrmPrincipale_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -51,8 +81,7 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub AjouterColonneEtatImage()
-        ' Ajouter une colonne d'image pour l'état : appel de la procédure pour ajouter une colonne d'image
-        UtilControles.AjouterColonneImage(dgvPrincipale, "etatImage", "État", DataGridViewImageCellLayout.Zoom, 30)
+        ' Alimenter la colonne d'image pour l'état 
 
         ' Parcourir les lignes du DataGridView pour définir les images
         For Each row As DataGridViewRow In dgvPrincipale.Rows
@@ -178,12 +207,12 @@ Public Class FrmPrincipale
 
     Private Function GetCategories() As List(Of String)
         Dim categories As New List(Of String)
-        'Dim cmd As New SqlCommand("SELECT DISTINCT catégorie FROM Mouvements;", ConnexionDB.GetInstance.getConnexion)
-        'Using reader As SqlDataReader = cmd.ExecuteReader()
-        Dim reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqCategoriesMouvements").ExecuteReader()
-        While reader.Read()
-            categories.Add(reader.GetSqlInt32(0))
-        End While
+
+        Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqCategoriesMouvements").ExecuteReader()
+            While reader.Read()
+                categories.Add(reader.GetSqlString(0))
+            End While
+        End Using
         Return categories
     End Function
 
@@ -200,17 +229,18 @@ Public Class FrmPrincipale
 
     Private Function GetSubCategories(category As String) As List(Of (Legend As String, Value As Decimal))
         Dim subCategories As New List(Of (Legend As String, Value As Decimal))
-        'Dim cmd As New SqlCommand("SELECT sousCatégorie, SUM(montant) FROM Mouvements WHERE catégorie = @category GROUP BY sousCatégorie ORDER BY SUM(montant) DESC;", ConnexionDB.GetInstance.getConnexion)
-        'cmd.Parameters.AddWithValue("@category", category)
-        'Using reader As SqlDataReader = cmd.ExecuteReader()
-        Dim reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqSommeCatMouvements",
+
+        Using reader As SqlDataReader =
+            SqlCommandBuilder.
+            CreateSqlCommand("reqSommeCatMouvements",
                                            New Dictionary(Of String, Object) From {{"@category", category}
                                             }).
                                             ExecuteReader()
 
-        While reader.Read()
-            subCategories.Add((reader.GetSqlInt32(0), reader.GetDecimal(1)))
-        End While
+            While reader.Read()
+                subCategories.Add((reader.GetSqlString(0), reader.GetDecimal(1)))
+            End While
+        End Using
         Return subCategories
     End Function
 
@@ -271,42 +301,47 @@ Public Class FrmPrincipale
 
     Private Sub btnCreeBilans_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
         'creeOpenXml.Main()
-        MsgBox("fonction désactivée")
+        MsgBox("Fonction désactivée")
+        Logger.WARN("Fonction désactivée : ")
     End Sub
 
     Private Sub dgvPrincipale_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvPrincipale.CellContentClick
-        Dim dateMvt As Date
-        Dim montant As Double
-        Dim sens As Boolean, etat As Boolean
-        Dim note As String, categorie As String, sousCategorie As String
-        Dim tiers As String, rapproche As String, evenement As String, monType As String, remise As String
+        Try
+            ' Récupérer les valeurs de la ligne sélectionnée
+            Dim currentRow As DataGridViewRow = Me.dgvPrincipale.CurrentRow
+            If currentRow Is Nothing Then
+                Return
+            End If
 
-        With Me.dgvPrincipale.CurrentRow.Cells
-            note = .Item(1).Value
-            dateMvt = CDate(.Item(5).Value)
-            montant = .Item(6).Value
-            sens = .Item(7).Value
-            categorie = .Item(2).Value
-            sousCategorie = .Item(3).Value
-            tiers = .Item(4).Value
-            rapproche = .Item(8).Value
-            evenement = .Item(9).Value
-            monType = .Item(10).Value
-            remise = .Item(12).Value
-            etat = .Item(11).Value
-        End With
-        With FrmSaisie
-            .chargeListes()
-            .dateMvt.Value = dateMvt
-            .txtNote.Text = note
-            .rbDebit.Checked = sens
-            .txtMontant.Text = montant
-            .txtRemise.Text = remise
-            .rbRapproche.Text = rapproche
-            .Show()
-        End With
+            Dim note As String = currentRow.Cells(_icolNote).Value?.ToString()
+            Dim dateMvt As Date = Utilitaires.ConvertToDate(currentRow.Cells(_icolDateMvt).Value)
+            Dim montant As Double = Utilitaires.ConvertToDouble(currentRow.Cells(_icolMontant).Value)
+            Dim sens As Boolean = Utilitaires.ConvertToBoolean(currentRow.Cells(_icolSens).Value)
+            Dim rapproche As Boolean = Utilitaires.ConvertToBoolean(currentRow.Cells(_icolModifiable).Value)
+            Dim remise As String = currentRow.Cells(_icolNote).Value?.ToString()
+            'Dim categorie As String = currentRow.Cells(_icolCategorie).Value?.ToString()
+            'Dim sousCategorie As String = currentRow.Cells(_icolSousCategorie).Value?.ToString()
+            'Dim tiers As String = currentRow.Cells(_icolTiers).Value?.ToString()
+            'Dim evenement As String = currentRow.Cells(_icolEvenement).Value?.ToString()
+            'Dim monType As String = currentRow.Cells(_icolType).Value?.ToString()
+            'Dim etat As Boolean = ConvertToBoolean(currentRow.Cells(_icolEtat).Value)
+
+            ' Charger les valeurs dans le formulaire de saisie
+            With FrmSaisie
+                .chargeListes()
+                .dateMvt.Value = dateMvt
+                .txtNote.Text = note
+                .rbDebit.Checked = sens
+                .txtMontant.Text = montant.ToString()
+                .txtRemise.Text = remise
+                .rbRapproche.Checked = rapproche
+                .Show()
+            End With
+        Catch ex As Exception
+            MsgBox("Une erreur est survenue : " & ex.Message, MsgBoxStyle.Critical)
+            Logger.ERR("Une erreur est survenue : " & ex.Message)
+        End Try
     End Sub
-
     Private Sub btnBatch_Click(sender As Object, e As EventArgs) Handles btnBatch.Click
         Dim batch As New batchAnalyseChq
 
@@ -317,6 +352,7 @@ Public Class FrmPrincipale
         Call FrmChargeRelevé.AlimenteLstMvtCA(LectureProprietes.GetCheminEtVariable("ficRelevéTraité"))
         FrmChargeRelevé.Show()
     End Sub
+
 
     'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
     '    'Call CreeBilans()

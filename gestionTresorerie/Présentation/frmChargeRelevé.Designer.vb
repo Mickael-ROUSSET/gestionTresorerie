@@ -26,6 +26,7 @@ Partial Class FrmChargeRelevé
         Dim fldBrowserDialog As FolderBrowserDialog
         btnOuvreFichier = New Button()
         dgvRelevé = New DataGridView()
+        traiteImage = New DataGridViewImageColumn()
         dgVDate = New DataGridViewTextBoxColumn()
         dgVNOte = New DataGridViewTextBoxColumn()
         dgVDébit = New DataGridViewTextBoxColumn()
@@ -51,12 +52,21 @@ Partial Class FrmChargeRelevé
         ' dgvRelevé
         ' 
         dgvRelevé.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvRelevé.Columns.AddRange(New DataGridViewColumn() {dgVDate, dgVNOte, dgVDébit, dgVCrédit})
-        dgvRelevé.Location = New Point(12, 33)
+        dgvRelevé.Columns.AddRange(New DataGridViewColumn() {traiteImage, dgVDate, dgVNOte, dgVDébit, dgVCrédit})
+        dgvRelevé.Location = New Point(22, 50)
         dgvRelevé.Name = "dgvRelevé"
         dgvRelevé.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvRelevé.Size = New Size(976, 364)
+        dgvRelevé.Size = New Size(765, 347)
         dgvRelevé.TabIndex = 3
+        ' 
+        ' traiteImage
+        ' 
+        traiteImage.Description = "Indique si un mouvement a déjàété traité"
+        traiteImage.HeaderText = "Traité"
+        traiteImage.ImageLayout = DataGridViewImageCellLayout.Zoom
+        traiteImage.Name = "traiteImage"
+        traiteImage.SortMode = DataGridViewColumnSortMode.Automatic
+        traiteImage.Width = 30
         ' 
         ' dgVDate
         ' 
@@ -70,7 +80,7 @@ Partial Class FrmChargeRelevé
         dgVNOte.HeaderText = "Note"
         dgVNOte.MinimumWidth = 50
         dgVNOte.Name = "dgVNOte"
-        dgVNOte.Width = 500
+        dgVNOte.Width = 450
         ' 
         ' dgVDébit
         ' 
@@ -99,7 +109,7 @@ Partial Class FrmChargeRelevé
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(1000, 506)
+        ClientSize = New Size(835, 506)
         Controls.Add(btnOuvreSaisie)
         Controls.Add(dgvRelevé)
         Controls.Add(btnOuvreFichier)
@@ -114,9 +124,10 @@ Partial Class FrmChargeRelevé
     Friend WithEvents BindingSource1 As BindingSource
     Friend WithEvents BindingSource2 As BindingSource
     Friend WithEvents btnOuvreSaisie As Button
+    Public WithEvents dgvRelevé As DataGridView
+    Friend WithEvents traiteImage As DataGridViewImageColumn
     Friend WithEvents dgVDate As DataGridViewTextBoxColumn
     Friend WithEvents dgVNOte As DataGridViewTextBoxColumn
     Friend WithEvents dgVDébit As DataGridViewTextBoxColumn
     Friend WithEvents dgVCrédit As DataGridViewTextBoxColumn
-    Public WithEvents dgvRelevé As DataGridView
 End Class

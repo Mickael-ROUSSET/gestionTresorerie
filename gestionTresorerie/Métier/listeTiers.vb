@@ -12,7 +12,6 @@ Public Class ListeTiers
     Public Sub extraitListeTiers()
         Try
             ' Requête pour récupérer les tiers avec nom et prénom
-            'Dim lstTiersPhysique As New SqlCommand("SELECT id, nom, prenom FROM Tiers WHERE nom IS NOT NULL;", maConn)
             Dim lstTiersPhysique = SqlCommandBuilder.CreateSqlCommand("selTiersPhysique")
             Using monReaderTiers As SqlDataReader = lstTiersPhysique.ExecuteReader()
                 While monReaderTiers.Read()
@@ -21,7 +20,6 @@ Public Class ListeTiers
             End Using
 
             ' Requête pour récupérer les tiers avec raison sociale
-            'Dim lstTiersMorale As New SqlCommand("SELECT id, raisonSociale FROM Tiers WHERE raisonSociale IS NOT NULL;", maConn)
             Dim lstTiersMorale = SqlCommandBuilder.CreateSqlCommand("selTiersMorale")
             Using monReaderTiers As SqlDataReader = lstTiersMorale.ExecuteReader()
                 While monReaderTiers.Read()
