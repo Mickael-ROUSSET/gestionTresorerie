@@ -10,7 +10,7 @@ Public Class Compte
         Me.motDePasse = HashPasswordWithSalt(motDePasse)
         Me.TypeAcces = typeAcces
     End Sub
-    Private Shared Function HashPasswordWithSalt(password As String, Optional sel As String = Constantes.vide) As String
+    Private Shared Function HashPasswordWithSalt(password As String, Optional sel As String = "") As String
         ' Vérifier si le mot de passe ou le sel est nul ou vide
         If String.IsNullOrEmpty(password) OrElse String.IsNullOrEmpty(sel) Then
             Throw New ArgumentException("Le mot de passe et le sel ne peuvent pas être nuls ou vides.")
@@ -18,7 +18,7 @@ Public Class Compte
 
         ' Combiner le mot de passe et le sel
         ' TODO : pour simplifier, sel unique et en paramètre de l'appli
-        If sel = Constantes.vide Then
+        If sel = String.Empty Then
             sel = LectureProprietes.GetVariable("selAleatoire")
         End If
         Dim passwordWithSalt As String = password & sel
@@ -40,7 +40,7 @@ Public Class Compte
     End Function
     Public Sub AjouterCompte()
         SqlCommandBuilder.
-            CreateSqlCommand("insertCompte",
+            CreateSqlCommand(Constantes.sqlInsertCompte,
                              New Dictionary(Of String, Object) From {{"@login", Me.Login},
                                                                      {"@motDePasse", Me.motDePasse},
                                                                      {"@typeAcces", Me.TypeAcces}}
@@ -49,7 +49,7 @@ Public Class Compte
     End Sub
     Public Sub ReinitialiserMotDePasse(nouveauMotDePasse As String)
         SqlCommandBuilder.
-            CreateSqlCommand("updCompte",
+            CreateSqlCommand(Constantes.sqlUpdCompte,
                              New Dictionary(Of String, Object) From {{"@login", Me.Login},
                                                                      {"@motDePasse", nouveauMotDePasse}}
                              ).
@@ -57,7 +57,7 @@ Public Class Compte
     End Sub
     Public Sub SupprimerCompte()
         SqlCommandBuilder.
-            CreateSqlCommand("delCompte",
+            CreateSqlCommand(Constantes.sqlDelCompte,
                              New Dictionary(Of String, Object) From {{"@login", Me.Login}}
                              ).
                              ExecuteNonQuery()

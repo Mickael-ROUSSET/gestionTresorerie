@@ -1,0 +1,319 @@
+﻿Imports System.Data.SqlClient
+Imports System.Text.RegularExpressions
+Public Class Mouvements
+    Private _note As String
+    Private _categorie As Integer
+    Private _sousCategorie As Integer
+    Private _tiers As Integer
+    Private _dateCréation As Date
+    Private _montant As Decimal
+    Private _sens As String
+    Private _etat As String
+    Private _événement As String
+    Private _type As String
+    Private _numeroRemise As String
+
+    Public Sub New(ByVal note As String, ByVal categorie As Integer, ByVal sousCategorie As Integer, ByVal tiers As Integer, ByVal dateMvt As Date, ByVal montant As String, ByVal sens As String, ByVal etat As String, ByVal événement As String, ByVal type As String, ByVal modifiable As Boolean, ByVal numeroRemise As String, ByVal idCheque As Integer)
+        ' Set the property value.
+        With Me
+            If VerifParam(note, categorie, sousCategorie, tiers, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise, idCheque) Then
+                .Note = note
+                .Categorie = categorie
+                .SousCategorie = sousCategorie
+                .Tiers = tiers
+                .DateMvt = dateMvt
+                .DateCréation = Date.Now
+                .Montant = montant
+                .Sens = sens
+                .Etat = etat
+                .Événement = événement
+                .Type = type
+                .Modifiable = modifiable
+                .NumeroRemise = numeroRemise
+                .idCheque = idCheque
+            End If
+        End With
+    End Sub
+    Public Sub New()
+        If Not IsDate(DateMvt) AndAlso Sens = Constantes.vide AndAlso Montant = Constantes.vide Then
+            Err.Raise("Erreur dans la création du mouvement : " & ObtenirValeursConcatenees())
+        End If
+    End Sub
+    Public Shared Function Existe(mouvement As Mouvements) As Boolean
+        ' Vérifie si le mouvement existe déjà
+        Dim bExiste As Boolean = False
+
+        Try
+            Using reader As SqlDataReader =
+                SqlCommandBuilder.CreateSqlCommand("reqNbMouvements",
+                                           New Dictionary(Of String, Object) From {{"@dateMvt", mouvement.DateMvt.ToString("yyyy-MM-dd")},
+                                           {"@montant", CDec(mouvement.Montant)},
+                                           {"@sens", mouvement.Sens}
+                                            }).ExecuteReader()
+                If reader.Read() Then
+                    bExiste = (reader.GetInt32(0) > 0)
+                End If
+            End Using
+
+            ' Écrire un log d'information
+            Logger.INFO($"Vérification de l'existence du mouvement réussie. Date: {mouvement.DateMvt}, Montant: {mouvement.Montant}, Sens:  {mouvement.Sens}")
+
+        Catch ex As Exception
+            ' Écrire un log d'erreur
+            Logger.ERR($"Erreur lors de la vérification de l'existence du mouvement. Message: {ex.Message} " & mouvement.ObtenirValeursConcatenees)
+            Throw ' Re-lancer l'exception après l'avoir loggée
+        End Try
+
+        Return bExiste
+    End Function
+    ' Surcharge de la méthode Existe pour vérifier l'existence d'un mouvement avec les paramètres date, montant et sens 
+    Public Shared Function Existe(dateMvt As Date, montant As Decimal, sens As Boolean) As Boolean
+        ' Créer un objet Mouvements temporaire
+        Dim mouvement As New Mouvements()
+        mouvement.DateMvt = dateMvt
+        mouvement.Montant = montant
+        mouvement.Sens = sens
+
+        ' Appeler la méthode originale Existe avec l'objet Mouvements temporaire
+        Return Existe(mouvement)
+    End Function
+    Public Shared Function ChargerMouvementsSimilaires(mouvement As Mouvements) As DataTable
+        Dim dataTable As New DataTable()
+
+        Try
+            ' Définir la commande SQL pour appeler la procédure stockée
+            'Using cmd As New SqlCommand(LectureProprietes.GetVariable("procMvtsIdentiques"), ConnexionDB.GetInstance.getConnexion)
+            '    'cmd.CommandType = CommandType.StoredProcedure 
+            Dim cmd As SqlCommand = SqlCommandBuilder.CreateSqlCommand("procMvtsIdentiques",
+                                           New Dictionary(Of String, Object) From {{"@dateMvt", mouvement.DateMvt},
+                                           {"@montant", CDec(mouvement.Montant)},
+                                           {"@sens", mouvement.Sens}
+                                            })
+            ' Créer un DataAdapter pour remplir le DataTable
+            Using adapter As New SqlDataAdapter(cmd)
+                ' Remplir le DataTable avec les données de la base de données
+                adapter.Fill(dataTable)
+            End Using
+            'End Using
+
+            ' Écrire un log d'information
+            Logger.INFO("Chargement des mouvements similaires réussi.")
+        Catch ex As SqlException
+            ' Écrire un log d'erreur en cas d'exception SQL
+            Logger.ERR($"Erreur SQL lors du chargement des mouvements similaires : {ex.Message}")
+        Catch ex As Exception
+            ' Écrire un log d'erreur en cas d'exception générale
+            Logger.ERR($"Erreur lors du chargement des mouvements similaires : {ex.Message}")
+        End Try
+
+        Return dataTable
+    End Function
+    Public Shared Function MettreAJourMouvement(Id As Integer, categorie As Integer, sousCategorie As Integer, montant As Decimal, sens As Boolean, tiers As Integer, note As String, dateMvt As Date, etat As Boolean, evenement As String, type As String, modifiable As Boolean, numeroRemise As Integer?, Optional idCheque As Integer? = Nothing) As Integer
+        Try
+            Return SqlCommandBuilder.
+            CreateSqlCommand("updMvt",
+                             New Dictionary(Of String, Object) From {{"@Id", Id},
+                                                                     {"@Categorie", categorie},
+                                                                     {"@SousCategorie", sousCategorie},
+                                                                     {"@Montant", montant},
+                                                                     {"@Sens", sens},
+                                                                     {"@Tiers", tiers},
+                                                                     {"@Note", If(note Is Nothing, DBNull.Value, note)},
+                                                                     {"@DateMvt", dateMvt},
+                                                                     {"@Etat", etat},
+                                                                     {"@Evenement", If(evenement Is Nothing, DBNull.Value, evenement)},
+                                                                     {"@Type", If(type Is Nothing, DBNull.Value, type)},
+                                                                     {"@Modifiable", modifiable},
+                                                                     {"@NumeroRemise", If(numeroRemise.HasValue, numeroRemise.Value, DBNull.Value)},
+                                                                     {"@IdCheque", If(idCheque.HasValue, idCheque.Value, DBNull.Value)}}
+                             ).
+                             ExecuteNonQuery()
+
+            ' Trace indiquant les valeurs mises à jour
+            Logger.INFO($"Valeurs mises à jour - Catégorie: {categorie}, Sous-Catégorie: {sousCategorie}, Montant: {montant}, Sens: {sens}, Tiers: {tiers}, Note: {note}, DateMvt: {dateMvt}, Etat: {etat}, Evénement: {evenement}, Type: {type}, Modifiable: {modifiable}, Numéro Remise: {numeroRemise}, IdChèque: {idCheque}")
+
+        Catch ex As Exception
+            ' Trace en cas d'erreur
+            Logger.ERR($"Erreur lors de la mise à jour du mouvement : {ex.Message}")
+            ' Retourner -1 en cas d'erreur
+            Return -1
+        End Try
+    End Function
+    Public Shared Sub SupprimerMouvement(id As Integer)
+        Dim sqlConnexion As SqlConnection = Nothing
+        Dim rowsAffected As Integer = 0
+
+        Try
+            'Using command As New SqlCommand(lectureProprietes.GetVariable("delMvt"), connexionDB.GetInstance.getConnexion) 
+            Dim command = SqlCommandBuilder.CreateSqlCommand("delMvt")
+            ' Ajouter le paramètre Id à la requête
+            command.Parameters.AddWithValue("@Id", id)
+
+            ' Exécuter la requête et obtenir le nombre de lignes affectées
+            rowsAffected = command.ExecuteNonQuery()
+            'End Using
+
+            ' Trace indiquant le nombre de lignes supprimées
+            Logger.INFO($"Nombre de lignes supprimées : {rowsAffected}")
+
+            ' Trace indiquant l'Id supprimé
+            Logger.INFO($"Enregistrement supprimé - Id: {id}")
+
+        Catch ex As Exception
+            ' Trace en cas d'erreur
+            Logger.ERR($"Erreur lors de la suppression du mouvement : {ex.Message}")
+        Finally
+            ' Fermer la connexion si elle est ouverte
+            If sqlConnexion IsNot Nothing AndAlso sqlConnexion.State = ConnectionState.Open Then
+                sqlConnexion.Close()
+            End If
+        End Try
+    End Sub
+    Public Shared Function VerifParam(note As String, categorie As String, sousCategorie As String, tiers As Integer, dateMvt As Date, montant As String, sens As String, etat As String, événement As String, type As String, modifiable As Boolean, numeroRemise As String, ByVal idCheque As Integer) As Boolean
+        Dim bToutEstLa As Boolean = False
+
+        'L'idCheque est facultatif
+        If categorie <> "" AndAlso
+            sousCategorie <> "" AndAlso
+            tiers <> 0 AndAlso
+            IsDate(dateMvt) AndAlso
+            sens <> "" AndAlso
+            etat <> "" AndAlso
+            type <> "" AndAlso
+            montant <> "" Then
+            bToutEstLa = True
+        End If
+        Return bToutEstLa
+    End Function
+    Public Property DateCréation() As Date
+        'https://learn.microsoft.com/fr-fr/dotnet/standard/base-types/regular-expressions
+        Get
+            Return _dateCréation
+        End Get
+        Private Set(ByVal value As Date)
+            _dateCréation = value
+        End Set
+    End Property
+    Public Property Note() As String
+        'https://learn.microsoft.com/fr-fr/dotnet/standard/base-types/regular-expressions
+        Get
+            Return IIf(_note > "", _note, "Null")
+        End Get
+        Set(ByVal value As String)
+            '_note = Trim(value)
+            'Dim pattern As String = "(Mr\\.? |Mrs\\.? |Miss |Ms\\.? )"
+            'Dim names() As String = {"Mr. Henry Hunt", "Ms. Sara Samuels", "Abraham Adams", "Ms. Nicole Norris"}
+            'Suppression des doubles quotes
+            _note = Regex.Replace(value, "(.*)""(.*)", String.Empty)
+        End Set
+    End Property
+    Public ReadOnly Property Id() As Integer
+    Public Property Categorie() As String
+        Get
+            Return _categorie
+        End Get
+        Set(ByVal value As String)
+            _categorie = Trim(value)
+        End Set
+    End Property
+    Public Property SousCategorie() As String
+        Get
+            Return _sousCategorie
+        End Get
+        Set(ByVal value As String)
+            _sousCategorie = Trim(value)
+        End Set
+    End Property
+    Public Property Tiers() As Integer
+        Get
+            Return Split(_tiers, vbTab)(0)
+        End Get
+        Set(ByVal value As Integer)
+            _tiers = value
+        End Set
+    End Property
+    Public Property DateMvt() As Date
+    Public Property Montant() As String
+        Get
+            Return CDec(_montant)
+        End Get
+        Set(ByVal value As String)
+            If Decimal.TryParse(value, vbNull) Then
+                _montant = value
+            Else
+                _montant = "0"
+            End If
+        End Set
+    End Property
+    Public Property Sens() As String
+        Get
+            Return _sens
+        End Get
+        Set(ByVal value As String)
+            _sens = Trim(value)
+        End Set
+    End Property
+    Public Property Etat() As String
+        Get
+            Return _etat
+        End Get
+        Set(ByVal value As String)
+            _etat = value
+        End Set
+    End Property
+    Public Property Événement() As String
+        Get
+            Return _événement
+        End Get
+        Set(ByVal value As String)
+            _événement = Trim(value)
+        End Set
+    End Property
+    Public Property Type() As String
+        Get
+            Return _type
+        End Get
+        Set(ByVal value As String)
+            _type = Trim(value)
+        End Set
+    End Property
+    Public Property Modifiable() As Boolean
+    Public Property idCheque() As Integer
+    Public Property NumeroRemise() As String
+        Get
+            Return CInt(_numeroRemise)
+        End Get
+        Set(ByVal value As String)
+            Dim s As String
+            s = Trim(Strings.Replace(value, """", ""))
+            If Integer.TryParse(Trim(Strings.Replace(value, """", "")), vbNull) Then
+                _numeroRemise = Trim(Strings.Replace(value, """", ""))
+            Else
+                _numeroRemise = "0"
+            End If
+        End Set
+    End Property
+    Public Function ObtenirValeursConcatenees() As String
+        ' Initialiser une chaîne vide pour stocker le résultat
+        Dim resultat As String = ""
+
+        ' Concaténer le nom de chaque variable avec sa valeur
+        resultat &= "Note: " & _note & ", "
+        resultat &= "Catégorie: " & _categorie & ", "
+        resultat &= "Sous-Catégorie: " & _sousCategorie & ", "
+        resultat &= "Tiers: " & _tiers.ToString() & ", "
+        resultat &= "Date de Création: " & _dateCréation.ToString("yyyy-MM-dd") & ", "
+        resultat &= "Date de Mouvement: " & DateMvt.ToString("yyyy-MM-dd") & ", "
+        resultat &= "Montant: " & _montant.ToString() & ", "
+        resultat &= "Sens: " & _sens & ", "
+        resultat &= "État: " & _etat & ", "
+        resultat &= "Événement: " & _événement & ", "
+        resultat &= "Type: " & _type & ", "
+        resultat &= "Modifiable: " & Modifiable.ToString() & ", "
+        resultat &= "Numéro de Remise: " & _numeroRemise & ", "
+        resultat &= "ID Chèque: " & idCheque.ToString() & vbCrLf
+
+        ' Retourner la chaîne concaténée
+        Return resultat
+    End Function
+End Class

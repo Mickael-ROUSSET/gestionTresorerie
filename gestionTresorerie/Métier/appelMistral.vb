@@ -2,6 +2,7 @@
 Imports System.IO
 Imports System.Net.Http
 Imports System.Text
+Imports Newtonsoft.Json.Linq
 
 Public Class AppelMistral
 
@@ -9,10 +10,10 @@ Public Class AppelMistral
     'Dim apiUrl As String = "https://api.mistral.ai/v1/chat/completions"
 
     ' URL de l'API Mistral pour l'extraction de texte
-    ReadOnly apiUrlImage As String = "https://api.mistral.ai/extract-text"
+    'ReadOnly apiUrlImage As String = "https://api.mistral.ai/extract-text"
 
     'Prompt système
-    'TODO : à mettre dans un fichier paramètre yaml
+    'TODO : à mettre dans un fichier paramètre
     ReadOnly promptSysteme As String =
 "Tu es une IA spécialisée dans l'analyse de documents. 
 Ta tâche est d’extraire du chèque en PJ le texte des éléments 
@@ -28,15 +29,15 @@ le destinataire à droite de la mention ""à ""
     ReadOnly promptAnalyse As String = "Analyse l'image du chèque pour en extraire le texte"
 
     Public Shared Function litImage(chequeImagePath As String) As Cheque
-        ' Clé API Mistral
-        Dim valCle = New cléApiMistral
-        Dim apiKey As String = valCle.getCle
+        '' Clé API Mistral
+        'Dim valCle = New cléApiMistral
+        'Dim apiKey As String = valCle.getCle
         'Dim apiUrl As String = "https://api.mistral.ai/v1/chat/completions"
         Dim apiUrl As String = LectureProprietes.GetVariable("urlMistral")
 
 
         ' Appeler la fonction pour extraire le texte
-        Dim extractedText As String = ExtractTextFromImage(apiUrl, chequeImagePath, apiKey)
+        Dim extractedText As String = ExtractTextFromImage(apiUrl, chequeImagePath, LectureProprietes.GetVariable("cleApiMistral"))
 
         ' Afficher le texte extrait 
         Dim jsonChq As New Cheque(extractedText)
@@ -102,43 +103,44 @@ le destinataire à droite de la mention ""à ""
         End Using
     End Function
 
-    Shared Function trouveTiers(apiUrl As String, questionIA As String, apiKey As String) As String
-
+    Public Shared Function questionMistral(apiUrl As String, questionIA As String, apiKey As String) As String
         Using client As New HttpClient()
-
-            ' Lire l'image en tant que tableau d'octets 
-            Dim jsonData As String = $"{{""model"": ""pixtral-12b-2409"", ""messages"": [{{""role"": ""user"",""content"": {{""type"": ""text"",""Content""{questionIA}""kk""}}]}}"
+            ' Créer le contenu JSON de la requête
+            Dim jsonData As String = $"{{""model"": ""pixtral-12b-2409"", ""messages"": [{{""role"": ""user"",""content"": ""{questionIA}""}}]}}"
 
             ' Créer le contenu de la requête
-            Dim content As New StringContent(
-                jsonData,
-                Encoding.UTF8,
-                "application/json"
-            )
-            ' Créer un contenu multipart/form-data pour l'image
-            Using content
-                ' Ajouter l'en-tête d'autorisation
-                client.DefaultRequestHeaders.Authorization = New System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey)
+            Dim content As New StringContent(jsonData, Encoding.UTF8, "application/json")
 
-                Try
-                    ' Envoyer la requête POST
-                    Dim response As HttpResponseMessage = client.PostAsync(apiUrl, content).Result
-                    response.EnsureSuccessStatusCode()
+            ' Ajouter l'en-tête d'autorisation
+            client.DefaultRequestHeaders.Authorization = New System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey)
 
-                    ' Lire la réponse
-                    Dim responseBody As String = response.Content.ReadAsStringAsync().Result
-                    Logger.INFO(responseBody)
+            Try
+                ' Envoyer la requête POST de manière synchrone
+                Dim response As HttpResponseMessage = client.PostAsync(apiUrl, content).Result
+                response.EnsureSuccessStatusCode()
 
-                    ' Supposons que la réponse soit un JSON contenant le texte extrait
-                    ' Vous pouvez utiliser JsonConvert pour désérialiser si nécessaire
-                    Return responseBody
+                ' Lire la réponse de manière synchrone
+                Dim responseBody As String = response.Content.ReadAsStringAsync().Result
+                Logger.INFO(responseBody)
 
-                Catch ex As HttpRequestException
-                    MsgBox($"Erreur de requête : {ex.Message}")
-                    Logger.ERR("ex.Message")
-                    Return String.Empty
-                End Try
-            End Using
+                ' Désérialiser la réponse JSON
+                Dim jsonResponse As JObject = JObject.Parse(responseBody)
+
+                ' Extraire le contenu de la balise "content"
+                Dim contentValue As String = jsonResponse("choices")(0)("message")("content").ToString()
+
+                ' Retourner le contenu extrait
+                Return contentValue
+
+            Catch ex As HttpRequestException
+                MsgBox($"Erreur de requête : {ex.Message}")
+                Logger.ERR($"Erreur de requête : {ex.Message}")
+                Return String.Empty
+            Catch ex As Exception
+                MsgBox($"Erreur inattendue : {ex.Message}")
+                Logger.ERR($"Erreur inattendue : {ex.Message}")
+                Return String.Empty
+            End Try
         End Using
     End Function
 End Class

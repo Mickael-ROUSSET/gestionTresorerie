@@ -4,7 +4,8 @@ Imports System.Data.SqlClient
 
 Public Class CreePresentation
     Public Shared Sub LectureBase()
-        Dim document As WordprocessingDocument = OpenDocument()
+        Dim sFicBilan As String = LectureProprietes.GetCheminEtVariable("ficBilan")
+        Dim document As WordprocessingDocument = OpenDocument(sFicBilan)
         Dim categories As List(Of Integer) = GetCategories()
 
         For Each category As String In categories
@@ -12,11 +13,13 @@ Public Class CreePresentation
         Next
         document.Save()
         document.Dispose()
+        MsgBox($"Génération du fichier bilan : {sFicBilan} terminée")
+        Logger.INFO($"Génération du fichier bilan : {sFicBilan} terminée")
     End Sub
 
-    Private Shared Function OpenDocument() As WordprocessingDocument
-        CreeOpenXml.creeDoc(LectureProprietes.GetCheminEtVariable("ficBilan"))
-        Dim document As WordprocessingDocument = WordprocessingDocument.Open(LectureProprietes.GetCheminEtVariable("ficBilan"), True)
+    Private Shared Function OpenDocument(sFicBilan As String) As WordprocessingDocument
+        CreeOpenXml.creeDoc(sFicBilan)
+        Dim document As WordprocessingDocument = WordprocessingDocument.Open(sFicBilan, True)
         Dim styleDefinitionsPart As StyleDefinitionsPart = CreeOpenXml.AddStylesPartToPackage(document)
         CreeOpenXml.CreateAndAddParagraphStyle(styleDefinitionsPart, "monStyle", "monStyle")
         Return document
@@ -33,21 +36,31 @@ Public Class CreePresentation
         Return categories
     End Function
 
-    Private Shared Sub ProcessCategory(document As WordprocessingDocument, category As String)
+    Private Shared Async Sub ProcessCategory(document As WordprocessingDocument, category As String)
         Dim subCategories As List(Of (Legend As String, Value As Decimal)) = GetSubCategories(category)
-
-        ' Ajouter un saut de page
-        Dim pageBreak As New Break() With {.Type = BreakValues.Page}
-        document.MainDocumentPart.Document.Body.AppendChild(pageBreak)
 
         'Récupérer le libellé de la catégorie
         Dim para As Paragraph = CreeOpenXml.ajouteParagraphe(document, Categorie.libelleParId(category))
-        ApplyStyleToParagraph(document, "monStyle", "monStyle", para)
+        'ApplyStyleToParagraph(document, "monStyle", "monStyle", para)
+        ApplyStyleToParagraph(document, "Titre1", "Titre1", para)
 
         If subCategories.Count <> 0 Then
             CreateChartAndAddToDocument(document, category, subCategories)
             CreateTableAndAddToDocument(document, subCategories)
         End If
+
+        Dim sQuestionIA As String = $"Peux-tu me donner un résumé de la catégorie {category} ?"
+
+        ' Appeler la méthode asynchrone et attendre le résultat
+        Dim sAnalyse As String = AppelMistral.questionMistral(LectureProprietes.GetVariable("urlMistral"), sQuestionIA, LectureProprietes.GetVariable("cleApiMistral"))
+        'Dim sAnalyse = Await sAnalyseT
+        para = CreeOpenXml.ajouteParagraphe(document, sAnalyse)
+        ApplyStyleToParagraph(document, "monStyle", "monStyle", para)
+
+        ' Ajouter un saut de page
+        Dim pageBreak As New Break() With {.Type = BreakValues.Page}
+        document.MainDocumentPart.Document.Body.AppendChild(pageBreak)
+        'para = CreeOpenXml.ajouteParagraphe(document, Categorie.libelleParId(category))
     End Sub
 
     Private Shared Function GetSubCategories(category As String) As List(Of (Legend As String, Value As Decimal))
@@ -84,6 +97,7 @@ Public Class CreePresentation
 
         Dim imagePath As String = $"{LectureProprietes.GetCheminEtVariable("repFichierBilan")}frmHistogramme{category}.png"
         SaveFormAsImage(FrmHistogramme, imagePath)
+
         CreeOpenXml.ajouteImage(document, imagePath)
     End Sub
 

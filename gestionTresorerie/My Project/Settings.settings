@@ -223,5 +223,8 @@
     <Setting Name="reqSommeCatMouvements" Type="System.String" Scope="Application">
       <Value Profile="(Default)">with sel as (SELECT distinct sousCatégorie as sousCat, SUM(montant) as mnt FROM Mouvements Mvt WHERE Mvt.catégorie = @categorie group by sousCatégorie) select sC.libelle, mnt from sel, sousCategorie sC where sC.id = sousCat;</Value>
     </Setting>
+    <Setting Name="cleApiMistral" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">uswXFN4VPYfYmrTmNbLY16D3fxFunwjm</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

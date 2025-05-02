@@ -17,22 +17,35 @@ Imports TopBorder = DocumentFormat.OpenXml.Wordprocessing.TopBorder
 Module CreeOpenXml
     'https://learn.microsoft.com/fr-fr/office/open-xml/word/overview
 
-
     Public Sub creeDoc(ByVal filepath As String)
         'https://learn.microsoft.com/fr-fr/office/open-xml/word/how-to-create-a-word-processing-document-by-providing-a-file-name?tabs=vb-0%2Ccs-1%2Ccs-2%2Cvb
         ' Create a document by supplying the filepath.
-        Using wordDocument As WordprocessingDocument = WordprocessingDocument.Create(filepath, WordprocessingDocumentType.Document)
+        Try
+            Using wordDocument As WordprocessingDocument = WordprocessingDocument.Create(filepath, WordprocessingDocumentType.Document)
+                ' Add a main document part.
+                Dim mainPart As MainDocumentPart = wordDocument.AddMainDocumentPart()
 
-            ' Add a main document part. 
-            Dim mainPart As MainDocumentPart = wordDocument.AddMainDocumentPart()
-
-            ' Create the document structure and add some text.
-            mainPart.Document = New Document()
-            Dim body As Body = mainPart.Document.AppendChild(New Body())
-            Dim para As Paragraph = body.AppendChild(New Paragraph())
-            Dim run As Run = para.AppendChild(New Run())
-            run.AppendChild(New Text("Create text in body - CreateWordprocessingDocument"))
-        End Using
+                ' Create the document structure and add some text.
+                mainPart.Document = New Document()
+                Dim body As Body = mainPart.Document.AppendChild(New Body())
+                Dim para As Paragraph = body.AppendChild(New Paragraph())
+                Dim run As Run = para.AppendChild(New Run())
+                ' run.AppendChild(New Text("Create text in body - CreateWordprocessingDocument"))
+            End Using
+            Logger.ERR($"Document {filepath} créé avec succès.")
+        Catch ex As IOException When ex.Message.Contains("is being used by another process")
+            MsgBox($"Erreur : Le fichier '{filepath}' est déjà utilisé par un autre processus.")
+            Logger.ERR($"Erreur : Le fichier '{filepath}' est déjà utilisé par un autre processus.")
+            End
+        Catch ex As UnauthorizedAccessException
+            MsgBox($"Erreur : Accès non autorisé au fichier '{filepath}'.")
+            Logger.ERR($"Erreur : Accès non autorisé au fichier '{filepath}'.")
+            End
+        Catch ex As Exception
+            MsgBox($"Erreur inattendue : {ex.Message}")
+            Logger.ERR($"Erreur inattendue : {ex.Message}")
+            End
+        End Try
     End Sub
     ' Take the data from a two-dimensional array and build a table at the 
     ' end of the supplied document.

@@ -35,7 +35,7 @@ Public Class Mouvements
         End With
     End Sub
     Public Sub New()
-        If Not IsDate(DateMvt) AndAlso Sens = Constantes.vide AndAlso Montant = Constantes.vide Then
+        If Not IsDate(DateMvt) AndAlso Sens = String.Empty AndAlso Montant = String.Empty Then
             Err.Raise("Erreur dans la création du mouvement : " & ObtenirValeursConcatenees())
         End If
     End Sub

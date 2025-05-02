@@ -721,6 +721,15 @@ Namespace My
                 Return CType(Me("reqSommeCatMouvements"),String)
             End Get
         End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("uswXFN4VPYfYmrTmNbLY16D3fxFunwjm")>  _
+        Public ReadOnly Property cleApiMistral() As String
+            Get
+                Return CType(Me("cleApiMistral"),String)
+            End Get
+        End Property
     End Class
 End Namespace
 

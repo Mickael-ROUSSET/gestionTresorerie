@@ -123,9 +123,9 @@ Public Class frmNouveauTiers
         ChargeDgvSousCategorie()
     End Sub
     Private Sub initChamps()
-        txtNom.Text = Constantes.vide
-        txtPrenom.Text = Constantes.vide
-        txtRaisonSociale.Text = Constantes.vide
+        txtNom.Text = String.Empty
+        txtPrenom.Text = String.Empty
+        txtRaisonSociale.Text = String.Empty
         dgvNTCategorie.ClearSelection()
         dgvNTSousCategorie.ClearSelection()
     End Sub

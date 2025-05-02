@@ -24,7 +24,7 @@ Public Class FrmSaisie
         End Try
     End Sub
     Private Sub initZonesSaisies()
-        txtRechercheTiers.Text = Constantes.vide
+        txtRechercheTiers.Text = String.Empty
         dgvCategorie.ClearSelection()
         dgvSousCategorie.ClearSelection()
         dgvTiers.ClearSelection()
@@ -284,7 +284,7 @@ Public Class FrmSaisie
                      _dtMvtsIdentiques.Rows(index).ItemArray(0),
                      dgvCategorie.Rows(dgvCategorie.SelectedRows(0).Index).Cells(0).Value,
                      dgvSousCategorie.Rows(dgvSousCategorie.SelectedRows(0).Index).Cells(0).Value,
-                     txtMontant.Text.Trim().Replace(Constantes.espace, Constantes.vide),
+                     txtMontant.Text.Trim().Replace(Constantes.espace, String.Empty),
                      rbCredit.Checked,
                      Convert.ToInt32(dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(0).Value),
                      txtNote.Text,
@@ -321,7 +321,7 @@ Public Class FrmSaisie
             dgvSousCategorie.Rows(dgvSousCategorie.SelectedRows(0).Index).Cells(0).Value.ToString(),
             Convert.ToInt32(dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(0).Value),
             dateMvt.Value,
-            txtMontant.Text.Trim().Replace(Constantes.espace, Constantes.vide),
+            txtMontant.Text.Trim().Replace(Constantes.espace, String.Empty),
             rbCredit.Checked,
             rbRapproche.Checked,
             cbEvénement.SelectedItem,
