@@ -7,12 +7,17 @@
     <UseWindowsForms>true</UseWindowsForms>
     <MyType>WindowsForms</MyType>
     <UserSecretsId>ca81a7c8-e052-47b0-a5df-53e623534894</UserSecretsId>
+    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Resources\old\**" />
     <EmbeddedResource Remove="Resources\old\**" />
     <None Remove="Resources\old\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Utilitaires\GestionFichierIni.vb" />
   </ItemGroup>
 
   <ItemGroup>

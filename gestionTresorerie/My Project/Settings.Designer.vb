@@ -730,6 +730,51 @@ Namespace My
                 Return CType(Me("cleApiMistral"),String)
             End Get
         End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("pixtral-12b-2409")>  _
+        Public ReadOnly Property modeleMistral() As String
+            Get
+                Return CType(Me("modeleMistral"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("select id, libelle from Type;")>  _
+        Public ReadOnly Property reqTypes() As String
+            Get
+                Return CType(Me("reqTypes"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("select id, libelle from Evenement;")>  _
+        Public ReadOnly Property reqEvenement() As String
+            Get
+                Return CType(Me("reqEvenement"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("INFO")>  _
+        Public ReadOnly Property niveauLog() As String
+            Get
+                Return CType(Me("niveauLog"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, libelle FROM SousCategorie;")>  _
+        Public ReadOnly Property sqlSelSousCategoriesTout() As String
+            Get
+                Return CType(Me("sqlSelSousCategoriesTout"),String)
+            End Get
+        End Property
     End Class
 End Namespace
 

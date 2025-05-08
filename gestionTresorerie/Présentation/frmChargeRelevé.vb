@@ -22,8 +22,8 @@ Public Class FrmChargeRelevé
     Private Sub dgvRelevé_DataError(sender As Object, e As DataGridViewDataErrorEventArgs)
         ' Gérer les erreurs de données
         If e.Exception IsNot Nothing Then
-            MsgBox("Erreur de données : " & e.Exception.Message, MsgBoxStyle.Critical)
-            Logger.ERR("Erreur de données : " & e.Exception.Message)
+            MsgBox($"Erreur de données : {e.Exception.Message}", MsgBoxStyle.Critical)
+            Logger.ERR($"Erreur de données : {e.Exception.Message}")
             ' Empêcher l'erreur de propager
             e.ThrowException = False
         End If
@@ -31,23 +31,6 @@ Public Class FrmChargeRelevé
     Private Sub BtnOuvreFichier_Click(sender As Object, e As EventArgs) Handles btnOuvreFichier.Click
         AlimenteLstMvtCA(OuvreFichier)
     End Sub
-    'Public Sub AlimenteLstMvtCA(sFichier As String)
-    '    Try
-    '        Dim monStreamReader As New StreamReader(sFichier) 'Stream pour la lecture   
-
-    '        Dim sLigne As String = monStreamReader.ReadLine
-    '        While sLigne IsNot Nothing
-    '            'AjouteLigne(sLigne)
-    '            dgvRelevé.Rows.Add(Split(sLigne, Constantes.pointVirgule))
-    '            sLigne = monStreamReader.ReadLine
-    '        End While
-    '        Call AjouterColonneTraite()
-    '        monStreamReader.Close()
-    '    Catch ex As Exception
-    '        MsgBox("Une erreur " & ex.Message & " est survenue sur la lecture du relevé : " & sFichier, MsgBoxStyle.Critical)
-    '        Logger.ERR("Une erreur " & ex.Message & " est survenue sur la lecture du relevé : " & sFichier)
-    '    End Try
-    'End Sub
     Public Sub AlimenteLstMvtCA(sFichier As String)
         Try
             Dim monStreamReader As New StreamReader(sFichier) 'Stream pour la lecture
@@ -65,8 +48,8 @@ Public Class FrmChargeRelevé
             Call AjouterColonneTraite()
             monStreamReader.Close()
         Catch ex As Exception
-            MsgBox("Une erreur " & ex.Message & " est survenue sur la lecture du relevé : " & sFichier, MsgBoxStyle.Critical)
-            Logger.ERR("Une erreur " & ex.Message & " est survenue sur la lecture du relevé : " & sFichier)
+            MsgBox($"Une erreur {ex.Message} est survenue sur la lecture du relevé : {sFichier}", MsgBoxStyle.Critical)
+            Logger.ERR($"Une erreur {ex.Message} est survenue sur la lecture du relevé : {sFichier}")
         End Try
     End Sub
 
@@ -90,7 +73,7 @@ Public Class FrmChargeRelevé
                     ElseIf Not IsDBNull(row.Cells(_iColCredit).Value) AndAlso Decimal.TryParse(row.Cells(_iColCredit).Value.ToString(), montant) Then
                         sens = False
                     Else
-                        Logger.WARN($"Montant non trouvé dans les cellules de la ligne {row.Index} : {row.ToString}")
+                        Logger.WARN($"Montant non trouvé dans les cellules de la ligne {row.Index} : {row}")
                     End If
 
                     If Mouvements.Existe(dateMvt, montant, sens) Then

@@ -1,5 +1,4 @@
 ﻿Public Class FrmListe
-
     Public Property SelectedObject As Object
 
     Public Sub New(dataTable As DataTable)

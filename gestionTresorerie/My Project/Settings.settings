@@ -226,5 +226,20 @@
     <Setting Name="cleApiMistral" Type="System.String" Scope="Application">
       <Value Profile="(Default)">uswXFN4VPYfYmrTmNbLY16D3fxFunwjm</Value>
     </Setting>
+    <Setting Name="modeleMistral" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">pixtral-12b-2409</Value>
+    </Setting>
+    <Setting Name="reqTypes" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">select id, libelle from Type;</Value>
+    </Setting>
+    <Setting Name="reqEvenement" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">select id, libelle from Evenement;</Value>
+    </Setting>
+    <Setting Name="niveauLog" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INFO</Value>
+    </Setting>
+    <Setting Name="sqlSelSousCategoriesTout" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, libelle FROM SousCategorie;</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

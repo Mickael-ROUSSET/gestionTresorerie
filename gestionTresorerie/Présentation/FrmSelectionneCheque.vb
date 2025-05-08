@@ -33,7 +33,7 @@ Public Class FrmSelectionneCheque
             Dim idChq As Integer = Integer.Parse(selectedItem.Text)
             Dim chq As New Cheque
 
-            chq.AfficherImage(idChq, pbCheque)
+            Cheque.AfficherImage(idChq, pbCheque)
             _idChqSel = idChq
         End If
     End Sub

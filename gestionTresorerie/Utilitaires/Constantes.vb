@@ -1,4 +1,6 @@
-﻿Public Class Constantes
+﻿Imports System.Configuration
+
+Public Class Constantes
     Public Const regExMontant As String = "^[0-9]+(,[0-9]{0,2})*$"
     Public Const regDateReleve As String = "^[0-3][0-9]/[0-9]{2}/[0-9]{4}"
     Public Const pointVirgule As String = ";"
@@ -26,6 +28,10 @@
     Public Const sqlProcMvtsIdentiques As String = "procMvtsIdentiques"
     Public Const sqlSelCategoriesDefautMouvements As String = "reqCategoriesDefautMouvements"
     Public Const sqlSelCategoriesMouvements As String = "reqCategoriesMouvements"
+    Public Const sqlSelSousCategories As String = "reqSousCategorie"
+    Public Const sqlSelSousCategoriesDefautMouvements As String = "reqSousCategoriesDefautMouvements"
+    Public Const sqlSelSousCategoriesTout As String = "sqlSelSousCategoriesTout"
+    Public Const sqlSelCategoriesTout As String = "reqCategorieTout"
     Public Const sqlSelChq As String = "reqChq"
     Public Const sqlSelDocs As String = "reqDocs"
     Public Const sqlSelIdentiteCatTiers As String = "reqIdentiteCatTiers"
@@ -33,16 +39,21 @@
     Public Const sqlSelImagesChq As String = "reqImagesChq"
     Public Const sqlSelNbMouvements As String = "reqNbMouvements"
     Public Const sqlSelSommeCatMouvements As String = "reqSommeCatMouvements"
-    Public Const sqlSelSousCategoriesDefautMouvements As String = "reqSousCategoriesDefautMouvements"
     Public Const sqlSelTiersMorale As String = "selTiersMorale"
     Public Const sqlSelTiersPhysique As String = "selTiersPhysique"
     Public Const sqlSelSelectMouvementsLibelles As String = "sqlSelectMouvementsLibelles"
     Public Const sqlSelLibCat As String = "reqLibCat"
+    Public Const sqlSelTypes As String = "reqTypes"
+    Public Const sqlSelEvenement As String = "reqEvenement"
     'Mises à jour
     Public Const sqlUpdCompte As String = "updCompte"
     Public Const sqlUpdDocs As String = "updDocs"
     Public Const sqlUpdMvt As String = "updMvt"
     Public Const sqlUpdMvtIdChq As String = "updMvtIdChq"
+
+    'Environnement
+    Public Const paramNiveauLog As String = "niveauLog"
+
 
     'Public Const req1 As String = "SELECT distinct catégorie FROM Mouvements ;"
     'Public Const req3 As String = "SELECT sousCatégorie, sum(montant) FROM Mouvements where catégorie = '"

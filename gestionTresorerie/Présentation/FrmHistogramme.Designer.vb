@@ -50,13 +50,14 @@ Partial Class FrmHistogramme
         Title1.Name = "Title1"
         ChartBilan.Titles.Add(Title1)
         ' 
-        ' frmHistogramme
+        ' FrmHistogramme
         ' 
+        AccessibleRole = AccessibleRole.TitleBar
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(747, 561)
         Controls.Add(ChartBilan)
-        Name = "frmHistogramme"
+        Name = "FrmHistogramme"
         Text = "Histogramme"
         CType(ChartBilan, ComponentModel.ISupportInitialize).EndInit()
         ResumeLayout(False)

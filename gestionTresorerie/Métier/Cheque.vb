@@ -150,7 +150,7 @@ Public Class Cheque
             Logger.ERR("Erreur lors de l'insertion des données : " & ex.Message)
         End Try
     End Sub
-    Public Sub AfficherImage(idCheque As Integer, pbBox As PictureBox)
+    Public Shared Sub AfficherImage(idCheque As Integer, pbBox As PictureBox)
         Try
             ' Effacer l'image précédemment affichée
             pbBox.Image = Nothing

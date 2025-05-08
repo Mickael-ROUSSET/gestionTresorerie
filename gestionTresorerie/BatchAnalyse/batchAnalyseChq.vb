@@ -21,7 +21,7 @@ Public Class batchAnalyseChq
                 ' Appeler la méthode récursive pour parcourir le répertoire et ses sous-dossiers
                 ParcourirEtAnalyserRecursif(sRepChq)
             Else
-                Logger.INFO("Le répertoire spécifié : " & sRepChq & " n'existe pas.")
+                Logger.INFO($"Le répertoire spécifié : '{sRepChq}' n'existe pas.")
             End If
 
             ' Enregistrer la date et l'heure de fin
@@ -31,17 +31,19 @@ Public Class batchAnalyseChq
             GenererCompteRendu()
 
             ' Message final
-            Logger.INFO("Analyse terminée pour tous les fichiers.")
+            Logger.INFO($"Analyse terminée pour tous les fichiers du répertoire '{sRepChq}'.")
 
         Catch ex As Exception
-            Logger.ERR("Erreur lors du parcours du répertoire : " & sRepChq & " " & ex.Message)
+            Logger.ERR($"Erreur lors du parcours du répertoire : '{sRepChq}' " & ex.Message)
         End Try
     End Sub
     Private Sub ParcourirEtAnalyserRecursif(repertoire As String)
         Try
-            ' Initialiser les compteurs pour le répertoire courant
-            If Not compteursParRepertoire.ContainsKey(repertoire) Then
-                compteursParRepertoire(repertoire) = (0, 0, 0)
+
+            Dim compteur As (fichiersTraites As Integer, traitementOK As Integer, traitementKO As Integer) = Nothing            ' Initialiser les compteurs pour le répertoire courant
+            If Not compteursParRepertoire.TryGetValue(repertoire, compteur) Then
+                compteur = (0, 0, 0)
+                compteursParRepertoire(repertoire) = compteur
             End If
 
             ' Obtenir tous les fichiers dans le répertoire courant
@@ -53,12 +55,11 @@ Public Class batchAnalyseChq
                     analyseChq(cheminFichier)
                     nombreFichiersTraites += 1
                     nombreTraitementOK += 1
-                    Dim compteur = compteursParRepertoire(repertoire)
                     compteursParRepertoire(repertoire) = (compteur.fichiersTraites + 1, compteur.traitementOK + 1, compteur.traitementKO)
                 Catch ex As Exception
                     Logger.ERR($"Erreur lors de l'analyse du fichier : {cheminFichier} - {ex.Message}")
                     nombreTraitementKO += 1
-                    Dim compteur = compteursParRepertoire(repertoire)
+                    'Dim compteur = compteursParRepertoire(repertoire)
                     compteursParRepertoire(repertoire) = (compteur.fichiersTraites + 1, compteur.traitementOK, compteur.traitementKO + 1)
                 End Try
             Next
@@ -71,7 +72,7 @@ Public Class batchAnalyseChq
                 ParcourirEtAnalyserRecursif(sousDossier)
             Next
         Catch ex As Exception
-            Logger.ERR("Erreur lors du parcours du répertoire : " & repertoire & " " & ex.Message)
+            Logger.ERR($"Erreur lors du parcours du répertoire : {repertoire} " & ex.Message)
         End Try
     End Sub
     Public Shared Sub analyseChq(cheminChq As String)
@@ -122,6 +123,7 @@ Public Class batchAnalyseChq
 
     ' Méthode dédiée pour générer le compte rendu de traitement
     Private Sub GenererCompteRendu()
+        ' Log des informations générales
         Logger.INFO($"Compte rendu de traitement :")
         Logger.INFO($"Nombre de fichiers traités : {nombreFichiersTraites}")
         Logger.INFO($"Nombre de traitements OK : {nombreTraitementOK}")

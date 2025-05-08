@@ -1,5 +1,7 @@
-﻿Imports DocumentFormat.OpenXml.Packaging
+﻿Imports DocumentFormat.OpenXml.Drawing.Charts
+Imports DocumentFormat.OpenXml.Packaging
 Imports DocumentFormat.OpenXml.Wordprocessing
+Imports SixLabors.ImageSharp.PixelFormats
 Imports System.Data.SqlClient
 
 Public Class CreePresentation
@@ -36,12 +38,11 @@ Public Class CreePresentation
         Return categories
     End Function
 
-    Private Shared Async Sub ProcessCategory(document As WordprocessingDocument, category As String)
+    Private Shared Sub ProcessCategory(document As WordprocessingDocument, category As String)
         Dim subCategories As List(Of (Legend As String, Value As Decimal)) = GetSubCategories(category)
 
         'Récupérer le libellé de la catégorie
-        Dim para As Paragraph = CreeOpenXml.ajouteParagraphe(document, Categorie.libelleParId(category))
-        'ApplyStyleToParagraph(document, "monStyle", "monStyle", para)
+        Dim para As Paragraph = CreeOpenXml.ajouteParagraphe(document, "Focus sur la catégorie : " & Categorie.libelleParId(category))
         ApplyStyleToParagraph(document, "Titre1", "Titre1", para)
 
         If subCategories.Count <> 0 Then
@@ -49,19 +50,33 @@ Public Class CreePresentation
             CreateTableAndAddToDocument(document, subCategories)
         End If
 
-        Dim sQuestionIA As String = $"Peux-tu me donner un résumé de la catégorie {category} ?"
+        ' Ajouter un saut de ligne avant para2
+        Dim lineBreak As New Paragraph(New Run(New Break()))
+        document.MainDocumentPart.Document.Body.AppendChild(lineBreak)
 
-        ' Appeler la méthode asynchrone et attendre le résultat
-        Dim sAnalyse As String = AppelMistral.questionMistral(LectureProprietes.GetVariable("urlMistral"), sQuestionIA, LectureProprietes.GetVariable("cleApiMistral"))
-        'Dim sAnalyse = Await sAnalyseT
-        para = CreeOpenXml.ajouteParagraphe(document, sAnalyse)
-        ApplyStyleToParagraph(document, "monStyle", "monStyle", para)
+        Dim paraIA As Paragraph = CreeOpenXml.ajouteParagraphe(document, AppelMistral.questionMistral(creeQuestionIA(category, subCategories)))
+        formateParagraphe(paraIA, "Arial", 12)
 
         ' Ajouter un saut de page
         Dim pageBreak As New Break() With {.Type = BreakValues.Page}
         document.MainDocumentPart.Document.Body.AppendChild(pageBreak)
-        'para = CreeOpenXml.ajouteParagraphe(document, Categorie.libelleParId(category))
     End Sub
+    Private Shared Sub formateParagraphe(para As Paragraph, sPolice As String, iTaille As Integer)
+        For Each run As Run In para.Elements(Of Run)()
+            run.RunProperties = New RunProperties(New RunFonts() With {
+            .Ascii = sPolice
+        }, New FontSize() With {
+            .Val = Str(2 * iTaille) ' La taille est spécifiée en demi-points, donc 24 demi-points = 12 points
+        })
+        Next
+    End Sub
+    Private Shared Function creeQuestionIA(iCategorie As Integer, subCategories As List(Of (Legend As String, Value As Decimal))) As String
+        ' Concaténer les éléments de subCategories sous la forme <Legend> : <montant>
+        Dim subCategoriesString As String = String.Join(", ", subCategories.Select(Function(subCat) $"{subCat.Legend} : {subCat.Value}"))
+
+        ' Construire la question
+        Return $"Peux-tu me donner un résumé de la catégorie {Categorie.libelleParId(iCategorie)} : dont la répartition des montants par sous-catégorie est {subCategoriesString} ? N'invente pas de valeurs non présentes dans la liste. Renvoie chaque phrase à la ligne"
+    End Function
 
     Private Shared Function GetSubCategories(category As String) As List(Of (Legend As String, Value As Decimal))
         Dim subCategories As New List(Of (Legend As String, Value As Decimal))
@@ -80,12 +95,12 @@ Public Class CreePresentation
                 End While
                 Logger.INFO($"Sous-catégories chargées pour la catégorie '{category}'.")
             Else
-                ' Gérer le cas où le reader est vide
-                Logger.WARN($"Aucune sous-catégorie trouvée pour la catégorie '{category}'.")
-            End If
+        ' Gérer le cas où le reader est vide
+        Logger.WARN($"Aucune sous-catégorie trouvée pour la catégorie '{Category}'.")
+        End If
         End Using
 
-        Return subCategories
+        Return subcategories
     End Function
 
     Private Shared Sub CreateChartAndAddToDocument(document As WordprocessingDocument, category As String, subCategories As List(Of (Legend As String, Value As Decimal)))

@@ -8,7 +8,7 @@ Public Class GererJson
         ' Constructeur privé pour empêcher l'instanciation directe
     End Sub
     ' Déclaration d'une variable globale
-    Public Shared dicoClesValeurs As Dictionary(Of String, String)
+    Private Shared dicoClesValeurs As Dictionary(Of String, String)
 
     'Public Shared Sub KeyValuePairsExample() ' Exemple de dictionnaire de paramètres
     '    Dim parameters As New Dictionary(Of String, String) From {

@@ -28,6 +28,8 @@ Public Class FrmPrincipale
         Try
             'Initialisation de la lecture des propriétés
             Dim lectureProprietes As New LectureProprietes()
+            'Lecture du niveau de log demandé
+            Logger.SetLogLevel(LectureProprietes.GetVariable(Constantes.paramNiveauLog))
             Logger.DBG("Initialisation de : {lectureProprietes}")
             ''Charge les couples clé / valeur
             'GererJson.LoadParametersFromFile()
@@ -111,7 +113,7 @@ Public Class FrmPrincipale
             End If
         Next
     End Sub
-    Private Sub FrmMain_Closing(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
+    Private Sub FrmMain_Closing(sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
         ConnexionDB.GetInstance.Dispose()
     End Sub
     Private Sub BtnSaisie_Click(sender As Object, e As EventArgs) Handles btnSaisie.Click

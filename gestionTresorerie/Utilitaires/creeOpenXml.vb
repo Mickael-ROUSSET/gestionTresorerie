@@ -30,7 +30,6 @@ Module CreeOpenXml
                 Dim body As Body = mainPart.Document.AppendChild(New Body())
                 Dim para As Paragraph = body.AppendChild(New Paragraph())
                 Dim run As Run = para.AppendChild(New Run())
-                ' run.AppendChild(New Text("Create text in body - CreateWordprocessingDocument"))
             End Using
             Logger.ERR($"Document {filepath} créé avec succès.")
         Catch ex As IOException When ex.Message.Contains("is being used by another process")
@@ -312,19 +311,6 @@ Module CreeOpenXml
             Return para
         End Using
     End Function
-    'Public Function ajouteParagraphe(ByVal doc As WordprocessingDocument, ByVal txt As String) As Paragraph
-    '    ' Open a WordprocessingDocument for editing using the filepath.
-    '    'Using doc
-    '    ' Assign a reference to the existing document body.
-    '    Dim body As Body = doc.MainDocumentPart.Document.Body
-
-    '        ' Add a paragraph with some text.            
-    '        Dim para As Paragraph = body.AppendChild(New Paragraph())
-    '        Dim run As Run = para.AppendChild(New Run())
-    '        run.AppendChild(New Text(txt))
-    '        Return para
-    '    'End Using
-    'End Function
 
     ' Apply a style to a paragraph.
     Public Sub ApplyStyleToParagraph(ByVal filepath As String, ByVal styleid As String, ByVal stylename As String, ByVal p As Paragraph)
@@ -441,7 +427,6 @@ Module CreeOpenXml
         Dim nextParagraphStyle1 As New NextParagraphStyle With {.Val = "Normal"}
         style.Append(styleName1)
         style.Append(basedOn1)
-        'TODO : remettre ?
         style.Append(nextParagraphStyle1)
 
         ' Create the StyleRunProperties object and specify some of the run properties.
@@ -537,25 +522,17 @@ Module CreeOpenXml
     End Sub
     Public Sub AddSectionBreakToTheDocument(ByVal doc As WordprocessingDocument)
         Dim myMainPart As MainDocumentPart = doc.MainDocumentPart
-        Dim paragraphSectionBreak As Paragraph = New Paragraph()
-        Dim paragraphSectionBreakProperties As ParagraphProperties = New ParagraphProperties()
-        Dim SectionBreakProperties As SectionProperties = New SectionProperties()
+        Dim paragraphSectionBreak As New Paragraph()
+        Dim paragraphSectionBreakProperties As New ParagraphProperties()
+        Dim SectionBreakProperties As New SectionProperties()
         'Dim SectionBreakType As SectionType = New SectionType() { .Val() = SectionMarkValues.NextPage}
-        Dim SectionBreakType As New SectionType
-        SectionBreakType.Val = SectionMarkValues.NextPage
+        Dim SectionBreakType As New SectionType With {
+            .Val = SectionMarkValues.NextPage
+        }
         SectionBreakProperties.Append(SectionBreakType)
         paragraphSectionBreakProperties.Append(SectionBreakProperties)
         paragraphSectionBreak.Append(paragraphSectionBreakProperties)
         myMainPart.Document.Body.InsertAfter(paragraphSectionBreak, myMainPart.Document.Body.LastChild)
         myMainPart.Document.Save()
     End Sub
-    ' Add a StylesDefinitionsPart to the document. Returns a reference to it.
-    'Public Function AddStylesPartToPackage(ByVal doc As WordprocessingDocument) _
-    '    As StyleDefinitionsPart
-    '    Dim part As StyleDefinitionsPart
-    '    part = doc.MainDocumentPart.AddNewPart(Of StyleDefinitionsPart)()
-    '    Dim root As New Styles()
-    '    root.Save(part)
-    '    Return part
-    'End Function
 End Module

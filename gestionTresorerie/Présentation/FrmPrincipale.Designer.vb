@@ -45,7 +45,6 @@ Partial Class FrmPrincipale
         colNumeroRemise = New DataGridViewTextBoxColumn()
         MouvementsBindingSource = New BindingSource(components)
         BindingSource1 = New BindingSource(components)
-        btnCreeBilans = New Button()
         MenuStrip1 = New MenuStrip()
         FichierToolStripMenuItem = New ToolStripMenuItem()
         ChargerRelevéToolStripMenuItem = New ToolStripMenuItem()
@@ -60,7 +59,6 @@ Partial Class FrmPrincipale
         ParamètresTechniquesToolStripMenuItem = New ToolStripMenuItem()
         FichiersParamètresToolStripMenuItem = New ToolStripMenuItem()
         EnvironnementToolStripMenuItem = New ToolStripMenuItem()
-        Button1 = New Button()
         btnBatch = New Button()
         btnTraiteRelevé = New Button()
         CType(dgvPrincipale, ComponentModel.ISupportInitialize).BeginInit()
@@ -71,9 +69,9 @@ Partial Class FrmPrincipale
         ' 
         ' btnSaisie
         ' 
-        btnSaisie.Location = New Point(23, 309)
+        btnSaisie.Location = New Point(29, 295)
         btnSaisie.Name = "btnSaisie"
-        btnSaisie.Size = New Size(104, 23)
+        btnSaisie.Size = New Size(94, 23)
         btnSaisie.TabIndex = 0
         btnSaisie.Text = "Saisie mouvement"
         btnSaisie.UseVisualStyleBackColor = True
@@ -81,9 +79,9 @@ Partial Class FrmPrincipale
         ' btnChargeRelevé
         ' 
         btnChargeRelevé.AccessibleDescription = resources.GetString("btnChargeRelevé.AccessibleDescription")
-        btnChargeRelevé.Location = New Point(23, 67)
+        btnChargeRelevé.Location = New Point(29, 67)
         btnChargeRelevé.Name = "btnChargeRelevé"
-        btnChargeRelevé.Size = New Size(104, 23)
+        btnChargeRelevé.Size = New Size(94, 23)
         btnChargeRelevé.TabIndex = 1
         btnChargeRelevé.Text = "Charge relevé"
         btnChargeRelevé.UseVisualStyleBackColor = True
@@ -91,9 +89,9 @@ Partial Class FrmPrincipale
         ' btnHistogramme
         ' 
         btnHistogramme.AccessibleDescription = resources.GetString("btnHistogramme.AccessibleDescription")
-        btnHistogramme.Location = New Point(23, 160)
+        btnHistogramme.Location = New Point(29, 181)
         btnHistogramme.Name = "btnHistogramme"
-        btnHistogramme.Size = New Size(104, 23)
+        btnHistogramme.Size = New Size(94, 23)
         btnHistogramme.TabIndex = 2
         btnHistogramme.Text = "Histogramme"
         btnHistogramme.UseVisualStyleBackColor = True
@@ -101,9 +99,9 @@ Partial Class FrmPrincipale
         ' btnConsultation
         ' 
         btnConsultation.AccessibleDescription = resources.GetString("btnConsultation.AccessibleDescription")
-        btnConsultation.Location = New Point(23, 228)
+        btnConsultation.Location = New Point(29, 238)
         btnConsultation.Name = "btnConsultation"
-        btnConsultation.Size = New Size(104, 23)
+        btnConsultation.Size = New Size(94, 23)
         btnConsultation.TabIndex = 3
         btnConsultation.Text = "Consultation"
         btnConsultation.UseVisualStyleBackColor = True
@@ -216,15 +214,6 @@ Partial Class FrmPrincipale
         ' 
         MouvementsBindingSource.DataSource = GetType(Mouvements)
         ' 
-        ' btnCreeBilans
-        ' 
-        btnCreeBilans.Location = New Point(23, 257)
-        btnCreeBilans.Name = "btnCreeBilans"
-        btnCreeBilans.Size = New Size(75, 23)
-        btnCreeBilans.TabIndex = 5
-        btnCreeBilans.Text = "Crée Bilans"
-        btnCreeBilans.UseVisualStyleBackColor = True
-        ' 
         ' MenuStrip1
         ' 
         MenuStrip1.Items.AddRange(New ToolStripItem() {FichierToolStripMenuItem, AnalyseToolStripMenuItem, ParamètresToolStripMenuItem, ParamètresTechniquesToolStripMenuItem})
@@ -316,28 +305,19 @@ Partial Class FrmPrincipale
         EnvironnementToolStripMenuItem.Size = New Size(176, 22)
         EnvironnementToolStripMenuItem.Text = "Environnement"
         ' 
-        ' Button1
-        ' 
-        Button1.Location = New Point(48, 430)
-        Button1.Name = "Button1"
-        Button1.Size = New Size(75, 23)
-        Button1.TabIndex = 7
-        Button1.Text = "Button1"
-        Button1.UseVisualStyleBackColor = True
-        ' 
         ' btnBatch
         ' 
-        btnBatch.Location = New Point(299, 443)
+        btnBatch.Location = New Point(26, 352)
         btnBatch.Name = "btnBatch"
-        btnBatch.Size = New Size(156, 23)
+        btnBatch.Size = New Size(94, 23)
         btnBatch.TabIndex = 8
-        btnBatch.Text = "lanceBatchAnalyse"
+        btnBatch.Text = "Batch Analyse"
         btnBatch.TextImageRelation = TextImageRelation.TextBeforeImage
         btnBatch.UseVisualStyleBackColor = True
         ' 
         ' btnTraiteRelevé
         ' 
-        btnTraiteRelevé.Location = New Point(29, 120)
+        btnTraiteRelevé.Location = New Point(29, 124)
         btnTraiteRelevé.Name = "btnTraiteRelevé"
         btnTraiteRelevé.Size = New Size(94, 23)
         btnTraiteRelevé.TabIndex = 9
@@ -352,8 +332,6 @@ Partial Class FrmPrincipale
         ClientSize = New Size(966, 541)
         Controls.Add(btnTraiteRelevé)
         Controls.Add(btnBatch)
-        Controls.Add(Button1)
-        Controls.Add(btnCreeBilans)
         Controls.Add(dgvPrincipale)
         Controls.Add(btnConsultation)
         Controls.Add(btnHistogramme)
@@ -379,7 +357,6 @@ Partial Class FrmPrincipale
     Friend WithEvents dgvPrincipale As DataGridView
     Friend WithEvents MouvementsBindingSource As BindingSource
     Friend WithEvents BindingSource1 As BindingSource
-    Friend WithEvents btnCreeBilans As Button
     Friend WithEvents MenuStrip1 As MenuStrip
     Friend WithEvents FichierToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ChargerRelevéToolStripMenuItem As ToolStripMenuItem
@@ -394,7 +371,6 @@ Partial Class FrmPrincipale
     Friend WithEvents EnvironnementToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents GérerUnMouvementToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents FermerToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents Button1 As Button
     Friend WithEvents btnBatch As Button
     Friend WithEvents btnTraiteRelevé As Button
     Friend WithEvents CategorieDataGridViewTextBoxColumn As DataGridViewTextBoxColumn

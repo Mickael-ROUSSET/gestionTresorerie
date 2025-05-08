@@ -7,7 +7,7 @@
         Call litEnv()
         Call litRepInstallation()
     End Sub
-    Public Sub litEnv()
+    Public Shared Sub litEnv()
         ' Lire la variable d'environnement 
         If _env = String.Empty Then
             _env = Environ("envAgumaaa")

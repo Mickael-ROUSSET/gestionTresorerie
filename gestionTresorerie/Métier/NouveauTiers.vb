@@ -1,16 +1,17 @@
 ﻿Imports System.Data.SqlClient
 
-Public Class frmNouveauTiers
+Public Class FrmNouveauTiers
     Private Sub btnCreerTiers_Click(sender As Object, e As EventArgs) Handles btnCreerTiers.Click
         If String.IsNullOrWhiteSpace(txtNom.Text) AndAlso String.IsNullOrWhiteSpace(txtPrenom.Text) AndAlso String.IsNullOrWhiteSpace(txtRaisonSociale.Text) Then
-            MessageBox.Show("Veuillez remplir le nom et le prénom ou la raison sociale.", "Champs obligatoires", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            MessageBox.Show($"Veuillez remplir le nom : {txtNom.Text} et le prénom {txtPrenom.Text} ou la raison sociale {txtRaisonSociale.Text}", "Champs obligatoires", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
 
         Dim listeTiers As ListeTiers
         ' Vérifier que le tiers n'existe pas déjà
         If TiersExisteDeja() Then
-            MessageBox.Show("Ce tiers existe déjà.", "Tiers existant", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            MessageBox.Show($"Ce tiers existe déjà : nom = {txtNom.Text}, prénom = {txtPrenom.Text}, raison sociale = {txtRaisonSociale.Text}", "Tiers existant", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Logger.INFO($"Ce tiers existe déjà : nom = {txtNom.Text}, prénom = {txtPrenom.Text}, raison sociale = {txtRaisonSociale.Text}")
             Return
         End If
 
@@ -18,8 +19,8 @@ Public Class frmNouveauTiers
             listeTiers = New ListeTiers()
         End If
         ' Vérifier la sélection dans les DataGridView
-        Dim categorieId As Integer = GetSelectedRowValue(dgvNTCategorie, 0, "Veuillez sélectionner une catégorie.")
-        Dim sousCategorieId As Integer = GetSelectedRowValue(dgvNTSousCategorie, 0, "Veuillez sélectionner une sous-catégorie.")
+        Dim categorieId As Integer = GetSelectedRowValue(dgvNTCategorie, 0)
+        Dim sousCategorieId As Integer = GetSelectedRowValue(dgvNTSousCategorie, 0)
 
         insereNouveauTiers(txtRaisonSociale.Text,
                        txtNom.Text,
@@ -31,7 +32,7 @@ Public Class frmNouveauTiers
         initChamps()
     End Sub
 
-    Private Function GetSelectedRowValue(dataGridView As DataGridView, columnIndex As Integer, errorMessage As String) As Integer
+    Private Function GetSelectedRowValue(dataGridView As DataGridView, columnIndex As Integer) As Integer
         If dataGridView.SelectedRows.Count > 0 Then
             Return CInt(dataGridView.SelectedRows(0).Cells(columnIndex).Value)
         Else
@@ -40,7 +41,7 @@ Public Class frmNouveauTiers
     End Function
 
     Private Function TiersExisteDeja() As Boolean
-        Dim count As Integer = 0
+        Dim count As Integer
 
         Try
             count = CInt(SqlCommandBuilder.
@@ -59,7 +60,8 @@ Public Class frmNouveauTiers
 
         Return count > 0
     End Function
-    Sub insereNouveauTiers(sRaisonSociale As String, sPrenom As String, sNom As String, iCategorie As Integer?, iSousCategorie As Integer?)
+
+    Shared Sub insereNouveauTiers(sRaisonSociale As String, sPrenom As String, sNom As String, iCategorie As Integer?, iSousCategorie As Integer?)
         Try
             SqlCommandBuilder.
             CreateSqlCommand("insertTiers",
@@ -111,14 +113,14 @@ Public Class frmNouveauTiers
 
         Dim fieldValue As Integer
         If Not Integer.TryParse(fieldText, fieldValue) Then
-            MessageBox.Show($"Le champ {fieldName} doit être un nombre entier.", "Valeur invalide", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            MessageBox.Show($"Le champ {fieldName} doit être un nombre entier : {fieldValue}", "Valeur invalide", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             datagridview.Focus() ' Remettre le focus sur le champ pour corriger l'erreur
             Return
         End If
     End Sub
 
     Private Sub frmNouveauTiers_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        initChamps
+        initChamps()
         ChargeDgvCategorie()
         ChargeDgvSousCategorie()
     End Sub
@@ -143,7 +145,7 @@ Public Class frmNouveauTiers
         ChargerDonneesNouveauTiers(sousCategorie, query, dgvNTSousCategorie)
     End Sub
     Private Sub ChargerDonneesNouveauTiers(dataService As IDataService, query As String, dataGridView As DataGridView)
-
+        'TODO : utiliser la méthode de la classe UtilitairesDgv
         Try
             Dim dt As DataTable = dataService.ExecuterRequete(query)
 
