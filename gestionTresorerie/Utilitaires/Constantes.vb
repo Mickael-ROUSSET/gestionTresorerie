@@ -53,6 +53,7 @@ Public Class Constantes
 
     'Environnement
     Public Const paramNiveauLog As String = "niveauLog"
+    Public Const dicoTypeMvt As String = "dicoTypeMvt"
 
 
     'Public Const req1 As String = "SELECT distinct catégorie FROM Mouvements ;"

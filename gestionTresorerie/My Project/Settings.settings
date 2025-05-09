@@ -100,9 +100,6 @@
     <Setting Name="reqIdentiteTiers" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT [nom], [prenom], [raisonSociale] FROM [dbo].Tiers</Value>
     </Setting>
-    <Setting Name="reqCategoriesDefautMouvements" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">SELECT categorieDefaut FROM Tiers where id = '</Value>
-    </Setting>
     <Setting Name="reqCategorie" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT id, libelle FROM Categorie WHERE debit = @debit;</Value>
     </Setting>
@@ -240,6 +237,12 @@
     </Setting>
     <Setting Name="sqlSelSousCategoriesTout" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT id, libelle FROM SousCategorie;</Value>
+    </Setting>
+    <Setting Name="dicoTypeMvt" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">"FRAIS Commission : Virement emis;FRAIS Tenue de compte professionnel : Virement emis;FRAIS saisie administrative : Virement emis;INTERETS CREDITEURS C.L.ALLEGRE : Virement recu ;PRELEVEMENT AIST : Prelevement;PRELEVEMENT GIE KLESIA COTIS : Prelevement;PRELEVEMENT HUMANIS PREVOYANCE PLEIADE : Prelevement;PRELEVEMENT KOESIO AURA : Prelevement;PRELEVEMENT Relevé de compte quinzaine : Prelevement;PRELEVEMENT URSSAF AUVERGNE : Prelevement;REMISE DE CHEQUE;SOUSCRIPTION C.L.ALLEGRE : Prelevement;VERSEMENT D'ESPECES ALLEGRE : Depot especes;VIREMENT EMIS BLOCAGE SAISIE ADMIN A TIERS DET ;VIREMENT EMIS WEB A G U M A A : Depot especes;VIREMENT EN VOTRE FAVEUR : Virement recu ;PRELEVEMENT AIST 43 : Prelevement;PRELEVEMENT URSSAF D AUVERGNE : Prelevement;RETRAIT D'ESPECES : Especes;PRELEVEMENT ;SACEMSOC AUTEUR COMPOSITEUR : Prelevement;RETRO A TITRE COMMERCIAL : Virement recu ;VIREMENT EMIS SY SERVICE IMPOTS DES ENTRE : Virement emis;VIREMENT EMIS WEB A G U M A A Alimentation : Virement emis"</Value>
+    </Setting>
+    <Setting Name="reqCategoriesDefautMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT categorieDefaut FROM Tiers where id = @id</Value>
     </Setting>
   </Settings>
 </SettingsFile>

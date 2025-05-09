@@ -61,6 +61,7 @@ Partial Class frmSaisie
         dgvType = New DataGridView()
         btnListeChqRemise = New Button()
         lblChercheTiers = New Label()
+        btnNouveauChq = New Button()
         grpSens.SuspendLayout()
         GroupBox1.SuspendLayout()
         CType(dgvTiers, ComponentModel.ISupportInitialize).BeginInit()
@@ -159,7 +160,7 @@ Partial Class frmSaisie
         ' btnValider
         ' 
         btnValider.AutoSize = True
-        btnValider.Location = New Point(809, 447)
+        btnValider.Location = New Point(809, 505)
         btnValider.Name = "btnValider"
         btnValider.Size = New Size(75, 25)
         btnValider.TabIndex = 13
@@ -340,7 +341,7 @@ Partial Class frmSaisie
         ' 
         ' btnSelChq
         ' 
-        btnSelChq.Location = New Point(809, 489)
+        btnSelChq.Location = New Point(1022, 449)
         btnSelChq.Name = "btnSelChq"
         btnSelChq.Size = New Size(168, 23)
         btnSelChq.TabIndex = 38
@@ -430,11 +431,21 @@ Partial Class frmSaisie
         lblChercheTiers.TabIndex = 45
         lblChercheTiers.Text = "Cherche tiers"
         ' 
+        ' btnNouveauChq
+        ' 
+        btnNouveauChq.Location = New Point(994, 506)
+        btnNouveauChq.Name = "btnNouveauChq"
+        btnNouveauChq.Size = New Size(120, 23)
+        btnNouveauChq.TabIndex = 46
+        btnNouveauChq.Text = "Nouveau chèque"
+        btnNouveauChq.UseVisualStyleBackColor = True
+        ' 
         ' FrmSaisie
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(1506, 542)
+        Controls.Add(btnNouveauChq)
         Controls.Add(lblChercheTiers)
         Controls.Add(btnListeChqRemise)
         Controls.Add(pnlDgvType)
@@ -522,5 +533,6 @@ Partial Class frmSaisie
     Friend WithEvents dgvType As DataGridView
     Friend WithEvents btnListeChqRemise As Button
     Friend WithEvents lblChercheTiers As Label
+    Friend WithEvents btnNouveauChq As Button
 
 End Class

@@ -21,6 +21,9 @@ Public Class FrmSaisie
                 SelectionnerTiers(indTiersDetecte)
             End If
             ChargerCategoriesEtSousCategories(indTiersDetecte)
+            'Sélectionne le type de mouvement associé à la note 
+            ' Utiliser le dictionnaire pour sélectionner les lignes du DataGridView
+            chercheType(Utilitaires.ChargerCriteresDepuisConfig(Constantes.dicoTypeMvt))
             ' Initialiser les boutons
             InitializeToggleButton(btnToggleEvt, pnlDgvEvt, 200, 50)
             InitializeToggleButton(btnToggleType, pnlDgvType, 200, 50)
@@ -94,7 +97,9 @@ Public Class FrmSaisie
         Call InsereMouvement()
         Me.Hide()
         Call initZonesSaisies()
-        FrmPrincipale.Show()
+        If Not btnNouveauChq.Visible Then
+            FrmPrincipale.Show()
+        End If
     End Sub
     Private Sub TxtMontant_TextChanged(sender As Object, e As EventArgs) Handles txtMontant.Leave
 
@@ -294,15 +299,28 @@ Public Class FrmSaisie
             btnToggle.PerformClick()
         End If
     End Sub
-
     Private Sub txtRemise_TextChanged(sender As Object, e As EventArgs) Handles txtRemise.TextChanged
-        btnListeChqRemise.Visible = Trim(txtRemise.Text) <> String.Empty
+        'btnListeChqRemise.Visible = Trim(txtRemise.Text) <> String.Empty
+        btnNouveauChq.Visible = True
+        'Si on n'est pas sur une remise de chèque, on quitte la Frm sur validation
+        If txtRemise.Text = String.Empty Then
+            btnNouveauChq.Visible = False
+        End If
     End Sub
+    Private Sub chercheType(dicoTypeMvt As Dictionary(Of String, String))
+        ' Vérifier si txtNote.Text est vide ou null
+        If Not String.IsNullOrEmpty(txtNote.Text) Then
 
-    Private Sub btnListeChqRemise_Click(sender As Object, e As EventArgs) Handles btnListeChqRemise.Click
-        'Dim frmRemise As New FrmRemiseChq With {
-        '    .Text = "Liste des chèques de la remise " & txtRemise.Text
-        '    .
-        '}
+            ' Parcourir le dictionnaire dicoTypeMvt pour trouver la clé correspondante
+            For Each kvp As KeyValuePair(Of String, String) In dicoTypeMvt
+                If kvp.Key.Equals(Trim(txtNote.Text), StringComparison.OrdinalIgnoreCase) Then
+                    ' Retourner la valeur correspondante si la clé est trouvée
+                    UtilitairesDgv.SelectionnerLigneDgvType(dgvType, kvp.Value)
+                End If
+            Next
+        End If
+    End Sub
+    Private Sub btnNouveauChq_Click(sender As Object, e As EventArgs) Handles btnNouveauChq.Click
+
     End Sub
 End Class

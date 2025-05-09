@@ -315,15 +315,6 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT categorieDefaut FROM Tiers where id = '")>  _
-        Public ReadOnly Property reqCategoriesDefautMouvements() As String
-            Get
-                Return CType(Me("reqCategoriesDefautMouvements"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, libelle FROM Categorie WHERE debit = @debit;")>  _
         Public ReadOnly Property reqCategorie() As String
             Get
@@ -773,6 +764,36 @@ Namespace My
         Public ReadOnly Property sqlSelSousCategoriesTout() As String
             Get
                 Return CType(Me("sqlSelSousCategoriesTout"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("""FRAIS Commission : Virement emis;FRAIS Tenue de compte professionnel : Virement "& _ 
+            "emis;FRAIS saisie administrative : Virement emis;INTERETS CREDITEURS C.L.ALLEGRE"& _ 
+            " : Virement recu ;PRELEVEMENT AIST : Prelevement;PRELEVEMENT GIE KLESIA COTIS : "& _ 
+            "Prelevement;PRELEVEMENT HUMANIS PREVOYANCE PLEIADE : Prelevement;PRELEVEMENT KOE"& _ 
+            "SIO AURA : Prelevement;PRELEVEMENT Relevé de compte quinzaine : Prelevement;PREL"& _ 
+            "EVEMENT URSSAF AUVERGNE : Prelevement;REMISE DE CHEQUE;SOUSCRIPTION C.L.ALLEGRE "& _ 
+            ": Prelevement;VERSEMENT D'ESPECES ALLEGRE : Depot especes;VIREMENT EMIS BLOCAGE "& _ 
+            "SAISIE ADMIN A TIERS DET ;VIREMENT EMIS WEB A G U M A A : Depot especes;VIREMENT"& _ 
+            " EN VOTRE FAVEUR : Virement recu ;PRELEVEMENT AIST 43 : Prelevement;PRELEVEMENT "& _ 
+            "URSSAF D AUVERGNE : Prelevement;RETRAIT D'ESPECES : Especes;PRELEVEMENT ;SACEMSO"& _ 
+            "C AUTEUR COMPOSITEUR : Prelevement;RETRO A TITRE COMMERCIAL : Virement recu ;VIR"& _ 
+            "EMENT EMIS SY SERVICE IMPOTS DES ENTRE : Virement emis;VIREMENT EMIS WEB A G U M"& _ 
+            " A A Alimentation : Virement emis""")>  _
+        Public ReadOnly Property dicoTypeMvt() As String
+            Get
+                Return CType(Me("dicoTypeMvt"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT categorieDefaut FROM Tiers where id = @id")>  _
+        Public ReadOnly Property reqCategoriesDefautMouvements() As String
+            Get
+                Return CType(Me("reqCategoriesDefautMouvements"),String)
             End Get
         End Property
     End Class

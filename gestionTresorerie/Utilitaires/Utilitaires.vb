@@ -65,4 +65,22 @@ Class Utilitaires
 
         Return 0
     End Function
+    Public Shared Function ChargerCriteresDepuisConfig(nomDico As String) As Dictionary(Of String, String)
+        Dim dico As New Dictionary(Of String, String)()
+
+        ' Lire la chaîne de caractères depuis app.config
+        Dim dicoTypeMvtString As String = LectureProprietes.GetVariable(nomDico)
+
+        ' Diviser la chaîne en paires clé-valeur
+        Dim paires As String() = dicoTypeMvtString.Split(";"c)
+
+        ' Ajouter chaque paire au dictionnaire
+        For Each paire As String In paires
+            Dim keyValue As String() = paire.Split(":"c)
+            If keyValue.Length = 2 Then
+                dico.Add(keyValue(0).Trim(), keyValue(1).Trim())
+            End If
+        Next
+        Return dico
+    End Function
 End Class
