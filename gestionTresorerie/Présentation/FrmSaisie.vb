@@ -1,12 +1,8 @@
-﻿Imports System.Data.SqlClient
-Imports System.Text.RegularExpressions
-Imports Newtonsoft.Json
-Imports Newtonsoft.Json.Linq
+﻿Imports System.Text.RegularExpressions
 
 Public Class FrmSaisie
     Inherits System.Windows.Forms.Form
 
-    Private Const Prompt As String = "Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}"
     Private listeTiers As ListeTiers
     Private _Mvt As Mouvements
     Private _dtMvtsIdentiques As DataTable = Nothing
@@ -18,7 +14,8 @@ Public Class FrmSaisie
             Call initZonesSaisies()
             Dim indTiersDetecte As Integer = listeTiers.DetecteTiers(txtNote.Text)
             If indTiersDetecte > -1 Then
-                SelectionnerTiers(indTiersDetecte)
+                'SelectionnerTiers(indTiersDetecte)
+                UtilitairesDgv.selectionneIndiceDvg(indTiersDetecte, dgvTiers)
             End If
             ChargerCategoriesEtSousCategories(indTiersDetecte)
             'Sélectionne le type de mouvement associé à la note 
@@ -46,11 +43,11 @@ Public Class FrmSaisie
             listeTiers = New ListeTiers()
         End If
     End Sub
-    Private Sub SelectionnerTiers(indTiersDetecte As Integer)
-        Dim idTiers As Integer = UtilitairesDgv.chercheIndiceDvg(indTiersDetecte, dgvTiers)
-        dgvTiers.Rows(idTiers).Selected = True
-        dgvTiers.FirstDisplayedScrollingRowIndex = idTiers
-    End Sub
+    'Private Sub SelectionnerTiers(indTiersDetecte As Integer)
+    '    Dim idTiers As Integer = UtilitairesDgv.selectionneIndiceDvg(indTiersDetecte, dgvTiers)
+    '    dgvTiers.Rows(idTiers).Selected = True
+    '    dgvTiers.FirstDisplayedScrollingRowIndex = idTiers
+    'End Sub
     Private Sub ChargerCategoriesEtSousCategories(indTiersDetecte As Integer)
         Dim parameters As Dictionary(Of String, Object)
 
@@ -60,19 +57,21 @@ Public Class FrmSaisie
             Call UtilitairesDgv.ChargeDgvGenerique(dgvCategorie, Constantes.sqlSelCategoriesTout, parameters)
         End If
 
-        Dim idCategorie As Integer = UtilitairesDgv.chercheIndiceDvg(Tiers.getCategorieTiers(indTiersDetecte), dgvCategorie)
+        'Dim idCategorie As Integer = UtilitairesDgv.selectionneIndiceDvg(Tiers.getCategorieTiers(indTiersDetecte), dgvCategorie)
+        UtilitairesDgv.selectionneIndiceDvg(Tiers.getCategorieTiers(indTiersDetecte), dgvCategorie)
         sRequete = Constantes.sqlSelSousCategories
         parameters = New Dictionary(Of String, Object) From {{"@idCategorie", Tiers.getCategorieTiers(indTiersDetecte)}}
-        dgvCategorie.Rows(idCategorie).Selected = True
-        dgvCategorie.FirstDisplayedScrollingRowIndex = idCategorie
+        'dgvCategorie.Rows(idCategorie).Selected = True
+        'dgvCategorie.FirstDisplayedScrollingRowIndex = idCategorie
 
         If dgvSousCategorie.RowCount = 0 Then
             Call UtilitairesDgv.ChargeDgvGenerique(dgvSousCategorie, sRequete, parameters)
         End If
 
-        Dim idSousCategorie As Integer = UtilitairesDgv.chercheIndiceDvg(Tiers.getSousCategorieTiers(indTiersDetecte), dgvSousCategorie)
-        dgvSousCategorie.Rows(idSousCategorie).Selected = True
-        dgvSousCategorie.FirstDisplayedScrollingRowIndex = idSousCategorie
+        UtilitairesDgv.selectionneIndiceDvg(Tiers.getSousCategorieTiers(indTiersDetecte), dgvSousCategorie)
+        'Dim idSousCategorie As Integer = UtilitairesDgv.selectionneIndiceDvg(Tiers.getSousCategorieTiers(indTiersDetecte), dgvSousCategorie)
+        'dgvSousCategorie.Rows(idSousCategorie).Selected = True
+        'dgvSousCategorie.FirstDisplayedScrollingRowIndex = idSousCategorie
     End Sub
     Public Sub chargeListes()
         Call UtilitairesDgv.ChargeDgvGenerique(dgvTiers, Constantes.sqlSelIdentiteCatTiers)
@@ -158,44 +157,16 @@ Public Class FrmSaisie
                 Dim frmListe As New FrmListe(_dtMvtsIdentiques)
                 AddHandler frmListe.objetSelectionneChanged, AddressOf mvtSelectionneChangedHandler
                 frmListe.ShowDialog()
-                Logger.INFO("Le mouvement existe déjà : " & mouvement.ObtenirValeursConcatenees)
+                Logger.INFO($"Le mouvement existe déjà : {mouvement.ObtenirValeursConcatenees}")
             Else
                 Mouvements.InsererMouvementEnBase(mouvement)
-                Logger.INFO("Insertion du mouvement pour : " & mouvement.ObtenirValeursConcatenees)
-                Logger.INFO(Prompt)
+                Logger.INFO($"Insertion du mouvement pour : {mouvement.ObtenirValeursConcatenees}")
             End If
         Catch ex As Exception
-            MsgBox(Prompt)
-            Logger.ERR(Prompt)
+            MsgBox($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
+            Logger.ERR($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
         End Try
     End Sub
-    'Private Sub mvtSelectionneChangedHandler(sender As Object, index As Integer)
-    '    Dim rowsAffected As Integer
-    '    ' Vérifier si l'objet peut être converti en Mouvements
-    '    If index = -1 Then
-    '        Logger.INFO("L'objet sélectionné est nul => mouvement à insérer")
-    '        Mouvements.InsererMouvementEnBase(_Mvt)
-    '    Else
-    '        rowsAffected = Mouvements.MettreAJourMouvement(
-    '                 _dtMvtsIdentiques.Rows(index).ItemArray(0),
-    '                 dgvCategorie.Rows(dgvCategorie.SelectedRows(0).Index).Cells(0).Value,
-    '                 dgvSousCategorie.Rows(dgvSousCategorie.SelectedRows(0).Index).Cells(0).Value,
-    '                 txtMontant.Text.Trim().Replace(Constantes.espace, String.Empty),
-    '                 rbCredit.Checked,
-    '                 Convert.ToInt32(dgvTiers.Rows(dgvTiers.SelectedRows(0).Index).Cells(0).Value),
-    '                 txtNote.Text,
-    '                 dateMvt.Value,
-    '                 rbRapproche.Checked,
-    '                 dgvEvenement.SelectedRows(0).Cells(1).Value.ToString(),
-    '                 dgvType.SelectedRows(0).Cells(1).Value.ToString(),
-    '                 True,
-    '                 GetRemiseValue(txtRemise.Text),
-    '                 0
-    '                 )
-    '        ' Trace indiquant le nombre de lignes mises à jour
-    '        Logger.INFO($"Nombre de mouvements mis à jour : {rowsAffected}")
-    '    End If
-    'End Sub
     Private Sub mvtSelectionneChangedHandler(sender As Object, index As Integer)
         Try
             ' Vérifier si l'objet peut être converti en Mouvements
@@ -321,6 +292,13 @@ Public Class FrmSaisie
         End If
     End Sub
     Private Sub btnNouveauChq_Click(sender As Object, e As EventArgs) Handles btnNouveauChq.Click
-
+        'On réinitialise les zones de saisir pour un nouveau mouvement
+        dgvCategorie.ClearSelection()
+        dgvSousCategorie.ClearSelection()
+        dgvTiers.ClearSelection()
+        dgvEvenement.ClearSelection()
+        dgvType.ClearSelection()
+        txtMontant.Text = String.Empty
+        rbRapproche.Checked = False
     End Sub
 End Class

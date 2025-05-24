@@ -1,7 +1,5 @@
-﻿Imports DocumentFormat.OpenXml.Drawing.Charts
-Imports DocumentFormat.OpenXml.Packaging
+﻿Imports DocumentFormat.OpenXml.Packaging
 Imports DocumentFormat.OpenXml.Wordprocessing
-Imports SixLabors.ImageSharp.PixelFormats
 Imports System.Data.SqlClient
 
 Public Class CreePresentation

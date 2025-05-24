@@ -11,7 +11,7 @@ Public Class ListeTiers
     Public Sub extraitListeTiers()
         Try
             ' Requête pour récupérer les tiers avec nom et prénom
-            Dim lstTiersPhysique = SqlCommandBuilder.CreateSqlCommand("selTiersPhysique")
+            Dim lstTiersPhysique = SqlCommandBuilder.CreateSqlCommand(Constantes.sqlSelTiersPhysique)
             Using monReaderTiers As SqlDataReader = lstTiersPhysique.ExecuteReader()
                 While monReaderTiers.Read()
                     _listeTiers.Add(New Tiers(monReaderTiers.GetInt32(0), monReaderTiers.GetString(1), monReaderTiers.GetString(2)))
@@ -19,7 +19,7 @@ Public Class ListeTiers
             End Using
 
             ' Requête pour récupérer les tiers avec raison sociale
-            Dim lstTiersMorale = SqlCommandBuilder.CreateSqlCommand("selTiersMorale")
+            Dim lstTiersMorale = SqlCommandBuilder.CreateSqlCommand(Constantes.sqlSelTiersMorale)
             Using monReaderTiers As SqlDataReader = lstTiersMorale.ExecuteReader()
                 While monReaderTiers.Read()
                     _listeTiers.Add(New Tiers(monReaderTiers.GetInt32(0), monReaderTiers.GetString(1)))
@@ -58,7 +58,7 @@ Public Class ListeTiers
         Return _listeTiers.Count
     End Function
     Public Function getIdentiteParId(id As Integer) As String
-        Dim sIdentite As String = ""
+        Dim sIdentite As String = String.Empty
 
         With _listeTiers.Item(id)
             If id > 0 Then

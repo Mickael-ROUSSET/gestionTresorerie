@@ -68,15 +68,6 @@ Public Class FrmSelectionneCheque
                              ).ExecuteReader()
                     While readerChq.Read()
                         Try
-                            ' Construire le JSON et créer un objet Cheque
-                            '    Dim chqSel As New Cheque(CreerJsonCheque(
-                            '    readerChq.GetInt32(0),
-                            '    montant,
-                            '    readerChq.GetInt32(1),
-                            '    readerChq.GetDateTime(2),
-                            '    readerChq.GetString(3),
-                            '    readerChq.GetString(4)
-                            '))
                             Dim chqSel As New Cheque(readerChq.GetInt32(0), CStr(montant), readerChq.GetInt32(1), readerChq.GetDateTime(2), readerChq.GetString(3), readerChq.GetString(4))
                             tabCheques.Add(chqSel)
                         Catch ex As Exception

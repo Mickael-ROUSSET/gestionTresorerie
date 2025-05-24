@@ -13,10 +13,10 @@ Public Class Logger
         ' Vérifier que le niveau de log est valide
         Dim niveauxValides As String() = {"DBG", "INFO", "WARN", "ERR"}
         If Not niveauxValides.Contains(level) Then
-            Throw New ArgumentException("Niveau de log invalide. Les niveaux valides sont : DBG, INFO, WARN, ERR.")
+            Throw New ArgumentException($"Niveau de log {level} invalide. Les niveaux valides sont : DBG, INFO, WARN, ERR.")
         End If
 
-        ' Définir le niveau de log
+        ' Définir le niveau de level
         logLevel = level
     End Sub
 
@@ -40,7 +40,7 @@ Public Class Logger
             End If
 
             ' Obtenir l'heure actuelle
-            Dim heureActuelle As String = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+            Dim heureActuelle As String = DateTime.Now.ToString(Constantes.formatTimestampTrace)
 
             ' Obtenir le nom de la fonction appelante
             Dim stackTrace As New System.Diagnostics.StackTrace()
@@ -56,7 +56,7 @@ Public Class Logger
 
             'Console.WriteLine("Trace écrite avec succès.")
         Catch ex As Exception
-            Console.WriteLine("Erreur lors de l'écriture dans le fichier de trace : " & ex.Message)
+            MsgBox($"Erreur lors de l'écriture dans le fichier de trace : {ex.Message}")
         End Try
     End Sub
 

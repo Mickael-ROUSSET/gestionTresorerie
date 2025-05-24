@@ -22,7 +22,7 @@
             Else
                 _repInstallation = My.Settings.repInstallationTest
             End If
-            Logger.INFO("repInstallation = " & _repInstallation)
+            Logger.INFO($"repInstallation = {_repInstallation}")
         End If
     End Sub
 

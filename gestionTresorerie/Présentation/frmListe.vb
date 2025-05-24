@@ -25,7 +25,7 @@
         End If
 
         ' Fermer la fenêtre appelée
-        Me.Close()
+        Close()
     End Sub
     Private Sub btnSansSelection_Click(sender As Object, e As EventArgs) Handles btnSansSelection.Click
 

@@ -18,7 +18,7 @@ Public Class FrmPrincipale
     Private _icolModifiable As Integer
     Private _icolNumeroRemise As Integer
 
-    Public Property Properties As Object
+    ''Public Property Properties As Object
 
     Private Sub BtnHistogramme_Click(sender As Object, e As EventArgs) Handles btnHistogramme.Click
         'Création du fichier LibreOffice Writer
@@ -27,12 +27,10 @@ Public Class FrmPrincipale
     Private Sub FrmPrincipale_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Try
             'Initialisation de la lecture des propriétés
-            Dim lectureProprietes As New LectureProprietes()
+            'Dim lectureProprietes As New LectureProprietes()
             'Lecture du niveau de log demandé
             Logger.SetLogLevel(LectureProprietes.GetVariable(Constantes.paramNiveauLog))
             Logger.DBG("Initialisation de : {lectureProprietes}")
-            ''Charge les couples clé / valeur
-            'GererJson.LoadParametersFromFile()
             'Récupère le rang des colonnes du datagridview
             initIndiceColDgv()
             'Charger dgvPrincipale avec le contenu de la table mouvements
@@ -41,8 +39,8 @@ Public Class FrmPrincipale
             FrmSaisie.chargeListes()
         Catch ex As Exception
             ' Gestion des erreurs
-            MessageBox.Show("Une erreur est survenue lors de l'initialisation : " & ex.Message, "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Logger.ERR("Une erreur est survenue lors de l'initialisation : " & ex.Message)
+            MessageBox.Show($"Une erreur est survenue lors de l'initialisation : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Logger.ERR($"Une erreur est survenue lors de l'initialisation : {ex.Message}")
         End Try
     End Sub
 
@@ -143,12 +141,6 @@ Public Class FrmPrincipale
             Dim sens As Boolean = Utilitaires.ConvertToBoolean(currentRow.Cells(_icolSens).Value)
             Dim rapproche As Boolean = Utilitaires.ConvertToBoolean(currentRow.Cells(_icolModifiable).Value)
             Dim remise As String = currentRow.Cells(_icolNote).Value?.ToString()
-            'Dim categorie As String = currentRow.Cells(_icolCategorie).Value?.ToString()
-            'Dim sousCategorie As String = currentRow.Cells(_icolSousCategorie).Value?.ToString()
-            'Dim tiers As String = currentRow.Cells(_icolTiers).Value?.ToString()
-            'Dim evenement As String = currentRow.Cells(_icolEvenement).Value?.ToString()
-            'Dim monType As String = currentRow.Cells(_icolType).Value?.ToString()
-            'Dim etat As Boolean = ConvertToBoolean(currentRow.Cells(_icolEtat).Value)
 
             ' Charger les valeurs dans le formulaire de saisie
             With FrmSaisie
@@ -162,8 +154,8 @@ Public Class FrmPrincipale
                 .Show()
             End With
         Catch ex As Exception
-            MsgBox("Une erreur est survenue : " & ex.Message, MsgBoxStyle.Critical)
-            Logger.ERR("Une erreur est survenue : " & ex.Message)
+            MsgBox($"Une erreur est survenue : {ex.Message}", MsgBoxStyle.Critical)
+            Logger.ERR($"Une erreur est survenue : {ex.Message}")
         End Try
     End Sub
     Private Sub btnBatch_Click(sender As Object, e As EventArgs) Handles btnBatch.Click

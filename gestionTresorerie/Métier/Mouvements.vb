@@ -6,7 +6,7 @@ Public Class Mouvements
     Private _type As String
     Private _numeroRemise As String
 
-    Private Sub InsereMouvement(mouvement)
+    Public Shared Sub InsereMouvement(mouvement)
         Try
             'Les infos de création du mouvement sont récupérées sur la fenêtre de saisie 
             Dim dtMvtsIdentiques As DataTable = Mouvements.ChargerMouvementsSimilaires(mouvement)
@@ -25,7 +25,7 @@ Public Class Mouvements
     Public Sub New(ByVal note As String, ByVal categorie As Integer, ByVal sousCategorie As Integer, ByVal tiers As Integer, ByVal dateMvt As Date, ByVal montant As String, ByVal sens As String, ByVal etat As String, ByVal événement As String, ByVal type As String, ByVal modifiable As Boolean, ByVal numeroRemise As String, ByVal idCheque As Integer)
         ' Set the property value.
         With Me
-            If VerifParam(note, categorie, sousCategorie, tiers, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise, idCheque) Then
+            If VerifParam(categorie, sousCategorie, tiers, dateMvt, montant, sens, etat, type) Then
                 .Note = note
                 .Categorie = categorie
                 .SousCategorie = sousCategorie
@@ -70,9 +70,9 @@ Public Class Mouvements
                                                          {"@numeroRemise", mouvement.NumeroRemise},
                                                          {"@idCheque", mouvement.idCheque}}
                              ).ExecuteNonQuery()
-            Logger.INFO("Insertion du mouvement réussie : " & mouvement.ObtenirValeursConcatenees)
+            Logger.INFO($"Insertion du mouvement réussie : {mouvement.ObtenirValeursConcatenees}")
         Catch ex As Exception
-            Logger.ERR("Erreur générale lors de l'insertion du mouvement : " & ex.Message & "Mouvement : " & mouvement.ObtenirValeursConcatenees)
+            Logger.ERR($"Erreur générale lors de l'insertion du mouvement : {ex.Message}, Mouvement : {mouvement.ObtenirValeursConcatenees}")
             Throw ' Re-lancer l'exception après l'avoir loggée
         End Try
     End Sub
@@ -210,7 +210,7 @@ Public Class Mouvements
             End If
         End Try
     End Sub
-    Public Shared Function VerifParam(note As String, categorie As String, sousCategorie As String, tiers As Integer, dateMvt As Date, montant As String, sens As String, etat As String, événement As String, type As String, modifiable As Boolean, numeroRemise As String, idCheque As Integer) As Boolean
+    Public Shared Function VerifParam(categorie As String, sousCategorie As String, tiers As Integer, dateMvt As Date, montant As String, sens As String, etat As String, type As String) As Boolean
         Dim bToutEstLa As Boolean = False
 
         'L'idCheque est facultatif

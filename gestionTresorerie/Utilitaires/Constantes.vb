@@ -1,8 +1,10 @@
 ﻿Imports System.Configuration
 
+<DebuggerDisplay("{GetDebuggerDisplay(),nq}")>
 Public Class Constantes
     Public Const regExMontant As String = "^[0-9]+(,[0-9]{0,2})*$"
     Public Const regDateReleve As String = "^[0-3][0-9]/[0-9]{2}/[0-9]{4}"
+    Public Const formatTimestampTrace As String = "yyyy-MM-dd HH:mm:ss"
     Public Const pointVirgule As String = ";"
     Public Const virgule As String = ","
     Public Const espace As String = " "
@@ -55,24 +57,7 @@ Public Class Constantes
     Public Const paramNiveauLog As String = "niveauLog"
     Public Const dicoTypeMvt As String = "dicoTypeMvt"
 
-
-    'Public Const req1 As String = "SELECT distinct catégorie FROM Mouvements ;"
-    'Public Const req3 As String = "SELECT sousCatégorie, sum(montant) FROM Mouvements where catégorie = '"
-    'Public Const req5 As String = "SELECT DISTINCT catégorie FROM Mouvements;"
-    'Public Const req6 As String = "SELECT sousCatégorie, SUM(montant) FROM Mouvements WHERE catégorie = @category GROUP BY sousCatégorie ORDER BY SUM(montant) DESC;"
-    'Public Const req7 As String = "SELECT * FROM Mouvements"
-    'Public Const req9 As String = "SELECT id, numero, date, emetteur, destinataire FROM Cheque WHERE montant = @montant;"
-    'Public Const req10 As String = "SELECT [imageChq] FROM [dbo].Cheque WHERE [id] = @id"
-    'Public Const req11 As String = "SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc FROM [dbo].[Documents];"
-    'Public Const req12 As String = "SELECT id,nom, prenom FROM Tiers where nom is not null;"
-    'Public Const req13 As String = "SELECT id,raisonSociale FROM Tiers where raisonSociale is not null;"
-    'Public Const req14 As String = "Select file"
-    'Public Const req15 As String = "SELECT COUNT(*) FROM Mouvements WHERE dateMvt = @dateMvt AND montant = @montant AND sens = @sens;"
-    'Public Const req16 As String = "SELECT id, nom, prenom, raisonSociale, categorieDefaut, sousCategorieDefaut FROM Tiers;"
-    'Public Const req17 As String = "SELECT id, libelle FROM Categorie WHERE debit = @debit;"
-    'Public Const req18 As String = "SELECT id, libelle FROM SousCategorie where idCategorie = @idCategorie;"
-    'Public Const req19 As String = "SELECT libelle FROM SousCategorie where idCategorie ="
-    'Public Const req20 As String = "SELECT categorieDefaut FROM Tiers where id = '"
-    'Public Const req21 As String = "SELECT sousCategorieDefaut FROM Tiers where id = '"
-    'Public Const req22 As String = "SELECT [nom], [prenom], [raisonSociale] FROM [dbo].Tiers"
+    Private Function GetDebuggerDisplay() As String
+        Return ToString()
+    End Function
 End Class

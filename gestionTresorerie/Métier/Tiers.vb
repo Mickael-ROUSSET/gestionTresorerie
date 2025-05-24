@@ -4,7 +4,6 @@ Imports System.Reflection.Metadata
 Public Class Tiers
     Dim _dateCreation As Date
     Dim _dateModification As Date
-
     Public Sub New(id As Integer, sNom As String, sPrenom As String, Optional sCategorie As Integer = 0, Optional sSousCategorie As Integer = 0)
         If sNom IsNot Nothing Then
             Me.id = id

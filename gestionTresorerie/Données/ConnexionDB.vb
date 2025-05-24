@@ -23,7 +23,7 @@ Public Class ConnexionDB
         Return _maConnexion
     End Function
     Public Sub creeConnexion(connexionString As String)
-        Dim connexionOuverte As Boolean = False
+        Dim connexionOuverte As Boolean
         Try
             ' Crée la connexion si elle n'existe pas, sinon renvoie celle existante
             If _maConnexion Is Nothing Then

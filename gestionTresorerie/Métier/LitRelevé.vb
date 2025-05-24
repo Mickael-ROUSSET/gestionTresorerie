@@ -30,7 +30,7 @@ Module LitRelevé
                 TraiteFichierPourri(ficRelevéTraité, filePath)
             Catch SecEx As SecurityException
                 MessageBox.Show($"Security error:{vbCrLf}{SecEx.Message}{vbCrLf}" & $"Details:{vbCrLf}{SecEx.StackTrace}")
-                Logger.ERR($"Security error:{SecEx.Message}" & $"Details:{SecEx.StackTrace}")
+                Logger.ERR($"Security error:{SecEx.Message}, Details:{SecEx.StackTrace}")
             End Try
         End If
         Return ficRelevéTraité
@@ -39,11 +39,11 @@ Module LitRelevé
         Try
             ' Ouvrir le fichier en mode écriture pour le vider 
             System.IO.File.WriteAllText(cheminFichier, String.Empty)
-            Logger.INFO("Le fichier " & cheminFichier & " a été vidé avec succès.")
+            Logger.INFO($"Le fichier {cheminFichier} a été vidé avec succès.")
         Catch ex As Exception
             ' Gérer les exceptions en cas d'erreur 
-            MsgBox("ViderFichier, erreur : " & ex.Message)
-            Logger.ERR("ViderFichier, erreur : " & ex.Message)
+            MsgBox($"ViderFichier, erreur : {ex.Message}")
+            Logger.ERR($"ViderFichier, erreur : {ex.Message}")
         End Try
     End Sub
     Private Sub TraiteFichierCsvMensuel(sFicTemp As String, sFichier As String)
@@ -75,8 +75,8 @@ Module LitRelevé
                 End Using
             End Using
         Catch ex As Exception
-            MsgBox("Une erreur est survenue sur la lecture du relevé : " & sFichier, MsgBoxStyle.Critical)
-            Logger.ERR("Une erreur est survenue sur la lecture du relevé : " & sFichier)
+            MsgBox($"Une erreur est survenue sur la lecture du relevé : {sFichier}", MsgBoxStyle.Critical)
+            Logger.ERR($"Une erreur est survenue sur la lecture du relevé : {sFichier}")
         End Try
     End Sub
     Private Sub TraiteFichierPourri(sFicTemp As String, sFichier As String)
@@ -87,7 +87,7 @@ Module LitRelevé
             Using monStreamReader As New StreamReader(sFichier) ' Stream pour la lecture
                 Dim ligne As String ' Variable contenant le texte de la ligne
                 Using file As New System.IO.StreamWriter(sFicTemp, True)
-                    Logger.INFO("TraiteFichierPourri : traitement du fichier : " & sFicTemp)
+                    Logger.INFO($"Traitement du fichier : {sFicTemp}")
 
                     ligne = monStreamReader.ReadLine
                     While ligne IsNot Nothing
@@ -108,8 +108,8 @@ Module LitRelevé
                 End Using
             End Using
         Catch ex As Exception
-            MsgBox("TraiteFichierPourri : Une erreur est survenue sur la lecture du relevé : " & sFichier, MsgBoxStyle.Critical)
-            Logger.ERR("TraiteFichierPourri : Une erreur est survenue sur la lecture du relevé : " & sFichier)
+            MsgBox($"TraiteFichierPourri : Une erreur est survenue sur la lecture du relevé : {sFichier}", MsgBoxStyle.Critical)
+            Logger.ERR($"TraiteFichierPourri : Une erreur est survenue sur la lecture du relevé : {sFichier}")
         End Try
     End Sub
 

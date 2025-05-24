@@ -1,5 +1,4 @@
 ﻿Imports System.Data.SqlClient
-Imports System.Diagnostics
 
 Public Class SqlCommandBuilder
     ' Constructeur privé pour empêcher l'instanciation directe
@@ -22,19 +21,11 @@ Public Class SqlCommandBuilder
 
             Return command
         Catch ex As SqlException
-            LogError("Erreur SQL lors de la création de la commande", ex)
+            Logger.ERR($"Erreur SQL lors de la création de la commande : {ex.Message}")
             Throw
         Catch ex As Exception
-            LogError("Erreur inattendue lors de la création de la commande", ex)
+            Logger.ERR($"Erreur inattendue lors de la création de la commande : {ex.Message}")
             Throw
         End Try
     End Function
-
-    ' Méthode pour logger les erreurs avec le nom de la méthode appelante
-    Private Shared Sub LogError(message As String, ex As Exception)
-        Dim stackTrace As New StackTrace()
-        Dim callingMethod As String = stackTrace.GetFrame(1).GetMethod().Name
-        Logger.ERR($"{message} dans {callingMethod} : {ex.Message}")
-    End Sub
-
 End Class
