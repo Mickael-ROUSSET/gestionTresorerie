@@ -159,7 +159,7 @@ Public Class FrmPrincipale
         End Try
     End Sub
     Private Sub btnBatch_Click(sender As Object, e As EventArgs) Handles btnBatch.Click
-        Dim batch As New batchAnalyseChq
+        Dim batch As New batchAnalyse
 
         Call batch.ParcourirRepertoireEtAnalyser()
     End Sub

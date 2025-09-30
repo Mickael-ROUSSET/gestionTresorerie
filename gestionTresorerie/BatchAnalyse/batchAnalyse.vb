@@ -1,27 +1,35 @@
-﻿Imports System.IO
+﻿Imports System.Data.SqlClient
+Imports System.IO
+Imports System.Runtime.InteropServices
 
-Public Class batchAnalyseChq
+Public Class batchAnalyse
     Private nombreFichiersTraites As Integer = 0
     Private nombreTraitementOK As Integer = 0
     Private nombreTraitementKO As Integer = 0
     Private dateHeureDebut As DateTime
     Private dateHeureFin As DateTime
+    Private _sRepertoireSortie As String
+    Private _sType As String
+    Private _sPrompt As String
+
     Private compteursParRepertoire As New Dictionary(Of String, (fichiersTraites As Integer, traitementOK As Integer, traitementKO As Integer))
 
+    Public Sub New(sType As String)
+        _sType = sType
+    End Sub
     Public Sub ParcourirRepertoireEtAnalyser()
-        Dim lectureProprietes As New LectureProprietes()
-        Dim sRepChq As String = lectureProprietes.repChq & DateTime.Now.Year
+        Dim sRepDoc As String = LectureProprietes.GetVariable("repFichiersDocuments")
 
         Try
             ' Enregistrer la date et l'heure de début
             dateHeureDebut = DateTime.Now
 
             ' Vérifier si le répertoire existe
-            If Directory.Exists(sRepChq) Then
+            If Directory.Exists(sRepDoc) Then
                 ' Appeler la méthode récursive pour parcourir le répertoire et ses sous-dossiers
-                ParcourirEtAnalyserRecursif(sRepChq)
+                ParcourirEtAnalyserRecursif(sRepDoc)
             Else
-                Logger.INFO($"Le répertoire spécifié : '{sRepChq}' n'existe pas.")
+                Logger.INFO($"Le répertoire spécifié : '{sRepDoc}' n'existe pas. Penser à se connecter au google drive AGUMAAA")
             End If
 
             ' Enregistrer la date et l'heure de fin
@@ -31,10 +39,10 @@ Public Class batchAnalyseChq
             GenererCompteRendu()
 
             ' Message final
-            Logger.INFO($"Analyse terminée pour tous les fichiers du répertoire '{sRepChq}'.")
+            Logger.INFO($"Analyse terminée pour tous les fichiers du répertoire '{sRepDoc}'.")
 
         Catch ex As Exception
-            Logger.ERR($"Erreur lors du parcours du répertoire : '{sRepChq}' " & ex.Message)
+            Logger.ERR($"Erreur lors du parcours du répertoire : '{sRepDoc}' " & ex.Message)
         End Try
     End Sub
     Private Sub ParcourirEtAnalyserRecursif(repertoire As String)
@@ -52,7 +60,7 @@ Public Class batchAnalyseChq
             ' Parcourir chaque fichier et appeler analyseChq
             For Each cheminFichier As String In fichiers
                 Try
-                    analyseChq(cheminFichier)
+                    analyseDocument(cheminFichier, _sPrompt)
                     nombreFichiersTraites += 1
                     nombreTraitementOK += 1
                     compteursParRepertoire(repertoire) = (compteur.fichiersTraites + 1, compteur.traitementOK + 1, compteur.traitementKO)
@@ -75,52 +83,85 @@ Public Class batchAnalyseChq
             Logger.ERR($"Erreur lors du parcours du répertoire : {repertoire} " & ex.Message)
         End Try
     End Sub
-    Public Shared Sub analyseChq(cheminChq As String)
+    Public Sub analyseDocument(cheminChq As String, sPrompt As String)
         'Dim extraction As New AppelMistral()
 
         Logger.INFO("-------------------" & vbCrLf & "Analyse du chèque " & cheminChq)
-        Dim chqJson = AppelMistral.litImage(cheminChq)
+        Dim chqJson = AppelMistral.litImage(cheminChq, sPrompt)
         cheminChq = RenommerFichier(cheminChq, chqJson.numero_du_cheque)
         chqJson.InsereEnBase(cheminChq)
         Logger.INFO("Insertion en base du chèque " & cheminChq)
     End Sub
 
     ' Méthode pour renommer un fichier et renvoyer le nouveau nom
-    Public Shared Function RenommerFichier(cheminFichier As String, numChq As String) As String
+    Public Function RenommerFichier(cheminFichier As String, numChq As String) As String
+        Dim sRepSortie As String = LectureProprietes.GetVariable("repFichiersDocuments") & "\" & LectureProprietes.GetVariable("repFichiersDocumentsATrier")
         Try
             ' Vérifier si le fichier existe
             If Not File.Exists(cheminFichier) Then
                 Throw New FileNotFoundException("Le fichier spécifié n'existe pas.", cheminFichier)
             End If
 
-            ' Obtenir le répertoire et l'extension du fichier
-            Dim repertoire As String = Path.GetDirectoryName(cheminFichier)
-            Dim extension As String = Path.GetExtension(cheminFichier)
-
-            ' Construire le nouveau nom de fichier
-            Dim nouveauNomFichier As String = Path.Combine(repertoire, $"CHQ_{numChq}{extension}")
-
-            ' Vérifier si un fichier avec le même nom existe déjà
-            If File.Exists(nouveauNomFichier) Then
-                ' Écrire un log de niveau INFO
-                Logger.INFO($"Un fichier avec le nom '{nouveauNomFichier}' existe déjà. Renommage annulé.")
-                Return cheminFichier ' Retourne le nom d'origine si le renommage est annulé
+            ' Vérifier si le répertoire de sortie existe, sinon le créer
+            If Not Directory.Exists(sRepSortie) Then
+                Directory.CreateDirectory(sRepSortie)
             End If
 
-            ' Renommer le fichier
-            File.Move(cheminFichier, nouveauNomFichier)
-            Logger.INFO($"Fichier {cheminFichier} renommé avec succès en '{nouveauNomFichier}'.")
+            ' Obtenir l'extension du fichier
+            Dim extension As String = Path.GetExtension(cheminFichier)
 
-            ' Retourner le nouveau nom du fichier
+            ' Construire le nouveau chemin complet du fichier dans le répertoire de sortie
+            Dim nouveauNomFichier As String = Path.Combine(sRepSortie, $"CHQ_{numChq}{extension}")
+
+            ' Vérifier si un fichier avec le même nom existe déjà dans le répertoire de sortie
+            If File.Exists(nouveauNomFichier) Then
+                ' Écrire un log de niveau INFO
+                Logger.INFO($"Un fichier avec le nom '{nouveauNomFichier}' existe déjà dans le répertoire de sortie. Renommage et déplacement annulés.")
+                Return cheminFichier ' Retourne le nom d'origine si le renommage/déplacement est annulé
+            End If
+
+            ' Renommer et déplacer le fichier
+            File.Move(cheminFichier, nouveauNomFichier)
+            Logger.INFO($"Fichier {cheminFichier} renommé et déplacé avec succès vers '{nouveauNomFichier}'.")
+
+            ' Retourner le nouveau chemin complet du fichier
             Return nouveauNomFichier
 
         Catch ex As Exception
             ' Écrire un log d'erreur en cas d'exception
-            Logger.ERR($"Erreur lors du renommage du fichier : {ex.Message}")
+            Logger.ERR($"Erreur lors du renommage et déplacement du fichier : {ex.Message}")
             Return cheminFichier ' Retourne le nom d'origine en cas d'erreur
         End Try
     End Function
+    Private Function construitRepSortie(sTypeDoc) As String
+        Dim sRepSortie As String = LectureProprietes.GetVariable("repFichiersDocuments") & "\" & LectureProprietes.GetVariable("repFichiersDocumentsATrier")
 
+        GetRepSortie(sTypeDoc)
+    End Function
+    Private Shared Function GetRepSortie(sTypeDoc As Integer) As String
+        Dim sRepSortie As String
+
+        Using reader As SqlDataReader =
+            SqlCommandBuilder.
+            CreateSqlCommand("reqRepSortie",
+                             New Dictionary(Of String, Object) From {{"@typeDoc", sTypeDoc}}
+                             ).
+            ExecuteReader()
+
+            ' Vérifier si le reader contient des lignes
+            If reader.HasRows Then
+                While reader.Read()
+                    sRepSortie = reader.GetString(0)
+                End While
+                Logger.INFO($"Sous-répertoire trouvé pour le type de document '{sTypeDoc}'.")
+            Else
+                ' Gérer le cas où le reader est vide
+                Logger.WARN($"Aucun sous-répertoire trouvé pour le type de document '{sTypeDoc}'.")
+            End If
+        End Using
+
+        Return sRepSortie
+    End Function
     ' Méthode dédiée pour générer le compte rendu de traitement
     Private Sub GenererCompteRendu()
         ' Log des informations générales

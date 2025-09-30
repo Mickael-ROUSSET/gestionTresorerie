@@ -18,7 +18,7 @@ Public Class UtilitairesDgv
         End Try
         Return dt
     End Function
-    Public Shared Sub selectionneIndiceDvg(indiceCherche As Integer, dgv As DataGridView) As Integer
+    Public Shared Sub selectionneIndiceDvg(indiceCherche As Integer, dgv As DataGridView)
         Dim i As Integer, ligneCible As Integer = 0
 
         For i = 0 To dgv.RowCount
