@@ -27,7 +27,7 @@ Public Class FrmPrincipale
     Private Sub FrmPrincipale_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Try
             'Initialisation de la lecture des propriétés
-            'Dim lectureProprietes As New LectureProprietes()
+            Dim lectureProprietes As New LectureProprietes()
             'Lecture du niveau de log demandé
             Logger.SetLogLevel(LectureProprietes.GetVariable(Constantes.paramNiveauLog))
             Logger.DBG("Initialisation de : {lectureProprietes}")
@@ -159,9 +159,8 @@ Public Class FrmPrincipale
         End Try
     End Sub
     Private Sub btnBatch_Click(sender As Object, e As EventArgs) Handles btnBatch.Click
-        Dim batch As New batchAnalyse
 
-        Call batch.ParcourirRepertoireEtAnalyser()
+        Call Lanceur.LanceTrt()
     End Sub
     Private Sub btnTraiteRelevé_Click(sender As Object, e As EventArgs) Handles btnTraiteRelevé.Click
         Call FrmChargeRelevé.AlimenteLstMvtCA(LectureProprietes.GetCheminEtVariable("ficRelevéTraité"))

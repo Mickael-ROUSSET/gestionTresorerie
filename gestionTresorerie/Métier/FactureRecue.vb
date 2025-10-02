@@ -1,4 +1,5 @@
 ﻿Public Class FactureRecue
+    Implements ITypeDoc
     Private _nomSociete As String
     Private _reference As String
     Private _dateFacture As Date
@@ -50,6 +51,33 @@
         End Get
         Set(value As Decimal)
             _montant = value
+        End Set
+    End Property
+
+    Public Property Prompt As String Implements ITypeDoc.Prompt
+        Get
+            Throw New NotImplementedException()
+        End Get
+        Set(value As String)
+            Throw New NotImplementedException()
+        End Set
+    End Property
+
+    Public Property GabaritRepertoire As String Implements ITypeDoc.GabaritRepertoire
+        Get
+            Throw New NotImplementedException()
+        End Get
+        Set(value As String)
+            Throw New NotImplementedException()
+        End Set
+    End Property
+
+    Public Property GabaritNomFichier As String Implements ITypeDoc.GabaritNomFichier
+        Get
+            Throw New NotImplementedException()
+        End Get
+        Set(value As String)
+            Throw New NotImplementedException()
         End Set
     End Property
 End Class

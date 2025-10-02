@@ -3,6 +3,7 @@ Imports System.IO
 Imports System.Text.RegularExpressions
 Imports Newtonsoft.Json.Linq
 Public Class Cheque
+    Implements ITypeDoc
     Public _dateChq As String
     Public _numero_du_cheque As Integer
     Public _emetteur As String
@@ -78,6 +79,33 @@ Public Class Cheque
         End Get
         Set(ByVal value As Integer)
             _id = value
+        End Set
+    End Property
+
+    Public Property Prompt As String Implements ITypeDoc.Prompt
+        Get
+            Throw New NotImplementedException()
+        End Get
+        Set(value As String)
+            Throw New NotImplementedException()
+        End Set
+    End Property
+
+    Public Property GabaritRepertoire As String Implements ITypeDoc.GabaritRepertoire
+        Get
+            Throw New NotImplementedException()
+        End Get
+        Set(value As String)
+            Throw New NotImplementedException()
+        End Set
+    End Property
+
+    Public Property GabaritNomFichier As String Implements ITypeDoc.GabaritNomFichier
+        Get
+            Throw New NotImplementedException()
+        End Get
+        Set(value As String)
+            Throw New NotImplementedException()
         End Set
     End Property
 

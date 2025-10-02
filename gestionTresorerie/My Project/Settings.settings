@@ -64,9 +64,6 @@
     <Setting Name="repChqProd" Type="System.String" Scope="Application">
       <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\Chèques\</Value>
     </Setting>
-    <Setting Name="repChqTest" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\Chèques\</Value>
-    </Setting>
     <Setting Name="ParamDb" Type="System.String" Scope="Application">
       <Value Profile="(Default)">;Integrated Security=True;Connect Timeout=30</Value>
     </Setting>
@@ -160,9 +157,6 @@
     <Setting Name="sqlSelectMouvementsLibelles" Type="System.String" Scope="Application">
       <Value Profile="(Default)">select Id , (select libelle from Categorie where id = catégorie) as Catégorie, (select libelle from sousCategorie where id = sousCatégorie) as sousCatégorie, montant , CASE sens WHEN 1 THEN 'Crédit' ELSE 'Débit' END as 'Sens', (select coalesce(nom + ' ' + prenom, raisonSociale ) from Tiers where id = tiers) as Tiers, note, dateMvt, dateCréation, dateModification, etat, événement, type, CASE modifiable WHEN 1 THEN 'modifiable' ELSE 'Non modifiable' END as 'Modifiable', numeroRemise, idCheque from Mouvements;</Value>
     </Setting>
-    <Setting Name="AttachDbFilenameProd" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Bdd\bddAgumaaaProd.mdf</Value>
-    </Setting>
     <Setting Name="delCompte" Type="System.String" Scope="Application">
       <Value Profile="(Default)">DELETE FROM [dbo].[Comptes] WHERE [login] = @login</Value>
     </Setting>
@@ -247,9 +241,6 @@
     <Setting Name="reqCategoriesDefautMouvements" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT categorieDefaut FROM Tiers where id = @id</Value>
     </Setting>
-    <Setting Name="repFichiersDocuments" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\</Value>
-    </Setting>
     <Setting Name="repFichiersDocumentsATrier" Type="System.String" Scope="Application">
       <Value Profile="(Default)">A_Trier</Value>
     </Setting>
@@ -264,6 +255,15 @@
     </Setting>
     <Setting Name="repGymQuestionnaire" Type="System.String" Scope="Application">
       <Value Profile="(Default)">QuestionnairesSanté</Value>
+    </Setting>
+    <Setting Name="repFichiersDocuments" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\</Value>
+    </Setting>
+    <Setting Name="repChqTest" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\Chèques\</Value>
+    </Setting>
+    <Setting Name="AttachDbFilenameProd" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Bdd\bddAgumaaaProd.mdf</Value>
     </Setting>
   </Settings>
 </SettingsFile>

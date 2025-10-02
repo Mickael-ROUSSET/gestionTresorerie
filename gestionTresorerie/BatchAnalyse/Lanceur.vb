@@ -1,6 +1,7 @@
 ﻿
 
 Imports System.Data.SqlClient
+Imports System.Reflection
 
 Public Class Lanceur
     Private Shared iTypeDocument As String
@@ -11,9 +12,14 @@ Public Class Lanceur
             Try
                 ' Créer une instance de la classe spécifiée par sClasse via réflexion
                 Dim typeClasse As Type = Type.GetType(sClasse)
+                sClasse = "gestionTresorerie." & sClasse
+                ' Si Type.GetType échoue, essayer de chercher dans l'assembly courant
                 If typeClasse Is Nothing Then
-                    Logger.WARN($"Classe {sClasse} non trouvée.")
-                    Continue For
+                    typeClasse = Assembly.GetExecutingAssembly().GetType(sClasse)
+                    If typeClasse Is Nothing Then
+                        Logger.WARN("Classe " & sClasse & " non trouvée dans l'assembly courant.")
+                        Continue For
+                    End If
                 End If
 
                 Dim instanceClasse As Object = Activator.CreateInstance(typeClasse)
@@ -22,7 +28,7 @@ Public Class Lanceur
                 ' Appel de l'analyse des fichiers avec le type d'analyse défini dans le constructeur
                 batchAnalyse.ParcourirRepertoireEtAnalyser()
             Catch ex As Exception
-                Logger.ERR($"Erreur lors de l'instanciation ou de l'analyse pour la classe {sClasse} : {ex.Message}")
+                Logger.ERR("Erreur lors de l'instanciation ou de l'analyse pour la classe " & sClasse & " : " & ex.Message)
             End Try
         Next sClasse
     End Sub

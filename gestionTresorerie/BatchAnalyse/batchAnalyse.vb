@@ -8,14 +8,12 @@ Public Class batchAnalyse
     Private nombreTraitementKO As Integer = 0
     Private dateHeureDebut As DateTime
     Private dateHeureFin As DateTime
-    Private _sRepertoireSortie As String
-    Private _sType As String
-    Private _sPrompt As String
+    Private _TypeDoc As ITypeDoc
 
     Private compteursParRepertoire As New Dictionary(Of String, (fichiersTraites As Integer, traitementOK As Integer, traitementKO As Integer))
 
-    Public Sub New(sType As String)
-        _sType = sType
+    Public Sub New(TypeDoc As ITypeDoc)
+        _TypeDoc = TypeDoc
     End Sub
     Public Sub ParcourirRepertoireEtAnalyser()
         Dim sRepDoc As String = LectureProprietes.GetVariable("repFichiersDocuments")
@@ -60,7 +58,7 @@ Public Class batchAnalyse
             ' Parcourir chaque fichier et appeler analyseChq
             For Each cheminFichier As String In fichiers
                 Try
-                    analyseDocument(cheminFichier, _sPrompt)
+                    analyseDocument(cheminFichier, _TypeDoc.Prompt)
                     nombreFichiersTraites += 1
                     nombreTraitementOK += 1
                     compteursParRepertoire(repertoire) = (compteur.fichiersTraites + 1, compteur.traitementOK + 1, compteur.traitementKO)
@@ -136,7 +134,22 @@ Public Class batchAnalyse
     Private Function construitRepSortie(sTypeDoc) As String
         Dim sRepSortie As String = LectureProprietes.GetVariable("repFichiersDocuments") & "\" & LectureProprietes.GetVariable("repFichiersDocumentsATrier")
 
-        GetRepSortie(sTypeDoc)
+        'Todo : à écrire
+    End Function
+    Public Shared Function RemplacerAnnees(gabarit As String) As String
+        ' Obtenir l'année en cours
+        Dim anneeEnCours As Integer = DateTime.Now.Year
+        Dim anneeSuivante As Integer = anneeEnCours + 1
+
+        ' Vérifier quel motif est présent et effectuer le remplacement
+        If gabarit.Contains("{SSAA}") Then
+            Return gabarit.Replace("{SSAA}", anneeEnCours.ToString())
+        ElseIf gabarit.Contains("{SCO_SSAA}") Then
+            Return gabarit.Replace("{SCO_SSAA}", $"{anneeEnCours}-{anneeSuivante}")
+        End If
+
+        ' Retourner la chaîne inchangée si aucun motif n'est trouvé
+        Return gabarit
     End Function
     Private Shared Function GetRepSortie(sTypeDoc As Integer) As String
         Dim sRepSortie As String
