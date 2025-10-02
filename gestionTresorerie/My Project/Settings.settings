@@ -61,9 +61,6 @@
     <Setting Name="AttachDbFilenameTest" Type="System.String" Scope="Application">
       <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf</Value>
     </Setting>
-    <Setting Name="repChqProd" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\Chèques\</Value>
-    </Setting>
     <Setting Name="ParamDb" Type="System.String" Scope="Application">
       <Value Profile="(Default)">;Integrated Security=True;Connect Timeout=30</Value>
     </Setting>
@@ -232,38 +229,44 @@
     <Setting Name="sqlSelSousCategoriesTout" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT id, libelle FROM SousCategorie;</Value>
     </Setting>
-    <Setting Name="sqlTypesDocuments" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">SELECT classe FROM TypeDoc;</Value>
-    </Setting>
     <Setting Name="dicoTypeMvt" Type="System.String" Scope="Application">
       <Value Profile="(Default)">"FRAIS Commission : Virement emis;FRAIS Tenue de compte professionnel : Virement emis;FRAIS saisie administrative : Virement emis;INTERETS CREDITEURS C.L.ALLEGRE : Virement recu ;PRELEVEMENT AIST : Prelevement;PRELEVEMENT GIE KLESIA COTIS : Prelevement;PRELEVEMENT HUMANIS PREVOYANCE PLEIADE : Prelevement;PRELEVEMENT KOESIO AURA : Prelevement;PRELEVEMENT Relevé de compte quinzaine : Prelevement;PRELEVEMENT URSSAF AUVERGNE : Prelevement;REMISE DE CHEQUE;SOUSCRIPTION C.L.ALLEGRE : Prelevement;VERSEMENT D'ESPECES ALLEGRE : Depot especes;VIREMENT EMIS BLOCAGE SAISIE ADMIN A TIERS DET ;VIREMENT EMIS WEB A G U M A A : Depot especes;VIREMENT EN VOTRE FAVEUR : Virement recu ;PRELEVEMENT AIST 43 : Prelevement;PRELEVEMENT URSSAF D AUVERGNE : Prelevement;RETRAIT D'ESPECES : Especes;PRELEVEMENT ;SACEMSOC AUTEUR COMPOSITEUR : Prelevement;RETRO A TITRE COMMERCIAL : Virement recu ;VIREMENT EMIS SY SERVICE IMPOTS DES ENTRE : Virement emis;VIREMENT EMIS WEB A G U M A A Alimentation : Virement emis"</Value>
     </Setting>
     <Setting Name="reqCategoriesDefautMouvements" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT categorieDefaut FROM Tiers where id = @id</Value>
     </Setting>
-    <Setting Name="repFichiersDocumentsATrier" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">A_Trier</Value>
-    </Setting>
-    <Setting Name="repFichiersDocumentsChèques" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">Chèques</Value>
-    </Setting>
-    <Setting Name="repFichiersGym" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\Manifestations récurrentes\Activités\Gym</Value>
-    </Setting>
-    <Setting Name="repGymAdhésion" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">Formulaires d'adhésion</Value>
-    </Setting>
-    <Setting Name="repGymQuestionnaire" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">QuestionnairesSanté</Value>
-    </Setting>
-    <Setting Name="repFichiersDocuments" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\</Value>
-    </Setting>
-    <Setting Name="repChqTest" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\Chèques\</Value>
+    <Setting Name="repRacineAgumaaa" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA</Value>
     </Setting>
     <Setting Name="AttachDbFilenameProd" Type="System.String" Scope="Application">
       <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Bdd\bddAgumaaaProd.mdf</Value>
+    </Setting>
+    <Setting Name="repFichiersDocumentsATrier" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\A_Trier</Value>
+    </Setting>
+    <Setting Name="repFichiersDocumentsChèques" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Chèques</Value>
+    </Setting>
+    <Setting Name="repFichiersGym" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Manifestations récurrentes\Activités\Gym</Value>
+    </Setting>
+    <Setting Name="repGymAdhésion" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Formulaires d'adhésion</Value>
+    </Setting>
+    <Setting Name="repGymQuestionnaire" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\QuestionnairesSanté</Value>
+    </Setting>
+    <Setting Name="repRacineDocuments" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Documents</Value>
+    </Setting>
+    <Setting Name="repRacineComptabilité" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Gestion\Trésorerie\Comptabilité\Eléments comptables</Value>
+    </Setting>
+    <Setting Name="repChqProd" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\Chèques\</Value>
+    </Setting>
+    <Setting Name="sqlTypesDocuments" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT prompt, gabaritRepertoire, gabaritNomFichier, classe FROM TypeDoc;</Value>
     </Setting>
   </Settings>
 </SettingsFile>

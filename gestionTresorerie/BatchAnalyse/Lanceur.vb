@@ -8,38 +8,40 @@ Public Class Lanceur
 
     Public Shared Sub LanceTrt()
         ' Sélectionner les types de document (classes) avec sqlTypesDocuments
-        For Each sClasse In GetTypesDocument()
+        For Each typeDoc In GetTypesDocument()
             Try
                 ' Créer une instance de la classe spécifiée par sClasse via réflexion
-                Dim typeClasse As Type = Type.GetType(sClasse)
-                sClasse = "gestionTresorerie." & sClasse
+                'Dim typeClasse As Type = Type.GetType("gestionTresorerie." & typeDoc.classe)
                 ' Si Type.GetType échoue, essayer de chercher dans l'assembly courant
-                If typeClasse Is Nothing Then
-                    typeClasse = Assembly.GetExecutingAssembly().GetType(sClasse)
-                    If typeClasse Is Nothing Then
-                        Logger.WARN("Classe " & sClasse & " non trouvée dans l'assembly courant.")
-                        Continue For
-                    End If
-                End If
+                'If typeClasse Is Nothing Then
+                '    typeClasse = Assembly.GetExecutingAssembly().GetType("gestionTresorerie." & typeDoc.classe)
+                '    If typeClasse Is Nothing Then
+                '        Logger.WARN("Classe " & "gestionTresorerie." & typeDoc.classe & " non trouvée dans l'assembly courant.")
+                '        Continue For
+                '    End If
+                'End If
 
-                Dim instanceClasse As Object = Activator.CreateInstance(typeClasse)
-                Dim batchAnalyse = New batchAnalyse(instanceClasse)
+
+                'Dim instanceClasse As Object = Activator.CreateInstance(typeDoc)
+                Dim batchAnalyse = New batchAnalyse(typeDoc)
 
                 ' Appel de l'analyse des fichiers avec le type d'analyse défini dans le constructeur
                 batchAnalyse.ParcourirRepertoireEtAnalyser()
             Catch ex As Exception
-                Logger.ERR("Erreur lors de l'instanciation ou de l'analyse pour la classe " & sClasse & " : " & ex.Message)
+                Logger.ERR("Erreur lors de l'instanciation ou de l'analyse pour la classe " & "gestionTresorerie." & typeDoc.classe & " : " & ex.Message)
             End Try
-        Next sClasse
+        Next typeDoc
     End Sub
-    Private Shared Function GetTypesDocument() As List(Of String)
-        Dim listId As New List(Of String)
+    Private Shared Function GetTypesDocument() As List(Of ITypeDoc)
+        Dim listTypeDoc As New List(Of ITypeDoc)
 
         Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("sqlTypesDocuments").ExecuteReader()
             ' Vérifier si le reader contient des lignes
             If reader.HasRows Then
                 While reader.Read()
-                    listId.Add(reader.GetString(0)) 
+                    ' Créer une instance concrète implémentant ITypeDoc
+                    Dim typeDoc As New TypeDocImpl(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetString(3))
+                    listTypeDoc.Add(typeDoc)
                 End While
                 Logger.INFO("Types de documents récupérés avec succès.")
             Else
@@ -48,6 +50,6 @@ Public Class Lanceur
             End If
         End Using
 
-        Return listId
+        Return listTypeDoc
     End Function
 End Class

@@ -31,15 +31,6 @@
             Return _repInstallation
         End Get
     End Property
-    Public ReadOnly Property repChq() As String
-        Get
-            If _env = "Prod" Then
-                Return My.Settings.repChqProd
-            Else
-                Return My.Settings.repChqTest
-            End If
-        End Get
-    End Property
     Public Shared ReadOnly Property connexionString() As String
         Get
             If _env = "Prod" Then

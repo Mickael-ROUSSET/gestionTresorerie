@@ -58,4 +58,13 @@
             Throw New NotImplementedException()
         End Set
     End Property
+
+    Public Property classe As String Implements ITypeDoc.classe
+        Get
+            Throw New NotImplementedException()
+        End Get
+        Set(value As String)
+            Throw New NotImplementedException()
+        End Set
+    End Property
 End Class

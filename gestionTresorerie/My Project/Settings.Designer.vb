@@ -195,16 +195,6 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\Chèques\"& _ 
-            "")>  _
-        Public ReadOnly Property repChqProd() As String
-            Get
-                Return CType(Me("repChqProd"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute(";Integrated Security=True;Connect Timeout=30")>  _
         Public ReadOnly Property ParamDb() As String
             Get
@@ -750,15 +740,6 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT classe FROM TypeDoc;")>  _
-        Public ReadOnly Property sqlTypesDocuments() As String
-            Get
-                Return CType(Me("sqlTypesDocuments"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("""FRAIS Commission : Virement emis;FRAIS Tenue de compte professionnel : Virement "& _ 
             "emis;FRAIS saisie administrative : Virement emis;INTERETS CREDITEURS C.L.ALLEGRE"& _ 
             " : Virement recu ;PRELEVEMENT AIST : Prelevement;PRELEVEMENT GIE KLESIA COTIS : "& _ 
@@ -789,65 +770,10 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("A_Trier")>  _
-        Public ReadOnly Property repFichiersDocumentsATrier() As String
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA")>  _
+        Public ReadOnly Property repRacineAgumaaa() As String
             Get
-                Return CType(Me("repFichiersDocumentsATrier"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("Chèques")>  _
-        Public ReadOnly Property repFichiersDocumentsChèques() As String
-            Get
-                Return CType(Me("repFichiersDocumentsChèques"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\Manifestations récurrentes\Activités\Gym")>  _
-        Public ReadOnly Property repFichiersGym() As String
-            Get
-                Return CType(Me("repFichiersGym"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("Formulaires d'adhésion")>  _
-        Public ReadOnly Property repGymAdhésion() As String
-            Get
-                Return CType(Me("repGymAdhésion"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("QuestionnairesSanté")>  _
-        Public ReadOnly Property repGymQuestionnaire() As String
-            Get
-                Return CType(Me("repGymQuestionnaire"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\")>  _
-        Public ReadOnly Property repFichiersDocuments() As String
-            Get
-                Return CType(Me("repFichiersDocuments"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\Chèques\"& _ 
-            "")>  _
-        Public ReadOnly Property repChqTest() As String
-            Get
-                Return CType(Me("repChqTest"),String)
+                Return CType(Me("repRacineAgumaaa"),String)
             End Get
         End Property
         
@@ -857,6 +783,88 @@ Namespace My
         Public ReadOnly Property AttachDbFilenameProd() As String
             Get
                 Return CType(Me("AttachDbFilenameProd"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("\A_Trier")>  _
+        Public ReadOnly Property repFichiersDocumentsATrier() As String
+            Get
+                Return CType(Me("repFichiersDocumentsATrier"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("\Chèques")>  _
+        Public ReadOnly Property repFichiersDocumentsChèques() As String
+            Get
+                Return CType(Me("repFichiersDocumentsChèques"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("\Manifestations récurrentes\Activités\Gym")>  _
+        Public ReadOnly Property repFichiersGym() As String
+            Get
+                Return CType(Me("repFichiersGym"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("\Formulaires d'adhésion")>  _
+        Public ReadOnly Property repGymAdhésion() As String
+            Get
+                Return CType(Me("repGymAdhésion"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("\QuestionnairesSanté")>  _
+        Public ReadOnly Property repGymQuestionnaire() As String
+            Get
+                Return CType(Me("repGymQuestionnaire"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("\Documents")>  _
+        Public ReadOnly Property repRacineDocuments() As String
+            Get
+                Return CType(Me("repRacineDocuments"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("\Gestion\Trésorerie\Comptabilité\Eléments comptables")>  _
+        Public ReadOnly Property repRacineComptabilité() As String
+            Get
+                Return CType(Me("repRacineComptabilité"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\Chèques\"& _ 
+            "")>  _
+        Public ReadOnly Property repChqProd() As String
+            Get
+                Return CType(Me("repChqProd"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT prompt, gabaritRepertoire, gabaritNomFichier, classe FROM TypeDoc;")>  _
+        Public ReadOnly Property sqlTypesDocuments() As String
+            Get
+                Return CType(Me("sqlTypesDocuments"),String)
             End Get
         End Property
     End Class

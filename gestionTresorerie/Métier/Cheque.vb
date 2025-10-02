@@ -109,6 +109,15 @@ Public Class Cheque
         End Set
     End Property
 
+    Public Property classe As String Implements ITypeDoc.classe
+        Get
+            Throw New NotImplementedException()
+        End Get
+        Set(value As String)
+            Throw New NotImplementedException()
+        End Set
+    End Property
+
     Sub ParseJson(json As String)
         ' Parse the JSON string
         'Dim jsonObject As JObject = JObject.Parse(json)
