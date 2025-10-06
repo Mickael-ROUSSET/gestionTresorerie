@@ -1,5 +1,8 @@
-﻿Imports System.Globalization
+﻿Imports System.Collections.Generic
+Imports System.Globalization
+Imports System.IO
 Imports System.Reflection.Metadata
+Imports System.Text.RegularExpressions
 Imports Newtonsoft.Json.Linq
 
 Class Utilitaires
@@ -151,6 +154,33 @@ Class Utilitaires
             If jsonObj(sNomChamp) IsNot Nothing Then
                 Return jsonObj(sNomChamp).ToString()
             Else
+                '                [json]
+                'id: "620d30ce6fd64005bd8d7b3ef6175453"
+                'created: 1759784402
+                'model: "pixtral-12b-2409"
+                'usage
+                'prompt_tokens: 3131
+                'total_tokens: 3303
+                'completion_tokens: 172
+                'Object :  "chat.completion"
+                'choices
+                '[0]
+                'index: 0
+                'finish_reason: "stop"
+                'Message
+                'role: "assistant"
+                'tool_calls:     null
+                'content: "Voici les éléments extraits du chèque au format JSON :
+
+                '```json
+                '{
+                '  "emetteur_du_cheque": "BNP PARIBAS",
+                '  "montant_numerique": "135.00",
+                '  "numero_du_cheque": "00000251182",
+                '  "dateChq": "04/09/2015",
+                '  "emetteur_du_cheque": "MADAME ANNIE LABARE",
+                '  "le_destinataire": "AGUMAAA"
+                '}
                 Logger.WARN($"Champ {sNomChamp} absent dans {json}.")
                 Return Nothing
             End If
@@ -158,6 +188,114 @@ Class Utilitaires
         Catch ex As Exception
             Logger.ERR($"Erreur lors du parsing de {json} : " & ex.Message)
             Return Nothing
+        End Try
+    End Function
+    Shared Function ExtractAndCleanJson(content As String) As String
+        ' Use regex to extract text between the first '{' and the last '}'
+        Dim match As Match = Regex.Match(content, "\{(.*?)\}", RegexOptions.Singleline)
+
+        If match.Success Then
+            ' Get the matched value and remove '\n' and '\'
+            Dim jsonText As String = match.Value
+            jsonText = jsonText.Replace("\n", "").Replace("\", "")
+            Return jsonText
+        Else
+            Return String.Empty
+        End If
+    End Function
+
+    Public Shared Sub RenommerEtDeplacerFichier(sAncienNom As String, sNouveauNom As String)
+        Try
+            ' Vérifier si le fichier existe
+            If Not File.Exists(sAncienNom) Then
+                Logger.ERR($"Le fichier {sAncienNom} n'existe pas.")
+                Return
+            End If
+
+            ' Vérifier si sNouveauNom est vide
+            If String.IsNullOrEmpty(sNouveauNom) Then
+                Logger.ERR("Le nouveau nom du fichier est vide.")
+                Return
+            End If
+
+            ' Vérifier si le répertoire de sortie existe, sinon le créer
+            Dim sRepSortie As String = Path.GetFullPath(sNouveauNom)
+            If Not Directory.Exists(sRepSortie) Then
+                Directory.CreateDirectory(sRepSortie)
+            End If
+
+            ' Vérifier si un fichier avec le même nom existe déjà
+            If File.Exists(sNouveauNom) Then
+                Logger.INFO($"Un fichier avec le nom '{sNouveauNom}' existe déjà dans {sRepSortie}. Renommage et déplacement annulés.")
+                Return
+            End If
+
+            ' Renommer et déplacer le fichier
+            File.Move(sAncienNom, sNouveauNom)
+            Logger.INFO($"Fichier {sAncienNom} renommé et déplacé vers {sNouveauNom}")
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors du renommage/déplacement du fichier {sAncienNom} vers {sNouveauNom}: {ex.Message}")
+        End Try
+    End Sub
+    Public Shared Function ParseJson(json As String, fieldMappings As Dictionary(Of String, String)) As String
+        Try
+            ' Parse le JSON d'entrée
+            Dim objJson As JObject = JObject.Parse(json)
+            Dim choix As JArray = objJson("choices")
+            Dim referenceMessage As IList(Of JToken) = choix(0).Children().ToList()
+
+            ' Créer un objet pour stocker les résultats
+            Dim resultat As New JObject()
+
+            For Each item As JProperty In referenceMessage
+                item.CreateReader()
+
+                Select Case item.Name
+                    Case "message"
+                        Dim message As String = item.Value.ToString()
+                        Dim objMsg As JObject = JObject.Parse(message)
+                        Dim content As String = objMsg("content").ToString()
+                        Dim resultatJson As String = Utilitaires.ExtractAndCleanJson(content)
+                        Dim objResultat As JObject = JObject.Parse(resultatJson)
+
+                        ' Extraire dynamiquement les champs selon les mappages fournis
+                        For Each mapping In fieldMappings
+                            Dim fieldName As String = mapping.Key
+                            Dim fieldType As String = mapping.Value
+                            Dim fieldValue As String = objResultat.Item(fieldName)?.ToString()
+
+                            If String.IsNullOrEmpty(fieldValue) Then
+                                Logger.DBG($"Champ {fieldName} non trouvé dans le JSON")
+                                Continue For
+                            End If
+
+                            Select Case fieldType.ToLower()
+                                Case "string"
+                                    resultat(fieldName) = fieldValue
+                                Case "decimal"
+                                    resultat(fieldName) = Utilitaires.convertStringToDecimal(fieldValue)
+                                Case "integer"
+                                    resultat(fieldName) = CInt(fieldValue)
+                                Case "date"
+                                    resultat(fieldName) = CDate(fieldValue).ToString("yyyy-MM-dd")
+                                Case Else
+                                    Logger.DBG($"Type de conversion non reconnu pour le champ {fieldName}: {fieldType}")
+                                    resultat(fieldName) = fieldValue
+                            End Select
+                        Next
+
+                    Case Else
+                        Logger.DBG("Propriété non reconnue : " & item.Name)
+                End Select
+            Next
+
+            ' Retourner le JSON sérialisé
+            Return resultat.ToString(Newtonsoft.Json.Formatting.None)
+
+        Catch ex As Exception
+            Logger.ERR("Erreur lors du parsing JSON : " & ex.Message)
+            Return "{}" ' Retourner un JSON vide en cas d'erreur
         End Try
     End Function
 End Class

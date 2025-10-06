@@ -1,7 +1,10 @@
-﻿Public Class AttestationNonParticipationMdN
-    Implements ITypeDoc
+﻿Imports System.IO
+
+Public Class AttestationNonParticipationMdN
+    Inherits DocumentAgumaaa
     Private _nom As String
     Private _prenom As String
+    Private _jsonMetaDonnées As String
 
     ' Constructeur par défaut
     Public Sub New()
@@ -32,65 +35,23 @@
         End Set
     End Property
 
-    Public Property Prompt As String Implements ITypeDoc.Prompt
-        Get
-            Throw New NotImplementedException()
-        End Get
-        Set(value As String)
-            Throw New NotImplementedException()
-        End Set
-    End Property
+    Public Overrides Sub RenommerFichier(sChemin As String, Optional sNouveauNom As String = "")
+        Dim sRepDestination As String
+        sRepDestination = LectureProprietes.GetVariable("repRacineAgumaaa") _
+            & LectureProprietes.GetVariable("repRacineDocuments") _
+            & LectureProprietes.GetVariable("repRacineMdN") _
+            & "\" & DateTime.Now.Year.ToString _
+            & LectureProprietes.GetVariable("repAttestationsNonParticipationAutresMarches")
+        Utilitaires.RenommerEtDeplacerFichier(sChemin, determineNouveauNom(sRepDestination))
+    End Sub
+    Private Function determineNouveauNom(sRepSortie As String) As String
 
-    Public Property GabaritRepertoire As String Implements ITypeDoc.GabaritRepertoire
-        Get
-            Throw New NotImplementedException()
-        End Get
-        Set(value As String)
-            Throw New NotImplementedException()
-        End Set
-    End Property
-
-    Public Property GabaritNomFichier As String Implements ITypeDoc.GabaritNomFichier
-        Get
-            Throw New NotImplementedException()
-        End Get
-        Set(value As String)
-            Throw New NotImplementedException()
-        End Set
-    End Property
-
-    Public Property ClasseTypeDoc As String Implements ITypeDoc.ClasseTypeDoc
-        Get
-            Throw New NotImplementedException()
-        End Get
-        Set(value As String)
-            Throw New NotImplementedException()
-        End Set
-    End Property
-
-    Public Property ContenuBase64 As String Implements ITypeDoc.ContenuBase64
-        Get
-            Throw New NotImplementedException()
-        End Get
-        Set(value As String)
-            Throw New NotImplementedException()
-        End Set
-    End Property
-
-    Public Property JsonMetaDonnées As String Implements ITypeDoc.JsonMetaDonnées
-        Get
-            Throw New NotImplementedException()
-        End Get
-        Set(value As String)
-            Throw New NotImplementedException()
-        End Set
-    End Property
-
-    Public Function ReperoireDestination() As String Implements ITypeDoc.ReperoireDestination
-        Throw New NotImplementedException()
-    End Function
-
-    Public Function renommerFichier(sChemin As String) As String Implements ITypeDoc.renommerFichier
-        Throw New NotImplementedException()
+        ' Construire le nouveau chemin complet du fichier dans le répertoire de sortie
+        Dim sNom As String = Utilitaires.ExtractStringFromJson(_jsonMetaDonnées, "nom")
+        Dim sPrenom As String = Utilitaires.ExtractStringFromJson(_jsonMetaDonnées, "prenom")
+        Return Path.Combine(
+            sRepSortie,
+            $"{sNom}_{sPrenom}"
+        )
     End Function
 End Class

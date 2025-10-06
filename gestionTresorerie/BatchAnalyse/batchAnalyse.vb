@@ -2,6 +2,8 @@
 '    ReadOnly _apiKey As String = "uswXFN4VPYfYmrTmNbLY16D3fxFunwjm"
 
 Imports System.IO
+Imports System.Reflection
+Imports Newtonsoft.Json.Linq
 
 Public Class batchAnalyse
     Private nombreFichiersTraites As Integer = 0
@@ -47,7 +49,7 @@ Public Class batchAnalyse
         End Try
     End Sub
     Private Sub ParcourirEtAnalyserRecursif(repertoire As String)
-        Dim nouveauDoc As New DocumentAgumaaa
+        'Dim nouveauDoc As New DocumentAgumaaa
         Try
 
             Dim compteur As (fichiersTraites As Integer, traitementOK As Integer, traitementKO As Integer) = Nothing            ' Initialiser les compteurs pour le répertoire courant
@@ -64,10 +66,10 @@ Public Class batchAnalyse
                 Try
                     'Il faut une instance de classe du bon type
                     _TypeDoc.ContenuBase64 = TypeDocImpl.EncodeImageToBase64(cheminFichier)
-                    nouveauDoc = analyseDocument(_TypeDoc)
+                    Dim nouveauDoc As DocumentAgumaaa = analyseDocument(_TypeDoc)
                     '_TypeDoc.renommerFichier(cheminFichier)
                     'nouveauDoc.InsererDocument(nouveauDoc)
-                    ProcessDocument(_TypeDoc, cheminFichier)
+                    ProcessDocument(nouveauDoc, cheminFichier)
                     Logger.INFO("Insertion en base du document " & nouveauDoc.ToString)
                     nombreFichiersTraites += 1
                     nombreTraitementOK += 1
@@ -91,10 +93,9 @@ Public Class batchAnalyse
             Logger.ERR($"Erreur lors du parcours du répertoire : {repertoire} " & ex.Message)
         End Try
     End Sub
-    Public Sub ProcessDocument(_TypeDoc As ITypeDoc, cheminFichier As String)
+    Public Sub ProcessDocument(nouveauDoc As DocumentAgumaaa, cheminFichier As String)
         Try
-            ' Analyser le document pour obtenir une instance de DocumentAgumaaa
-            Dim nouveauDoc As DocumentAgumaaa = analyseDocument(_TypeDoc)
+            ' Analyser le document pour obtenir une instance de DocumentAgumaaa 
             If nouveauDoc Is Nothing Then
                 Logger.ERR("analyseDocument a retourné un document null.")
                 Return
@@ -102,21 +103,21 @@ Public Class batchAnalyse
 
             ' Vérifier si ClasseTypeDoc est valide
             If String.IsNullOrEmpty(_TypeDoc.ClasseTypeDoc) Then
-                Logger.ERR("ClasseTypeDoc est vide ou null.")
+                Logger.ERR($"ClasseTypeDoc est vide ou null : {_TypeDoc.ClasseTypeDoc}")
                 Return
             End If
 
             ' Obtenir le type de la classe dérivée
-            Dim typeClasse As Type = Type.GetType(_TypeDoc.ClasseTypeDoc)
+            Dim typeClasse As Type = Type.GetType("gestionTresorerie." & _TypeDoc.ClasseTypeDoc)
             If typeClasse Is Nothing OrElse Not GetType(DocumentAgumaaa).IsAssignableFrom(typeClasse) Then
-                Logger.ERR($"Type non trouvé ou non dérivé de DocumentAgumaaa : {_TypeDoc.ClasseTypeDoc}")
+                Logger.ERR($"Type non trouvé ou non dérivé de DocumentAgumaaa : {"gestionTresorerie." & _TypeDoc.ClasseTypeDoc}")
                 Return
             End If
 
             ' Instancier la classe dérivée
             Dim derivedDoc As DocumentAgumaaa = TryCast(Activator.CreateInstance(typeClasse), DocumentAgumaaa)
             If derivedDoc Is Nothing Then
-                Logger.ERR($"Impossible d'instancier la classe {_TypeDoc.ClasseTypeDoc}")
+                Logger.ERR($"Impossible d'instancier la classe {"gestionTresorerie." & _TypeDoc.ClasseTypeDoc}")
                 Return
             End If
 
@@ -139,17 +140,82 @@ Public Class batchAnalyse
             Logger.ERR($"Erreur lors du traitement du document : {ex.Message}")
         End Try
     End Sub
-    Public Function analyseDocument(doc As ITypeDoc) As DocumentAgumaaa
-        Dim nouveauDoc As New DocumentAgumaaa
 
-        Logger.INFO("-------------------" & vbCrLf & "Analyse du document " & doc.ToString)
-        Dim sMetaDonnees = AppelMistral.litImage(doc)
-        nouveauDoc.ContenuDoc = doc.ContenuBase64
-        nouveauDoc.DateDoc = Date.Now
-        nouveauDoc.CategorieDoc = doc.ClasseTypeDoc
-        nouveauDoc.SousCategorieDoc = ""
-        nouveauDoc.metaDonnees = sMetaDonnees
-        Return nouveauDoc
+    Public Function analyseDocument(doc As ITypeDoc) As DocumentAgumaaa
+        Try
+            ' Vérifier si l'objet doc est null
+            If doc Is Nothing Then
+                Logger.ERR("L'objet ITypeDoc passé à analyseDocument est null.")
+                Return Nothing
+            End If
+
+            Logger.INFO("-------------------" & vbCrLf & "Analyse du document " & doc.ToString)
+
+            ' Vérifier si ClasseTypeDoc est valide
+            If String.IsNullOrEmpty(doc.ClasseTypeDoc) Then
+                Logger.ERR("ClasseTypeDoc est vide ou null.")
+                Return Nothing
+            End If
+
+            ' Obtenir le type de la classe dérivée
+            Dim typeClasse As Type = Type.GetType("gestionTresorerie." & doc.ClasseTypeDoc, False, True)
+            If typeClasse Is Nothing Then
+                ' Tentative alternative : chercher dans l'assembly courant
+                typeClasse = Assembly.GetExecutingAssembly().GetType(doc.ClasseTypeDoc, False, True)
+                If typeClasse Is Nothing Then
+                    Logger.ERR($"Type non trouvé : {doc.ClasseTypeDoc}")
+                    Return Nothing
+                End If
+            End If
+
+            ' Vérifier si le type dérive de DocumentAgumaaa
+            If Not GetType(DocumentAgumaaa).IsAssignableFrom(typeClasse) Then
+                Logger.ERR($"Le type {doc.ClasseTypeDoc} ne dérive pas de DocumentAgumaaa.")
+                Return Nothing
+            End If
+
+            ' Instancier la classe dérivée
+            Dim nouveauDoc As DocumentAgumaaa = TryCast(Activator.CreateInstance(typeClasse), DocumentAgumaaa)
+            If nouveauDoc Is Nothing Then
+                Logger.ERR($"Impossible d'instancier la classe {doc.ClasseTypeDoc}")
+                Return Nothing
+            End If
+
+            ' Vérifier si ContenuBase64 est présent
+            If String.IsNullOrEmpty(doc.ContenuBase64) Then
+                Logger.ERR("ContenuBase64 est vide ou null pour le document.")
+                Return Nothing
+            End If
+
+            ' Appeler litImage pour analyser l'image et obtenir les métadonnées
+            Dim sMetaDonnees As String = AppelMistral.litImage(doc)
+            If String.IsNullOrEmpty(sMetaDonnees) Then
+                Logger.ERR("AppelMistral.litImage a retourné des métadonnées vides ou null.")
+                Return Nothing
+            End If
+
+            ' Valider que sMetaDonnees est un JSON valide
+            Try
+                JObject.Parse(sMetaDonnees)
+            Catch ex As Exception
+                Logger.ERR($"Les métadonnées retournées par AppelMistral.litImage ne sont pas un JSON valide : {ex.Message}")
+                Return Nothing
+            End Try
+
+            ' Initialiser les propriétés de DocumentAgumaaa
+            nouveauDoc.ContenuDoc = doc.ContenuBase64
+            nouveauDoc.DateDoc = Date.Now
+            nouveauDoc.CategorieDoc = doc.ClasseTypeDoc
+            nouveauDoc.SousCategorieDoc = "" ' Peut être ajusté si nécessaire
+            nouveauDoc.metaDonnees = sMetaDonnees
+            nouveauDoc.IdMvtDoc = 0 ' Valeur par défaut, à ajuster si nécessaire
+
+            Logger.INFO($"Document {nouveauDoc.CategorieDoc} analysé avec succès. metaDonnees : {sMetaDonnees}")
+            Return nouveauDoc
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors de l'analyse du document : {ex.Message}")
+            Return Nothing
+        End Try
     End Function
 
     ' Méthode dédiée pour générer le compte rendu de traitement

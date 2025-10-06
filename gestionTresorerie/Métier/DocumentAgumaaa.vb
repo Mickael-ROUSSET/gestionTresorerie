@@ -1,7 +1,7 @@
 ﻿Imports System.Data.SqlClient
 Imports System.IO
 
-Public Class DocumentAgumaaa
+Public MustInherit Class DocumentAgumaaa
     Property IdMvtDoc As Integer
 
     ' Propriété pour dateDoc
@@ -81,7 +81,5 @@ Public Class DocumentAgumaaa
             Logger.INFO($"Erreur lors de la suppression du document : {ex.Message}")
         End Try
     End Sub
-    Public Sub RenommerFichier(sChemin As String, Optional sNouveauNom As String = "")
-        'Méthode instanciée dans les classes dérivées
-    End Sub
+    Public MustOverride Sub RenommerFichier(sChemin As String, Optional sNouveauNom As String = "")
 End Class

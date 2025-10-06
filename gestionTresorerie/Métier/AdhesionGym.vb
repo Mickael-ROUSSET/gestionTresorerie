@@ -116,7 +116,7 @@ Public Class AdhesionGym
         )
 
     End Function
-    Public Sub renommerFichier(sChemin As String) Implements ITypeDoc.renommerFichier
+    Public Sub RenommerFichier(sChemin As String)
         'G:\Mon Drive\AGUMAAA\Documents\Manifestations récurrentes\Activités\Gym\2025-2026\Formulaires d'adhésion
         Dim anneeEnCours As Integer = DateTime.Now.Year
         Dim anneeSuivante As Integer = anneeEnCours + 1

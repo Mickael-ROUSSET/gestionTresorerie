@@ -13,80 +13,19 @@ Public Class Cheque
     Public _id As Integer
     Private _jsonMetaDonnées As String
 
+    Public Sub New()
+    End Sub
     Public Shared Function ParseJson(json As String) As String
-        Try
-            ' Parse le JSON d'entrée
-            Dim objJson As JObject = JObject.Parse(json)
-            Dim choix As JArray = objJson("choices")
-            Dim referenceMessage As IList(Of JToken) = choix(0).Children().ToList()
-
-            ' Créer un objet pour stocker les résultats
-            Dim resultat As New JObject()
-
-            For Each item As JProperty In referenceMessage
-                item.CreateReader()
-
-                Select Case item.Name
-                    Case "message"
-                        Dim message As String = item.Value.ToString()
-                        Dim objMsg As JObject = JObject.Parse(message)
-                        Dim content As String = objMsg("content").ToString()
-                        Dim resultatJson As String = ExtractAndCleanJson(content)
-                        Dim objResultat As JObject = JObject.Parse(resultatJson)
-
-                        ' Remplir l'objet JSON avec les champs demandés
-                        resultat("montant_numerique") = Utilitaires.convertStringToDecimal(objResultat.Item(NameOf(montant_numerique)).ToString())
-                        resultat("numero_du_cheque") = CInt(objResultat.Item(NameOf(numero_du_cheque)).ToString())
-                        resultat("dateChq") = CDate(objResultat.Item(NameOf(dateChq)).ToString()).ToString("yyyy-MM-dd")
-                        resultat("emetteur_du_cheque") = objResultat.Item(NameOf(emetteur_du_cheque)).ToString()
-                        resultat("destinataire") = objResultat.Item("le_destinataire").ToString()
-
-                    Case Else
-                        ' Logger l'information
-                        Logger.DBG("Propriété non reconnue : " & item.Name)
-                End Select
-            Next
-
-            ' Retourner le JSON sérialisé
-            Return resultat.ToString(Newtonsoft.Json.Formatting.None)
-        Catch ex As Exception
-            Logger.ERR("Erreur lors du parsing JSON : " & ex.Message)
-            Return "{}" ' Retourner un JSON vide en cas d'erreur
-        End Try
+        Dim sJsonCheque As String
+        Dim fieldMappings As New Dictionary(Of String, String) From {
+                                                                        {"montant_numerique", "decimal"},
+                                                                        {"numero_du_cheque", "integer"},
+                                                                        {"dateChq", "date"},
+                                                                        {"emetteur_du_cheque", "string"},
+                                                                        {"le_destinataire", "string"}
+                                                                    }
+        Return sJsonCheque = Utilitaires.ParseJson(json, fieldMappings)
     End Function
-    'Sub ParseJson(json As String)
-    '    ' Parse the JSON string
-    '    'Dim jsonObject As JObject = JObject.Parse(json)
-
-    '    Dim objJson = JObject.Parse(json)
-    '    Dim choix = objJson("choices")
-    '    Dim referenceMessage = choix(0).Children().ToList
-
-
-    '    For Each item As JProperty In referenceMessage
-    '        item.CreateReader()
-
-    '        Select Case item.Name
-    '            Case "message"
-    '                Dim message As String = item.Value.ToString()
-    '                Dim objMsg = JObject.Parse(message)
-    '                Dim content As String = objMsg("content").ToString
-    '                Dim resultatJson As String = ExtractAndCleanJson(content)
-    '                Dim objResultat = JObject.Parse(resultatJson)
-    '                With objResultat 
-    '                    '_id = CInt(.Item("id").ToString)
-    '                    _montant_numerique = Utilitaires.convertStringToDecimal(objResultat.Item(NameOf(montant_numerique)).ToString)
-    '                    _numero_du_cheque = CInt(.Item(NameOf(numero_du_cheque)).ToString)
-    '                    _dateChq = CDate(.Item(NameOf(dateChq)).ToString)
-    '                    _emetteur_du_cheque = .Item(NameOf(emetteur_du_cheque)).ToString
-    '                    _destinataire = .Item("le_destinataire").ToString
-    '                End With
-    '            Case Else
-    '                ' Logger l'information
-    '                Logger.DBG("Propriété non reconnue : " & item.Name)
-    '        End Select
-    '    Next
-    'End Sub
     Public Sub New(id As Integer, montant_numerique As String, numero_du_cheque As Integer, dateChq As Date, emetteur_du_cheque As String, destinataire As String)
         _id = id
         _montant_numerique = montant_numerique
@@ -152,19 +91,6 @@ Public Class Cheque
         End Set
     End Property
 
-    Shared Function ExtractAndCleanJson(content As String) As String
-        ' Use regex to extract text between the first '{' and the last '}'
-        Dim match As Match = Regex.Match(content, "\{(.*?)\}", RegexOptions.Singleline)
-
-        If match.Success Then
-            ' Get the matched value and remove '\n' and '\'
-            Dim jsonText As String = match.Value
-            jsonText = jsonText.Replace("\n", "").Replace("\", "")
-            Return jsonText
-        Else
-            Return String.Empty
-        End If
-    End Function
     Public Shared Sub AfficherImage(idCheque As Integer, pbBox As PictureBox)
         Try
             ' Effacer l'image précédemment affichée
@@ -222,24 +148,53 @@ Public Class Cheque
         End Try
     End Function
 
-    Public Overloads Sub RenommerFichier(sChemin As String, Optional sNouveauNom As String = "")
+    Public Overrides Sub RenommerFichier(sChemin As String, Optional sNouveauNom As String = "")
         Dim sRepDestination As String
         sRepDestination = LectureProprietes.GetVariable("repRacineAgumaaa") _
             & LectureProprietes.GetVariable("repRacineComptabilité") _
             & LectureProprietes.GetVariable("repFichiersDocumentsChèques") _
             & "\" & DateTime.Now.Year.ToString _
             & "\" & IIf(_emetteur_du_cheque = "AGUMAAA", "Emis", "Reçus")
-        MyBase.RenommerFichier(sChemin, determineNouveauNom(sRepDestination))
+        Utilitaires.RenommerEtDeplacerFichier(sChemin, determineNouveauNom(sRepDestination))
     End Sub
     Private Function determineNouveauNom(sRepSortie As String) As String
+        Try
+            ' Vérifier si le répertoire de sortie est valide
+            If String.IsNullOrEmpty(sRepSortie) Then
+                Logger.ERR("Le répertoire de sortie (sRepSortie) est vide ou null.")
+                Throw New ArgumentException("Le répertoire de sortie ne peut pas être vide ou null.", NameOf(sRepSortie))
+            End If
 
-        ' Construire le nouveau chemin complet du fichier dans le répertoire de sortie
-        Dim numeroChq As String = Utilitaires.ExtractStringFromJson(_jsonMetaDonnées, "numero_du_cheque")
-        Return Path.Combine(
-            sRepSortie,
-            $"CHQ_{numeroChq}"
-        )
+            ' Vérifier si metaDonnees est valide
+            If String.IsNullOrEmpty(metaDonnees) Then
+                Logger.ERR("_jsonMetaDonnées est vide ou null.")
+                Throw New InvalidOperationException("Les métadonnées JSON sont vides ou null.")
+            End If
 
+            ' Valider que metaDonnees est un JSON valide
+            Dim jsonMeta As JObject
+            Try
+                jsonMeta = JObject.Parse(metaDonnees)
+            Catch ex As Exception
+                Logger.ERR($"Erreur lors du parsing de metaDonnees : {ex.Message}")
+                Throw New InvalidOperationException("Les métadonnées JSON ne sont pas valides.", ex)
+            End Try
+
+            ' Extraire numero_du_cheque
+            Dim numeroChq As String = Utilitaires.ExtractStringFromJson(metaDonnees, "numero_du_cheque")
+            If String.IsNullOrEmpty(numeroChq) Then
+                Logger.ERR("Le champ 'numero_du_cheque' est vide ou non trouvé dans metaDonnees.")
+                Throw New InvalidOperationException("Le numéro du chèque est vide ou non trouvé dans les métadonnées.")
+            End If
+
+            ' Construire le nouveau chemin complet
+            Dim nouveauNom As String = Path.Combine(sRepSortie, $"CHQ_{numeroChq}")
+
+            Logger.INFO($"Nouveau nom déterminé : {nouveauNom}")
+            Return nouveauNom
+        Catch ex As Exception
+            Logger.ERR($"Erreur dans determineNouveauNom : {ex.Message}")
+            Throw ' Relever l'exception pour permettre à l'appelant de gérer l'erreur
+        End Try
     End Function
-
 End Class
