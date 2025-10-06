@@ -139,55 +139,77 @@ Class Utilitaires
             Return Nothing
         End Try
     End Function
+
     Public Shared Function ExtractStringFromJson(json As String, sNomChamp As String) As String
         Try
-            ' Vérifier si JsonMetaDonnées est non vide
+            ' Vérifier si le JSON est non vide
             If String.IsNullOrEmpty(json) Then
-                Logger.WARN("json est vide ou null.")
-                Return Nothing
+                Logger.WARN("Le JSON est vide ou null.")
+                Return ""
             End If
 
-            ' Parser le JSON
+            ' Parser le JSON racine
             Dim jsonObj As JObject = JObject.Parse(json)
 
-            ' Vérifier si le champ dateDocument existe
-            If jsonObj(sNomChamp) IsNot Nothing Then
-                Return jsonObj(sNomChamp).ToString()
-            Else
-                '                [json]
-                'id: "620d30ce6fd64005bd8d7b3ef6175453"
-                'created: 1759784402
-                'model: "pixtral-12b-2409"
-                'usage
-                'prompt_tokens: 3131
-                'total_tokens: 3303
-                'completion_tokens: 172
-                'Object :  "chat.completion"
-                'choices
-                '[0]
-                'index: 0
-                'finish_reason: "stop"
-                'Message
-                'role: "assistant"
-                'tool_calls:     null
-                'content: "Voici les éléments extraits du chèque au format JSON :
-
-                '```json
-                '{
-                '  "emetteur_du_cheque": "BNP PARIBAS",
-                '  "montant_numerique": "135.00",
-                '  "numero_du_cheque": "00000251182",
-                '  "dateChq": "04/09/2015",
-                '  "emetteur_du_cheque": "MADAME ANNIE LABARE",
-                '  "le_destinataire": "AGUMAAA"
-                '}
-                Logger.WARN($"Champ {sNomChamp} absent dans {json}.")
-                Return Nothing
+            ' Naviguer jusqu'à choices[0].message.content
+            Dim choices As JArray = jsonObj("choices")
+            If choices Is Nothing OrElse choices.Count = 0 Then
+                Logger.WARN("Le champ 'choices' est absent ou vide dans le JSON.")
+                Return ""
             End If
 
+            Dim message As JObject = choices(0)("message")
+            If message Is Nothing Then
+                Logger.WARN("Le champ 'message' est absent dans choices[0].")
+                Return ""
+            End If
+
+            Dim content As String = message("content")?.ToString()
+            If String.IsNullOrEmpty(content) Then
+                Logger.WARN("Le champ 'content' est vide ou absent dans message.")
+                Return ""
+            End If
+
+            ' Extraire le JSON imbriqué dans content
+            Dim contentJson As String = ExtractJsonFromContent(content)
+            If String.IsNullOrEmpty(contentJson) Then
+                Logger.WARN("Aucun JSON valide extrait du champ 'content'.")
+                Return ""
+            End If
+
+            ' Parser le JSON imbriqué
+            Dim innerJsonObj As JObject = JObject.Parse(contentJson)
+
+            ' Vérifier si le champ demandé existe
+            If innerJsonObj(sNomChamp) IsNot Nothing Then
+                Return innerJsonObj(sNomChamp).ToString()
+            Else
+                Logger.WARN($"Champ '{sNomChamp}' absent dans le JSON imbriqué : {contentJson}")
+                Return ""
+            End If
         Catch ex As Exception
-            Logger.ERR($"Erreur lors du parsing de {json} : " & ex.Message)
-            Return Nothing
+            Logger.ERR($"Erreur lors du parsing du JSON pour le champ '{sNomChamp}' : {ex.Message}")
+            Return ""
+        End Try
+    End Function
+
+    ' Fonction auxiliaire pour extraire le JSON de la chaîne content
+    Private Shared Function ExtractJsonFromContent(content As String) As String
+        Try
+            ' Trouver le début et la fin du bloc JSON dans content
+            Dim startIndex As Integer = content.IndexOf("```json") + 7
+            Dim endIndex As Integer = content.LastIndexOf("```")
+            If startIndex < 7 OrElse endIndex <= startIndex Then
+                Logger.WARN("Aucun bloc JSON trouvé dans le contenu.")
+                Return ""
+            End If
+
+            ' Extraire la sous-chaîne JSON
+            Dim jsonString As String = content.Substring(startIndex, endIndex - startIndex).Trim()
+            Return jsonString
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors de l'extraction du JSON du contenu : {ex.Message}")
+            Return ""
         End Try
     End Function
     Shared Function ExtractAndCleanJson(content As String) As String
@@ -229,6 +251,10 @@ Class Utilitaires
                 Logger.INFO($"Un fichier avec le nom '{sNouveauNom}' existe déjà dans {sRepSortie}. Renommage et déplacement annulés.")
                 Return
             End If
+            'On récupère l'extension du fichier existant
+            Dim sExtension As String
+            sExtension = Path.GetExtension(sAncienNom)
+            sNouveauNom = sNouveauNom & "." & sExtension
 
             ' Renommer et déplacer le fichier
             File.Move(sAncienNom, sNouveauNom)

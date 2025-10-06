@@ -132,6 +132,8 @@ Public Class batchAnalyse
 
             ' Appeler renommerFichier sur _TypeDoc
             derivedDoc.RenommerFichier(cheminFichier)
+            'Récupérer le nouveau chemin après renommage
+            derivedDoc.CheminDoc = nouveauDoc.CheminDoc
 
             ' Insérer le document (version non statique)
             derivedDoc.InsererDocument(derivedDoc)
