@@ -56,7 +56,7 @@ Public Class QuestionnaireSanteGym
             _dateNaissance = value
         End Set
     End Property
-    Public Overrides Sub RenommerFichier(sChemin As String, Optional sNouveauNom As String = "")
+    Public Overrides Function RenommerFichier(sChemin As String, Optional sNouveauNom As String = "") As String
         'G:\Mon Drive\AGUMAAA\Documents\Manifestations récurrentes\Activités\Gym\2025-2026\QuestionnairesSanté
         Dim anneeEnCours As Integer = DateTime.Now.Year
         Dim anneeSuivante As Integer = anneeEnCours + 1
@@ -68,7 +68,8 @@ Public Class QuestionnaireSanteGym
             anneeEnCours.ToString & "-" & anneeSuivante.ToString &
             LectureProprietes.GetVariable("repGymQuestionnaire")
         Utilitaires.RenommerEtDeplacerFichier(sChemin, determineNouveauNom(sRepDestination))
-    End Sub
+        Return sRepDestination
+    End Function
     Private Function determineNouveauNom(sRepSortie As String) As String
 
         ' Construire le nouveau chemin complet du fichier dans le répertoire de sortie

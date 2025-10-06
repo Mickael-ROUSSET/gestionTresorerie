@@ -81,5 +81,5 @@ Public MustInherit Class DocumentAgumaaa
             Logger.INFO($"Erreur lors de la suppression du document : {ex.Message}")
         End Try
     End Sub
-    Public MustOverride Sub RenommerFichier(sChemin As String, Optional sNouveauNom As String = "")
+    Public MustOverride Function RenommerFichier(sChemin As String, Optional sNouveauNom As String = "") As String
 End Class

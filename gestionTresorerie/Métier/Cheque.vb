@@ -148,7 +148,7 @@ Public Class Cheque
         End Try
     End Function
 
-    Public Overrides Sub RenommerFichier(sChemin As String, Optional sNouveauNom As String = "")
+    Public Overrides Function RenommerFichier(sChemin As String, Optional sNouveauNom As String = "") As String
         Dim sRepDestination As String
         sRepDestination = LectureProprietes.GetVariable("repRacineAgumaaa") _
             & LectureProprietes.GetVariable("repRacineComptabilité") _
@@ -156,7 +156,8 @@ Public Class Cheque
             & "\" & DateTime.Now.Year.ToString _
             & "\" & IIf(_emetteur_du_cheque = "AGUMAAA", "Emis", "Reçus")
         Utilitaires.RenommerEtDeplacerFichier(sChemin, determineNouveauNom(sRepDestination))
-    End Sub
+        Return sRepDestination
+    End Function
     Private Function determineNouveauNom(sRepSortie As String) As String
         Try
             ' Vérifier si le répertoire de sortie est valide

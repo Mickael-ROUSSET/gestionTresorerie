@@ -35,7 +35,7 @@ Public Class AttestationNonParticipationMdN
         End Set
     End Property
 
-    Public Overrides Sub RenommerFichier(sChemin As String, Optional sNouveauNom As String = "")
+    Public Overrides Function RenommerFichier(sChemin As String, Optional sNouveauNom As String = "") As String
         Dim sRepDestination As String
         sRepDestination = LectureProprietes.GetVariable("repRacineAgumaaa") _
             & LectureProprietes.GetVariable("repRacineDocuments") _
@@ -43,7 +43,8 @@ Public Class AttestationNonParticipationMdN
             & "\" & DateTime.Now.Year.ToString _
             & LectureProprietes.GetVariable("repAttestationsNonParticipationAutresMarches")
         Utilitaires.RenommerEtDeplacerFichier(sChemin, determineNouveauNom(sRepDestination))
-    End Sub
+        Return sRepDestination
+    End Function
     Private Function determineNouveauNom(sRepSortie As String) As String
 
         ' Construire le nouveau chemin complet du fichier dans le répertoire de sortie
