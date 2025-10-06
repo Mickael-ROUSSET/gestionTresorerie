@@ -29,20 +29,6 @@ Partial Class FrmPrincipale
         btnHistogramme = New Button()
         btnConsultation = New Button()
         dgvPrincipale = New DataGridView()
-        colEtat = New DataGridViewImageColumn()
-        EtatMasque = New DataGridViewTextBoxColumn()
-        colDateCréation = New DataGridViewTextBoxColumn()
-        colTiers = New DataGridViewTextBoxColumn()
-        colCategorie = New DataGridViewTextBoxColumn()
-        colSousCategorie = New DataGridViewTextBoxColumn()
-        colDateMvt = New DataGridViewTextBoxColumn()
-        colMontant = New DataGridViewTextBoxColumn()
-        colSens = New DataGridViewTextBoxColumn()
-        colEvenement = New DataGridViewTextBoxColumn()
-        colNote = New DataGridViewTextBoxColumn()
-        colType = New DataGridViewTextBoxColumn()
-        colModifiable = New DataGridViewTextBoxColumn()
-        colNumeroRemise = New DataGridViewTextBoxColumn()
         MouvementsBindingSource = New BindingSource(components)
         BindingSource1 = New BindingSource(components)
         MenuStrip1 = New MenuStrip()
@@ -61,6 +47,21 @@ Partial Class FrmPrincipale
         EnvironnementToolStripMenuItem = New ToolStripMenuItem()
         btnBatch = New Button()
         btnTraiteRelevé = New Button()
+        colEtat = New DataGridViewImageColumn()
+        etatImage = New DataGridViewTextBoxColumn()
+        EtatMasque = New DataGridViewTextBoxColumn()
+        colDateCréation = New DataGridViewTextBoxColumn()
+        colTiers = New DataGridViewTextBoxColumn()
+        colCategorie = New DataGridViewTextBoxColumn()
+        colSousCategorie = New DataGridViewTextBoxColumn()
+        colDateMvt = New DataGridViewTextBoxColumn()
+        colMontant = New DataGridViewTextBoxColumn()
+        colSens = New DataGridViewTextBoxColumn()
+        colEvenement = New DataGridViewTextBoxColumn()
+        colNote = New DataGridViewTextBoxColumn()
+        colType = New DataGridViewTextBoxColumn()
+        colModifiable = New DataGridViewTextBoxColumn()
+        colNumeroRemise = New DataGridViewTextBoxColumn()
         CType(dgvPrincipale, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -110,105 +111,13 @@ Partial Class FrmPrincipale
         ' 
         dgvPrincipale.AutoGenerateColumns = False
         dgvPrincipale.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvPrincipale.Columns.AddRange(New DataGridViewColumn() {colEtat, EtatMasque, colDateCréation, colTiers, colCategorie, colSousCategorie, colDateMvt, colMontant, colSens, colEvenement, colNote, colType, colModifiable, colNumeroRemise})
+        dgvPrincipale.Columns.AddRange(New DataGridViewColumn() {colEtat, etatImage, EtatMasque, colDateCréation, colTiers, colCategorie, colSousCategorie, colDateMvt, colMontant, colSens, colEvenement, colNote, colType, colModifiable, colNumeroRemise})
         dgvPrincipale.DataBindings.Add(New Binding("DataContext", MouvementsBindingSource, "note", True))
         dgvPrincipale.DataSource = MouvementsBindingSource
         dgvPrincipale.Location = New Point(145, 67)
         dgvPrincipale.Name = "dgvPrincipale"
         dgvPrincipale.Size = New Size(798, 370)
         dgvPrincipale.TabIndex = 4
-        ' 
-        ' colEtat
-        ' 
-        colEtat.HeaderText = "État"
-        colEtat.ImageLayout = DataGridViewImageCellLayout.Zoom
-        colEtat.Name = "colEtat"
-        colEtat.SortMode = DataGridViewColumnSortMode.Automatic
-        colEtat.Width = 30
-        ' 
-        ' EtatMasque
-        ' 
-        EtatMasque.DataPropertyName = "Etat"
-        EtatMasque.HeaderText = "Etat"
-        EtatMasque.Name = "EtatMasque"
-        EtatMasque.Resizable = DataGridViewTriState.True
-        EtatMasque.Visible = False
-        ' 
-        ' colDateCréation
-        ' 
-        colDateCréation.DataPropertyName = "DateCréation"
-        colDateCréation.HeaderText = "DateCréation"
-        colDateCréation.MaxInputLength = 32
-        colDateCréation.Name = "colDateCréation"
-        colDateCréation.ReadOnly = True
-        ' 
-        ' colTiers
-        ' 
-        colTiers.DataPropertyName = "Tiers"
-        colTiers.HeaderText = "Tiers"
-        colTiers.Name = "colTiers"
-        ' 
-        ' colCategorie
-        ' 
-        colCategorie.DataPropertyName = "Catégorie"
-        colCategorie.HeaderText = "Catégorie"
-        colCategorie.Name = "colCategorie"
-        ' 
-        ' colSousCategorie
-        ' 
-        colSousCategorie.DataPropertyName = "SousCatégorie"
-        colSousCategorie.HeaderText = "SousCatégorie"
-        colSousCategorie.Name = "colSousCategorie"
-        ' 
-        ' colDateMvt
-        ' 
-        colDateMvt.DataPropertyName = "DateMvt"
-        colDateMvt.HeaderText = "DateMvt"
-        colDateMvt.Name = "colDateMvt"
-        ' 
-        ' colMontant
-        ' 
-        colMontant.DataPropertyName = "Montant"
-        colMontant.HeaderText = "Montant"
-        colMontant.Name = "colMontant"
-        ' 
-        ' colSens
-        ' 
-        colSens.DataPropertyName = "Sens"
-        colSens.HeaderText = "Sens"
-        colSens.Name = "colSens"
-        ' 
-        ' colEvenement
-        ' 
-        colEvenement.DataPropertyName = "Événement"
-        colEvenement.HeaderText = "Événement"
-        colEvenement.Name = "colEvenement"
-        ' 
-        ' colNote
-        ' 
-        colNote.DataPropertyName = "Note"
-        colNote.HeaderText = "Note"
-        colNote.Name = "colNote"
-        ' 
-        ' colType
-        ' 
-        colType.DataPropertyName = "Type"
-        colType.HeaderText = "Type"
-        colType.Name = "colType"
-        ' 
-        ' colModifiable
-        ' 
-        colModifiable.DataPropertyName = "Modifiable"
-        colModifiable.HeaderText = "Modifiable"
-        colModifiable.Name = "colModifiable"
-        colModifiable.Resizable = DataGridViewTriState.True
-        colModifiable.SortMode = DataGridViewColumnSortMode.NotSortable
-        ' 
-        ' colNumeroRemise
-        ' 
-        colNumeroRemise.DataPropertyName = "NumeroRemise"
-        colNumeroRemise.HeaderText = "NumeroRemise"
-        colNumeroRemise.Name = "colNumeroRemise"
         ' 
         ' MouvementsBindingSource
         ' 
@@ -325,6 +234,103 @@ Partial Class FrmPrincipale
         btnTraiteRelevé.TextAlign = ContentAlignment.BottomCenter
         btnTraiteRelevé.UseVisualStyleBackColor = True
         ' 
+        ' colEtat
+        ' 
+        colEtat.HeaderText = "État"
+        colEtat.ImageLayout = DataGridViewImageCellLayout.Zoom
+        colEtat.Name = "colEtat"
+        colEtat.SortMode = DataGridViewColumnSortMode.Automatic
+        colEtat.Width = 30
+        ' 
+        ' etatImage
+        ' 
+        etatImage.HeaderText = "etatImage"
+        etatImage.Name = "etatImage"
+        ' 
+        ' EtatMasque
+        ' 
+        EtatMasque.DataPropertyName = "Etat"
+        EtatMasque.HeaderText = "Etat"
+        EtatMasque.Name = "EtatMasque"
+        EtatMasque.Resizable = DataGridViewTriState.True
+        EtatMasque.Visible = False
+        ' 
+        ' colDateCréation
+        ' 
+        colDateCréation.DataPropertyName = "DateCréation"
+        colDateCréation.HeaderText = "DateCréation"
+        colDateCréation.MaxInputLength = 32
+        colDateCréation.Name = "colDateCréation"
+        colDateCréation.ReadOnly = True
+        ' 
+        ' colTiers
+        ' 
+        colTiers.DataPropertyName = "Tiers"
+        colTiers.HeaderText = "Tiers"
+        colTiers.Name = "colTiers"
+        ' 
+        ' colCategorie
+        ' 
+        colCategorie.DataPropertyName = "Catégorie"
+        colCategorie.HeaderText = "Catégorie"
+        colCategorie.Name = "colCategorie"
+        ' 
+        ' colSousCategorie
+        ' 
+        colSousCategorie.DataPropertyName = "SousCatégorie"
+        colSousCategorie.HeaderText = "SousCatégorie"
+        colSousCategorie.Name = "colSousCategorie"
+        ' 
+        ' colDateMvt
+        ' 
+        colDateMvt.DataPropertyName = "DateMvt"
+        colDateMvt.HeaderText = "DateMvt"
+        colDateMvt.Name = "colDateMvt"
+        ' 
+        ' colMontant
+        ' 
+        colMontant.DataPropertyName = "Montant"
+        colMontant.HeaderText = "Montant"
+        colMontant.Name = "colMontant"
+        ' 
+        ' colSens
+        ' 
+        colSens.DataPropertyName = "Sens"
+        colSens.HeaderText = "Sens"
+        colSens.Name = "colSens"
+        ' 
+        ' colEvenement
+        ' 
+        colEvenement.DataPropertyName = "Événement"
+        colEvenement.HeaderText = "Événement"
+        colEvenement.Name = "colEvenement"
+        ' 
+        ' colNote
+        ' 
+        colNote.DataPropertyName = "Note"
+        colNote.HeaderText = "Note"
+        colNote.Name = "colNote"
+        ' 
+        ' colType
+        ' 
+        colType.DataPropertyName = "Type"
+        colType.HeaderText = "Type"
+        colType.Name = "colType"
+        ' 
+        ' colModifiable
+        ' 
+        colModifiable.DataPropertyName = "Modifiable"
+        colModifiable.HeaderText = "Modifiable"
+        colModifiable.Name = "colModifiable"
+        colModifiable.Resizable = DataGridViewTriState.True
+        colModifiable.SortMode = DataGridViewColumnSortMode.NotSortable
+        ' 
+        ' colNumeroRemise
+        ' 
+        colNumeroRemise.DataPropertyName = "NumeroRemise"
+        colNumeroRemise.HeaderText = "NumeroRemise"
+        colNumeroRemise.Name = "colNumeroRemise"
+        ' 
         ' FrmPrincipale
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
@@ -376,6 +382,7 @@ Partial Class FrmPrincipale
     Friend WithEvents CategorieDataGridViewTextBoxColumn As DataGridViewTextBoxColumn
     Friend WithEvents SousCategorieDataGridViewTextBoxColumn As DataGridViewTextBoxColumn
     Friend WithEvents colEtat As DataGridViewImageColumn
+    Friend WithEvents etatImage As DataGridViewTextBoxColumn
     Friend WithEvents EtatMasque As DataGridViewTextBoxColumn
     Friend WithEvents colDateCréation As DataGridViewTextBoxColumn
     Friend WithEvents colTiers As DataGridViewTextBoxColumn

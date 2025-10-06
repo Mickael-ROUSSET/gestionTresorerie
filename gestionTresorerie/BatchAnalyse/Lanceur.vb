@@ -10,17 +10,16 @@ Public Class Lanceur
         ' Sélectionner les types de document (classes) avec sqlTypesDocuments
         For Each typeDoc In GetTypesDocument()
             Try
-                ' Créer une instance de la classe spécifiée par sClasse via réflexion
-                'Dim typeClasse As Type = Type.GetType("gestionTresorerie." & typeDoc.classe)
-                ' Si Type.GetType échoue, essayer de chercher dans l'assembly courant
+                '' Créer une instance de la classe spécifiée par sClasse via réflexion
+                'Dim typeClasse As Type = Type.GetType("gestionTresorerie." & typeDoc.ClasseTypeDoc)
+                ''Si Type.GetType échoue, essayer de chercher dans l'assembly courant
                 'If typeClasse Is Nothing Then
-                '    typeClasse = Assembly.GetExecutingAssembly().GetType("gestionTresorerie." & typeDoc.classe)
+                '    typeClasse = Assembly.GetExecutingAssembly().GetType("gestionTresorerie." & typeDoc.ClasseTypeDoc)
                 '    If typeClasse Is Nothing Then
-                '        Logger.WARN("Classe " & "gestionTresorerie." & typeDoc.classe & " non trouvée dans l'assembly courant.")
+                '        Logger.WARN("Classe " & "gestionTresorerie." & typeDoc.ClasseTypeDoc & " non trouvée dans l'assembly courant.")
                 '        Continue For
                 '    End If
                 'End If
-
 
                 'Dim instanceClasse As Object = Activator.CreateInstance(typeDoc)
                 Dim batchAnalyse = New batchAnalyse(typeDoc)
@@ -28,7 +27,7 @@ Public Class Lanceur
                 ' Appel de l'analyse des fichiers avec le type d'analyse défini dans le constructeur
                 batchAnalyse.ParcourirRepertoireEtAnalyser()
             Catch ex As Exception
-                Logger.ERR("Erreur lors de l'instanciation ou de l'analyse pour la classe " & "gestionTresorerie." & typeDoc.classe & " : " & ex.Message)
+                Logger.ERR("Erreur lors de l'instanciation ou de l'analyse pour la classe " & "gestionTresorerie." & typeDoc.ClasseTypeDoc & " : " & ex.Message)
             End Try
         Next typeDoc
     End Sub

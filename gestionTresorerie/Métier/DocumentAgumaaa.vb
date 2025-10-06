@@ -1,4 +1,5 @@
 ﻿Imports System.Data.SqlClient
+Imports System.IO
 
 Public Class DocumentAgumaaa
     Property IdMvtDoc As Integer
@@ -17,20 +18,24 @@ Public Class DocumentAgumaaa
 
     ' Propriété pour sousCategorieDoc
     Public Property SousCategorieDoc As String
+    ' Propriété pour les méta donnees JSON
+    Public Property metaDonnees As String
 
-    Public Shared Sub InsererDocument(dateDoc As Date, contenuDoc As String, cheminDoc As String, categorieDoc As String, sousCategorieDoc As String, idMvtDoc As Integer)
+    Public Shared Sub InsererDocument(doc As DocumentAgumaaa)
         Try
             SqlCommandBuilder.CreateSqlCommand("insertDocAgumaaa",
-                             New Dictionary(Of String, Object) From {{"@dateDoc", dateDoc},
-                                                                     {"@contenuDoc", contenuDoc},
-                                                                     {"@cheminDoc", cheminDoc},
-                                                                     {"@categorieDoc", categorieDoc},
-                                                                     {"@sousCategorieDoc", sousCategorieDoc},
-                                                                     {"@idMvtDoc", idMvtDoc}}
+                             New Dictionary(Of String, Object) From {{"@dateDoc", doc.DateDoc},
+                                                                     {"@contenuDoc", doc.ContenuDoc},
+                                                                     {"@cheminDoc", doc.CheminDoc},
+                                                                     {"@categorieDoc", doc.CategorieDoc},
+                                                                     {"@sousCategorieDoc", doc.SousCategorieDoc},
+                                                                     {"@idMvtDoc", doc.IdMvtDoc},
+                                                                     {"@metaDonnees", doc.metaDonnees}
+                             }
                              ).ExecuteNonQuery()
-            Console.WriteLine("Document inséré avec succès.")
+            Logger.INFO($"Document {doc.IdMvtDoc} inséré avec succès.")
         Catch ex As Exception
-            Console.WriteLine("Erreur lors de l'insertion du document : " & ex.Message)
+            Logger.INFO($"Erreur lors de l'insertion du document : {ex.Message}")
         End Try
     End Sub
     Public Shared Function LireDocuments() As DataTable
@@ -43,7 +48,7 @@ Public Class DocumentAgumaaa
             End Using
             'End Using
         Catch ex As Exception
-            Console.WriteLine("Erreur lors de la lecture des documents : " & ex.Message)
+            Logger.INFO($"Erreur lors de la lecture des documents : {ex.Message}")
         End Try
 
         Return table
@@ -60,9 +65,9 @@ Public Class DocumentAgumaaa
                                                                      {"@idMvtDoc", idMvtDoc}}
                              )
             command.ExecuteNonQuery()
-            Console.WriteLine("Document mis à jour avec succès.")
+            Logger.INFO($"Document {idDoc} mis à jour avec succès.")
         Catch ex As Exception
-            Console.WriteLine("Erreur lors de la mise à jour du document : " & ex.Message)
+            Logger.INFO($"Erreur lors de la mise à jour du document : {ex.Message}")
         End Try
     End Sub
     Public Shared Sub SupprimerDocument(idDoc As Integer)
@@ -71,10 +76,12 @@ Public Class DocumentAgumaaa
                              New Dictionary(Of String, Object) From {{"@idDoc", idDoc}}
                              )
             command.ExecuteNonQuery()
-            Console.WriteLine("Document supprimé avec succès.")
+            Logger.INFO($"Document {idDoc} supprimé avec succès.")
         Catch ex As Exception
-            Console.WriteLine("Erreur lors de la suppression du document : " & ex.Message)
+            Logger.INFO($"Erreur lors de la suppression du document : {ex.Message}")
         End Try
     End Sub
-
+    Public Sub RenommerFichier(sChemin As String, Optional sNouveauNom As String = "")
+        'Méthode instanciée dans les classes dérivées
+    End Sub
 End Class

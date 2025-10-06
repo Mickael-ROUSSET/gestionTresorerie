@@ -1,6 +1,7 @@
-﻿Imports System.Data.SqlClient
+﻿'Public Class cléApiMistral
+'    ReadOnly _apiKey As String = "uswXFN4VPYfYmrTmNbLY16D3fxFunwjm"
+
 Imports System.IO
-Imports System.Runtime.InteropServices
 
 Public Class batchAnalyse
     Private nombreFichiersTraites As Integer = 0
@@ -16,7 +17,9 @@ Public Class batchAnalyse
         _TypeDoc = TypeDoc
     End Sub
     Public Sub ParcourirRepertoireEtAnalyser()
-        Dim sRepDoc As String = LectureProprietes.GetVariable("repRacineAgumaaa") & LectureProprietes.GetVariable("repRacineDocuments") & LectureProprietes.GetVariable("repFichiersDocumentsATrier")
+        Dim sRepDoc As String = LectureProprietes.GetVariable("repRacineAgumaaa") &
+            LectureProprietes.GetVariable("repRacineDocuments") &
+            LectureProprietes.GetVariable("repFichiersDocumentsATrier")
 
         Try
             ' Enregistrer la date et l'heure de début
@@ -44,6 +47,7 @@ Public Class batchAnalyse
         End Try
     End Sub
     Private Sub ParcourirEtAnalyserRecursif(repertoire As String)
+        Dim nouveauDoc As New DocumentAgumaaa
         Try
 
             Dim compteur As (fichiersTraites As Integer, traitementOK As Integer, traitementKO As Integer) = Nothing            ' Initialiser les compteurs pour le répertoire courant
@@ -58,7 +62,13 @@ Public Class batchAnalyse
             ' Parcourir chaque fichier et appeler analyseChq
             For Each cheminFichier As String In fichiers
                 Try
-                    analyseDocument(cheminFichier, _TypeDoc.Prompt)
+                    'Il faut une instance de classe du bon type
+                    _TypeDoc.ContenuBase64 = TypeDocImpl.EncodeImageToBase64(cheminFichier)
+                    nouveauDoc = analyseDocument(_TypeDoc)
+                    '_TypeDoc.renommerFichier(cheminFichier)
+                    'nouveauDoc.InsererDocument(nouveauDoc)
+                    ProcessDocument(_TypeDoc, cheminFichier)
+                    Logger.INFO("Insertion en base du document " & nouveauDoc.ToString)
                     nombreFichiersTraites += 1
                     nombreTraitementOK += 1
                     compteursParRepertoire(repertoire) = (compteur.fichiersTraites + 1, compteur.traitementOK + 1, compteur.traitementKO)
@@ -81,100 +91,67 @@ Public Class batchAnalyse
             Logger.ERR($"Erreur lors du parcours du répertoire : {repertoire} " & ex.Message)
         End Try
     End Sub
-    Public Sub analyseDocument(cheminChq As String, sPrompt As String)
-        'Dim extraction As New AppelMistral()
-
-        Logger.INFO("-------------------" & vbCrLf & "Analyse du chèque " & cheminChq)
-        Dim chqJson = AppelMistral.litImage(cheminChq, sPrompt)
-        cheminChq = RenommerFichier(cheminChq, chqJson.numero_du_cheque)
-        chqJson.InsereEnBase(cheminChq)
-        Logger.INFO("Insertion en base du chèque " & cheminChq)
-    End Sub
-
-    ' Méthode pour renommer un fichier et renvoyer le nouveau nom
-    Public Function RenommerFichier(cheminFichier As String, numChq As String) As String
-        Dim sRepSortie As String = LectureProprietes.GetVariable("repFichiersDocuments") & "\" & LectureProprietes.GetVariable("repFichiersDocumentsATrier")
+    Public Sub ProcessDocument(_TypeDoc As ITypeDoc, cheminFichier As String)
         Try
-            ' Vérifier si le fichier existe
-            If Not File.Exists(cheminFichier) Then
-                Throw New FileNotFoundException("Le fichier spécifié n'existe pas.", cheminFichier)
+            ' Analyser le document pour obtenir une instance de DocumentAgumaaa
+            Dim nouveauDoc As DocumentAgumaaa = analyseDocument(_TypeDoc)
+            If nouveauDoc Is Nothing Then
+                Logger.ERR("analyseDocument a retourné un document null.")
+                Return
             End If
 
-            ' Vérifier si le répertoire de sortie existe, sinon le créer
-            If Not Directory.Exists(sRepSortie) Then
-                Directory.CreateDirectory(sRepSortie)
+            ' Vérifier si ClasseTypeDoc est valide
+            If String.IsNullOrEmpty(_TypeDoc.ClasseTypeDoc) Then
+                Logger.ERR("ClasseTypeDoc est vide ou null.")
+                Return
             End If
 
-            ' Obtenir l'extension du fichier
-            Dim extension As String = Path.GetExtension(cheminFichier)
-
-            ' Construire le nouveau chemin complet du fichier dans le répertoire de sortie
-            Dim nouveauNomFichier As String = Path.Combine(sRepSortie, $"CHQ_{numChq}{extension}")
-
-            ' Vérifier si un fichier avec le même nom existe déjà dans le répertoire de sortie
-            If File.Exists(nouveauNomFichier) Then
-                ' Écrire un log de niveau INFO
-                Logger.INFO($"Un fichier avec le nom '{nouveauNomFichier}' existe déjà dans le répertoire de sortie. Renommage et déplacement annulés.")
-                Return cheminFichier ' Retourne le nom d'origine si le renommage/déplacement est annulé
+            ' Obtenir le type de la classe dérivée
+            Dim typeClasse As Type = Type.GetType(_TypeDoc.ClasseTypeDoc)
+            If typeClasse Is Nothing OrElse Not GetType(DocumentAgumaaa).IsAssignableFrom(typeClasse) Then
+                Logger.ERR($"Type non trouvé ou non dérivé de DocumentAgumaaa : {_TypeDoc.ClasseTypeDoc}")
+                Return
             End If
 
-            ' Renommer et déplacer le fichier
-            File.Move(cheminFichier, nouveauNomFichier)
-            Logger.INFO($"Fichier {cheminFichier} renommé et déplacé avec succès vers '{nouveauNomFichier}'.")
+            ' Instancier la classe dérivée
+            Dim derivedDoc As DocumentAgumaaa = TryCast(Activator.CreateInstance(typeClasse), DocumentAgumaaa)
+            If derivedDoc Is Nothing Then
+                Logger.ERR($"Impossible d'instancier la classe {_TypeDoc.ClasseTypeDoc}")
+                Return
+            End If
 
-            ' Retourner le nouveau chemin complet du fichier
-            Return nouveauNomFichier
+            ' Copier les propriétés de nouveauDoc vers derivedDoc
+            derivedDoc.DateDoc = nouveauDoc.DateDoc
+            derivedDoc.ContenuDoc = nouveauDoc.ContenuDoc
+            derivedDoc.CheminDoc = nouveauDoc.CheminDoc
+            derivedDoc.CategorieDoc = nouveauDoc.CategorieDoc
+            derivedDoc.SousCategorieDoc = nouveauDoc.SousCategorieDoc
+            derivedDoc.IdMvtDoc = nouveauDoc.IdMvtDoc
+            derivedDoc.metaDonnees = nouveauDoc.metaDonnees
+
+            ' Appeler renommerFichier sur _TypeDoc
+            derivedDoc.RenommerFichier(cheminFichier)
+
+            ' Insérer le document (version non statique)
+            derivedDoc.InsererDocument(derivedDoc)
 
         Catch ex As Exception
-            ' Écrire un log d'erreur en cas d'exception
-            Logger.ERR($"Erreur lors du renommage et déplacement du fichier : {ex.Message}")
-            Return cheminFichier ' Retourne le nom d'origine en cas d'erreur
+            Logger.ERR($"Erreur lors du traitement du document : {ex.Message}")
         End Try
+    End Sub
+    Public Function analyseDocument(doc As ITypeDoc) As DocumentAgumaaa
+        Dim nouveauDoc As New DocumentAgumaaa
+
+        Logger.INFO("-------------------" & vbCrLf & "Analyse du document " & doc.ToString)
+        Dim sMetaDonnees = AppelMistral.litImage(doc)
+        nouveauDoc.ContenuDoc = doc.ContenuBase64
+        nouveauDoc.DateDoc = Date.Now
+        nouveauDoc.CategorieDoc = doc.ClasseTypeDoc
+        nouveauDoc.SousCategorieDoc = ""
+        nouveauDoc.metaDonnees = sMetaDonnees
+        Return nouveauDoc
     End Function
-    Private Function construitRepSortie(sTypeDoc) As String
-        Dim sRepSortie As String = LectureProprietes.GetVariable("repFichiersDocuments") & "\" & LectureProprietes.GetVariable("repFichiersDocumentsATrier")
 
-        'Todo : à écrire
-    End Function
-    Public Shared Function RemplacerAnnees(gabarit As String) As String
-        ' Obtenir l'année en cours
-        Dim anneeEnCours As Integer = DateTime.Now.Year
-        Dim anneeSuivante As Integer = anneeEnCours + 1
-
-        ' Vérifier quel motif est présent et effectuer le remplacement
-        If gabarit.Contains("{SSAA}") Then
-            Return gabarit.Replace("{SSAA}", anneeEnCours.ToString())
-        ElseIf gabarit.Contains("{SCO_SSAA}") Then
-            Return gabarit.Replace("{SCO_SSAA}", $"{anneeEnCours}-{anneeSuivante}")
-        End If
-
-        ' Retourner la chaîne inchangée si aucun motif n'est trouvé
-        Return gabarit
-    End Function
-    Private Shared Function GetRepSortie(sTypeDoc As Integer) As String
-        Dim sRepSortie As String
-
-        Using reader As SqlDataReader =
-            SqlCommandBuilder.
-            CreateSqlCommand("reqRepSortie",
-                             New Dictionary(Of String, Object) From {{"@typeDoc", sTypeDoc}}
-                             ).
-            ExecuteReader()
-
-            ' Vérifier si le reader contient des lignes
-            If reader.HasRows Then
-                While reader.Read()
-                    sRepSortie = reader.GetString(0)
-                End While
-                Logger.INFO($"Sous-répertoire trouvé pour le type de document '{sTypeDoc}'.")
-            Else
-                ' Gérer le cas où le reader est vide
-                Logger.WARN($"Aucun sous-répertoire trouvé pour le type de document '{sTypeDoc}'.")
-            End If
-        End Using
-
-        Return sRepSortie
-    End Function
     ' Méthode dédiée pour générer le compte rendu de traitement
     Private Sub GenererCompteRendu()
         ' Log des informations générales

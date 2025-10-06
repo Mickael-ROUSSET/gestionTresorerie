@@ -59,7 +59,7 @@
         End Set
     End Property
 
-    Public Property classe As String Implements ITypeDoc.classe
+    Public Property ClasseTypeDoc As String Implements ITypeDoc.ClasseTypeDoc
         Get
             Throw New NotImplementedException()
         End Get
@@ -67,4 +67,30 @@
             Throw New NotImplementedException()
         End Set
     End Property
+
+    Public Property ContenuBase64 As String Implements ITypeDoc.ContenuBase64
+        Get
+            Throw New NotImplementedException()
+        End Get
+        Set(value As String)
+            Throw New NotImplementedException()
+        End Set
+    End Property
+
+    Public Property JsonMetaDonnées As String Implements ITypeDoc.JsonMetaDonnées
+        Get
+            Throw New NotImplementedException()
+        End Get
+        Set(value As String)
+            Throw New NotImplementedException()
+        End Set
+    End Property
+
+    Public Function ReperoireDestination() As String Implements ITypeDoc.ReperoireDestination
+        Throw New NotImplementedException()
+    End Function
+
+    Public Function renommerFichier(sChemin As String) As String Implements ITypeDoc.renommerFichier
+        Throw New NotImplementedException()
+    End Function
 End Class

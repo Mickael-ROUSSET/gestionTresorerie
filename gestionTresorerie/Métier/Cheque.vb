@@ -3,7 +3,7 @@ Imports System.IO
 Imports System.Text.RegularExpressions
 Imports Newtonsoft.Json.Linq
 Public Class Cheque
-    Implements ITypeDoc
+    Inherits DocumentAgumaaa
     Public _dateChq As String
     Public _numero_du_cheque As Integer
     Public _emetteur As String
@@ -11,12 +11,82 @@ Public Class Cheque
     Public _montant_numerique As Decimal
     Public _destinataire As String
     Public _id As Integer
+    Private _jsonMetaDonnées As String
 
-    Public Sub New()
-    End Sub
-    Public Sub New(json As String)
-        Call ParseJson(json)
-    End Sub
+    Public Shared Function ParseJson(json As String) As String
+        Try
+            ' Parse le JSON d'entrée
+            Dim objJson As JObject = JObject.Parse(json)
+            Dim choix As JArray = objJson("choices")
+            Dim referenceMessage As IList(Of JToken) = choix(0).Children().ToList()
+
+            ' Créer un objet pour stocker les résultats
+            Dim resultat As New JObject()
+
+            For Each item As JProperty In referenceMessage
+                item.CreateReader()
+
+                Select Case item.Name
+                    Case "message"
+                        Dim message As String = item.Value.ToString()
+                        Dim objMsg As JObject = JObject.Parse(message)
+                        Dim content As String = objMsg("content").ToString()
+                        Dim resultatJson As String = ExtractAndCleanJson(content)
+                        Dim objResultat As JObject = JObject.Parse(resultatJson)
+
+                        ' Remplir l'objet JSON avec les champs demandés
+                        resultat("montant_numerique") = Utilitaires.convertStringToDecimal(objResultat.Item(NameOf(montant_numerique)).ToString())
+                        resultat("numero_du_cheque") = CInt(objResultat.Item(NameOf(numero_du_cheque)).ToString())
+                        resultat("dateChq") = CDate(objResultat.Item(NameOf(dateChq)).ToString()).ToString("yyyy-MM-dd")
+                        resultat("emetteur_du_cheque") = objResultat.Item(NameOf(emetteur_du_cheque)).ToString()
+                        resultat("destinataire") = objResultat.Item("le_destinataire").ToString()
+
+                    Case Else
+                        ' Logger l'information
+                        Logger.DBG("Propriété non reconnue : " & item.Name)
+                End Select
+            Next
+
+            ' Retourner le JSON sérialisé
+            Return resultat.ToString(Newtonsoft.Json.Formatting.None)
+        Catch ex As Exception
+            Logger.ERR("Erreur lors du parsing JSON : " & ex.Message)
+            Return "{}" ' Retourner un JSON vide en cas d'erreur
+        End Try
+    End Function
+    'Sub ParseJson(json As String)
+    '    ' Parse the JSON string
+    '    'Dim jsonObject As JObject = JObject.Parse(json)
+
+    '    Dim objJson = JObject.Parse(json)
+    '    Dim choix = objJson("choices")
+    '    Dim referenceMessage = choix(0).Children().ToList
+
+
+    '    For Each item As JProperty In referenceMessage
+    '        item.CreateReader()
+
+    '        Select Case item.Name
+    '            Case "message"
+    '                Dim message As String = item.Value.ToString()
+    '                Dim objMsg = JObject.Parse(message)
+    '                Dim content As String = objMsg("content").ToString
+    '                Dim resultatJson As String = ExtractAndCleanJson(content)
+    '                Dim objResultat = JObject.Parse(resultatJson)
+    '                With objResultat 
+    '                    '_id = CInt(.Item("id").ToString)
+    '                    _montant_numerique = Utilitaires.convertStringToDecimal(objResultat.Item(NameOf(montant_numerique)).ToString)
+    '                    _numero_du_cheque = CInt(.Item(NameOf(numero_du_cheque)).ToString)
+    '                    _dateChq = CDate(.Item(NameOf(dateChq)).ToString)
+    '                    _emetteur_du_cheque = .Item(NameOf(emetteur_du_cheque)).ToString
+    '                    _destinataire = .Item("le_destinataire").ToString
+    '                End With
+    '            Case Else
+    '                ' Logger l'information
+    '                Logger.DBG("Propriété non reconnue : " & item.Name)
+    '        End Select
+    '    Next
+    'End Sub
     Public Sub New(id As Integer, montant_numerique As String, numero_du_cheque As Integer, dateChq As Date, emetteur_du_cheque As String, destinataire As String)
         _id = id
         _montant_numerique = montant_numerique
@@ -82,77 +152,6 @@ Public Class Cheque
         End Set
     End Property
 
-    Public Property Prompt As String Implements ITypeDoc.Prompt
-        Get
-            Throw New NotImplementedException()
-        End Get
-        Set(value As String)
-            Throw New NotImplementedException()
-        End Set
-    End Property
-
-    Public Property GabaritRepertoire As String Implements ITypeDoc.GabaritRepertoire
-        Get
-            Throw New NotImplementedException()
-        End Get
-        Set(value As String)
-            Throw New NotImplementedException()
-        End Set
-    End Property
-
-    Public Property GabaritNomFichier As String Implements ITypeDoc.GabaritNomFichier
-        Get
-            Throw New NotImplementedException()
-        End Get
-        Set(value As String)
-            Throw New NotImplementedException()
-        End Set
-    End Property
-
-    Public Property classe As String Implements ITypeDoc.classe
-        Get
-            Throw New NotImplementedException()
-        End Get
-        Set(value As String)
-            Throw New NotImplementedException()
-        End Set
-    End Property
-
-    Sub ParseJson(json As String)
-        ' Parse the JSON string
-        'Dim jsonObject As JObject = JObject.Parse(json)
-
-        Dim objJson = JObject.Parse(json)
-        Dim choix = objJson("choices")
-        Dim referenceMessage = choix(0).Children().ToList
-
-
-        For Each item As JProperty In referenceMessage
-            item.CreateReader()
-
-            Select Case item.Name
-                Case "message"
-                    Dim message As String = item.Value.ToString()
-                    Dim objMsg = JObject.Parse(message)
-                    Dim content As String = objMsg("content").ToString
-                    Dim resultatJson As String = ExtractAndCleanJson(content)
-                    Dim objResultat = JObject.Parse(resultatJson)
-                    With objResultat
-                        'TODO : je ne l'ai pas encore
-                        '_id = CInt(.Item("id").ToString)
-                        _montant_numerique = .Item(NameOf(montant_numerique)).ToString
-                        _numero_du_cheque = CInt(.Item(NameOf(numero_du_cheque)).ToString)
-                        _dateChq = CDate(.Item(NameOf(dateChq)).ToString)
-                        _emetteur_du_cheque = .Item(NameOf(emetteur_du_cheque)).ToString
-                        _destinataire = .Item("le_destinataire").ToString
-                    End With
-                Case Else
-                    ' Logger l'information
-                    Logger.INFO("Propriété non reconnue : " & item.Name)
-            End Select
-        Next
-    End Sub
-
     Shared Function ExtractAndCleanJson(content As String) As String
         ' Use regex to extract text between the first '{' and the last '}'
         Dim match As Match = Regex.Match(content, "\{(.*?)\}", RegexOptions.Singleline)
@@ -166,27 +165,6 @@ Public Class Cheque
             Return String.Empty
         End If
     End Function
-    Public Sub InsereEnBase(cheminChq As String)
-        Try
-            ' Lire l'image en tant que tableau d'octets 
-            Dim imageBytes As Byte() = File.ReadAllBytes(cheminChq)
-            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand("insertChq",
-                             New Dictionary(Of String, Object) From {{"@numero", _numero_du_cheque},
-                                                                     {"@date", Convert.ToDateTime(_dateChq)},
-                                                                     {"@emetteur", _emetteur_du_cheque},
-                                                                     {"@montant", _montant_numerique},
-                                                                     {"@banque", "CA43"},
-                                                                     {"@destinataire", _destinataire},
-                                                                     {"@imageChq", imageBytes}}
-                             )
-            command.ExecuteNonQuery()
-            command.ExecuteNonQuery()
-            'End Using
-            Logger.INFO("Données insérées avec succès." & command.ToString)
-        Catch ex As Exception
-            Logger.ERR("Erreur lors de l'insertion des données : " & ex.Message)
-        End Try
-    End Sub
     Public Shared Sub AfficherImage(idCheque As Integer, pbBox As PictureBox)
         Try
             ' Effacer l'image précédemment affichée
@@ -242,6 +220,26 @@ Public Class Cheque
             ' Retourner une image vide en cas d'erreur
             Return New Bitmap(1, 1)
         End Try
+    End Function
+
+    Public Overloads Sub RenommerFichier(sChemin As String, Optional sNouveauNom As String = "")
+        Dim sRepDestination As String
+        sRepDestination = LectureProprietes.GetVariable("repRacineAgumaaa") _
+            & LectureProprietes.GetVariable("repRacineComptabilité") _
+            & LectureProprietes.GetVariable("repFichiersDocumentsChèques") _
+            & "\" & DateTime.Now.Year.ToString _
+            & "\" & IIf(_emetteur_du_cheque = "AGUMAAA", "Emis", "Reçus")
+        MyBase.RenommerFichier(sChemin, determineNouveauNom(sRepDestination))
+    End Sub
+    Private Function determineNouveauNom(sRepSortie As String) As String
+
+        ' Construire le nouveau chemin complet du fichier dans le répertoire de sortie
+        Dim numeroChq As String = Utilitaires.ExtractStringFromJson(_jsonMetaDonnées, "numero_du_cheque")
+        Return Path.Combine(
+            sRepSortie,
+            $"CHQ_{numeroChq}"
+        )
+
     End Function
 
 End Class

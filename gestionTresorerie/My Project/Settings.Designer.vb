@@ -351,16 +351,6 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idM"& _ 
-            "vtDoc FROM [dbo].[Documents];")>  _
-        Public ReadOnly Property reqDocs() As String
-            Get
-                Return CType(Me("reqDocs"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("SELECT libelle FROM SousCategorie where idCategorie =")>  _
         Public ReadOnly Property reqLibelleSousCategorie() As String
             Get
@@ -539,17 +529,6 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE [dbo].[Documents] SET dateDoc = @dateDoc, contenuDoc = @contenuDoc, chemin"& _ 
-            "Doc = @cheminDoc, categorieDoc = @categorieDoc, sousCategorieDoc = @sousCategori"& _ 
-            "eDoc, idMvtDoc=@idMvtDoc WHERE idDoc = @idDoc;")>  _
-        Public ReadOnly Property updDocs() As String
-            Get
-                Return CType(Me("updDocs"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("DELETE FROM [dbo].[Documents] WHERE idDoc = @idDoc"&Global.Microsoft.VisualBasic.ChrW(9)&";")>  _
         Public ReadOnly Property delDocs() As String
             Get
@@ -601,17 +580,6 @@ Namespace My
         Public ReadOnly Property reqSousCategoriesDefautMouvements() As String
             Get
                 Return CType(Me("reqSousCategoriesDefautMouvements"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO [dbo].[Documents] (dateDoc, contenuDoc, cheminDoc, categorieDoc, sous"& _ 
-            "CategorieDoc, idMvtDoc) VALUES (@dateDoc, @contenuDoc, @cheminDoc, @categorieDoc"& _ 
-            ", @sousCategorieDoc, @idMvtDoc);")>  _
-        Public ReadOnly Property insertDocAgumaaa() As String
-            Get
-                Return CType(Me("insertDocAgumaaa"),String)
             End Get
         End Property
         
@@ -851,20 +819,52 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\Chèques\"& _ 
-            "")>  _
-        Public ReadOnly Property repChqProd() As String
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT prompt, gabaritRepertoire, gabaritNomFichier, classe FROM TypeDoc;")>  _
+        Public ReadOnly Property sqlTypesDocuments() As String
             Get
-                Return CType(Me("repChqProd"),String)
+                Return CType(Me("sqlTypesDocuments"),String)
             End Get
         End Property
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT prompt, gabaritRepertoire, gabaritNomFichier, classe FROM TypeDoc;")>  _
-        Public ReadOnly Property sqlTypesDocuments() As String
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idM"& _ 
+            "vtDoc, metaDonnees FROM [dbo].[Documents];")>  _
+        Public ReadOnly Property reqDocs() As String
             Get
-                Return CType(Me("sqlTypesDocuments"),String)
+                Return CType(Me("reqDocs"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE [dbo].[Documents] SET dateDoc = @dateDoc, contenuDoc = @contenuDoc, chemin"& _ 
+            "Doc = @cheminDoc, categorieDoc = @categorieDoc, sousCategorieDoc = @sousCategori"& _ 
+            "eDoc, idMvtDoc=@idMvtDoc, metaDonnees=@metaDonnees WHERE idDoc = @idDoc;")>  _
+        Public ReadOnly Property updDocs() As String
+            Get
+                Return CType(Me("updDocs"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO [dbo].[Documents] (dateDoc, contenuDoc, cheminDoc, categorieDoc, sous"& _ 
+            "CategorieDoc, idMvtDoc, metaDonnees) VALUES (@dateDoc, @contenuDoc, @cheminDoc, "& _ 
+            "@categorieDoc, @sousCategorieDoc, @idMvtDoc, @metaDonnees);")>  _
+        Public ReadOnly Property insertDocAgumaaa() As String
+            Get
+                Return CType(Me("insertDocAgumaaa"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("https://drive.google.com/drive/folders/1yxfwBMp-bwpMHqMZZd5fHWcAhkZnH7F6?usp=driv"& _ 
+            "e_link")>  _
+        Public ReadOnly Property urlRacinedriveAgumaaa() As String
+            Get
+                Return CType(Me("urlRacinedriveAgumaaa"),String)
             End Get
         End Property
     End Class

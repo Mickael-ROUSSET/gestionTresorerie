@@ -1,36 +1,22 @@
 ﻿
-Imports System.IO
+'Imports System.IO
 Imports System.Net.Http
 Imports System.Text
 Imports Newtonsoft.Json.Linq
 Imports System.Text.Json
 
 Public Class AppelMistral
-    Public Shared Function litImage(chequeImagePath As String, sPrompt As String) As Cheque
+    Public Shared Function litImage(document As ITypeDoc) As String
         ' Appeler la fonction pour extraire le texte
-        Dim extractedText As String = ExtractTextFromImage(chequeImagePath, sPrompt)
+        Dim extractedText As String = ExtractTextFromImage(document)
 
-        ' Afficher le texte extrait 
-        Dim jsonChq As New Cheque(extractedText)
-        Return jsonChq
+        Return extractedText
     End Function
 
-    Shared Function ConvertirImageEnBase64(cheminImage As String) As String
-        Dim imageBytes As Byte() = File.ReadAllBytes(cheminImage)
-        Return Convert.ToBase64String(imageBytes)
-    End Function
-
-    Public Shared Function EncodeImageToBase64(filePath As String) As String
-        ' Lire le fichier image en tant que tableau d'octets
-        Dim imageBytes As Byte() = File.ReadAllBytes(filePath)
-        ' Convertir le tableau d'octets en une chaîne base64
-        Return Convert.ToBase64String(imageBytes)
-    End Function
-
-    Shared Function ExtractTextFromImage(imageFilePath As String, sPrompt As String) As String
+    Shared Function ExtractTextFromImage(document As ITypeDoc) As String
         ' Encoder l'image en base64
-        Dim base64Image As String = EncodeImageToBase64(imageFilePath)
-        Dim imageUrl As String = "data:image/jpeg;base64," & base64Image
+        'Dim base64Image As String = EncodeImageToBase64(imageFilePath)
+        'Dim imageUrl As String = "data:image/jpeg;base64," & base64Image
         Using client As New HttpClient()
             '            Dim jsonData As String = $"{{""model"": ""pixtral-12b-2409"", 
             '""messages"": [{{""role"": ""user"",""content"": [{{""type"": ""text"",""text"": ""Extrais du chèque en PJ le texte des éléments : emetteur_du_cheque=la banque émettrice en haut de l'image, le montant_numerique=montant numérique dans le cadre en haut à droite, numero_du_cheque=le numéro du chèque en bas à gauche, dateChq=la date à droite de la mention \""Le \"", emetteur_du_cheque=l'émetteur du chèque au centre, le destinataire=destinataire à droite de la mention \""à \"" retourne les éléments extraits au format json""}}, 
@@ -38,7 +24,7 @@ Public Class AppelMistral
             ''Dim jsonData As String = promptJson(imageUrl)
 
             ' Créer le contenu de la requête
-            Dim content As New StringContent(promptJson(imageUrl, sPrompt), Encoding.UTF8, "application/json")
+            Dim content As New StringContent(promptJson(document), Encoding.UTF8, "application/json")
             ' Créer un contenu multipart/form-data pour l'image
             Using content
                 ' Ajouter l'en-tête d'autorisation
@@ -63,7 +49,7 @@ Public Class AppelMistral
             End Using
         End Using
     End Function
-    Private Shared Function promptJson(imageUrl As String, sPrompt As String) As String
+    Private Shared Function promptJson(document As ITypeDoc) As String
 
         ' Créer un objet anonyme pour structurer les données
         '.model = "pixtral-12b-2409",
@@ -75,11 +61,11 @@ Public Class AppelMistral
                     .content = New Object() {
                         New With {
                             .type = "text",
-                            .text = sPrompt
+                            .text = document.Prompt
                         },
                         New With {
                             .type = "image_url",
-                            .image_url = imageUrl
+                            .image_url = "data:image/jpeg;base64," & document.ContenuBase64
                         }
                     }
                 }

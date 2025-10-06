@@ -112,9 +112,6 @@
     <Setting Name="reqIdentitePMTiers" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT id,raisonSociale FROM Tiers where raisonSociale is not null;</Value>
     </Setting>
-    <Setting Name="reqDocs" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc FROM [dbo].[Documents];</Value>
-    </Setting>
     <Setting Name="reqLibelleSousCategorie" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT libelle FROM SousCategorie where idCategorie =</Value>
     </Setting>
@@ -166,9 +163,6 @@
     <Setting Name="insertChq" Type="System.String" Scope="Application">
       <Value Profile="(Default)">INSERT INTO [dbo].Cheque ([numero], [date], [emetteur], [montant], [banque], [destinataire], [imageChq]) VALUES (@numero, @date, @emetteur, @montant, @banque, @destinataire, @imageChq);</Value>
     </Setting>
-    <Setting Name="updDocs" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">UPDATE [dbo].[Documents] SET dateDoc = @dateDoc, contenuDoc = @contenuDoc, cheminDoc = @cheminDoc, categorieDoc = @categorieDoc, sousCategorieDoc = @sousCategorieDoc, idMvtDoc=@idMvtDoc WHERE idDoc = @idDoc;</Value>
-    </Setting>
     <Setting Name="delDocs" Type="System.String" Scope="Application">
       <Value Profile="(Default)">DELETE FROM [dbo].[Documents] WHERE idDoc = @idDoc	;</Value>
     </Setting>
@@ -186,9 +180,6 @@
     </Setting>
     <Setting Name="reqSousCategoriesDefautMouvements" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT sousCategorieDefaut FROM Tiers where id = @id;</Value>
-    </Setting>
-    <Setting Name="insertDocAgumaaa" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">INSERT INTO [dbo].[Documents] (dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc) VALUES (@dateDoc, @contenuDoc, @cheminDoc, @categorieDoc, @sousCategorieDoc, @idMvtDoc);</Value>
     </Setting>
     <Setting Name="selExisteTiers" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT COUNT(*) FROM Tiers WHERE (nom = @nom AND prenom = @prenom) OR raisonSociale = @raisonSociale);</Value>
@@ -261,12 +252,21 @@
     </Setting>
     <Setting Name="repRacineComptabilité" Type="System.String" Scope="Application">
       <Value Profile="(Default)">\Gestion\Trésorerie\Comptabilité\Eléments comptables</Value>
-    </Setting>
-    <Setting Name="repChqProd" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\Chèques\</Value>
-    </Setting>
+    </Setting> 
     <Setting Name="sqlTypesDocuments" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT prompt, gabaritRepertoire, gabaritNomFichier, classe FROM TypeDoc;</Value>
+    </Setting>
+    <Setting Name="reqDocs" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees FROM [dbo].[Documents];</Value>
+    </Setting>
+    <Setting Name="updDocs" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE [dbo].[Documents] SET dateDoc = @dateDoc, contenuDoc = @contenuDoc, cheminDoc = @cheminDoc, categorieDoc = @categorieDoc, sousCategorieDoc = @sousCategorieDoc, idMvtDoc=@idMvtDoc, metaDonnees=@metaDonnees WHERE idDoc = @idDoc;</Value>
+    </Setting>
+    <Setting Name="insertDocAgumaaa" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INSERT INTO [dbo].[Documents] (dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees) VALUES (@dateDoc, @contenuDoc, @cheminDoc, @categorieDoc, @sousCategorieDoc, @idMvtDoc, @metaDonnees);</Value>
+    </Setting>
+    <Setting Name="urlRacinedriveAgumaaa" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">https://drive.google.com/drive/folders/1yxfwBMp-bwpMHqMZZd5fHWcAhkZnH7F6?usp=drive_link</Value>
     </Setting>
   </Settings>
 </SettingsFile>

@@ -1,5 +1,6 @@
 ﻿Imports System.Globalization
 Imports System.Reflection.Metadata
+Imports Newtonsoft.Json.Linq
 
 Class Utilitaires
     Public Shared Sub selLigneDgvParLibelle(dgv As DataGridView, libelle As String)
@@ -82,5 +83,81 @@ Class Utilitaires
             End If
         Next
         Return dico
+    End Function
+    Public Shared Function convertStringToDecimal(montantStr As String) As Decimal
+        Dim montantDecimal As Decimal
+
+        montantStr = montantStr.Replace(".", ",")
+        If String.IsNullOrEmpty(montantStr) OrElse montantStr = "0" Then
+            montantDecimal = 0D ' Valeur par défaut si vide ou zéro
+        Else
+            Try
+                ' Conversion avec Decimal.Parse (recommandé pour les formats culturels)
+                montantDecimal = Decimal.Parse(montantStr, Globalization.NumberStyles.Currency Or Globalization.NumberStyles.Float, Globalization.CultureInfo.CurrentCulture)
+            Catch ex As FormatException
+                ' Gestion d'erreur si le format n'est pas valide (ex: "abc" au lieu de "123.45")
+                Logger.ERR($"Format invalide pour montant_numerique : {montantStr}. Erreur : {ex.Message}")
+                montantDecimal = 0D ' Valeur par défaut en cas d'erreur
+            Catch ex As OverflowException
+                Logger.ERR($"Montant trop grand pour montant_numerique : {montantStr}")
+                montantDecimal = 0D
+            End Try
+        End If
+        Return montantDecimal
+    End Function
+    Public Shared Function ExtractDateFromJson(json As String, sNomChamp As String) As Date?
+        Try
+            ' Vérifier si JsonMetaDonnées est non vide
+            If String.IsNullOrEmpty(json) Then
+                Logger.WARN("json est vide ou null.")
+                Return Nothing
+            End If
+
+            ' Parser le JSON
+            Dim jsonObj As JObject = JObject.Parse(json)
+
+            ' Vérifier si le champ dateDocument existe
+            If jsonObj(sNomChamp) IsNot Nothing Then
+                Try
+                    ' Convertir la valeur dateDocument en Date
+                    Dim dateStr As String = jsonObj(sNomChamp).ToString()
+                    Return DateTime.Parse(dateStr, Globalization.CultureInfo.InvariantCulture)
+                Catch ex As FormatException
+                    Logger.ERR("Format de date invalide dans dateDocument : " & ex.Message)
+                    Return Nothing
+                End Try
+            Else
+                Logger.WARN("Champ dateDocument absent dans JsonMetaDonnées.")
+                Return Nothing
+            End If
+
+        Catch ex As Exception
+            Logger.ERR("Erreur lors du parsing de JsonMetaDonnées : " & ex.Message)
+            Return Nothing
+        End Try
+    End Function
+    Public Shared Function ExtractStringFromJson(json As String, sNomChamp As String) As String
+        Try
+            ' Vérifier si JsonMetaDonnées est non vide
+            If String.IsNullOrEmpty(json) Then
+                Logger.WARN("json est vide ou null.")
+                Return Nothing
+            End If
+
+            ' Parser le JSON
+            Dim jsonObj As JObject = JObject.Parse(json)
+
+            ' Vérifier si le champ dateDocument existe
+            If jsonObj(sNomChamp) IsNot Nothing Then
+                Return jsonObj(sNomChamp).ToString()
+            Else
+                Logger.WARN($"Champ {sNomChamp} absent dans {json}.")
+                Return Nothing
+            End If
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors du parsing de {json} : " & ex.Message)
+            Return Nothing
+        End Try
     End Function
 End Class
