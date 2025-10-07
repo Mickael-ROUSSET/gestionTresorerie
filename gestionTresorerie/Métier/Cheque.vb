@@ -15,6 +15,14 @@ Public Class Cheque
 
     Public Sub New()
     End Sub
+    Public Sub New(id As Integer, montant_numerique As String, numero_du_cheque As Integer, dateChq As Date, emetteur_du_cheque As String, destinataire As String)
+        _id = id
+        _montant_numerique = montant_numerique
+        _numero_du_cheque = numero_du_cheque
+        _dateChq = dateChq
+        _emetteur_du_cheque = emetteur_du_cheque
+        _destinataire = destinataire
+    End Sub
     Public Shared Function ParseJson(json As String) As String
         Dim sJsonCheque As String
         Dim fieldMappings As New Dictionary(Of String, String) From {
@@ -26,14 +34,6 @@ Public Class Cheque
                                                                     }
         Return sJsonCheque = Utilitaires.ParseJson(json, fieldMappings)
     End Function
-    Public Sub New(id As Integer, montant_numerique As String, numero_du_cheque As Integer, dateChq As Date, emetteur_du_cheque As String, destinataire As String)
-        _id = id
-        _montant_numerique = montant_numerique
-        _numero_du_cheque = numero_du_cheque
-        _dateChq = dateChq
-        _emetteur_du_cheque = emetteur_du_cheque
-        _destinataire = destinataire
-    End Sub
     Public Property destinataire() As String
         Get
             Return _destinataire
@@ -148,23 +148,23 @@ Public Class Cheque
         End Try
     End Function
 
-    Public Overrides Function RenommerFichier(sChemin As String, Optional sNouveauNom As String = "") As String
+    Public Overrides Function RenommerFichier(sNomFichier As String, Optional sNouveauNom As String = "") As String
         Dim sRepDestination As String
         sRepDestination = LectureProprietes.GetVariable("repRacineAgumaaa") _
             & LectureProprietes.GetVariable("repRacineComptabilité") _
             & LectureProprietes.GetVariable("repFichiersDocumentsChèques") _
             & "\" & DateTime.Now.Year.ToString _
             & "\" & IIf(_emetteur_du_cheque = "AGUMAAA", "Emis", "Reçus")
-        Utilitaires.RenommerEtDeplacerFichier(sChemin, determineNouveauNom(sRepDestination))
+        ' Vérifier si le répertoire de sortie est valide
+        If String.IsNullOrEmpty(sRepDestination) Then
+            Logger.ERR($"Le répertoire de sortie {sRepDestination} est vide ou null.")
+            Throw New ArgumentException("Le répertoire de sortie ne peut pas être vide ou null.", NameOf(sRepDestination))
+        End If
+        Utilitaires.RenommerEtDeplacerFichier(sNomFichier, sRepDestination & "\" & determineNouveauNomFichier(sNomFichier))
         Return sRepDestination
     End Function
-    Private Function determineNouveauNom(sRepSortie As String) As String
+    Private Function determineNouveauNomFichier(sNomFichier As String) As String
         Try
-            ' Vérifier si le répertoire de sortie est valide
-            If String.IsNullOrEmpty(sRepSortie) Then
-                Logger.ERR("Le répertoire de sortie (sRepSortie) est vide ou null.")
-                Throw New ArgumentException("Le répertoire de sortie ne peut pas être vide ou null.", NameOf(sRepSortie))
-            End If
 
             ' Vérifier si metaDonnees est valide
             If String.IsNullOrEmpty(metaDonnees) Then
@@ -189,12 +189,14 @@ Public Class Cheque
             End If
 
             ' Construire le nouveau chemin complet
-            Dim nouveauNom As String = Path.Combine(sRepSortie, $"CHQ_{numeroChq}")
+            'Dim sNouveauNomFichier As String = $"CHQ_{numeroChq}{Path.GetExtension(sNomFichier)}"
+            'Dim nouveauNom As String = Path.Combine(Path.GetFullPath(sNomFichier), sNouveauNomFichier)
+            Dim nouveauNom As String = $"CHQ_{numeroChq}{Path.GetExtension(sNomFichier)}"
 
             Logger.INFO($"Nouveau nom déterminé : {nouveauNom}")
             Return nouveauNom
         Catch ex As Exception
-            Logger.ERR($"Erreur dans determineNouveauNom : {ex.Message}")
+            Logger.ERR($"Erreur dans determineNouveauNomFichier : {ex.Message}")
             Throw ' Relever l'exception pour permettre à l'appelant de gérer l'erreur
         End Try
     End Function

@@ -57,7 +57,7 @@ Public Class FactureRecue
         End Set
     End Property
 
-    Public Overrides Function RenommerFichier(sChemin As String, Optional sNouveauNom As String = "") As String
+    Public Overrides Function RenommerFichier(sNomFichier As String, Optional sNouveauNom As String = "") As String
         Dim sRepDestination As String
         sRepDestination = LectureProprietes.GetVariable("repRacineAgumaaa") _
             & LectureProprietes.GetVariable("repRacineComptabilité") _
@@ -66,7 +66,7 @@ Public Class FactureRecue
             & LectureProprietes.GetVariable("repFichiersFacturesEmises")
         'TODO trouver comment orienter vers "Emises" ou "recues"
         '& LectureProprietes.GetVariable("repFichiersFacturesRecues")
-        Utilitaires.RenommerEtDeplacerFichier(sChemin, determineNouveauNom(sRepDestination))
+        Utilitaires.RenommerEtDeplacerFichier(sNomFichier, determineNouveauNom(sRepDestination))
         Return sRepDestination
     End Function
     Private Function determineNouveauNom(sRepSortie As String) As String

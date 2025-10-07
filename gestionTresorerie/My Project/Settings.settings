@@ -252,12 +252,21 @@
     </Setting>
     <Setting Name="repRacineComptabilité" Type="System.String" Scope="Application">
       <Value Profile="(Default)">\Gestion\Trésorerie\Comptabilité\Eléments comptables</Value>
-    </Setting> 
+    </Setting>
     <Setting Name="repRacineMdN" Type="System.String" Scope="Application">
       <Value Profile="(Default)">\Manifestations récurrentes\Marché de Noël</Value>
-    </Setting>	
+    </Setting>
     <Setting Name="repAttestationsNonParticipationAutresMarches" Type="System.String" Scope="Application">
       <Value Profile="(Default)">\Administratif\attestationsNonParticipationAutresMarches</Value>
+    </Setting>
+    <Setting Name="repFichiersDocumentsFactures" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Factures</Value>
+    </Setting>
+    <Setting Name="repFichiersFacturesEmises" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Emises</Value>
+    </Setting>
+    <Setting Name="repFichiersFacturesRecues" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Recues</Value>
     </Setting>
     <Setting Name="sqlTypesDocuments" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT prompt, gabaritRepertoire, gabaritNomFichier, classe FROM TypeDoc;</Value>
@@ -273,6 +282,12 @@
     </Setting>
     <Setting Name="urlRacinedriveAgumaaa" Type="System.String" Scope="Application">
       <Value Profile="(Default)">https://drive.google.com/drive/folders/1yxfwBMp-bwpMHqMZZd5fHWcAhkZnH7F6?usp=drive_link</Value>
+    </Setting>
+    <Setting Name="fichierCRBatch" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Users\User\Downloads\CRBatch.json</Value>
+    </Setting>
+    <Setting Name="repChqProd" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\Chèques\</Value>
     </Setting>
   </Settings>
 </SettingsFile>

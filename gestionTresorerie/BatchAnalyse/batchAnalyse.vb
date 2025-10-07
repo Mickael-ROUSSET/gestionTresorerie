@@ -62,20 +62,21 @@ Public Class batchAnalyse
             Dim fichiers As String() = Directory.GetFiles(repertoire)
 
             ' Parcourir chaque fichier et appeler analyseChq
-            For Each cheminFichier As String In fichiers
+            'sNomFichier contient le nom du fichier et le chemin
+            For Each sNomFichier As String In fichiers
                 Try
                     'Il faut une instance de classe du bon type
-                    _TypeDoc.ContenuBase64 = TypeDocImpl.EncodeImageToBase64(cheminFichier)
+                    _TypeDoc.ContenuBase64 = TypeDocImpl.EncodeImageToBase64(sNomFichier)
                     Dim nouveauDoc As DocumentAgumaaa = analyseDocument(_TypeDoc)
                     '_TypeDoc.renommerFichier(cheminFichier)
                     'nouveauDoc.InsererDocument(nouveauDoc)
-                    ProcessDocument(nouveauDoc, cheminFichier)
+                    ProcessDocument(nouveauDoc, sNomFichier)
                     Logger.INFO("Insertion en base du document " & nouveauDoc.ToString)
                     nombreFichiersTraites += 1
                     nombreTraitementOK += 1
                     compteursParRepertoire(repertoire) = (compteur.fichiersTraites + 1, compteur.traitementOK + 1, compteur.traitementKO)
                 Catch ex As Exception
-                    Logger.ERR($"Erreur lors de l'analyse du fichier : {cheminFichier} - {ex.Message}")
+                    Logger.ERR($"Erreur lors de l'analyse du fichier : {sNomFichier} - {ex.Message}")
                     nombreTraitementKO += 1
                     'Dim compteur = compteursParRepertoire(repertoire)
                     compteursParRepertoire(repertoire) = (compteur.fichiersTraites + 1, compteur.traitementOK, compteur.traitementKO + 1)
@@ -93,7 +94,8 @@ Public Class batchAnalyse
             Logger.ERR($"Erreur lors du parcours du répertoire : {repertoire} " & ex.Message)
         End Try
     End Sub
-    Public Sub ProcessDocument(nouveauDoc As DocumentAgumaaa, cheminFichier As String)
+    Public Sub ProcessDocument(nouveauDoc As DocumentAgumaaa, sNomFichier As String)
+        'sNomFichier contient le chemin
         Try
             ' Analyser le document pour obtenir une instance de DocumentAgumaaa 
             If nouveauDoc Is Nothing Then
@@ -124,14 +126,13 @@ Public Class batchAnalyse
             ' Copier les propriétés de nouveauDoc vers derivedDoc
             derivedDoc.DateDoc = nouveauDoc.DateDoc
             derivedDoc.ContenuDoc = nouveauDoc.ContenuDoc
-            derivedDoc.CheminDoc = nouveauDoc.CheminDoc
             derivedDoc.CategorieDoc = nouveauDoc.CategorieDoc
             derivedDoc.SousCategorieDoc = nouveauDoc.SousCategorieDoc
             derivedDoc.IdMvtDoc = nouveauDoc.IdMvtDoc
             derivedDoc.metaDonnees = nouveauDoc.metaDonnees
 
             ' Appeler renommerFichier et récupérer le nouveau chemin après renommage 
-            derivedDoc.CheminDoc = derivedDoc.RenommerFichier(cheminFichier)
+            derivedDoc.CheminDoc = derivedDoc.RenommerFichier(sNomFichier)
 
             ' Insérer le document (version non statique)
             derivedDoc.InsererDocument(derivedDoc)

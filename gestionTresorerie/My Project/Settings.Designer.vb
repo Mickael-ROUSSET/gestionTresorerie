@@ -819,6 +819,51 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("\Manifestations récurrentes\Marché de Noël")>  _
+        Public ReadOnly Property repRacineMdN() As String
+            Get
+                Return CType(Me("repRacineMdN"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("\Administratif\attestationsNonParticipationAutresMarches")>  _
+        Public ReadOnly Property repAttestationsNonParticipationAutresMarches() As String
+            Get
+                Return CType(Me("repAttestationsNonParticipationAutresMarches"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("\Factures")>  _
+        Public ReadOnly Property repFichiersDocumentsFactures() As String
+            Get
+                Return CType(Me("repFichiersDocumentsFactures"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("\Emises")>  _
+        Public ReadOnly Property repFichiersFacturesEmises() As String
+            Get
+                Return CType(Me("repFichiersFacturesEmises"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("\Recues")>  _
+        Public ReadOnly Property repFichiersFacturesRecues() As String
+            Get
+                Return CType(Me("repFichiersFacturesRecues"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("SELECT prompt, gabaritRepertoire, gabaritNomFichier, classe FROM TypeDoc;")>  _
         Public ReadOnly Property sqlTypesDocuments() As String
             Get
@@ -865,6 +910,25 @@ Namespace My
         Public ReadOnly Property urlRacinedriveAgumaaa() As String
             Get
                 Return CType(Me("urlRacinedriveAgumaaa"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\Downloads\CRBatch.json")>  _
+        Public ReadOnly Property fichierCRBatch() As String
+            Get
+                Return CType(Me("fichierCRBatch"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\Chèques\"& _ 
+            "")>  _
+        Public ReadOnly Property repChqProd() As String
+            Get
+                Return CType(Me("repChqProd"),String)
             End Get
         End Property
     End Class

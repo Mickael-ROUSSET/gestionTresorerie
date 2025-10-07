@@ -227,6 +227,7 @@ Class Utilitaires
     End Function
 
     Public Shared Sub RenommerEtDeplacerFichier(sAncienNom As String, sNouveauNom As String)
+        'sAncienNom et sNouveauNom contiennent le chemin et le nom du fichier
         Try
             ' Vérifier si le fichier existe
             If Not File.Exists(sAncienNom) Then
@@ -236,12 +237,12 @@ Class Utilitaires
 
             ' Vérifier si sNouveauNom est vide
             If String.IsNullOrEmpty(sNouveauNom) Then
-                Logger.ERR("Le nouveau nom du fichier est vide.")
+                Logger.ERR($"Le nouveau nom du fichier : {sNouveauNom} est vide.")
                 Return
             End If
 
-            ' Vérifier si le répertoire de sortie existe, sinon le créer
-            Dim sRepSortie As String = Path.GetFullPath(sNouveauNom)
+            ' Vérifier si le répertoire de sortie existe, sinon le créer 
+            Dim sRepSortie As String = Path.GetDirectoryName(sNouveauNom)
             If Not Directory.Exists(sRepSortie) Then
                 Directory.CreateDirectory(sRepSortie)
             End If
@@ -251,10 +252,6 @@ Class Utilitaires
                 Logger.INFO($"Un fichier avec le nom '{sNouveauNom}' existe déjà dans {sRepSortie}. Renommage et déplacement annulés.")
                 Return
             End If
-            'On récupère l'extension du fichier existant
-            Dim sExtension As String
-            sExtension = Path.GetExtension(sAncienNom)
-            sNouveauNom = sNouveauNom & "." & sExtension
 
             ' Renommer et déplacer le fichier
             File.Move(sAncienNom, sNouveauNom)
