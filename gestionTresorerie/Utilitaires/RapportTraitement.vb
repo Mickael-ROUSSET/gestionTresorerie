@@ -27,7 +27,7 @@ Public Class RapportTraitement
     Private Shared _messageGlobal As New List(Of String)
 
     ' Méthode interne pour écrire dans le fichier de log
-    Private Shared Sub WriteToLog(message As String, level As String)
+    Public Shared Sub WriteToLog(message As String, level As String)
         Try
             Dim logMessage As String = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [{level}] {message}"
             File.AppendAllText(LectureProprietes.GetVariable("fichierCRBatch"), logMessage & vbCrLf)

@@ -62,14 +62,12 @@ Public Class batchAnalyse
             Dim fichiers As String() = Directory.GetFiles(repertoire)
 
             ' Parcourir chaque fichier et appeler analyseChq
-            'sNomFichier contient le nom du fichier et le chemin
             For Each sNomFichier As String In fichiers
+                'sNomFichier contient le nom du fichier et le chemin
                 Try
                     'Il faut une instance de classe du bon type
                     _TypeDoc.ContenuBase64 = TypeDocImpl.EncodeImageToBase64(sNomFichier)
                     Dim nouveauDoc As DocumentAgumaaa = analyseDocument(_TypeDoc)
-                    '_TypeDoc.renommerFichier(cheminFichier)
-                    'nouveauDoc.InsererDocument(nouveauDoc)
                     ProcessDocument(nouveauDoc, sNomFichier)
                     Logger.INFO("Insertion en base du document " & nouveauDoc.ToString)
                     nombreFichiersTraites += 1
@@ -78,7 +76,6 @@ Public Class batchAnalyse
                 Catch ex As Exception
                     Logger.ERR($"Erreur lors de l'analyse du fichier : {sNomFichier} - {ex.Message}")
                     nombreTraitementKO += 1
-                    'Dim compteur = compteursParRepertoire(repertoire)
                     compteursParRepertoire(repertoire) = (compteur.fichiersTraites + 1, compteur.traitementOK, compteur.traitementKO + 1)
                 End Try
             Next
@@ -138,7 +135,7 @@ Public Class batchAnalyse
             derivedDoc.InsererDocument(derivedDoc)
 
         Catch ex As Exception
-            Logger.ERR($"Erreur lors du traitement du document : {ex.Message}")
+            Logger.ERR($"Erreur lors du traitement du document {sNomFichier} : {ex.Message}")
         End Try
     End Sub
 
@@ -220,22 +217,69 @@ Public Class batchAnalyse
     End Function
 
     ' Méthode dédiée pour générer le compte rendu de traitement
-    Private Sub GenererCompteRendu()
-        ' Log des informations générales
-        Logger.INFO($"Compte rendu de traitement :")
-        Logger.INFO($"Nombre de fichiers traités : {nombreFichiersTraites}")
-        Logger.INFO($"Nombre de traitements OK : {nombreTraitementOK}")
-        Logger.INFO($"Nombre de traitements KO : {nombreTraitementKO}")
-        Logger.INFO($"Date/Heure de début : {dateHeureDebut}")
-        Logger.INFO($"Date/Heure de fin : {dateHeureFin}")
+    'Private Sub GenererCompteRendu()
+    '    ' Log des informations générales
+    '    Logger.INFO($"Compte rendu de traitement :")
+    '    Logger.INFO($"Nombre de fichiers traités : {nombreFichiersTraites}")
+    '    Logger.INFO($"Nombre de traitements OK : {nombreTraitementOK}")
+    '    Logger.INFO($"Nombre de traitements KO : {nombreTraitementKO}")
+    '    Logger.INFO($"Date/Heure de début : {dateHeureDebut}")
+    '    Logger.INFO($"Date/Heure de fin : {dateHeureFin}")
 
-        ' Log des compteurs par répertoire
-        Logger.INFO($"Compte rendu par répertoire :")
+    '    ' Log des compteurs par répertoire
+    '    Logger.INFO($"Compte rendu par répertoire :")
+    '    For Each kvp As KeyValuePair(Of String, (Integer, Integer, Integer)) In compteursParRepertoire
+    '        Logger.INFO($"Répertoire : {kvp.Key}")
+    '        Logger.INFO($"  Fichiers traités : {kvp.Value.Item1}")
+    '        Logger.INFO($"  Traitements OK : {kvp.Value.Item2}")
+    '        Logger.INFO($"  Traitements KO : {kvp.Value.Item3}")
+    '    Next
+    'End Sub
+    Private Sub GenererCompteRendu()
+        ' Assurer que le rapport est démarré
+        RapportTraitement.DemarrerRapport()
+
+        ' Mettre à jour les compteurs globaux dans RapportTraitement
         For Each kvp As KeyValuePair(Of String, (Integer, Integer, Integer)) In compteursParRepertoire
-            Logger.INFO($"Répertoire : {kvp.Key}")
-            Logger.INFO($"  Fichiers traités : {kvp.Value.Item1}")
-            Logger.INFO($"  Traitements OK : {kvp.Value.Item2}")
-            Logger.INFO($"  Traitements KO : {kvp.Value.Item3}")
+            ' Mapper le répertoire à un TypeDocument (ajustez selon votre logique)
+            Dim typeDoc As RapportTraitement.TypeDocument
+            Select Case kvp.Key.ToLower()
+                Case "cheques"
+                    typeDoc = RapportTraitement.TypeDocument.Cheque
+                Case "formulairesadhesion"
+                    typeDoc = RapportTraitement.TypeDocument.FormulaireAdhesion
+                Case "questionnairesmedicaux"
+                    typeDoc = RapportTraitement.TypeDocument.QuestionnaireMedical
+                Case Else
+                    RapportTraitement.WriteToLog($"Répertoire inconnu : {kvp.Key}", "WARN")
+                    Continue For
+            End Select
+
+            ' Mettre à jour les compteurs pour ce type de document
+            For i As Integer = 1 To kvp.Value.Item2 ' Traitements OK
+                RapportTraitement.MettreAJour(typeDoc, True, $"Traitement OK dans {kvp.Key}")
+            Next
+            For i As Integer = 1 To kvp.Value.Item3 ' Traitements KO
+                RapportTraitement.MettreAJour(typeDoc, False, $"Traitement KO dans {kvp.Key}")
+            Next
+            ' Les avertissements ne sont pas dans le tuple, mais peuvent être ajoutés si nécessaire
         Next
+
+        ' Écrire les informations générales dans le log
+        RapportTraitement.WriteToLog("Compte rendu de traitement :", "INFO")
+        RapportTraitement.WriteToLog($"Nombre de fichiers traités : {nombreFichiersTraites}", "INFO")
+        RapportTraitement.WriteToLog($"Nombre de traitements OK : {nombreTraitementOK}", "INFO")
+        RapportTraitement.WriteToLog($"Nombre de traitements KO : {nombreTraitementKO}", "INFO")
+        RapportTraitement.WriteToLog($"Date/Heure de début : {dateHeureDebut}", "INFO")
+        RapportTraitement.WriteToLog($"Date/Heure de fin : {dateHeureFin}", "INFO")
+
+        ' Générer et écrire les rapports (texte et JSON)
+        Dim rapportTexte As String = RapportTraitement.GenererRapport()
+        RapportTraitement.WriteToLog("Rapport texte généré :", "INFO")
+        RapportTraitement.WriteToLog(rapportTexte, "INFO")
+
+        Dim rapportJson As String = RapportTraitement.GenererRapportJson()
+        RapportTraitement.WriteToLog("Rapport JSON généré :", "INFO")
+        RapportTraitement.WriteToLog(rapportJson, "INFO")
     End Sub
 End Class

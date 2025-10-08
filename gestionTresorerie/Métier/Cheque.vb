@@ -161,7 +161,8 @@ Public Class Cheque
             Throw New ArgumentException("Le répertoire de sortie ne peut pas être vide ou null.", NameOf(sRepDestination))
         End If
         Utilitaires.RenommerEtDeplacerFichier(sNomFichier, sRepDestination & "\" & determineNouveauNomFichier(sNomFichier))
-        Return sRepDestination
+        'Retourne le nouveau nom du fichier avec le chemin
+        Return sRepDestination & "\" & determineNouveauNomFichier(sNomFichier)
     End Function
     Private Function determineNouveauNomFichier(sNomFichier As String) As String
         Try

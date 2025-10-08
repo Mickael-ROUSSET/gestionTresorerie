@@ -9,6 +9,23 @@ Public MustInherit Class DocumentAgumaaa
 
     ' Propriété pour contenuDoc
     Public Property ContenuDoc As String
+        Get
+            Return _contenuDoc
+        End Get
+        Set(value As String)
+            If Not String.IsNullOrEmpty(value) Then
+                Try
+                    ' Vérifier si la chaîne est un Base64 valide
+                    Convert.FromBase64String(value)
+                Catch ex As FormatException
+                    Logger.ERR($"ContenuDoc n'est pas une chaîne Base64 valide : {ex.Message}")
+                    Throw New ArgumentException("La valeur de ContenuDoc doit être une chaîne Base64 valide.")
+                End Try
+            End If
+            _contenuDoc = value
+        End Set
+    End Property
+    Private _contenuDoc As String
 
     ' Propriété pour cheminDoc
     Public Property CheminDoc As String
