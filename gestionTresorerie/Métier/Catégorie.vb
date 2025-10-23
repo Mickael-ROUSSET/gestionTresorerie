@@ -1,6 +1,4 @@
-﻿Imports System.Data.SqlClient
-
-Public Class Categorie
+﻿Public Class Categorie
     'Public Function ExecuterRequete(query As String, Optional parameters As Dictionary(Of String, Object) = Nothing) As DataTable Implements IDataService.ExecuterRequete
     '    Dim dt As New DataTable
     '    Try

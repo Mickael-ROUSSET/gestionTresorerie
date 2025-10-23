@@ -17,11 +17,7 @@
     Public Sub litRepInstallation()
         ' Lire la variable d'environnement 
         If _repInstallation = String.Empty Then
-            If _env = "Prod" Then
-                _repInstallation = My.Settings.repInstallationProd
-            Else
-                _repInstallation = My.Settings.repInstallationTest
-            End If
+            _repInstallation = If(_env = "Prod", My.Settings.repInstallationProd, My.Settings.repInstallationTest)
             Logger.INFO($"repInstallation = {_repInstallation}")
         End If
     End Sub

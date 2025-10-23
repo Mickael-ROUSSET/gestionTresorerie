@@ -1,11 +1,9 @@
-﻿Imports System.Collections.Generic
-Imports System.Globalization
+﻿Imports System.Globalization
 Imports System.IO
-Imports System.Reflection.Metadata
 Imports System.Text.RegularExpressions
 Imports Newtonsoft.Json.Linq
 
-Class Utilitaires
+Friend Class Utilitaires
     Public Shared Sub selLigneDgvParLibelle(dgv As DataGridView, libelle As String)
         ' Sélectionne la ligne dont le libellé correspond au paramètre (sur le nombre de caractères renseignés)
         If libelle.Length > 1 Then
@@ -38,24 +36,15 @@ Class Utilitaires
 
     ' Méthodes de conversion robustes
     Public Shared Function ConvertToDate(value As Object) As Date
-        If value Is Nothing OrElse IsDBNull(value) Then
-            Return Date.MinValue
-        End If
-        Return CDate(value)
+        Return If(value Is Nothing OrElse IsDBNull(value), Date.MinValue, CDate(value))
     End Function
 
     Public Shared Function ConvertToDouble(value As Object) As Double
-        If value Is Nothing OrElse IsDBNull(value) Then
-            Return 0.0
-        End If
-        Return CDbl(value)
+        Return If(value Is Nothing OrElse IsDBNull(value), 0.0, CDbl(value))
     End Function
 
     Public Shared Function ConvertToBoolean(value As Object) As Boolean
-        If value Is Nothing OrElse IsDBNull(value) Then
-            Return False
-        End If
-        Return CBool(value)
+        Return If(value Is Nothing OrElse IsDBNull(value), False, CBool(value))
     End Function
     Public Shared Function ConvertToDecimal(value As Object) As Decimal
         If value Is Nothing OrElse IsDBNull(value) Then
@@ -63,11 +52,7 @@ Class Utilitaires
         End If
 
         Dim result As Decimal
-        If Decimal.TryParse(value.ToString(), NumberStyles.Currency, CultureInfo.GetCultureInfo("fr-FR"), result) Then
-            Return result
-        End If
-
-        Return 0
+        Return If(Decimal.TryParse(value.ToString(), NumberStyles.Currency, CultureInfo.GetCultureInfo("fr-FR"), result), result, 0)
     End Function
     Public Shared Function ChargerCriteresDepuisConfig(nomDico As String) As Dictionary(Of String, String)
         Dim dico As New Dictionary(Of String, String)()
@@ -212,7 +197,8 @@ Class Utilitaires
             Return ""
         End Try
     End Function
-    Shared Function ExtractAndCleanJson(content As String) As String
+
+    Public Shared Function ExtractAndCleanJson(content As String) As String
         ' Use regex to extract text between the first '{' and the last '}'
         Dim match As Match = Regex.Match(content, "\{(.*?)\}", RegexOptions.Singleline)
 
@@ -244,7 +230,7 @@ Class Utilitaires
             ' Vérifier si le répertoire de sortie existe, sinon le créer 
             Dim sRepSortie As String = Path.GetDirectoryName(sNouveauNom)
             If Not Directory.Exists(sRepSortie) Then
-                Directory.CreateDirectory(sRepSortie)
+                Dim unused = Directory.CreateDirectory(sRepSortie)
             End If
 
             ' Vérifier si un fichier avec le même nom existe déjà
@@ -272,7 +258,7 @@ Class Utilitaires
             Dim resultat As New JObject()
 
             For Each item As JProperty In referenceMessage
-                item.CreateReader()
+                Dim unused = item.CreateReader()
 
                 Select Case item.Name
                     Case "message"

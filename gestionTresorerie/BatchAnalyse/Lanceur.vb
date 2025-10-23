@@ -1,27 +1,17 @@
 ﻿
 
 Imports System.Data.SqlClient
-Imports System.Reflection
+Imports System.IO
 
 Public Class Lanceur
     Private Shared iTypeDocument As String
 
     Public Shared Sub LanceTrt()
-        ' Sélectionner les types de document (classes) avec sqlTypesDocuments
+        ' Vérifie si le fichier lstTiers.csv existe, sinon le génère.
+        VerifierOuGenererLstTiers()
+        ' Sélectionner les types de document (classes) avec GetTypesDocument
         For Each typeDoc In GetTypesDocument()
             Try
-                '' Créer une instance de la classe spécifiée par sClasse via réflexion
-                'Dim typeClasse As Type = Type.GetType("gestionTresorerie." & typeDoc.ClasseTypeDoc)
-                ''Si Type.GetType échoue, essayer de chercher dans l'assembly courant
-                'If typeClasse Is Nothing Then
-                '    typeClasse = Assembly.GetExecutingAssembly().GetType("gestionTresorerie." & typeDoc.ClasseTypeDoc)
-                '    If typeClasse Is Nothing Then
-                '        Logger.WARN("Classe " & "gestionTresorerie." & typeDoc.ClasseTypeDoc & " non trouvée dans l'assembly courant.")
-                '        Continue For
-                '    End If
-                'End If
-
-                'Dim instanceClasse As Object = Activator.CreateInstance(typeDoc)
                 Dim batchAnalyse = New batchAnalyse(typeDoc)
 
                 ' Appel de l'analyse des fichiers avec le type d'analyse défini dans le constructeur
@@ -42,7 +32,7 @@ Public Class Lanceur
                     Dim typeDoc As New TypeDocImpl(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetString(3))
                     listTypeDoc.Add(typeDoc)
                 End While
-                Logger.INFO("Types de documents récupérés avec succès.")
+                Logger.INFO($"{reader.RecordsAffected} types de documents récupérés avec succès.")
             Else
                 ' Gérer le cas où le reader est vide
                 Logger.WARN("Aucun type de document trouvé.")
@@ -51,4 +41,42 @@ Public Class Lanceur
 
         Return listTypeDoc
     End Function
+
+    Private Shared Sub VerifierOuGenererLstTiers()
+        ' Vérifie si le fichier lstTiers.csv existe, sinon exécute la requête reqIdentiteTiers pour le générer.
+        Dim sFicLstTiers As String = LectureProprietes.GetVariable("ficLstTiers")
+        If Not File.Exists(sFicLstTiers) Then
+            Logger.WARN("Le fichier lstTiers.csv est introuvable. Génération en cours...")
+
+            Try
+                Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqIdentiteTiers").ExecuteReader()
+                    Using writer As New StreamWriter(sFicLstTiers, False, System.Text.Encoding.UTF8)
+                        ' Écrire les en-têtes
+                        For i As Integer = 0 To reader.FieldCount - 1
+                            writer.Write(reader.GetName(i))
+                            If i < reader.FieldCount - 1 Then writer.Write(";")
+                        Next
+                        writer.WriteLine()
+
+                        ' Écrire les lignes
+                        While reader.Read()
+                            For i As Integer = 0 To reader.FieldCount - 1
+                                writer.Write(reader(i).ToString())
+                                If i < reader.FieldCount - 1 Then writer.Write(";")
+                            Next
+                            writer.WriteLine()
+                        End While
+                    End Using
+                End Using
+
+                Logger.INFO("Fichier lstTiers.csv généré avec succès via la requête reqIdentiteTiers.")
+            Catch ex As Exception
+                Logger.ERR($"Erreur lors de la génération du fichier lstTiers.csv : {ex.Message}")
+                Throw
+            End Try
+        Else
+            Logger.INFO("Fichier lstTiers.csv trouvé, aucune régénération nécessaire.")
+        End If
+    End Sub
+
 End Class

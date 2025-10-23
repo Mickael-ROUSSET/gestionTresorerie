@@ -32,33 +32,33 @@ Public Class Compte
         ' Convertir en chaîne hexadécimale
         Dim builder As New StringBuilder(hashBytes.Length * 2)
         For Each b As Byte In hashBytes
-            builder.Append(b.ToString("x2"))
+            Dim unused = builder.Append(b.ToString("x2"))
         Next
 
         ' Retourner la chaîne hexadécimale
         Return builder.ToString()
     End Function
     Public Sub AjouterCompte()
-        SqlCommandBuilder.
+        Dim unused = SqlCommandBuilder.
             CreateSqlCommand(Constantes.sqlInsertCompte,
-                             New Dictionary(Of String, Object) From {{"@login", Me.Login},
-                                                                     {"@motDePasse", Me.motDePasse},
-                                                                     {"@typeAcces", Me.TypeAcces}}
+                             New Dictionary(Of String, Object) From {{"@login", Login},
+                                                                     {"@motDePasse", motDePasse},
+                                                                     {"@typeAcces", TypeAcces}}
                              ).
                              ExecuteNonQuery()
     End Sub
     Public Sub ReinitialiserMotDePasse(nouveauMotDePasse As String)
-        SqlCommandBuilder.
+        Dim unused = SqlCommandBuilder.
             CreateSqlCommand(Constantes.sqlUpdCompte,
-                             New Dictionary(Of String, Object) From {{"@login", Me.Login},
+                             New Dictionary(Of String, Object) From {{"@login", Login},
                                                                      {"@motDePasse", nouveauMotDePasse}}
                              ).
                              ExecuteNonQuery()
     End Sub
     Public Sub SupprimerCompte()
-        SqlCommandBuilder.
+        Dim unused = SqlCommandBuilder.
             CreateSqlCommand(Constantes.sqlDelCompte,
-                             New Dictionary(Of String, Object) From {{"@login", Me.Login}}
+                             New Dictionary(Of String, Object) From {{"@login", Login}}
                              ).
                              ExecuteNonQuery()
     End Sub

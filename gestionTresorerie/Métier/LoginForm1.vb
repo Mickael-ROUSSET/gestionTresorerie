@@ -9,11 +9,11 @@ Public Class LoginForm
     ' telles que le nom d'utilisateur, le nom complet, etc.
 
     Private Sub OK_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles OK.Click
-        Me.Close()
+        Close()
     End Sub
 
     Private Sub Cancel_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Cancel.Click
-        Me.Close()
+        Close()
     End Sub
 
 End Class

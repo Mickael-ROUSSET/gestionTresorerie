@@ -1,9 +1,8 @@
 ﻿Imports System.Data.SqlClient
-Imports System.Reflection.Metadata
 
 Public Class Tiers
-    Dim _dateCreation As Date
-    Dim _dateModification As Date
+    Private _dateCreation As Date
+    Private _dateModification As Date
     Public Sub New(id As Integer, sNom As String, sPrenom As String, Optional sCategorie As Integer = 0, Optional sSousCategorie As Integer = 0)
         If sNom IsNot Nothing Then
             Me.id = id
@@ -31,7 +30,7 @@ Public Class Tiers
             Try
                 iCategorie = monReader.GetInt32(0)
             Catch ex As Exception
-                MsgBox(ex.Message)
+                Dim unused = MsgBox(ex.Message)
             End Try
         Loop
         'TODO : gérer les réponses multiples éventuelles
@@ -48,7 +47,7 @@ Public Class Tiers
             Try
                 iSousCategorie = monReader.GetInt32(0)
             Catch ex As Exception
-                MsgBox(ex.Message)
+                Dim unused = MsgBox(ex.Message)
             End Try
         Loop
         'TODO : gérer les réponses multiples éventuelles
@@ -83,7 +82,7 @@ Public Class Tiers
 
         ' Parcourir chaque élément de la liste et ajouter une ligne pour chaque occurrence
         For Each tiers In listeTiers
-            sb.AppendLine($"Nom: {tiers.nom}, Prénom: {tiers.prenom}, Raison Sociale: {tiers.raisonSociale}")
+            Dim unused = sb.AppendLine($"Nom: {tiers.nom}, Prénom: {tiers.prenom}, Raison Sociale: {tiers.raisonSociale}")
         Next
 
         ' Retourner la chaîne de caractères complète

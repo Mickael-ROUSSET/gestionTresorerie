@@ -44,7 +44,7 @@ Public Class FrmHistogramme
         ' Ajouter les points avec les légendes 
         For i = 0 To UBound(valeurs)
             'ChartBilan.Series("Series1").Points.AddXY(legende(i), valeurs(i))
-            ChartBilan.Series("Series1").Points.AddXY((i), valeurs(i))
+            Dim unused = ChartBilan.Series("Series1").Points.AddXY(i, valeurs(i))
             ChartBilan.Series("Series1").Points(i).AxisLabel = legende(i) ' Assurez-vous que les étiquettes sont définies
             ChartBilan.Series("Series1").Points(i).Color = arrColor(i Mod (UBound(arrColor) + 1))
         Next

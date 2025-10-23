@@ -1,16 +1,9 @@
 ﻿' Classe de base abstraite implémentant ITypeDoc
-Imports System.Data.SqlClient
-Imports System.IO
 
 Public MustInherit Class BaseTypeDoc
     Implements ITypeDoc
 
-    ' Champs privés
-    Private _prompt As String
-    Private _gabaritRepertoire As String
-    Private _gabaritNomFichier As String
     Private _classe As String
-    Private _jsonMetaDonnées As String
 
     ' Constructeur protégé pour les classes dérivées
     Protected Sub New()
@@ -18,40 +11,12 @@ Public MustInherit Class BaseTypeDoc
 
     ' Propriétés de ITypeDoc
     Public Property Prompt As String Implements ITypeDoc.Prompt
-        Get
-            Return _prompt
-        End Get
-        Set(value As String)
-            _prompt = value
-        End Set
-    End Property
 
     Public Property GabaritRepertoire As String Implements ITypeDoc.GabaritRepertoire
-        Get
-            Return _gabaritRepertoire
-        End Get
-        Set(value As String)
-            _gabaritRepertoire = value
-        End Set
-    End Property
 
     Public Property GabaritNomFichier As String Implements ITypeDoc.GabaritNomFichier
-        Get
-            Return _gabaritNomFichier
-        End Get
-        Set(value As String)
-            _gabaritNomFichier = value
-        End Set
-    End Property
 
     Public Property jsonMetaDonnées As String Implements ITypeDoc.JsonMetaDonnées
-        Get
-            Return _jsonMetaDonnées
-        End Get
-        Set(value As String)
-            _jsonMetaDonnées = value
-        End Set
-    End Property
 
     Public Property ContenuBase64 As String Implements ITypeDoc.ContenuBase64
         Get

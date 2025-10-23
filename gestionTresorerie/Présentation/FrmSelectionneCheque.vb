@@ -20,11 +20,11 @@ Public Class FrmSelectionneCheque
         For Each chq As Cheque In cheques
             Dim item As New ListViewItem(chq.id)
             With item.SubItems
-                .Add(chq.montant_numerique)
-                .Add(chq.dateChq)
-                .Add(chq.destinataire)
+                Dim unused3 = .Add(chq.montant_numerique)
+                Dim unused2 = .Add(chq.dateChq)
+                Dim unused1 = .Add(chq.destinataire)
             End With
-            lstCheques.Items.Add(item)
+            Dim unused = lstCheques.Items.Add(item)
         Next
     End Sub
     Private Sub LstCheques_SelectedIndexChanged(sender As Object, e As EventArgs)
@@ -48,7 +48,7 @@ Public Class FrmSelectionneCheque
         RaiseEvent IdChequeSelectionneChanged(idCheque)
 
         ' Fermer la fenêtre appelée
-        Me.Close()
+        Close()
     End Sub
 
     Private Function ObtenirIdChequeSelectionne() As Integer
@@ -71,37 +71,37 @@ Public Class FrmSelectionneCheque
                             Dim chqSel As New Cheque(readerChq.GetInt32(0), CStr(montant), readerChq.GetInt32(1), readerChq.GetDateTime(2), readerChq.GetString(3), readerChq.GetString(4))
                             tabCheques.Add(chqSel)
                         Catch ex As Exception
-                            MessageBox.Show("Erreur lors de la lecture des données : " & ex.Message)
+                            Dim unused2 = MessageBox.Show("Erreur lors de la lecture des données : " & ex.Message)
                         End Try
                     End While
                 End Using
             Catch ex As Exception
-                MessageBox.Show("Erreur lors de l'exécution de la commande SQL : " & ex.Message)
-                End Try
+                Dim unused1 = MessageBox.Show("Erreur lors de l'exécution de la commande SQL : " & ex.Message)
+            End Try
             'End Using
         Else
-            MessageBox.Show("Valeur de montant invalide.")
+            Dim unused = MessageBox.Show("Valeur de montant invalide.")
         End If
         Call alimListeChq(tabCheques)
     End Sub
     Public Sub alimListeChq(tabCheques As List(Of Cheque))
         ' Configurer le ListView
         lstCheques.View = View.Details
-        lstCheques.Columns.Add("ID", 50, HorizontalAlignment.Left)
-        lstCheques.Columns.Add("Montant", 100, HorizontalAlignment.Left)
-        lstCheques.Columns.Add("Date", 100, HorizontalAlignment.Left)
-        lstCheques.Columns.Add("Destinataire", 150, HorizontalAlignment.Left)
+        Dim unused7 = lstCheques.Columns.Add("ID", 50, HorizontalAlignment.Left)
+        Dim unused6 = lstCheques.Columns.Add("Montant", 100, HorizontalAlignment.Left)
+        Dim unused5 = lstCheques.Columns.Add("Date", 100, HorizontalAlignment.Left)
+        Dim unused4 = lstCheques.Columns.Add("Destinataire", 150, HorizontalAlignment.Left)
         lstCheques.FullRowSelect = True
 
         ' Ajouter chaque chèque au ListView
         For Each cheque As Cheque In tabCheques
             ' Créer une nouvelle ligne pour le ListView
             Dim item As New ListViewItem(cheque.id.ToString())
-            item.SubItems.Add(cheque.montant_numerique.ToString())
-            item.SubItems.Add(cheque.dateChq)
-            item.SubItems.Add(cheque.destinataire)
+            Dim unused3 = item.SubItems.Add(cheque.montant_numerique.ToString())
+            Dim unused2 = item.SubItems.Add(cheque.dateChq)
+            Dim unused1 = item.SubItems.Add(cheque.destinataire)
             ' Ajouter la ligne au ListView
-            lstCheques.Items.Add(item)
+            Dim unused = lstCheques.Items.Add(item)
         Next
 
         ' Gérer l'événement de changement de sélection

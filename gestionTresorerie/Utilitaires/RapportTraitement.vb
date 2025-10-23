@@ -1,9 +1,8 @@
-﻿Imports System.Diagnostics
+﻿Imports System.IO
+Imports System.Net
+Imports System.Net.Mail
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
-Imports System.Net.Mail
-Imports System.Net
-Imports System.IO
 
 Public Class RapportTraitement
     ' Enum pour les types de documents
@@ -107,11 +106,11 @@ Public Class RapportTraitement
 
         ' Construire le rapport
         Dim rapport As New System.Text.StringBuilder()
-        rapport.AppendLine("=== COMPTE-RENDU DE TRAITEMENT ===")
-        rapport.AppendLine($"Date de début : {_debutTraitement.ToString("yyyy-MM-dd HH:mm:ss")}")
-        rapport.AppendLine($"Date de fin : {_finTraitement.Value.ToString("yyyy-MM-dd HH:mm:ss")}")
-        rapport.AppendLine($"Durée totale : {dureeTraitement.ToString("hh\:mm\:ss")}")
-        rapport.AppendLine()
+        Dim unused18 = rapport.AppendLine("=== COMPTE-RENDU DE TRAITEMENT ===")
+        Dim unused17 = rapport.AppendLine($"Date de début : {_debutTraitement.ToString("yyyy-MM-dd HH:mm:ss")}")
+        Dim unused16 = rapport.AppendLine($"Date de fin : {_finTraitement.Value.ToString("yyyy-MM-dd HH:mm:ss")}")
+        Dim unused15 = rapport.AppendLine($"Durée totale : {dureeTraitement.ToString("hh\:mm\:ss")}")
+        Dim unused14 = rapport.AppendLine()
 
         ' Détails par type de document
         For Each kvp As KeyValuePair(Of TypeDocument, CompteurType) In _compteurs
@@ -119,30 +118,30 @@ Public Class RapportTraitement
             totalEchecs += kvp.Value.Echecs
             totalAvertissements += kvp.Value.Avertissements
 
-            rapport.AppendLine($"Type de document : {kvp.Key.ToString()}")
-            rapport.AppendLine($"  - Succès : {kvp.Value.Succes}")
-            rapport.AppendLine($"  - Échecs : {kvp.Value.Echecs}")
-            rapport.AppendLine($"  - Avertissements : {kvp.Value.Avertissements}")
-            rapport.AppendLine()
+            Dim unused13 = rapport.AppendLine($"Type de document : {kvp.Key.ToString()}")
+            Dim unused12 = rapport.AppendLine($"  - Succès : {kvp.Value.Succes}")
+            Dim unused11 = rapport.AppendLine($"  - Échecs : {kvp.Value.Echecs}")
+            Dim unused10 = rapport.AppendLine($"  - Avertissements : {kvp.Value.Avertissements}")
+            Dim unused9 = rapport.AppendLine()
         Next
 
         ' Totaux généraux
-        rapport.AppendLine("=== TOTAUX GÉNÉRAUX ===")
-        rapport.AppendLine($"Succès totaux : {totalSucces}")
-        rapport.AppendLine($"Échecs totaux : {totalEchecs}")
-        rapport.AppendLine($"Avertissements totaux : {totalAvertissements}")
-        rapport.AppendLine($"Documents traités : {totalSucces + totalEchecs}")
-        rapport.AppendLine()
+        Dim unused8 = rapport.AppendLine("=== TOTAUX GÉNÉRAUX ===")
+        Dim unused7 = rapport.AppendLine($"Succès totaux : {totalSucces}")
+        Dim unused6 = rapport.AppendLine($"Échecs totaux : {totalEchecs}")
+        Dim unused5 = rapport.AppendLine($"Avertissements totaux : {totalAvertissements}")
+        Dim unused4 = rapport.AppendLine($"Documents traités : {totalSucces + totalEchecs}")
+        Dim unused3 = rapport.AppendLine()
 
         ' Messages globaux
         If _messageGlobal.Count > 0 Then
-            rapport.AppendLine("=== MESSAGES DÉTAILLÉS ===")
+            Dim unused2 = rapport.AppendLine("=== MESSAGES DÉTAILLÉS ===")
             For Each msg As String In _messageGlobal
-                rapport.AppendLine(msg)
+                Dim unused1 = rapport.AppendLine(msg)
             Next
         End If
 
-        rapport.AppendLine("=== FIN DU RAPPORT ===")
+        Dim unused = rapport.AppendLine("=== FIN DU RAPPORT ===")
         WriteToLog("Rapport de traitement terminé.", "INFO")
         Return rapport.ToString()
     End Function

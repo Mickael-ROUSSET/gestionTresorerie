@@ -1,8 +1,7 @@
 ﻿Imports System.Data.SqlClient
 
 Public Class ListeTiers
-
-    ReadOnly _listeTiers As New List(Of Tiers)
+    Private ReadOnly _listeTiers As New List(Of Tiers)
     Public Sub New()
         If _listeTiers.Count = 0 Then
             extraitListeTiers()
@@ -103,7 +102,7 @@ Public Class ListeTiers
         Return monTiers
     End Function
     Public Sub SupprimeTiers(tiers As Tiers)
-        _listeTiers.Remove(tiers)
+        Dim unused = _listeTiers.Remove(tiers)
     End Sub
     Public Function CompteTiers() As Integer
         Return _listeTiers.Count

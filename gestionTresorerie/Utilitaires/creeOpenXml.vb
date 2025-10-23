@@ -13,8 +13,7 @@ Imports Table = DocumentFormat.OpenXml.Wordprocessing.Table
 Imports Text = DocumentFormat.OpenXml.Wordprocessing.Text
 Imports TopBorder = DocumentFormat.OpenXml.Wordprocessing.TopBorder
 
-
-Module CreeOpenXml
+Friend Module CreeOpenXml
     'https://learn.microsoft.com/fr-fr/office/open-xml/word/overview
 
     Public Sub creeDoc(ByVal filepath As String)
@@ -33,15 +32,15 @@ Module CreeOpenXml
             End Using
             Logger.ERR($"Document {filepath} créé avec succès.")
         Catch ex As IOException When ex.Message.Contains("is being used by another process")
-            MsgBox($"Erreur : Le fichier '{filepath}' est déjà utilisé par un autre processus.")
+            Dim unused2 = MsgBox($"Erreur : Le fichier '{filepath}' est déjà utilisé par un autre processus.")
             Logger.ERR($"Erreur : Le fichier '{filepath}' est déjà utilisé par un autre processus.")
             End
         Catch ex As UnauthorizedAccessException
-            MsgBox($"Erreur : Accès non autorisé au fichier '{filepath}'.")
+            Dim unused1 = MsgBox($"Erreur : Accès non autorisé au fichier '{filepath}'.")
             Logger.ERR($"Erreur : Accès non autorisé au fichier '{filepath}'.")
             End
         Catch ex As Exception
-            MsgBox($"Erreur inattendue : {ex.Message}")
+            Dim unused = MsgBox($"Erreur inattendue : {ex.Message}")
             Logger.ERR($"Erreur inattendue : {ex.Message}")
             End
         End Try
@@ -74,7 +73,7 @@ Module CreeOpenXml
             New InsideVerticalBorder With {
                 .Val = New EnumValue(Of BorderValues)(BorderValues.Single),
                 .Size = 12}))
-        table.AppendChild(Of TableProperties)(props)
+        Dim unused = table.AppendChild(Of TableProperties)(props)
 
         For i = 0 To UBound(data, 1)
             Dim tr As New TableRow
@@ -120,7 +119,7 @@ Module CreeOpenXml
                 New InsideVerticalBorder With {
                     .Val = New EnumValue(Of BorderValues)(BorderValues.Single),
                     .Size = 12}))
-            table.AppendChild(Of TableProperties)(props)
+            Dim unused = table.AppendChild(Of TableProperties)(props)
 
             For i = 0 To UBound(data, 1)
                 Dim tr As New TableRow
@@ -284,7 +283,7 @@ Module CreeOpenXml
                             )
 
         ' Append the reference to body, the element should be in a Run.
-        wordDoc.MainDocumentPart.Document.Body.AppendChild(New Paragraph(New Run(element)))
+        Dim unused = wordDoc.MainDocumentPart.Document.Body.AppendChild(New Paragraph(New Run(element)))
     End Sub
     '2005'
     Public Function ajouteParagraphe(ByVal document As WordprocessingDocument, ByVal txt As String) As Paragraph
@@ -295,7 +294,7 @@ Module CreeOpenXml
         ' Add a paragraph with some text.            
         Dim para As Paragraph = body.AppendChild(New Paragraph())
         Dim run As Run = para.AppendChild(New Run())
-        run.AppendChild(New Text(txt))
+        Dim unused = run.AppendChild(New Text(txt))
         Return para
     End Function
     Public Function ajouteParagraphe(ByVal filepath As String, ByVal txt As String) As Paragraph
@@ -307,7 +306,7 @@ Module CreeOpenXml
             ' Add a paragraph with some text.            
             Dim para As Paragraph = body.AppendChild(New Paragraph())
             Dim run As Run = para.AppendChild(New Run())
-            run.AppendChild(New Text(txt))
+            Dim unused = run.AppendChild(New Text(txt))
             Return para
         End Using
     End Function
@@ -318,7 +317,7 @@ Module CreeOpenXml
         Using wordprocessingDocument As WordprocessingDocument = WordprocessingDocument.Open(filepath, True)
             ' If the paragraph has no ParagraphProperties object, create one.
             If Not p.Elements(Of ParagraphProperties)().Any() Then
-                p.PrependChild(Of ParagraphProperties)(New ParagraphProperties)
+                Dim unused = p.PrependChild(Of ParagraphProperties)(New ParagraphProperties)
             End If
 
             ' Get the paragraph properties element of the paragraph.
@@ -354,7 +353,7 @@ Module CreeOpenXml
 
         ' If the paragraph has no ParagraphProperties object, create one.
         If Not p.Elements(Of ParagraphProperties)().Any() Then
-            p.PrependChild(Of ParagraphProperties)(New ParagraphProperties)
+            Dim unused = p.PrependChild(Of ParagraphProperties)(New ParagraphProperties)
         End If
 
         ' Get the paragraph properties element of the paragraph.
@@ -398,19 +397,15 @@ Module CreeOpenXml
 
         ' Look for a match on styleid.
         Dim style As Style = s.Elements(Of Style)().Where(Function(st) (st.StyleId = styleid) AndAlso (st.Type.Value = StyleValues.Paragraph)).FirstOrDefault()
-        If style Is Nothing Then
-            Return False
-        End If
-
-        Return True
+        Return style IsNot Nothing
     End Function
 
     ' Return styleid that matches the styleName, or null when there's no match.
     Public Function GetStyleIdFromStyleName(ByVal doc As WordprocessingDocument, ByVal styleName As String) As String
         Dim stylePart As StyleDefinitionsPart = doc.MainDocumentPart.StyleDefinitionsPart
         Dim styleId As String = stylePart.Styles.Descendants(Of StyleName)().
-            Where(Function(s) s.Val.Value.Equals(styleName) AndAlso ((CType(s.Parent, Style)).Type.Value = StyleValues.Paragraph)).
-            Select(Function(n) (CType(n.Parent, Style)).StyleId).
+            Where(Function(s) s.Val.Value.Equals(styleName) AndAlso (CType(s.Parent, Style).Type.Value = StyleValues.Paragraph)).
+            Select(Function(n) CType(n.Parent, Style).StyleId).
             FirstOrDefault()
         Return styleId
     End Function
@@ -532,7 +527,7 @@ Module CreeOpenXml
         SectionBreakProperties.Append(SectionBreakType)
         paragraphSectionBreakProperties.Append(SectionBreakProperties)
         paragraphSectionBreak.Append(paragraphSectionBreakProperties)
-        myMainPart.Document.Body.InsertAfter(paragraphSectionBreak, myMainPart.Document.Body.LastChild)
+        Dim unused = myMainPart.Document.Body.InsertAfter(paragraphSectionBreak, myMainPart.Document.Body.LastChild)
         myMainPart.Document.Save()
     End Sub
 End Module

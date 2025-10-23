@@ -33,7 +33,7 @@
         RaiseEvent objetSelectionneChanged(sender, -1)
 
         ' Fermer la fenêtre appelée
-        Me.Close()
+        Close()
     End Sub
 
     Private Sub btnCancel_Click(sender As Object, e As EventArgs) Handles btnAnnuler.Click

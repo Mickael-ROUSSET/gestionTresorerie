@@ -3,11 +3,6 @@
 Public Class TypeDocImpl
     Implements ITypeDoc
 
-    ' Champs privés
-    Private _prompt As String
-    Private _gabaritRepertoire As String
-    Private _gabaritNomFichier As String
-    Private _classe As String
     Private _contenuBase64 As String
     Private _jsonMetaDonnées As String
     Public Shared Function EncodeImageToBase64(filePath As String) As String
@@ -34,48 +29,20 @@ Public Class TypeDocImpl
 
     ' Constructeur avec paramètres pour initialisation depuis la base de données
     Public Sub New(prompt As String, gabaritRepertoire As String, gabaritNomFichier As String, classe As String)
-        _prompt = prompt
-        _gabaritRepertoire = gabaritRepertoire
-        _gabaritNomFichier = gabaritNomFichier
-        _classe = classe
+        Me.Prompt = prompt
+        Me.GabaritRepertoire = gabaritRepertoire
+        Me.GabaritNomFichier = gabaritNomFichier
+        ClasseTypeDoc = classe
     End Sub
 
     ' Implémentation des propriétés de l'interface
     Public Property Prompt As String Implements ITypeDoc.Prompt
-        Get
-            Return _prompt
-        End Get
-        Set(value As String)
-            _prompt = value
-        End Set
-    End Property
 
     Public Property GabaritRepertoire As String Implements ITypeDoc.GabaritRepertoire
-        Get
-            Return _gabaritRepertoire
-        End Get
-        Set(value As String)
-            _gabaritRepertoire = value
-        End Set
-    End Property
 
     Public Property GabaritNomFichier As String Implements ITypeDoc.GabaritNomFichier
-        Get
-            Return _gabaritNomFichier
-        End Get
-        Set(value As String)
-            _gabaritNomFichier = value
-        End Set
-    End Property
 
     Public Property ClasseTypeDoc As String Implements ITypeDoc.ClasseTypeDoc
-        Get
-            Return _classe
-        End Get
-        Set(value As String)
-            _classe = value
-        End Set
-    End Property
 
     Public Property JsonMetaDonnées As String Implements ITypeDoc.JsonMetaDonnées
         Get

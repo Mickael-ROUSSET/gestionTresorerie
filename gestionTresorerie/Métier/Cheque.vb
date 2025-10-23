@@ -1,6 +1,4 @@
-﻿Imports System.Data.SqlClient
-Imports System.IO
-Imports System.Text.RegularExpressions
+﻿Imports System.IO
 Imports Newtonsoft.Json.Linq
 Public Class Cheque
     Inherits DocumentAgumaaa
@@ -74,7 +72,8 @@ Public Class Cheque
             _numero_du_cheque = value
         End Set
     End Property
-    Property dateChq() As String
+
+    Public Property dateChq() As String
         Get
             Return _dateChq
         End Get
@@ -82,7 +81,8 @@ Public Class Cheque
             _dateChq = value
         End Set
     End Property
-    Property id() As Integer
+
+    Public Property id() As Integer
         Get
             Return _id
         End Get

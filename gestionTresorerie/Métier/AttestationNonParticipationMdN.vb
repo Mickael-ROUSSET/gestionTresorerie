@@ -2,8 +2,7 @@
 
 Public Class AttestationNonParticipationMdN
     Inherits DocumentAgumaaa
-    Private _nom As String
-    Private _prenom As String
+
     Private _jsonMetaDonnées As String
 
     ' Constructeur par défaut
@@ -12,28 +11,14 @@ Public Class AttestationNonParticipationMdN
 
     ' Constructeur avec paramètres
     Public Sub New(nom As String, prenom As String)
-        _nom = nom
-        _prenom = prenom
+        Me.Nom = nom
+        Me.Prenom = prenom
     End Sub
 
     ' Propriétés
     Public Property Nom As String
-        Get
-            Return _nom
-        End Get
-        Set(value As String)
-            _nom = value
-        End Set
-    End Property
 
     Public Property Prenom As String
-        Get
-            Return _prenom
-        End Get
-        Set(value As String)
-            _prenom = value
-        End Set
-    End Property
 
     Public Overrides Function RenommerFichier(sChemin As String, Optional sNouveauNom As String = "") As String
         Dim sRepDestination As String

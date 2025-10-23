@@ -2,10 +2,10 @@
 Imports System.Security
 Imports System.Text
 Imports System.Text.RegularExpressions
-Module LitRelevé
 
-    Dim WithEvents SelectButton As Button
-    ReadOnly openFileDialog1 As OpenFileDialog
+Friend Module LitRelevé
+    Private WithEvents SelectButton As Button
+    Private ReadOnly openFileDialog1 As OpenFileDialog
 
     Sub New()
         openFileDialog1 = New OpenFileDialog() With
@@ -29,7 +29,7 @@ Module LitRelevé
                 Call ViderFichier(ficRelevéTraité)
                 TraiteFichierPourri(ficRelevéTraité, filePath)
             Catch SecEx As SecurityException
-                MessageBox.Show($"Security error:{vbCrLf}{SecEx.Message}{vbCrLf}" & $"Details:{vbCrLf}{SecEx.StackTrace}")
+                Dim unused = MessageBox.Show($"Security error:{vbCrLf}{SecEx.Message}{vbCrLf}" & $"Details:{vbCrLf}{SecEx.StackTrace}")
                 Logger.ERR($"Security error:{SecEx.Message}, Details:{SecEx.StackTrace}")
             End Try
         End If
@@ -42,7 +42,7 @@ Module LitRelevé
             Logger.INFO($"Le fichier {cheminFichier} a été vidé avec succès.")
         Catch ex As Exception
             ' Gérer les exceptions en cas d'erreur 
-            MsgBox($"ViderFichier, erreur : {ex.Message}")
+            Dim unused = MsgBox($"ViderFichier, erreur : {ex.Message}")
             Logger.ERR($"ViderFichier, erreur : {ex.Message}")
         End Try
     End Sub
@@ -65,17 +65,17 @@ Module LitRelevé
                             Else
                                 bLigne1 = False
                             End If
-                            sLigneEntiere.Clear()
-                            sLigneEntiere.Append(ligne)
+                            Dim unused3 = sLigneEntiere.Clear()
+                            Dim unused2 = sLigneEntiere.Append(ligne)
                         Else
-                            sLigneEntiere.Append(ligne)
+                            Dim unused1 = sLigneEntiere.Append(ligne)
                         End If
                         ligne = monStreamReader.ReadLine()
                     End While
                 End Using
             End Using
         Catch ex As Exception
-            MsgBox($"Une erreur est survenue sur la lecture du relevé : {sFichier}", MsgBoxStyle.Critical)
+            Dim unused = MsgBox($"Une erreur est survenue sur la lecture du relevé : {sFichier}", MsgBoxStyle.Critical)
             Logger.ERR($"Une erreur est survenue sur la lecture du relevé : {sFichier}")
         End Try
     End Sub
@@ -96,10 +96,10 @@ Module LitRelevé
                         If match.Success Then
                             ' On est au début d'une ligne => on écrit la ligne en cours et on en commence une autre
                             file.WriteLine(sLigneEntiere.ToString())
-                            sLigneEntiere.Clear()
-                            sLigneEntiere.Append(formatteLigne(ligne, True))
+                            Dim unused3 = sLigneEntiere.Clear()
+                            Dim unused2 = sLigneEntiere.Append(formatteLigne(ligne, True))
                         Else
-                            sLigneEntiere.Append(formatteLigne(ligne, False))
+                            Dim unused1 = sLigneEntiere.Append(formatteLigne(ligne, False))
                         End If
                         ligne = monStreamReader.ReadLine
                     End While
@@ -108,7 +108,7 @@ Module LitRelevé
                 End Using
             End Using
         Catch ex As Exception
-            MsgBox($"TraiteFichierPourri : Une erreur est survenue sur la lecture du relevé : {sFichier}", MsgBoxStyle.Critical)
+            Dim unused = MsgBox($"TraiteFichierPourri : Une erreur est survenue sur la lecture du relevé : {sFichier}", MsgBoxStyle.Critical)
             Logger.ERR($"TraiteFichierPourri : Une erreur est survenue sur la lecture du relevé : {sFichier}")
         End Try
     End Sub
@@ -124,11 +124,7 @@ Module LitRelevé
             sTmp = sLigne.Replace(Constantes.euro, String.Empty)
             sLigneFormattee = sLigneFormattee & Constantes.pointVirgule & Constantes.pointVirgule & sTmp.Replace("+", String.Empty)
         Else
-            If bPresenceDate Then
-                sLigneFormattee = sLigneFormattee & sLigne & Constantes.pointVirgule
-            Else
-                sLigneFormattee = sLigneFormattee & sLigne & Constantes.espace
-            End If
+            sLigneFormattee = If(bPresenceDate, sLigneFormattee & sLigne & Constantes.pointVirgule, sLigneFormattee & sLigne & Constantes.espace)
         End If
         Return sLigneFormattee
     End Function

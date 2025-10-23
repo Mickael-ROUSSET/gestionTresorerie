@@ -8,7 +8,7 @@ Public Class UtilitairesDgv
         Try
             Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand(query, parameters)
             Using adpt As New SqlDataAdapter(command)
-                adpt.Fill(dt)
+                Dim unused = adpt.Fill(dt)
             End Using
 
             Logger.INFO($"Requête exécutée avec succès : {query}. {dt.Rows.Count} lignes extraites")
@@ -47,7 +47,7 @@ Public Class UtilitairesDgv
             Logger.INFO($"Chargement de {dgv.Name} avec la requête {sRequete} réussi. {dgv.Rows.Count} lignes chargées")
         Catch ex As SqlException
             ' On informe l'utilisateur qu'il y a eu un problème :
-            MessageBox.Show($"Une erreur s'est produite lors du chargement des données dans {dgv.Name} : {ex}")
+            Dim unused = MessageBox.Show($"Une erreur s'est produite lors du chargement des données dans {dgv.Name} : {ex}")
             Logger.ERR($"Une erreur s'est produite lors du chargement des données dans {dgv.Name} : {ex}")
         End Try
     End Sub

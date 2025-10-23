@@ -15,7 +15,7 @@ Public Class SqlCommandBuilder
             ' Ajouter les paramètres à la commande si fournis
             If parameters IsNot Nothing Then
                 For Each param In parameters
-                    command.Parameters.AddWithValue(param.Key, param.Value)
+                    Dim unused = command.Parameters.AddWithValue(param.Key, param.Value)
                 Next
             End If
 

@@ -1,6 +1,4 @@
-﻿Imports System.Configuration
-
-<DebuggerDisplay("{GetDebuggerDisplay(),nq}")>
+﻿<DebuggerDisplay("{GetDebuggerDisplay(),nq}")>
 Public Class Constantes
     Public Const regExMontant As String = "^[0-9]+(,[0-9]{0,2})*$"
     Public Const regDateReleve As String = "^[0-3][0-9]/[0-9]{2}/[0-9]{4}"

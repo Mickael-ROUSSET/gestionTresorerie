@@ -58,8 +58,8 @@ Public Class batchAnalyse
                 compteursParRepertoire(repertoire) = compteur
             End If
 
-            ' Obtenir tous les fichiers dans le répertoire courant
-            Dim fichiers As String() = Directory.GetFiles(repertoire)
+            ' Obtenir tous les fichiers jpg dans le répertoire courant
+            Dim fichiers As String() = Directory.GetFiles(repertoire, "*.jpg")
 
             ' Parcourir chaque fichier et appeler analyseChq
             For Each sNomFichier As String In fichiers
@@ -67,6 +67,9 @@ Public Class batchAnalyse
                 Try
                     'Il faut une instance de classe du bon type
                     _TypeDoc.ContenuBase64 = TypeDocImpl.EncodeImageToBase64(sNomFichier)
+                    '-----------------------------------
+                    ' Appel Mistral dans analyseDocument
+                    '-----------------------------------
                     Dim nouveauDoc As DocumentAgumaaa = analyseDocument(_TypeDoc)
                     ProcessDocument(nouveauDoc, sNomFichier)
                     Logger.INFO("Insertion en base du document " & nouveauDoc.ToString)
@@ -194,7 +197,7 @@ Public Class batchAnalyse
 
             ' Valider que sMetaDonnees est un JSON valide
             Try
-                JObject.Parse(sMetaDonnees)
+                Dim unused = JObject.Parse(sMetaDonnees)
             Catch ex As Exception
                 Logger.ERR($"Les métadonnées retournées par AppelMistral.litImage ne sont pas un JSON valide : {ex.Message}")
                 Return Nothing

@@ -931,6 +931,15 @@ Namespace My
                 Return CType(Me("repChqProd"),String)
             End Get
         End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\BacASable\lstTiers.csv")>  _
+        Public ReadOnly Property ficLstTiers() As String
+            Get
+                Return CType(Me("ficLstTiers"),String)
+            End Get
+        End Property
     End Class
 End Namespace
 

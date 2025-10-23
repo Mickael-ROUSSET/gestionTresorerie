@@ -39,7 +39,7 @@ Public Class FrmPrincipale
             FrmSaisie.chargeListes()
         Catch ex As Exception
             ' Gestion des erreurs
-            MessageBox.Show($"Une erreur est survenue lors de l'initialisation : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Dim unused = MessageBox.Show($"Une erreur est survenue lors de l'initialisation : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Logger.ERR($"Une erreur est survenue lors de l'initialisation : {ex.Message}")
         End Try
     End Sub
@@ -72,7 +72,7 @@ Public Class FrmPrincipale
                 ' Créer un DataTable pour stocker les données
                 Dim dataTable As New DataTable()
                 ' Remplir le DataTable avec les données de la base de données
-                adapter.Fill(dataTable)
+                Dim unused = adapter.Fill(dataTable)
                 ' Lier le DataTable au DataGridView
                 dgvPrincipale.DataSource = dataTable
             End Using
@@ -124,13 +124,13 @@ Public Class FrmPrincipale
         Call ChargerDgvPrincipale()
     End Sub
     Private Sub FermerToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles FermerToolStripMenuItem.Click
-        Me.Close()
+        Close()
         End
     End Sub
     Private Sub dgvPrincipale_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvPrincipale.CellContentClick
         Try
             ' Récupérer les valeurs de la ligne sélectionnée
-            Dim currentRow As DataGridViewRow = Me.dgvPrincipale.CurrentRow
+            Dim currentRow As DataGridViewRow = dgvPrincipale.CurrentRow
             If currentRow Is Nothing Then
                 Return
             End If
@@ -154,7 +154,7 @@ Public Class FrmPrincipale
                 .Show()
             End With
         Catch ex As Exception
-            MsgBox($"Une erreur est survenue : {ex.Message}", MsgBoxStyle.Critical)
+            Dim unused = MsgBox($"Une erreur est survenue : {ex.Message}", MsgBoxStyle.Critical)
             Logger.ERR($"Une erreur est survenue : {ex.Message}")
         End Try
     End Sub

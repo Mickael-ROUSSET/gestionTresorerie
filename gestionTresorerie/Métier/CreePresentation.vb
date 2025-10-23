@@ -1,6 +1,6 @@
-﻿Imports DocumentFormat.OpenXml.Packaging
+﻿Imports System.Data.SqlClient
+Imports DocumentFormat.OpenXml.Packaging
 Imports DocumentFormat.OpenXml.Wordprocessing
-Imports System.Data.SqlClient
 
 Public Class CreePresentation
     Public Shared Sub LectureBase()
@@ -13,7 +13,7 @@ Public Class CreePresentation
         Next
         document.Save()
         document.Dispose()
-        MsgBox($"Génération du fichier bilan : {sFicBilan} terminée")
+        Dim unused = MsgBox($"Génération du fichier bilan : {sFicBilan} terminée")
         Logger.INFO($"Génération du fichier bilan : {sFicBilan} terminée")
     End Sub
 
@@ -50,14 +50,14 @@ Public Class CreePresentation
 
         ' Ajouter un saut de ligne avant para2
         Dim lineBreak As New Paragraph(New Run(New Break()))
-        document.MainDocumentPart.Document.Body.AppendChild(lineBreak)
+        Dim unused1 = document.MainDocumentPart.Document.Body.AppendChild(lineBreak)
 
         Dim paraIA As Paragraph = CreeOpenXml.ajouteParagraphe(document, AppelMistral.questionMistral(creeQuestionIA(category, subCategories)))
         formateParagraphe(paraIA, "Arial", 12)
 
         ' Ajouter un saut de page
         Dim pageBreak As New Break() With {.Type = BreakValues.Page}
-        document.MainDocumentPart.Document.Body.AppendChild(pageBreak)
+        Dim unused = document.MainDocumentPart.Document.Body.AppendChild(pageBreak)
     End Sub
     Private Shared Sub formateParagraphe(para As Paragraph, sPolice As String, iTaille As Integer)
         For Each run As Run In para.Elements(Of Run)()
@@ -93,9 +93,9 @@ Public Class CreePresentation
                 End While
                 Logger.INFO($"Sous-catégories chargées pour la catégorie '{category}'.")
             Else
-        ' Gérer le cas où le reader est vide
-        Logger.WARN($"Aucune sous-catégorie trouvée pour la catégorie '{Category}'.")
-        End If
+                ' Gérer le cas où le reader est vide
+                Logger.WARN($"Aucune sous-catégorie trouvée pour la catégorie '{Category}'.")
+            End If
         End Using
 
         Return subcategories

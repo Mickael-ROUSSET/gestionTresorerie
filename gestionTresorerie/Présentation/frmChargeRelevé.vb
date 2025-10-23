@@ -22,7 +22,7 @@ Public Class FrmChargeRelevé
     Private Sub dgvRelevé_DataError(sender As Object, e As DataGridViewDataErrorEventArgs)
         ' Gérer les erreurs de données
         If e.Exception IsNot Nothing Then
-            MsgBox($"Erreur de données : {e.Exception.Message}", MsgBoxStyle.Critical)
+            Dim unused = MsgBox($"Erreur de données : {e.Exception.Message}", MsgBoxStyle.Critical)
             Logger.ERR($"Erreur de données : {e.Exception.Message}")
             ' Empêcher l'erreur de propager
             e.ThrowException = False
@@ -42,13 +42,13 @@ Public Class FrmChargeRelevé
                 Dim nouvelleLigne As Object() = New Object(valeurs.Length) {}
                 nouvelleLigne(0) = String.Empty ' Ajouter une zone vide pour la première colonne
                 Array.Copy(valeurs, 0, nouvelleLigne, 1, valeurs.Length)
-                dgvRelevé.Rows.Add(nouvelleLigne)
+                Dim unused1 = dgvRelevé.Rows.Add(nouvelleLigne)
                 sLigne = monStreamReader.ReadLine
             End While
             Call AjouterColonneTraite()
             monStreamReader.Close()
         Catch ex As Exception
-            MsgBox($"Une erreur {ex.Message} est survenue sur la lecture du relevé : {sFichier}", MsgBoxStyle.Critical)
+            Dim unused = MsgBox($"Une erreur {ex.Message} est survenue sur la lecture du relevé : {sFichier}", MsgBoxStyle.Critical)
             Logger.ERR($"Une erreur {ex.Message} est survenue sur la lecture du relevé : {sFichier}")
         End Try
     End Sub
@@ -76,11 +76,7 @@ Public Class FrmChargeRelevé
                         Logger.WARN($"Montant non trouvé dans les cellules de la ligne {row.Index} : {row}")
                     End If
 
-                    If Mouvements.Existe(dateMvt, montant, sens) Then
-                        row.Cells(_iColTraiteImage).Value = My.Resources.OK
-                    Else
-                        row.Cells(_iColTraiteImage).Value = My.Resources.KO
-                    End If
+                    row.Cells(_iColTraiteImage).Value = If(Mouvements.Existe(dateMvt, montant, sens), My.Resources.OK, My.Resources.KO)
                 Catch ex As Exception
                     Logger.ERR($"Erreur lors de la définition de l'image pour la colonne 'Traité' dans la ligne {row.Index}: {ex.Message}")
                     row.Cells("iTraiteImageIndex").Value = Nothing ' Par défaut, en cas d'erreur

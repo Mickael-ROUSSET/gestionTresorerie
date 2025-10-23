@@ -94,7 +94,7 @@ Public Class FrmSaisie
     'End Sub
     Private Sub BtnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
         Call InsereMouvement()
-        Me.Hide()
+        Hide()
         Call initZonesSaisies()
         If Not btnNouveauChq.Visible Then
             FrmPrincipale.Show()
@@ -103,9 +103,9 @@ Public Class FrmSaisie
     Private Sub TxtMontant_TextChanged(sender As Object, e As EventArgs) Handles txtMontant.Leave
 
         If Not Regex.Match(txtMontant.Text, Constantes.regExMontant, RegexOptions.IgnoreCase).Success Then
-            MessageBox.Show($"Le montant {txtMontant.Text} doit être numérique!")
+            Dim unused1 = MessageBox.Show($"Le montant {txtMontant.Text} doit être numérique!")
             'Remet le focus sur la zone de saisie du montant
-            txtMontant.Focus()
+            Dim unused = txtMontant.Focus()
         End If
     End Sub
     Private Sub dgvTiers_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvTiers.CellContentClick
@@ -156,14 +156,14 @@ Public Class FrmSaisie
                 'Un mouvement identique existe déjà
                 Dim frmListe As New FrmListe(_dtMvtsIdentiques)
                 AddHandler frmListe.objetSelectionneChanged, AddressOf mvtSelectionneChangedHandler
-                frmListe.ShowDialog()
+                Dim unused1 = frmListe.ShowDialog()
                 Logger.INFO($"Le mouvement existe déjà : {mouvement.ObtenirValeursConcatenees}")
             Else
                 Mouvements.InsererMouvementEnBase(mouvement)
                 Logger.INFO($"Insertion du mouvement pour : {mouvement.ObtenirValeursConcatenees}")
             End If
         Catch ex As Exception
-            MsgBox($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
+            Dim unused = MsgBox($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
             Logger.ERR($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
         End Try
     End Sub
@@ -236,9 +236,9 @@ Public Class FrmSaisie
     Private Sub btnSelChq_Click(sender As Object, e As EventArgs) Handles btnSelChq.Click
         Dim selectionneCheque As New FrmSelectionneCheque()
         AddHandler selectionneCheque.IdChequeSelectionneChanged, AddressOf IdChequeSelectionneChangedHandler
-        selectionneCheque.ShowDialog()
+        Dim unused = selectionneCheque.ShowDialog()
 
-        selectionneCheque.chargeListeChq(CDec(Me.txtMontant.Text))
+        selectionneCheque.chargeListeChq(CDec(txtMontant.Text))
         selectionneCheque.Show()
     End Sub
     Private Sub IdChequeSelectionneChangedHandler(ByVal idCheque As Integer)

@@ -1,24 +1,16 @@
 ﻿' Exemple de classe AdhesionGym implémentant ITypeDoc
-Imports System.Data.SqlClient
 Imports System.IO
-Imports DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing
 Imports Newtonsoft.Json.Linq
-Imports Windows.Win32.System
 
 Public Class AdhesionGym
     Implements ITypeDoc
 
-    Private _prompt As String
-    Private _gabaritRepertoire As String
-    Private _gabaritNomFichier As String
     Private _nomUsage As String
     Private _email As String
     Private _telephone As String
     Private _adresse As String
     Private _ville As String
-    Private _classe As String
     Private _codePostal As Integer
-    Private _jsonMetaDonnées As String
 
     ' Champs spécifiques à AdhesionGym
     Private _nom As String
@@ -35,11 +27,11 @@ Public Class AdhesionGym
         _adresse = adresse
         _ville = ville
         _codePostal = codePostal
-        _prompt = "Saisir les informations d'adhésion"
-        _gabaritRepertoire = "\Gabarits\Adhesion"
-        _gabaritNomFichier = "Adhesion.docx"
-        _classe = "AdhesionGym"
-        _jsonMetaDonnées = GenerateJsonMetaDonnees()
+        Prompt = "Saisir les informations d'adhésion"
+        GabaritRepertoire = "\Gabarits\Adhesion"
+        GabaritNomFichier = "Adhesion.docx"
+        ClasseTypeDoc = "AdhesionGym"
+        JsonMetaDonnées = GenerateJsonMetaDonnees()
     End Sub
 
     ' Générer le JSON pour les métadonnées
@@ -53,49 +45,14 @@ Public Class AdhesionGym
 
     ' Propriétés de l'interface
     Public Property Prompt As String Implements ITypeDoc.Prompt
-        Get
-            Return _prompt
-        End Get
-        Set(value As String)
-            _prompt = value
-        End Set
-    End Property
 
     Public Property GabaritRepertoire As String Implements ITypeDoc.GabaritRepertoire
-        Get
-            Return _gabaritRepertoire
-        End Get
-        Set(value As String)
-            _gabaritRepertoire = value
-        End Set
-    End Property
 
     Public Property GabaritNomFichier As String Implements ITypeDoc.GabaritNomFichier
-        Get
-            Return _gabaritNomFichier
-        End Get
-        Set(value As String)
-            _gabaritNomFichier = value
-        End Set
-    End Property
 
     Public Property ClasseTypeDoc As String Implements ITypeDoc.ClasseTypeDoc
-        Get
-            Return _classe
-        End Get
-        Set(value As String)
-            _classe = value
-        End Set
-    End Property
 
     Public Property JsonMetaDonnées As String Implements ITypeDoc.jsonMetaDonnées
-        Get
-            Return _jsonMetaDonnées
-        End Get
-        Set(value As String)
-            _jsonMetaDonnées = value
-        End Set
-    End Property
 
     Public Property ContenuBase64 As String Implements ITypeDoc.ContenuBase64
         Get
@@ -108,8 +65,8 @@ Public Class AdhesionGym
     Private Function determineNouveauNom(sRepSortie As String) As String
 
         ' Construire le nouveau chemin complet du fichier dans le répertoire de sortie
-        Dim nom As String = Utilitaires.ExtractStringFromJson(_jsonMetaDonnées, "Nom")
-        Dim prenom As String = Utilitaires.ExtractStringFromJson(_jsonMetaDonnées, "Prénom")
+        Dim nom As String = Utilitaires.ExtractStringFromJson(JsonMetaDonnées, "Nom")
+        Dim prenom As String = Utilitaires.ExtractStringFromJson(JsonMetaDonnées, "Prénom")
         Return Path.Combine(
             sRepSortie,
             $"{nom}_{prenom}"

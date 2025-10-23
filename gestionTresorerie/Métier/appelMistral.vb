@@ -1,9 +1,8 @@
 ﻿
-'Imports System.IO
 Imports System.Net.Http
 Imports System.Text
-Imports Newtonsoft.Json.Linq
 Imports System.Text.Json
+Imports Newtonsoft.Json.Linq
 
 Public Class AppelMistral
     Public Shared Function litImage(document As ITypeDoc) As String
@@ -13,16 +12,8 @@ Public Class AppelMistral
         Return extractedText
     End Function
 
-    Shared Function ExtractTextFromImage(document As ITypeDoc) As String
-        ' Encoder l'image en base64
-        'Dim base64Image As String = EncodeImageToBase64(imageFilePath)
-        'Dim imageUrl As String = "data:image/jpeg;base64," & base64Image
+    Public Shared Function ExtractTextFromImage(document As ITypeDoc) As String
         Using client As New HttpClient()
-            '            Dim jsonData As String = $"{{""model"": ""pixtral-12b-2409"", 
-            '""messages"": [{{""role"": ""user"",""content"": [{{""type"": ""text"",""text"": ""Extrais du chèque en PJ le texte des éléments : emetteur_du_cheque=la banque émettrice en haut de l'image, le montant_numerique=montant numérique dans le cadre en haut à droite, numero_du_cheque=le numéro du chèque en bas à gauche, dateChq=la date à droite de la mention \""Le \"", emetteur_du_cheque=l'émetteur du chèque au centre, le destinataire=destinataire à droite de la mention \""à \"" retourne les éléments extraits au format json""}}, 
-            '{{""type"": ""image_url"",""image_url"": ""{image_url}""}}]}}],""max_tokens"": 300}}"
-            ''Dim jsonData As String = promptJson(imageUrl)
-
             ' Créer le contenu de la requête
             Dim content As New StringContent(promptJson(document), Encoding.UTF8, "application/json")
             ' Créer un contenu multipart/form-data pour l'image
@@ -33,7 +24,7 @@ Public Class AppelMistral
                 Try
                     ' Envoyer la requête POST
                     Dim response As HttpResponseMessage = client.PostAsync(LectureProprietes.GetVariable("urlMistral"), content).Result
-                    response.EnsureSuccessStatusCode()
+                    Dim unused1 = response.EnsureSuccessStatusCode()
 
                     ' Lire la réponse
                     Dim responseBody As String = response.Content.ReadAsStringAsync().Result
@@ -42,8 +33,7 @@ Public Class AppelMistral
                     Return responseBody
 
                 Catch ex As HttpRequestException
-                    MsgBox($"Erreur de requête : {ex.Message}")
-                    Logger.ERR("ex.Message")
+                    Logger.ERR($"Erreur de requête : {ex.Message}")
                     Return String.Empty
                 End Try
             End Using
@@ -92,7 +82,7 @@ Public Class AppelMistral
             Try
                 ' Envoyer la requête POST de manière synchrone 
                 Dim response As HttpResponseMessage = client.PostAsync(LectureProprietes.GetVariable("urlMistral"), content).Result
-                response.EnsureSuccessStatusCode()
+                Dim unused2 = response.EnsureSuccessStatusCode()
 
                 ' Lire la réponse de manière synchrone
                 Dim responseBody As String = response.Content.ReadAsStringAsync().Result
@@ -108,11 +98,11 @@ Public Class AppelMistral
                 Return contentValue
 
             Catch ex As HttpRequestException
-                MsgBox($"Erreur de requête Mistral : {ex.Message}")
+                Dim unused1 = MsgBox($"Erreur de requête Mistral : {ex.Message}")
                 Logger.ERR($"Erreur de requête Mistral : {ex.Message}")
                 Return String.Empty
             Catch ex As Exception
-                MsgBox($"Erreur inattendue Mistral : {ex.Message}")
+                Dim unused = MsgBox($"Erreur inattendue Mistral : {ex.Message}")
                 Logger.ERR($"Erreur inattendue Mistral : {ex.Message}")
                 Return String.Empty
             End Try

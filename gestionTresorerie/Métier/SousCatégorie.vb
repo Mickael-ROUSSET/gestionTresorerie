@@ -1,7 +1,4 @@
-﻿Imports System.Data
-Imports System.Data.SqlClient
-
-Public Class SousCategorie
+﻿Public Class SousCategorie
     'Implements IDataService
 
     'Public Function ExecuterRequete(query As String, Optional parameters As Dictionary(Of String, Object) = Nothing) As DataTable Implements IDataService.ExecuterRequete

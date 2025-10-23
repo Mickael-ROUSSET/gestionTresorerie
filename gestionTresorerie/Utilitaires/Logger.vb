@@ -56,7 +56,7 @@ Public Class Logger
 
             'Console.WriteLine("Trace écrite avec succès.")
         Catch ex As Exception
-            MsgBox($"Erreur lors de l'écriture dans le fichier de trace : {ex.Message}")
+            Dim unused = MsgBox($"Erreur lors de l'écriture dans le fichier de trace : {ex.Message}")
         End Try
     End Sub
 

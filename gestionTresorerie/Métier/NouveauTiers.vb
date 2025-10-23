@@ -3,20 +3,20 @@
 Public Class FrmNouveauTiers
     Private Sub btnCreerTiers_Click(sender As Object, e As EventArgs) Handles btnCreerTiers.Click
         If String.IsNullOrWhiteSpace(txtNom.Text) AndAlso String.IsNullOrWhiteSpace(txtPrenom.Text) AndAlso String.IsNullOrWhiteSpace(txtRaisonSociale.Text) Then
-            MessageBox.Show($"Veuillez remplir le nom : {txtNom.Text} et le prénom {txtPrenom.Text} ou la raison sociale {txtRaisonSociale.Text}", "Champs obligatoires", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Dim unused1 = MessageBox.Show($"Veuillez remplir le nom : {txtNom.Text} et le prénom {txtPrenom.Text} ou la raison sociale {txtRaisonSociale.Text}", "Champs obligatoires", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
 
         Dim listeTiers As ListeTiers
         ' Vérifier que le tiers n'existe pas déjà
         If TiersExisteDeja() Then
-            MessageBox.Show($"Ce tiers existe déjà : nom = {txtNom.Text}, prénom = {txtPrenom.Text}, raison sociale = {txtRaisonSociale.Text}", "Tiers existant", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Dim unused = MessageBox.Show($"Ce tiers existe déjà : nom = {txtNom.Text}, prénom = {txtPrenom.Text}, raison sociale = {txtRaisonSociale.Text}", "Tiers existant", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Logger.INFO($"Ce tiers existe déjà : nom = {txtNom.Text}, prénom = {txtPrenom.Text}, raison sociale = {txtRaisonSociale.Text}")
             Return
         End If
 
         If listeTiers Is Nothing Then
-            listeTiers = New ListeTiers()
+            Dim unused2 As New ListeTiers()
         End If
         ' Vérifier la sélection dans les DataGridView
         Dim categorieId As Integer = GetSelectedRowValue(dgvNTCategorie, 0)
@@ -61,9 +61,9 @@ Public Class FrmNouveauTiers
         Return count > 0
     End Function
 
-    Shared Sub insereNouveauTiers(sRaisonSociale As String, sPrenom As String, sNom As String, iCategorie As Integer?, iSousCategorie As Integer?)
+    Public Shared Sub insereNouveauTiers(sRaisonSociale As String, sPrenom As String, sNom As String, iCategorie As Integer?, iSousCategorie As Integer?)
         Try
-            SqlCommandBuilder.
+            Dim unused = SqlCommandBuilder.
             CreateSqlCommand("insertTiers",
                              New Dictionary(Of String, Object) From {{"@nom", sNom.Trim()},
                                                                      {"@prenom", sPrenom.Trim()},
@@ -106,15 +106,15 @@ Public Class FrmNouveauTiers
         Dim fieldText As String = datagridview.SelectedRows(0).Cells.ToString.Trim
 
         If String.IsNullOrEmpty(fieldText) Then
-            MessageBox.Show($"Le champ {fieldName} ne peut pas être vide.", "Champ obligatoire", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-            datagridview.Focus() ' Remettre le focus sur le champ pour corriger l'erreur
+            Dim unused3 = MessageBox.Show($"Le champ {fieldName} ne peut pas être vide.", "Champ obligatoire", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Dim unused2 = datagridview.Focus() ' Remettre le focus sur le champ pour corriger l'erreur
             Return
         End If
 
         Dim fieldValue As Integer
         If Not Integer.TryParse(fieldText, fieldValue) Then
-            MessageBox.Show($"Le champ {fieldName} doit être un nombre entier : {fieldValue}", "Valeur invalide", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-            datagridview.Focus() ' Remettre le focus sur le champ pour corriger l'erreur
+            Dim unused1 = MessageBox.Show($"Le champ {fieldName} doit être un nombre entier : {fieldValue}", "Valeur invalide", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Dim unused = datagridview.Focus() ' Remettre le focus sur le champ pour corriger l'erreur
             Return
         End If
     End Sub
@@ -165,10 +165,10 @@ Public Class FrmNouveauTiers
             End If
         Catch ex As SqlException
             Logger.ERR($"Erreur SQL lors du chargement des données. Message: {ex.Message}")
-            MessageBox.Show($"Une erreur SQL s'est produite lors du chargement des données !{vbCrLf}{ex}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Dim unused1 = MessageBox.Show($"Une erreur SQL s'est produite lors du chargement des données !{vbCrLf}{ex}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
             Logger.ERR($"Erreur inattendue lors du chargement des données. Message: {ex.Message}")
-            MessageBox.Show($"Une erreur inattendue s'est produite !{vbCrLf}{ex}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Dim unused = MessageBox.Show($"Une erreur inattendue s'est produite !{vbCrLf}{ex}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 End Class

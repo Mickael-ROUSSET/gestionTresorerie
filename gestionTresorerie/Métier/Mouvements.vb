@@ -18,7 +18,7 @@ Public Class Mouvements
                 Logger.INFO($"Insertion du mouvement pour : {mouvement.ObtenirValeursConcatenees}")
             End If
         Catch ex As Exception
-            MsgBox($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
+            Dim unused = MsgBox($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
             Logger.ERR($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
         End Try
     End Sub
@@ -52,7 +52,7 @@ Public Class Mouvements
     End Sub
     Public Shared Sub InsererMouvementEnBase(mouvement As Mouvements)
         Try
-            SqlCommandBuilder.
+            Dim unused = SqlCommandBuilder.
                 CreateSqlCommand("insertMvts",
                                  New Dictionary(Of String, Object) From
                                                          {{"@note", mouvement.Note},
@@ -104,7 +104,7 @@ Public Class Mouvements
                                            {"@sens", mouvement.Sens}
                                             }).ExecuteReader()
                 If reader.Read() Then
-                    bExiste = (reader.GetInt32(0) > 0)
+                    bExiste = reader.GetInt32(0) > 0
                 End If
             End Using
             ' Écrire un log d'information
@@ -142,7 +142,7 @@ Public Class Mouvements
             ' Créer un DataAdapter pour remplir le DataTable
             Using adapter As New SqlDataAdapter(cmd)
                 ' Remplir le DataTable avec les données de la base de données
-                adapter.Fill(dataTable)
+                Dim unused = adapter.Fill(dataTable)
             End Using
 
             ' Écrire un log d'information
@@ -189,7 +189,7 @@ Public Class Mouvements
         Try
             Dim command = SqlCommandBuilder.CreateSqlCommand("delMvt")
             ' Ajouter le paramètre Id à la requête
-            command.Parameters.AddWithValue("@Id", id)
+            Dim unused = command.Parameters.AddWithValue("@Id", id)
 
             ' Exécuter la requête et obtenir le nombre de lignes affectées
             Dim rowsAffected As Integer = command.ExecuteNonQuery()
@@ -270,11 +270,9 @@ Public Class Mouvements
         Set(ByVal value As String)
             Dim s As String
             s = Trim(Strings.Replace(value, """", String.Empty))
-            If Integer.TryParse(Trim(Strings.Replace(value, """", String.Empty)), vbNull) Then
-                _numeroRemise = Trim(Strings.Replace(value, """", String.Empty))
-            Else
-                _numeroRemise = "0"
-            End If
+            _numeroRemise = If(Integer.TryParse(Trim(Strings.Replace(value, """", String.Empty)), vbNull),
+                Trim(Strings.Replace(value, """", String.Empty)),
+                "0")
         End Set
     End Property
     Public Function ObtenirValeursConcatenees() As String

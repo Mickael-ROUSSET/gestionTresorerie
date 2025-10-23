@@ -1,8 +1,7 @@
 ﻿Imports System.Data.SqlClient
-Imports System.IO
 
 Public MustInherit Class DocumentAgumaaa
-    Property IdMvtDoc As Integer
+    Public Property IdMvtDoc As Integer
 
     ' Propriété pour dateDoc
     Public Property DateDoc As Date
@@ -16,7 +15,7 @@ Public MustInherit Class DocumentAgumaaa
             If Not String.IsNullOrEmpty(value) Then
                 Try
                     ' Vérifier si la chaîne est un Base64 valide
-                    Convert.FromBase64String(value)
+                    Dim unused = Convert.FromBase64String(value)
                 Catch ex As FormatException
                     Logger.ERR($"ContenuDoc n'est pas une chaîne Base64 valide : {ex.Message}")
                     Throw New ArgumentException("La valeur de ContenuDoc doit être une chaîne Base64 valide.")
@@ -40,7 +39,7 @@ Public MustInherit Class DocumentAgumaaa
 
     Public Shared Sub InsererDocument(doc As DocumentAgumaaa)
         Try
-            SqlCommandBuilder.CreateSqlCommand("insertDocAgumaaa",
+            Dim unused = SqlCommandBuilder.CreateSqlCommand("insertDocAgumaaa",
                              New Dictionary(Of String, Object) From {{"@dateDoc", doc.DateDoc},
                                                                      {"@contenuDoc", doc.ContenuDoc},
                                                                      {"@cheminDoc", doc.CheminDoc},
@@ -61,7 +60,7 @@ Public MustInherit Class DocumentAgumaaa
             Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand("reqDocs")
 
             Using adapter As New SqlDataAdapter(command)
-                adapter.Fill(table)
+                Dim unused = adapter.Fill(table)
             End Using
             'End Using
         Catch ex As Exception
@@ -81,7 +80,7 @@ Public MustInherit Class DocumentAgumaaa
                                                                      {"@sousCategorieDoc", sousCategorieDoc},
                                                                      {"@idMvtDoc", idMvtDoc}}
                              )
-            command.ExecuteNonQuery()
+            Dim unused = command.ExecuteNonQuery()
             Logger.INFO($"Document {idDoc} mis à jour avec succès.")
         Catch ex As Exception
             Logger.INFO($"Erreur lors de la mise à jour du document : {ex.Message}")
@@ -92,7 +91,7 @@ Public MustInherit Class DocumentAgumaaa
             Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand("delDocs",
                              New Dictionary(Of String, Object) From {{"@idDoc", idDoc}}
                              )
-            command.ExecuteNonQuery()
+            Dim unused = command.ExecuteNonQuery()
             Logger.INFO($"Document {idDoc} supprimé avec succès.")
         Catch ex As Exception
             Logger.INFO($"Erreur lors de la suppression du document : {ex.Message}")

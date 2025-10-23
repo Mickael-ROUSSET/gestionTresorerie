@@ -34,12 +34,12 @@ Public Class ConnexionDB
             End If
         Catch ex As SqlException
             ' Gère les erreurs de connexion SQL
-            MsgBox("creeConnexion : erreur SQL : " & ex.Message)
+            Dim unused1 = MsgBox("creeConnexion : erreur SQL : " & ex.Message)
             Logger.ERR(ex.Message)
             End
         Catch ex As Exception
             ' Gère toutes les autres erreurs
-            MsgBox("Erreur : " & ex.Message)
+            Dim unused = MsgBox("Erreur : " & ex.Message)
             Logger.ERR(ex.Message)
             End
         End Try
@@ -50,7 +50,7 @@ Public Class ConnexionDB
         Return My.Settings.Requetes.Item(indiceRequete)
     End Function
     Public Sub setRequete(sRequete As String)
-        My.Settings.Requetes.Add(sRequete)
+        Dim unused = My.Settings.Requetes.Add(sRequete)
         Logger.INFO("Requête : " & sRequete & " ajoutée")
     End Sub
     Private Sub SuprimeConnexion()
