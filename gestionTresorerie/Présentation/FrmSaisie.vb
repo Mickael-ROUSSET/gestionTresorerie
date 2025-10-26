@@ -24,6 +24,7 @@ Public Class FrmSaisie
             ' Initialiser les boutons
             InitializeToggleButton(btnToggleEvt, pnlDgvEvt, 200, 50)
             InitializeToggleButton(btnToggleType, pnlDgvType, 200, 50)
+            InitializeToggleButton(btnToggleTypeDocument, pnlDgvTypeDocument, 200, 50)
         Catch ex As Exception
             Logger.ERR($"Erreur lors du chargement du formulaire : {ex.Message}")
             End
@@ -74,24 +75,15 @@ Public Class FrmSaisie
         'dgvSousCategorie.FirstDisplayedScrollingRowIndex = idSousCategorie
     End Sub
     Public Sub chargeListes()
+        'Chargement des Tiers  
         Call UtilitairesDgv.ChargeDgvGenerique(dgvTiers, Constantes.sqlSelIdentiteCatTiers)
         'Chargement des événements  
         Call UtilitairesDgv.ChargeDgvGenerique(dgvEvenement, Constantes.sqlSelEvenement)
         'Chargement de la liste des types 
         Call UtilitairesDgv.ChargeDgvGenerique(dgvType, Constantes.sqlSelTypes)
+        'Chargement de la liste des types de documents
+        Call UtilitairesDgv.ChargeDgvGenerique(dgvTypeDocuments, Constantes.sqlSelTypesDocuments)
     End Sub
-    'Private Sub ChargeDgvGenerique(dgv As DataGridView, sRequete As String, Optional parameters As Dictionary(Of String, Object) = Nothing)
-    '    Dim utilitairesDgv As New UtilitairesDgv
-
-    '    Try
-    '        dgv.DataSource = utilitairesDgv.ExecuterRequete(sRequete, parameters)
-    '        Logger.INFO($"Chargement de {dgv.Name} avec la requête {sRequete} réussi. {dgv.Rows.Count} lignes chargées")
-    '    Catch ex As SqlException
-    '        ' On informe l'utilisateur qu'il y a eu un problème :
-    '        MessageBox.Show($"Une erreur s'est produite lors du chargement des données ! : {ex}")
-    '        Logger.ERR($"Une erreur s'est produite lors du chargement des données ! : {ex}")
-    '    End Try
-    'End Sub
     Private Sub BtnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
         Call InsereMouvement()
         Hide()
@@ -103,9 +95,9 @@ Public Class FrmSaisie
     Private Sub TxtMontant_TextChanged(sender As Object, e As EventArgs) Handles txtMontant.Leave
 
         If Not Regex.Match(txtMontant.Text, Constantes.regExMontant, RegexOptions.IgnoreCase).Success Then
-            Dim unused1 = MessageBox.Show($"Le montant {txtMontant.Text} doit être numérique!")
+            MessageBox.Show($"Le montant {txtMontant.Text} doit être numérique!")
             'Remet le focus sur la zone de saisie du montant
-            Dim unused = txtMontant.Focus()
+            txtMontant.Focus()
         End If
     End Sub
     Private Sub dgvTiers_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvTiers.CellContentClick
@@ -117,7 +109,7 @@ Public Class FrmSaisie
             Dim idSousCategorieDefaut As Object = dgvTiers.SelectedRows(0).Cells(5).Value
 
             ' Charger les catégories   
-            UtilitairesDgv.ChargeDgvGenerique(dgvTiers, Constantes.sqlSelCategoriesTout)
+            UtilitairesDgv.ChargeDgvGenerique(dgvCategorie, Constantes.sqlSelCategoriesTout)
             ' Sélectionner la ligne correspondante dans dgvCategorie
             UtilitairesDgv.SelectRowInDataGridView(dgvCategorie, idCategorieDefaut)
 
@@ -156,14 +148,14 @@ Public Class FrmSaisie
                 'Un mouvement identique existe déjà
                 Dim frmListe As New FrmListe(_dtMvtsIdentiques)
                 AddHandler frmListe.objetSelectionneChanged, AddressOf mvtSelectionneChangedHandler
-                Dim unused1 = frmListe.ShowDialog()
+                frmListe.ShowDialog()
                 Logger.INFO($"Le mouvement existe déjà : {mouvement.ObtenirValeursConcatenees}")
             Else
                 Mouvements.InsererMouvementEnBase(mouvement)
                 Logger.INFO($"Insertion du mouvement pour : {mouvement.ObtenirValeursConcatenees}")
             End If
         Catch ex As Exception
-            Dim unused = MsgBox($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
+            MsgBox($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
             Logger.ERR($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
         End Try
     End Sub
@@ -188,11 +180,12 @@ Public Class FrmSaisie
                 Dim type As String = dgvType.SelectedRows(0).Cells(1).Value.ToString()
                 Dim modifiable As Boolean = True
                 Dim remise As Integer = GetRemiseValue(txtRemise.Text)
-                Dim idCheque As Integer = 0
-
+                Dim reference As String = ""
+                Dim typeReference As String = ""
+                Dim idDoc As Integer = 0
                 ' Mettre à jour le mouvement
                 Dim rowsAffected As Integer = Mouvements.MettreAJourMouvement(
-                id, categorie, sousCategorie, montant, credit, tiers, note, dateMouvement, rapproche, evenement, type, modifiable, remise, idCheque
+                id, categorie, sousCategorie, montant, credit, tiers, note, dateMouvement, rapproche, evenement, type, modifiable, remise, reference, typeReference, idDoc
             )
                 ' Trace indiquant le nombre de lignes mises à jour
                 Logger.INFO($"Nombre de mouvements mis à jour : {rowsAffected}")
@@ -216,7 +209,12 @@ Public Class FrmSaisie
         End If
     End Function
     Private Function CreerMouvement() As Mouvements
+        Dim sNumCheque As String = "", sTypeDoc As String = ""
 
+        sTypeDoc = dgvTypeDocuments.SelectedRows(0).Cells(0).Value.ToString()
+        If dgvTypeDocuments.SelectedRows.Count > 0 And sTypeDoc = "Chèque" Then
+            sNumCheque = Utilitaires.ExtraitNuméroChèque(txtNote.Text)
+        End If
         Return New Mouvements(
             note:=txtNote.Text,
             categorie:=dgvCategorie.SelectedRows(0).Cells(0).Value.ToString(),
@@ -230,23 +228,29 @@ Public Class FrmSaisie
             type:=dgvType.SelectedRows(0).Cells(1).Value.ToString(),
             modifiable:=False,
             numeroRemise:=txtRemise.Text,
-            idCheque:=0
+            reference:=sNumCheque,
+            typeReference:=sTypeDoc,
+            idDoc:=0
             )
+
     End Function
     Private Sub btnSelChq_Click(sender As Object, e As EventArgs) Handles btnSelChq.Click
-        Dim selectionneCheque As New FrmSelectionneCheque()
-        AddHandler selectionneCheque.IdChequeSelectionneChanged, AddressOf IdChequeSelectionneChangedHandler
-        Dim unused = selectionneCheque.ShowDialog()
+        Dim selectionneDocument As New FrmSelectionneDocument()
 
-        selectionneCheque.chargeListeChq(CDec(txtMontant.Text))
-        selectionneCheque.Show()
+        AddHandler selectionneDocument.IdDocSelectionneChanged, AddressOf IdDocSelectionneChangedHandler
+        'selectionneDocument.ShowDialog()
+
+        selectionneDocument.chargeListeDoc(CDec(Utilitaires.ExtraitNuméroChèque(txtNote.Text)),
+                                           CDec(txtMontant.Text),
+                                           dgvTiers.SelectedRows(0).Cells(1).Value.ToString())
+        selectionneDocument.Show()
     End Sub
-    Private Sub IdChequeSelectionneChangedHandler(ByVal idCheque As Integer)
+    Private Sub IdDocSelectionneChangedHandler(ByVal idDoc As Integer)
         'Mettre à jour le Mouvement 
-        Mouvements.MettreAJourIdCheque(_Mvt.Id, idCheque)
+        Mouvements.MettreAJourIdDoc(_Mvt.Id, idDoc)
     End Sub
     Private Sub btnCreerTiers_Click(sender As Object, e As EventArgs) Handles btnCreerTiers.Click
-        frmNouveauTiers.Show()
+        FrmNouveauTiers.Show()
     End Sub
     Private Sub InitializeToggleButton(btnToggle As Button, pnlDataGridView As Panel, expandedHeight As Integer, reducedHeight As Integer)
         ' Définir l'état initial

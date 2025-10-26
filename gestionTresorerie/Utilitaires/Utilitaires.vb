@@ -129,7 +129,7 @@ Friend Class Utilitaires
         Try
             ' Vérifier si le JSON est non vide
             If String.IsNullOrEmpty(json) Then
-                Logger.WARN("Le JSON est vide ou null.")
+                Logger.WARN($"Le JSON est vide ou null : {json}, {sNomChamp}")
                 Return ""
             End If
 
@@ -139,26 +139,26 @@ Friend Class Utilitaires
             ' Naviguer jusqu'à choices[0].message.content
             Dim choices As JArray = jsonObj("choices")
             If choices Is Nothing OrElse choices.Count = 0 Then
-                Logger.WARN("Le champ 'choices' est absent ou vide dans le JSON.")
+                Logger.WARN($"Le champ 'choices' est absent ou vide dans le JSON : {json}")
                 Return ""
             End If
 
             Dim message As JObject = choices(0)("message")
             If message Is Nothing Then
-                Logger.WARN("Le champ 'message' est absent dans choices[0].")
+                Logger.WARN($"Le champ 'message' est absent dans choices[0] : {json}")
                 Return ""
             End If
 
             Dim content As String = message("content")?.ToString()
             If String.IsNullOrEmpty(content) Then
-                Logger.WARN("Le champ 'content' est vide ou absent dans message.")
+                Logger.WARN($"Le champ 'content' est vide ou absent dans message : {content}")
                 Return ""
             End If
 
             ' Extraire le JSON imbriqué dans content
             Dim contentJson As String = ExtractJsonFromContent(content)
             If String.IsNullOrEmpty(contentJson) Then
-                Logger.WARN("Aucun JSON valide extrait du champ 'content'.")
+                Logger.WARN($"Aucun JSON valide extrait du champ 'content' : {contentJson}")
                 Return ""
             End If
 
@@ -230,7 +230,7 @@ Friend Class Utilitaires
             ' Vérifier si le répertoire de sortie existe, sinon le créer 
             Dim sRepSortie As String = Path.GetDirectoryName(sNouveauNom)
             If Not Directory.Exists(sRepSortie) Then
-                Dim unused = Directory.CreateDirectory(sRepSortie)
+                Directory.CreateDirectory(sRepSortie)
             End If
 
             ' Vérifier si un fichier avec le même nom existe déjà
@@ -258,7 +258,7 @@ Friend Class Utilitaires
             Dim resultat As New JObject()
 
             For Each item As JProperty In referenceMessage
-                Dim unused = item.CreateReader()
+                item.CreateReader()
 
                 Select Case item.Name
                     Case "message"
@@ -306,5 +306,36 @@ Friend Class Utilitaires
             Logger.ERR("Erreur lors du parsing JSON : " & ex.Message)
             Return "{}" ' Retourner un JSON vide en cas d'erreur
         End Try
+    End Function
+
+    Public Shared Function ExtraitNuméroChèque(libelle As String) As String
+        If String.IsNullOrWhiteSpace(libelle) Then
+            Return Nothing
+        End If
+
+        ' 1) Cas principal : "CHEQUE EMIS #######"
+        Dim patternChequeEmis As New Regex("\bCH[eé]QUE\s+EMIS\s*[:\-]?\s*(\d+)\b",
+                                           RegexOptions.IgnoreCase Or RegexOptions.CultureInvariant)
+        Dim m As Match = patternChequeEmis.Match(libelle)
+        If m.Success AndAlso m.Groups.Count > 1 Then
+            Return m.Groups(1).Value
+        End If
+
+        ' 2) Variante : "CHEQUE", "CHQ", "CHÈQUE" suivi du numéro
+        Dim patternGeneric As New Regex("\b(?:CHEQUE|CHQ|CH[eé]QUE)\b.*?(\d{4,})",
+                                        RegexOptions.IgnoreCase Or RegexOptions.CultureInvariant)
+        m = patternGeneric.Match(libelle)
+        If m.Success AndAlso m.Groups.Count > 1 Then
+            Return m.Groups(1).Value
+        End If
+
+        ' 3) Dernier recours : première suite de >=4 chiffres
+        Dim patternDigits As New Regex("\b(\d{4,})\b")
+        m = patternDigits.Match(libelle)
+        If m.Success Then
+            Return m.Groups(1).Value
+        End If
+
+        Return Nothing
     End Function
 End Class

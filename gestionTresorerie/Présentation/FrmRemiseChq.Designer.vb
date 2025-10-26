@@ -23,13 +23,13 @@ Partial Class FrmRemiseChq
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
         dgvRemiseChq = New DataGridView()
-        btnAjoutTiers = New Button()
-        btnInsereMvts = New Button()
-        btnAnnuler = New Button()
         Id = New DataGridViewTextBoxColumn()
         Nom = New DataGridViewComboBoxColumn()
         Prénom = New DataGridViewComboBoxColumn()
         RaisonSociale = New DataGridViewComboBoxColumn()
+        btnAjoutTiers = New Button()
+        btnInsereMvts = New Button()
+        btnAnnuler = New Button()
         CType(dgvRemiseChq, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
         ' 
@@ -42,6 +42,27 @@ Partial Class FrmRemiseChq
         dgvRemiseChq.SelectionMode = DataGridViewSelectionMode.FullRowSelect
         dgvRemiseChq.Size = New Size(553, 208)
         dgvRemiseChq.TabIndex = 0
+        ' 
+        ' Id
+        ' 
+        Id.HeaderText = "Id"
+        Id.Name = "Id"
+        Id.Visible = False
+        ' 
+        ' Nom
+        ' 
+        Nom.HeaderText = "Nom"
+        Nom.Name = "Nom"
+        ' 
+        ' Prénom
+        ' 
+        Prénom.HeaderText = "Prénom"
+        Prénom.Name = "Prénom"
+        ' 
+        ' RaisonSociale
+        ' 
+        RaisonSociale.HeaderText = "Raison Sociale"
+        RaisonSociale.Name = "RaisonSociale"
         ' 
         ' btnAjoutTiers
         ' 
@@ -70,30 +91,9 @@ Partial Class FrmRemiseChq
         btnAnnuler.Text = "&Annuler"
         btnAnnuler.UseVisualStyleBackColor = True
         ' 
-        ' Id
-        ' 
-        Id.HeaderText = "Id"
-        Id.Name = "Id"
-        Id.Visible = False
-        ' 
-        ' Nom
-        ' 
-        Nom.HeaderText = "Nom"
-        Nom.Name = "Nom"
-        ' 
-        ' Prénom
-        ' 
-        Prénom.HeaderText = "Prénom"
-        Prénom.Name = "Prénom"
-        ' 
-        ' RaisonSociale
-        ' 
-        RaisonSociale.HeaderText = "Raison Sociale"
-        RaisonSociale.Name = "RaisonSociale"
-        ' 
         ' FrmRemiseChq
         ' 
-        AutoScaleDimensions = New SizeF(7.0F, 15.0F)
+        AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(800, 450)
         Controls.Add(btnAnnuler)

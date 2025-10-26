@@ -323,16 +323,6 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, numero, date, emetteur, destinataire FROM Cheque WHERE montant = @mont"& _ 
-            "ant;")>  _
-        Public ReadOnly Property reqChq() As String
-            Get
-                Return CType(Me("reqChq"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("SELECT id,nom, prenom FROM Tiers where nom is not null;")>  _
         Public ReadOnly Property reqIdentitePPTiers() As String
             Get
@@ -369,37 +359,10 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("select Id , catégorie, sousCatégorie, montant , sens , tiers , note , dateMvt , d"& _ 
-            "ateCréation , dateModification , etat , événement , type , modifiable , numeroRe"& _ 
-            "mise , idCheque from Mouvements;")>  _
-        Public ReadOnly Property sqlSelectMouvements() As String
-            Get
-                Return CType(Me("sqlSelectMouvements"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("3rD/s9+aP2fG4h5jK7lMnO=")>  _
         Public ReadOnly Property selAleatoire() As String
             Get
                 Return CType(Me("selAleatoire"),String)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''Procécdure stockée d&apos;identification des mouvements déjà saisis
-        '''</summary>
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Configuration.SettingsDescriptionAttribute("Procécdure stockée d'identification des mouvements déjà saisis"),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT Id, catégorie, sousCatégorie, montant, sens, tiers, note, dateMvt, dateCré"& _ 
-            "ation, dateModification, etat, événement, type, modifiable, numeroRemise, idCheq"& _ 
-            "ue FROM [dbo].[Mouvements] WHERE dateMvt = @dateMvt AND montant = @montant AND s"& _ 
-            "ens = @sens;")>  _
-        Public ReadOnly Property procMvtsIdentiques() As String
-            Get
-                Return CType(Me("procMvtsIdentiques"),String)
             End Get
         End Property
         
@@ -435,23 +398,10 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers, dateCréati"& _ 
-            "on, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise, idC"& _ 
-            "heque) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMv"& _ 
-            "t, @montant, @sens, @etat, @événement, @type, @modifiable, @numeroRemise, @idChe"& _ 
-            "que);")>  _
-        Public ReadOnly Property insertMvts() As String
+         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE Mouvements SET idDoc = @nouvelIdDoc WHERE Id = @idMouvement")>  _
+        Public ReadOnly Property updMvtIdDoc() As String
             Get
-                Return CType(Me("insertMvts"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE Mouvements SET idCheque = @nouvelIdCheque WHERE Id = @idMouvement")>  _
-        Public ReadOnly Property updMvtIdChq() As String
-            Get
-                Return CType(Me("updMvtIdChq"),String)
+                Return CType(Me("updMvtIdDoc"),String)
             End Get
         End Property
         
@@ -470,21 +420,6 @@ Namespace My
         Public ReadOnly Property delMvt() As String
             Get
                 Return CType(Me("delMvt"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("select Id , (select libelle from Categorie where id = catégorie) as Catégorie, (s"& _ 
-            "elect libelle from sousCategorie where id = sousCatégorie) as sousCatégorie, mon"& _ 
-            "tant , CASE sens WHEN 1 THEN 'Crédit' ELSE 'Débit' END as 'Sens', (select coales"& _ 
-            "ce(nom + ' ' + prenom, raisonSociale ) from Tiers where id = tiers) as Tiers, no"& _ 
-            "te, dateMvt, dateCréation, dateModification, etat, événement, type, CASE modifia"& _ 
-            "ble WHEN 1 THEN 'modifiable' ELSE 'Non modifiable' END as 'Modifiable', numeroRe"& _ 
-            "mise, idCheque from Mouvements;")>  _
-        Public ReadOnly Property sqlSelectMouvementsLibelles() As String
-            Get
-                Return CType(Me("sqlSelectMouvementsLibelles"),String)
             End Get
         End Property
         
@@ -873,6 +808,15 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT libellé FROM TypeDoc;")>  _
+        Public ReadOnly Property reqLibellesTypesDocuments() As String
+            Get
+                Return CType(Me("reqLibellesTypesDocuments"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idM"& _ 
             "vtDoc, metaDonnees FROM [dbo].[Documents];")>  _
         Public ReadOnly Property reqDocs() As String
@@ -938,6 +882,100 @@ Namespace My
         Public ReadOnly Property ficLstTiers() As String
             Get
                 Return CType(Me("ficLstTiers"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT libellé FROM TypeDoc;")>  _
+        Public ReadOnly Property sqlLibellesTypesDocuments() As String
+            Get
+                Return CType(Me("sqlLibellesTypesDocuments"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, numero, date, emetteur, destinataire FROM Cheque WHERE montant = @mont"& _ 
+            "ant;")>  _
+        Public ReadOnly Property reqChq() As String
+            Get
+                Return CType(Me("reqChq"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE Mouvements SET idCheque = @nouvelIdCheque WHERE Id = @idMouvement")>  _
+        Public ReadOnly Property updMvtIdChq() As String
+            Get
+                Return CType(Me("updMvtIdChq"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("select Id , (select libelle from Categorie where id = catégorie) as Catégorie, (s"& _ 
+            "elect libelle from sousCategorie where id = sousCatégorie) as sousCatégorie, mon"& _ 
+            "tant , CASE sens WHEN 1 THEN 'Crédit' ELSE 'Débit' END as 'Sens', (select coales"& _ 
+            "ce(nom + ' ' + prenom, raisonSociale ) from Tiers where id = tiers) as Tiers, no"& _ 
+            "te, dateMvt, dateCréation, dateModification, etat, événement, type, CASE modifia"& _ 
+            "ble WHEN 1 THEN 'modifiable' ELSE 'Non modifiable' END as 'Modifiable', numeroRe"& _ 
+            "mise, reference, typeReference, idDoc from Mouvements;")>  _
+        Public ReadOnly Property sqlSelectMouvementsLibelles() As String
+            Get
+                Return CType(Me("sqlSelectMouvementsLibelles"),String)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''Procécdure stockée d&apos;identification des mouvements déjà saisis
+        '''</summary>
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Configuration.SettingsDescriptionAttribute("Procécdure stockée d'identification des mouvements déjà saisis"),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT Id, catégorie, sousCatégorie, montant, sens, tiers, note, dateMvt, dateCré"& _ 
+            "ation, dateModification, etat, événement, type, modifiable, numeroRemise, refere"& _ 
+            "nce, typeReference, idDoc FROM [dbo].[Mouvements] WHERE dateMvt = @dateMvt AND m"& _ 
+            "ontant = @montant AND sens = @sens;")>  _
+        Public ReadOnly Property procMvtsIdentiques() As String
+            Get
+                Return CType(Me("procMvtsIdentiques"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("select Id , catégorie, sousCatégorie, montant , sens , tiers , note , dateMvt , d"& _ 
+            "ateCréation , dateModification , etat , événement , type , modifiable, numeroRem"& _ 
+            "ise, reference, typeReference, idDoc from Mouvements;")>  _
+        Public ReadOnly Property sqlSelectMouvements() As String
+            Get
+                Return CType(Me("sqlSelectMouvements"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers, dateCréati"& _ 
+            "on, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise, ref"& _ 
+            "erence, typeReference, idDoc) VALUES (@note, @categorie, @sousCategorie, @tiers,"& _ 
+            " @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable"& _ 
+            ", @numeroRemise, @reference, @typeReference, @idDoc);")>  _
+        Public ReadOnly Property insertMvts() As String
+            Get
+                Return CType(Me("insertMvts"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT metaDonnees FROM Documents WHERE JSON_VALUE(metaDonnees, '$.numero_du_cheq"& _ 
+            "ue') IS NOT NULL"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"  AND JSON_VALUE(metaDonnees, '$.numero_du_cheque') = @numero"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"  AND JSON_VALUE(metaDonnees, '$.montant_numerique') = @montant"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"  AND JSON_VAL"& _ 
+            "UE(metaDonnees, '$.emetteur_du_cheque') like @emetteur;")>  _
+        Public ReadOnly Property reqDoc() As String
+            Get
+                Return CType(Me("reqDoc"),String)
             End Get
         End Property
     End Class

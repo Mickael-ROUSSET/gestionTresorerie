@@ -62,6 +62,9 @@ Partial Class FrmPrincipale
         colType = New DataGridViewTextBoxColumn()
         colModifiable = New DataGridViewTextBoxColumn()
         colNumeroRemise = New DataGridViewTextBoxColumn()
+        reference = New DataGridViewTextBoxColumn()
+        typeReference = New DataGridViewTextBoxColumn()
+        idDoc = New DataGridViewTextBoxColumn()
         CType(dgvPrincipale, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -111,8 +114,8 @@ Partial Class FrmPrincipale
         ' 
         dgvPrincipale.AutoGenerateColumns = False
         dgvPrincipale.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvPrincipale.Columns.AddRange(New DataGridViewColumn() {colEtat, etatImage, EtatMasque, colDateCréation, colTiers, colCategorie, colSousCategorie, colDateMvt, colMontant, colSens, colEvenement, colNote, colType, colModifiable, colNumeroRemise})
-        dgvPrincipale.DataBindings.Add(New Binding("DataContext", MouvementsBindingSource, "note", True))
+        dgvPrincipale.Columns.AddRange(New DataGridViewColumn() {colEtat, etatImage, EtatMasque, colDateCréation, colTiers, colCategorie, colSousCategorie, colDateMvt, colMontant, colSens, colEvenement, colNote, colType, colModifiable, colNumeroRemise, reference, typeReference, idDoc})
+        dgvPrincipale.DataBindings.Add(New Binding("DataContext", MouvementsBindingSource, "DateCréation", True))
         dgvPrincipale.DataSource = MouvementsBindingSource
         dgvPrincipale.Location = New Point(145, 67)
         dgvPrincipale.Name = "dgvPrincipale"
@@ -331,6 +334,24 @@ Partial Class FrmPrincipale
         colNumeroRemise.HeaderText = "NumeroRemise"
         colNumeroRemise.Name = "colNumeroRemise"
         ' 
+        ' reference
+        ' 
+        reference.DataPropertyName = "DateCréation"
+        reference.HeaderText = "Référence"
+        reference.Name = "reference"
+        ' 
+        ' typeReference
+        ' 
+        typeReference.DataPropertyName = "DateCréation"
+        typeReference.HeaderText = "typeRéférence"
+        typeReference.Name = "typeReference"
+        ' 
+        ' idDoc
+        ' 
+        idDoc.DataPropertyName = "DateCréation"
+        idDoc.HeaderText = "idDoc"
+        idDoc.Name = "idDoc"
+        ' 
         ' FrmPrincipale
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
@@ -396,4 +417,7 @@ Partial Class FrmPrincipale
     Friend WithEvents colType As DataGridViewTextBoxColumn
     Friend WithEvents colModifiable As DataGridViewTextBoxColumn
     Friend WithEvents colNumeroRemise As DataGridViewTextBoxColumn
+    Friend WithEvents reference As DataGridViewTextBoxColumn
+    Friend WithEvents typeReference As DataGridViewTextBoxColumn
+    Friend WithEvents idDoc As DataGridViewTextBoxColumn
 End Class

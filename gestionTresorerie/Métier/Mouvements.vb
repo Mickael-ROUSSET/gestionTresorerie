@@ -18,11 +18,11 @@ Public Class Mouvements
                 Logger.INFO($"Insertion du mouvement pour : {mouvement.ObtenirValeursConcatenees}")
             End If
         Catch ex As Exception
-            Dim unused = MsgBox($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
+            MsgBox($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
             Logger.ERR($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
         End Try
     End Sub
-    Public Sub New(ByVal note As String, ByVal categorie As Integer, ByVal sousCategorie As Integer, ByVal tiers As Integer, ByVal dateMvt As Date, ByVal montant As String, ByVal sens As String, ByVal etat As String, ByVal événement As String, ByVal type As String, ByVal modifiable As Boolean, ByVal numeroRemise As String, ByVal idCheque As Integer)
+    Public Sub New(ByVal note As String, ByVal categorie As Integer, ByVal sousCategorie As Integer, ByVal tiers As Integer, ByVal dateMvt As Date, ByVal montant As String, ByVal sens As String, ByVal etat As String, ByVal événement As String, ByVal type As String, ByVal modifiable As Boolean, ByVal numeroRemise As String, ByVal reference As String, ByVal typeReference As String, ByVal idDoc As Integer)
         ' Set the property value.
         With Me
             If VerifParam(categorie, sousCategorie, tiers, dateMvt, montant, sens, etat, type) Then
@@ -39,9 +39,11 @@ Public Class Mouvements
                 .Type = type
                 .Modifiable = modifiable
                 .NumeroRemise = numeroRemise
-                .idCheque = idCheque
+                .reference = reference
+                .typeReference = typeReference
+                .idDoc = idDoc
             Else
-                Logger.WARN($"Infos manquantes pour la création du mouvement : {note} {categorie} {sousCategorie} {tiers} {dateMvt} {montant} {sens} {etat} {événement} {type} {modifiable} {numeroRemise} {idCheque}")
+                Logger.WARN($"Infos manquantes pour la création du mouvement : {note} {categorie} {sousCategorie} {tiers} {dateMvt} {montant} {sens} {etat} {événement} {type} {modifiable} {numeroRemise} {reference} {typeReference} {idDoc}")
             End If
         End With
     End Sub
@@ -52,7 +54,7 @@ Public Class Mouvements
     End Sub
     Public Shared Sub InsererMouvementEnBase(mouvement As Mouvements)
         Try
-            Dim unused = SqlCommandBuilder.
+            SqlCommandBuilder.
                 CreateSqlCommand("insertMvts",
                                  New Dictionary(Of String, Object) From
                                                          {{"@note", mouvement.Note},
@@ -68,7 +70,9 @@ Public Class Mouvements
                                                          {"@type", mouvement.Type},
                                                          {"@modifiable", mouvement.Modifiable},
                                                          {"@numeroRemise", mouvement.NumeroRemise},
-                                                         {"@idCheque", mouvement.idCheque}}
+                                                         {"@reference", mouvement.reference},
+                                                         {"@typeReference", mouvement.typeReference},
+                                                         {"@idDoc", mouvement.idDoc}}
                              ).ExecuteNonQuery()
             Logger.INFO($"Insertion du mouvement réussie : {mouvement.ObtenirValeursConcatenees}")
         Catch ex As Exception
@@ -76,19 +80,19 @@ Public Class Mouvements
             Throw ' Re-lancer l'exception après l'avoir loggée
         End Try
     End Sub
-    Public Shared Sub MettreAJourIdCheque(idMouvement As Integer, nouvelIdCheque As Integer)
+    Public Shared Sub MettreAJourIdDoc(idMouvement As Integer, nouvelIdDoc As Integer)
         Try
-            Dim rowsAffected As Integer = SqlCommandBuilder.CreateSqlCommand("updMvtIdChq",
+            Dim rowsAffected As Integer = SqlCommandBuilder.CreateSqlCommand("updMvtIdDoc",
                                       New Dictionary(Of String, Object) From {
-                                      {"@nouvelIdCheque", nouvelIdCheque},
+                                      {"@nouvelIdDoc", nouvelIdDoc},
                                       {"@idMouvement", idMouvement}}).ExecuteNonQuery
             If rowsAffected > 0 Then
-                Logger.INFO($"Mise à jour réussie de idCheque pour le mouvement avec Id = {idMouvement}")
+                Logger.INFO($"Mise à jour réussie de idDoc pour le mouvement avec Id = {idMouvement}")
             Else
                 Logger.WARN($"Aucune ligne n'a été mise à jour pour le mouvement avec Id = {idMouvement}")
             End If
         Catch ex As Exception
-            Logger.ERR($"Erreur inattendue lors de la mise à jour de idCheque. Message: {ex.Message}")
+            Logger.ERR($"Erreur inattendue lors de la mise à jour de idDoc. Message: {ex.Message}")
             Throw
         End Try
     End Sub
@@ -154,7 +158,7 @@ Public Class Mouvements
 
         Return dataTable
     End Function
-    Public Shared Function MettreAJourMouvement(Id As Integer, categorie As Integer, sousCategorie As Integer, montant As Decimal, sens As Boolean, tiers As Integer, note As String, dateMvt As Date, etat As Boolean, evenement As String, type As String, modifiable As Boolean, numeroRemise As Integer?, Optional idCheque As Integer? = Nothing) As Integer
+    Public Shared Function MettreAJourMouvement(Id As Integer, categorie As Integer, sousCategorie As Integer, montant As Decimal, sens As Boolean, tiers As Integer, note As String, dateMvt As Date, etat As Boolean, evenement As String, type As String, modifiable As Boolean, numeroRemise As Integer?, reference As String, typeReference As String, idDoc As Integer) As Integer
         Try
             Return SqlCommandBuilder.
             CreateSqlCommand("updMvt",
@@ -171,11 +175,13 @@ Public Class Mouvements
                                                                      {"@Type", If(type, DBNull.Value)},
                                                                      {"@Modifiable", modifiable},
                                                                      {"@NumeroRemise", If(numeroRemise, DBNull.Value)},
-                                                                     {"@IdCheque", If(idCheque, DBNull.Value)}}
+                                                                     {"@reference", If(reference, DBNull.Value)},
+                                                                     {"@typeReference", If(typeReference, DBNull.Value)},
+                                                                     {"@idDoc", idDoc}}
                              ).
                              ExecuteNonQuery()
             ' Trace indiquant les valeurs mises à jour
-            Logger.INFO($"Valeurs mises à jour - Catégorie: {categorie}, Sous-Catégorie: {sousCategorie}, Montant: {montant}, Sens: {sens}, Tiers: {tiers}, Note: {note}, DateMvt: {dateMvt}, Etat: {etat}, Evénement: {evenement}, Type: {type}, Modifiable: {modifiable}, Numéro Remise: {numeroRemise}, IdChèque: {idCheque}")
+            Logger.INFO($"Valeurs mises à jour - Catégorie: {categorie}, Sous-Catégorie: {sousCategorie}, Montant: {montant}, Sens: {sens}, Tiers: {tiers}, Note: {note}, DateMvt: {dateMvt}, Etat: {etat}, Evénement: {evenement}, Type: {type}, Modifiable: {modifiable}, Numéro Remise: {numeroRemise}, reference: {reference}, typeReference: {typeReference}, idDoc: {idDoc}")
         Catch ex As Exception
             ' Trace en cas d'erreur
             Logger.ERR($"Erreur lors de la mise à jour du mouvement : {ex.Message}")
@@ -213,7 +219,7 @@ Public Class Mouvements
     Public Shared Function VerifParam(categorie As String, sousCategorie As String, tiers As Integer, dateMvt As Date, montant As String, sens As String, etat As String, type As String) As Boolean
         Dim bToutEstLa As Boolean = False
 
-        'L'idCheque est facultatif
+        'La référence (dont idCheque) est facultatif
         If categorie <> String.Empty AndAlso
             sousCategorie <> String.Empty AndAlso
             tiers <> 0 AndAlso
@@ -245,6 +251,9 @@ Public Class Mouvements
     Public Property Montant() As Decimal
     Public Property Sens() As Boolean
     Public Property Etat() As String
+    Public Property reference() As String
+    Public Property typeReference() As String
+    Public Property idDoc() As Integer
     Public Property Événement() As String
         Get
             Return _événement
@@ -262,7 +271,6 @@ Public Class Mouvements
         End Set
     End Property
     Public Property Modifiable() As Boolean
-    Public Property idCheque() As Integer
     Public Property NumeroRemise() As String
         Get
             Return CInt(_numeroRemise)
@@ -293,7 +301,9 @@ Public Class Mouvements
         resultat &= "Type: " & _type & ", "
         resultat &= "Modifiable: " & Modifiable.ToString() & ", "
         resultat &= "Numéro de Remise: " & _numeroRemise & ", "
-        resultat &= "ID Chèque: " & idCheque.ToString() & vbCrLf
+        resultat &= "référence: " & reference.ToString() & vbCrLf
+        resultat &= "Type de référence: " & typeReference.ToString() & ", "
+        resultat &= "idDoc: " & idDoc.ToString() & vbCrLf
 
         ' Retourner la chaîne concaténée
         Return resultat

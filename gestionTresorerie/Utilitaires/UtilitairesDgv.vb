@@ -1,4 +1,5 @@
 ﻿Imports System.Data.SqlClient
+Imports System.Text.RegularExpressions
 
 Public Class UtilitairesDgv
     Implements IDataService
@@ -8,7 +9,7 @@ Public Class UtilitairesDgv
         Try
             Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand(query, parameters)
             Using adpt As New SqlDataAdapter(command)
-                Dim unused = adpt.Fill(dt)
+                adpt.Fill(dt)
             End Using
 
             Logger.INFO($"Requête exécutée avec succès : {query}. {dt.Rows.Count} lignes extraites")
@@ -47,7 +48,7 @@ Public Class UtilitairesDgv
             Logger.INFO($"Chargement de {dgv.Name} avec la requête {sRequete} réussi. {dgv.Rows.Count} lignes chargées")
         Catch ex As SqlException
             ' On informe l'utilisateur qu'il y a eu un problème :
-            Dim unused = MessageBox.Show($"Une erreur s'est produite lors du chargement des données dans {dgv.Name} : {ex}")
+            MessageBox.Show($"Une erreur s'est produite lors du chargement des données dans {dgv.Name} : {ex}")
             Logger.ERR($"Une erreur s'est produite lors du chargement des données dans {dgv.Name} : {ex}")
         End Try
     End Sub
@@ -76,4 +77,5 @@ Public Class UtilitairesDgv
             Logger.ERR($"Erreur lors de la sélection dans {dgv.Name} de la ligne {criteres} : {ex.Message}")
         End Try
     End Sub
+
 End Class

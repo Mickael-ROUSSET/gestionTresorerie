@@ -62,6 +62,11 @@ Partial Class frmSaisie
         btnListeChqRemise = New Button()
         lblChercheTiers = New Label()
         btnNouveauChq = New Button()
+        lblTypeDocument = New Label()
+        dgvTypeDocuments = New DataGridView()
+        TypeDocImplBindingSource = New BindingSource(components)
+        btnToggleTypeDocument = New Button()
+        pnlDgvTypeDocument = New Panel()
         grpSens.SuspendLayout()
         GroupBox1.SuspendLayout()
         CType(dgvTiers, ComponentModel.ISupportInitialize).BeginInit()
@@ -74,12 +79,15 @@ Partial Class frmSaisie
         CType(dgvEvenement, ComponentModel.ISupportInitialize).BeginInit()
         pnlDgvType.SuspendLayout()
         CType(dgvType, ComponentModel.ISupportInitialize).BeginInit()
+        CType(dgvTypeDocuments, ComponentModel.ISupportInitialize).BeginInit()
+        CType(TypeDocImplBindingSource, ComponentModel.ISupportInitialize).BeginInit()
+        pnlDgvTypeDocument.SuspendLayout()
         SuspendLayout()
         ' 
         ' lblType
         ' 
         lblType.AutoSize = True
-        lblType.Location = New Point(698, 186)
+        lblType.Location = New Point(698, 212)
         lblType.Name = "lblType"
         lblType.Size = New Size(32, 15)
         lblType.TabIndex = 0
@@ -322,7 +330,7 @@ Partial Class frmSaisie
         ' 
         dgvSousCategorie.AllowDrop = True
         dgvSousCategorie.AllowUserToOrderColumns = True
-        dgvSousCategorie.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+        dgvSousCategorie.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells
         dgvSousCategorie.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCells
         dgvSousCategorie.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
         dgvSousCategorie.Location = New Point(809, 12)
@@ -345,7 +353,7 @@ Partial Class frmSaisie
         btnSelChq.Name = "btnSelChq"
         btnSelChq.Size = New Size(168, 23)
         btnSelChq.TabIndex = 38
-        btnSelChq.Text = "Sélectionne chèque"
+        btnSelChq.Text = "Sélectionne document"
         btnSelChq.UseVisualStyleBackColor = True
         ' 
         ' btnCreerTiers
@@ -388,7 +396,7 @@ Partial Class frmSaisie
         ' 
         ' btnToggleType
         ' 
-        btnToggleType.Location = New Point(1178, 186)
+        btnToggleType.Location = New Point(1178, 212)
         btnToggleType.Name = "btnToggleType"
         btnToggleType.Size = New Size(75, 23)
         btnToggleType.TabIndex = 42
@@ -398,7 +406,7 @@ Partial Class frmSaisie
         ' pnlDgvType
         ' 
         pnlDgvType.Controls.Add(dgvType)
-        pnlDgvType.Location = New Point(809, 186)
+        pnlDgvType.Location = New Point(809, 212)
         pnlDgvType.Name = "pnlDgvType"
         pnlDgvType.Size = New Size(328, 50)
         pnlDgvType.TabIndex = 43
@@ -440,11 +448,60 @@ Partial Class frmSaisie
         btnNouveauChq.Text = "Nouveau chèque"
         btnNouveauChq.UseVisualStyleBackColor = True
         ' 
+        ' lblTypeDocument
+        ' 
+        lblTypeDocument.AutoSize = True
+        lblTypeDocument.Location = New Point(694, 85)
+        lblTypeDocument.Name = "lblTypeDocument"
+        lblTypeDocument.Size = New Size(88, 15)
+        lblTypeDocument.TabIndex = 47
+        lblTypeDocument.Text = "TypeDocument"
+        ' 
+        ' dgvTypeDocuments
+        ' 
+        dgvTypeDocuments.AllowDrop = True
+        dgvTypeDocuments.AllowUserToAddRows = False
+        dgvTypeDocuments.AllowUserToDeleteRows = False
+        dgvTypeDocuments.AllowUserToResizeColumns = False
+        dgvTypeDocuments.AllowUserToResizeRows = False
+        dgvTypeDocuments.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+        dgvTypeDocuments.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        dgvTypeDocuments.Location = New Point(115, 0)
+        dgvTypeDocuments.Name = "dgvTypeDocuments"
+        dgvTypeDocuments.ReadOnly = True
+        dgvTypeDocuments.SelectionMode = DataGridViewSelectionMode.FullRowSelect
+        dgvTypeDocuments.Size = New Size(328, 60)
+        dgvTypeDocuments.TabIndex = 48
+        ' 
+        ' TypeDocImplBindingSource
+        ' 
+        TypeDocImplBindingSource.DataSource = GetType(TypeDocImpl)
+        ' 
+        ' btnToggleTypeDocument
+        ' 
+        btnToggleTypeDocument.Location = New Point(493, 20)
+        btnToggleTypeDocument.Name = "btnToggleTypeDocument"
+        btnToggleTypeDocument.Size = New Size(75, 23)
+        btnToggleTypeDocument.TabIndex = 49
+        btnToggleTypeDocument.Text = "Réduire"
+        btnToggleTypeDocument.UseVisualStyleBackColor = True
+        ' 
+        ' pnlDgvTypeDocument
+        ' 
+        pnlDgvTypeDocument.Controls.Add(btnToggleTypeDocument)
+        pnlDgvTypeDocument.Controls.Add(dgvTypeDocuments)
+        pnlDgvTypeDocument.Location = New Point(694, 106)
+        pnlDgvTypeDocument.Name = "pnlDgvTypeDocument"
+        pnlDgvTypeDocument.Size = New Size(617, 90)
+        pnlDgvTypeDocument.TabIndex = 50
+        ' 
         ' FrmSaisie
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(1506, 542)
+        Controls.Add(lblTypeDocument)
+        Controls.Add(pnlDgvTypeDocument)
         Controls.Add(btnNouveauChq)
         Controls.Add(lblChercheTiers)
         Controls.Add(btnListeChqRemise)
@@ -491,6 +548,9 @@ Partial Class frmSaisie
         CType(dgvEvenement, ComponentModel.ISupportInitialize).EndInit()
         pnlDgvType.ResumeLayout(False)
         CType(dgvType, ComponentModel.ISupportInitialize).EndInit()
+        CType(dgvTypeDocuments, ComponentModel.ISupportInitialize).EndInit()
+        CType(TypeDocImplBindingSource, ComponentModel.ISupportInitialize).EndInit()
+        pnlDgvTypeDocument.ResumeLayout(False)
         ResumeLayout(False)
         PerformLayout()
     End Sub
@@ -534,5 +594,11 @@ Partial Class frmSaisie
     Friend WithEvents btnListeChqRemise As Button
     Friend WithEvents lblChercheTiers As Label
     Friend WithEvents btnNouveauChq As Button
+    Friend WithEvents lblTypeDocument As Label
+    Friend WithEvents dgvTypeDocuments As DataGridView
+    Friend WithEvents TypeDocImplBindingSource As BindingSource
+    Friend WithEvents btnToggleTypeDocument As Button
+    Friend WithEvents pnlDgvTypeDocument As Panel
+    Friend WithEvents ClasseTypeDocDataGridViewTextBoxColumn As DataGridViewTextBoxColumn
 
 End Class

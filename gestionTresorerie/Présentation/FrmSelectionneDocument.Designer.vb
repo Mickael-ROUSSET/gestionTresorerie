@@ -1,5 +1,5 @@
 ﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
-Partial Class FrmSelectionneCheque
+Partial Class FrmSelectionneDocument
     Inherits System.Windows.Forms.Form
 
     'Form remplace la méthode Dispose pour nettoyer la liste des composants.
@@ -24,7 +24,7 @@ Partial Class FrmSelectionneCheque
     Private Sub InitializeComponent()
         btnSelCheque = New Button()
         pbCheque = New PictureBox()
-        lstCheques = New ListView()
+        lstDocuments = New ListView()
         CType(pbCheque, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
         ' 
@@ -45,28 +45,28 @@ Partial Class FrmSelectionneCheque
         pbCheque.TabIndex = 3
         pbCheque.TabStop = False
         ' 
-        ' lstCheques
+        ' lstDocuments
         ' 
-        lstCheques.Location = New Point(69, 67)
-        lstCheques.Name = "lstCheques"
-        lstCheques.Size = New Size(541, 109)
-        lstCheques.TabIndex = 4
-        lstCheques.UseCompatibleStateImageBehavior = False
+        lstDocuments.Location = New Point(69, 67)
+        lstDocuments.Name = "lstDocuments"
+        lstDocuments.Size = New Size(541, 109)
+        lstDocuments.TabIndex = 4
+        lstDocuments.UseCompatibleStateImageBehavior = False
         ' 
-        ' selectionneCheque
+        ' FrmSelectionneDocument
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(800, 483)
-        Controls.Add(lstCheques)
+        Controls.Add(lstDocuments)
         Controls.Add(pbCheque)
         Controls.Add(btnSelCheque)
-        Name = "selectionneCheque"
-        Text = "Sélectionne un chèque"
+        Name = "FrmSelectionneDocument"
+        Text = "Sélectionne un document"
         CType(pbCheque, ComponentModel.ISupportInitialize).EndInit()
         ResumeLayout(False)
     End Sub
     Friend WithEvents btnSelCheque As Button
     Friend WithEvents pbCheque As PictureBox
-    Friend WithEvents lstCheques As ListView
+    Friend WithEvents lstDocuments As ListView
 End Class

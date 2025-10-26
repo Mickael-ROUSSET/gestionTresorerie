@@ -18,8 +18,7 @@ Public Class Constantes
     Public Const sqlDelCompte As String = "delCompte"
     Public Const sqlDelDocs As String = "delDocs"
     Public Const sqlDelMvt As String = "delMvt"
-    'Insertions
-    Public Const sqlInsertChq As String = "insertChq"
+    'Insertions 
     Public Const sqlInsertCompte As String = "insertCompte"
     Public Const sqlInsertDocAgumaaa As String = "insertDocAgumaaa"
     Public Const sqlInsertMvts As String = "insertMvts"
@@ -45,11 +44,12 @@ Public Class Constantes
     Public Const sqlSelLibCat As String = "reqLibCat"
     Public Const sqlSelTypes As String = "reqTypes"
     Public Const sqlSelEvenement As String = "reqEvenement"
+    Public Const sqlSelTypesDocuments As String = "reqLibellesTypesDocuments"
     'Mises à jour
     Public Const sqlUpdCompte As String = "updCompte"
     Public Const sqlUpdDocs As String = "updDocs"
     Public Const sqlUpdMvt As String = "updMvt"
-    Public Const sqlUpdMvtIdChq As String = "updMvtIdChq"
+    Public Const sqlUpdMvtIdDoc As String = "updMvtIdDoc"
 
     'Environnement
     Public Const paramNiveauLog As String = "niveauLog"

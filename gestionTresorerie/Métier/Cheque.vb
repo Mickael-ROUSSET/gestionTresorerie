@@ -91,12 +91,12 @@ Public Class Cheque
         End Set
     End Property
 
-    Public Shared Sub AfficherImage(idCheque As Integer, pbBox As PictureBox)
+    Public Shared Sub AfficherImage(idDoc As Integer, pbBox As PictureBox)
         Try
             ' Effacer l'image précédemment affichée
             pbBox.Image = Nothing
             Dim imageData As Object = SqlCommandBuilder.CreateSqlCommand("reqImagesChq",
-                                           New Dictionary(Of String, Object) From {{"@id", idCheque}
+                                           New Dictionary(Of String, Object) From {{"@id", idDoc}
                                             }).
                                             ExecuteScalar()
             If imageData IsNot Nothing AndAlso TypeOf imageData Is Byte() Then
@@ -109,11 +109,11 @@ Public Class Cheque
                     pbBox.Image = AfficherTiersSuperieurImage(image, 0.33)
                 End Using
             Else
-                Logger.INFO("Aucune image trouvée pour cet enregistrement.")
+                Logger.INFO($"Aucune image trouvée pour cet enregistrement : {idDoc}.")
             End If
             'End Using
         Catch ex As Exception
-            Logger.ERR("Erreur lors de la récupération de l'image : " & ex.Message)
+            Logger.ERR($"Erreur lors de la récupération de l'image : {idDoc}, {ex.Message}")
         End Try
     End Sub
 
