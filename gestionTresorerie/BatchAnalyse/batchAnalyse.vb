@@ -208,7 +208,8 @@ Public Class batchAnalyse
             nouveauDoc.DateDoc = Date.Now
             nouveauDoc.CategorieDoc = doc.ClasseTypeDoc
             nouveauDoc.SousCategorieDoc = "" ' Peut être ajusté si nécessaire
-            nouveauDoc.metaDonnees = sMetaDonnees
+            'Nettoie le json renvoyé par Mistral
+            nouveauDoc.metaDonnees = Utilitaires.ExtraireJsonValide(sMetaDonnees)
             nouveauDoc.IdMvtDoc = 0 ' Valeur par défaut, à ajuster si nécessaire
 
             Logger.INFO($"Document {nouveauDoc.CategorieDoc} analysé avec succès. metaDonnees : {sMetaDonnees}")

@@ -239,9 +239,13 @@ Public Class FrmSaisie
 
         AddHandler selectionneDocument.IdDocSelectionneChanged, AddressOf IdDocSelectionneChangedHandler
         'selectionneDocument.ShowDialog()
-
+        ' Récupère le montant et applique le signe selon le sens
+        Dim montant As Decimal = CDec(txtMontant.Text)
+        If rbDebit.Checked Then
+            montant *= -1
+        End If
         selectionneDocument.chargeListeDoc(CDec(Utilitaires.ExtraitNuméroChèque(txtNote.Text)),
-                                           CDec(txtMontant.Text),
+                                           montant,
                                            dgvTiers.SelectedRows(0).Cells(1).Value.ToString())
         selectionneDocument.Show()
     End Sub

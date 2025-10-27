@@ -1,4 +1,5 @@
 ﻿Imports System.Data.SqlClient
+Imports System.IO
 
 ' Classe permettant de se connecter à une base de donnée SQLSERVER 
 
@@ -18,10 +19,45 @@ Public Class ConnexionDB
     End Function
     Public Function getConnexion() As SqlConnection
         'Crée la connexion si elle n'existe pas, sinon renvoie celle existante 
+        Try
+            ' Vérifie si Google Drive (ou le dossier attendu) est accessible
+            ' (exemple : on vérifie la présence d’un répertoire monté ou d’un fichier test) 
+            If Not Directory.Exists(LectureProprietes.GetVariable("repRacineAgumaaa")) Then
+                Throw New IOException("Google Drive n'est pas accessible ou non monté sur ce poste.")
+            End If
 
-        creeConnexion(LectureProprietes.connexionString)
-        Return _maConnexion
+            ' Vérifie si la connexion existe et est ouverte
+            If _maConnexion Is Nothing OrElse _maConnexion.State = ConnectionState.Closed Then
+                creeConnexion(LectureProprietes.connexionString)
+            End If
+            Return _maConnexion
+
+        Catch sqlEx As SqlException
+            ' Gestion spécifique des erreu{rs SQL
+            Logger.ERR($"Erreur SQL : {sqlEx.Message}")
+            MessageBox.Show("Impossible de se connecter à la base de données." & vbCrLf &
+                        "Vérifiez vos paramètres de connexion.", "Erreur de connexion SQL",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Return Nothing
+
+        Catch ioEx As IOException
+            ' Gestion spécifique pour Google Drive ou accès fichiers
+            Logger.ERR($"Erreur d’accès Drive : {ioEx.Message}")
+            MessageBox.Show("Le stockage Google Drive semble inactif ou inaccessible." & vbCrLf &
+                        "Veuillez vérifier votre connexion Internet ou le client Drive.",
+                        "Erreur Google Drive", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return Nothing
+
+        Catch ex As Exception
+            ' Gestion générique de toute autre erreur
+            Logger.ERR($"Erreur inattendue : {ex.Message}")
+            MessageBox.Show("Une erreur inattendue est survenue : " & ex.Message,
+                        "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Return Nothing
+        End Try
     End Function
+
+
     Public Sub creeConnexion(connexionString As String)
         Dim connexionOuverte As Boolean
         Try

@@ -90,27 +90,28 @@ Public Class FrmPrincipale
         End Try
     End Sub
     Private Sub AjouterColonneEtatImage()
-        ' Alimenter la colonne d'image pour l'état 
-
         ' Parcourir les lignes du DataGridView pour définir les images
         For Each row As DataGridViewRow In dgvPrincipale.Rows
             If Not row.IsNewRow Then
                 Try
-                    ' 1 correspond à la colonne "etat" après l'insertion de la nouvelle colonne
-                    Dim etat As Object = row.Cells(1).Value
+                    ' On récupère la valeur de la colonne "etat" par son nom
+                    Dim etat As Object = row.Cells("etat").Value
+
                     If etat IsNot Nothing AndAlso TypeOf etat Is Boolean Then
                         row.Cells("etatImage").Value = If(CType(etat, Boolean), My.Resources.OK, My.Resources.KO)
                     Else
-                        Logger.ERR($"Valeur invalide pour la colonne 'etat' dans la ligne {row.Index}: {etat}")
-                        row.Cells("etatImage").Value = My.Resources.KO ' Par défaut, si la valeur est invalide
+                        Logger.ERR($"Valeur invalide pour la colonne 'etat' dans la ligne {row.Index}: {If(etat, "null")}")
+                        row.Cells("etatImage").Value = My.Resources.KO
                     End If
+
                 Catch ex As Exception
                     Logger.ERR($"Erreur lors de la définition de l'image pour la colonne 'etat' dans la ligne {row.Index}: {ex.Message}")
-                    row.Cells("etatImage").Value = My.Resources.KO ' Par défaut, en cas d'erreur
+                    row.Cells("etatImage").Value = My.Resources.KO
                 End Try
             End If
         Next
     End Sub
+
     Private Sub FrmMain_Closing(sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
         ConnexionDB.GetInstance.Dispose()
     End Sub

@@ -23,50 +23,62 @@ Partial Class FrmSelectionneDocument
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
         btnSelCheque = New Button()
-        pbCheque = New PictureBox()
+        pbDocument = New PictureBox()
         lstDocuments = New ListView()
-        CType(pbCheque, ComponentModel.ISupportInitialize).BeginInit()
+        btnAfficheDoc = New Button()
+        CType(pbDocument, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
         ' 
         ' btnSelCheque
         ' 
-        btnSelCheque.Location = New Point(52, 448)
+        btnSelCheque.Location = New Point(61, 145)
         btnSelCheque.Name = "btnSelCheque"
         btnSelCheque.Size = New Size(84, 23)
         btnSelCheque.TabIndex = 2
         btnSelCheque.Text = "&Sélectionne"
         btnSelCheque.UseVisualStyleBackColor = True
         ' 
-        ' pbCheque
+        ' pbDocument
         ' 
-        pbCheque.Location = New Point(61, 197)
-        pbCheque.Name = "pbCheque"
-        pbCheque.Size = New Size(549, 233)
-        pbCheque.TabIndex = 3
-        pbCheque.TabStop = False
+        pbDocument.Location = New Point(61, 197)
+        pbDocument.Name = "pbDocument"
+        pbDocument.Size = New Size(549, 233)
+        pbDocument.TabIndex = 3
+        pbDocument.TabStop = False
         ' 
         ' lstDocuments
         ' 
-        lstDocuments.Location = New Point(69, 67)
+        lstDocuments.Location = New Point(61, 30)
         lstDocuments.Name = "lstDocuments"
         lstDocuments.Size = New Size(541, 109)
         lstDocuments.TabIndex = 4
         lstDocuments.UseCompatibleStateImageBehavior = False
+        ' 
+        ' btnAfficheDoc
+        ' 
+        btnAfficheDoc.Location = New Point(58, 441)
+        btnAfficheDoc.Name = "btnAfficheDoc"
+        btnAfficheDoc.Size = New Size(100, 23)
+        btnAfficheDoc.TabIndex = 5
+        btnAfficheDoc.Text = "Affiche doc"
+        btnAfficheDoc.UseVisualStyleBackColor = True
         ' 
         ' FrmSelectionneDocument
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(800, 483)
+        Controls.Add(btnAfficheDoc)
         Controls.Add(lstDocuments)
-        Controls.Add(pbCheque)
+        Controls.Add(pbDocument)
         Controls.Add(btnSelCheque)
         Name = "FrmSelectionneDocument"
         Text = "Sélectionne un document"
-        CType(pbCheque, ComponentModel.ISupportInitialize).EndInit()
+        CType(pbDocument, ComponentModel.ISupportInitialize).EndInit()
         ResumeLayout(False)
     End Sub
     Friend WithEvents btnSelCheque As Button
-    Friend WithEvents pbCheque As PictureBox
+    Friend WithEvents pbDocument As PictureBox
     Friend WithEvents lstDocuments As ListView
+    Friend WithEvents btnAfficheDoc As Button
 End Class

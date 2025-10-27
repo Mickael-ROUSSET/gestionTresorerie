@@ -2,7 +2,6 @@
 Imports System.IO
 Imports System.Text.RegularExpressions
 Imports Newtonsoft.Json.Linq
-
 Friend Class Utilitaires
     Public Shared Sub selLigneDgvParLibelle(dgv As DataGridView, libelle As String)
         ' Sélectionne la ligne dont le libellé correspond au paramètre (sur le nombre de caractères renseignés)
@@ -338,4 +337,34 @@ Friend Class Utilitaires
 
         Return Nothing
     End Function
+
+
+    Public Shared Function ExtraireJsonValide(chaine As String) As String
+        Try
+            ' 1. Supprimer les balises ```json ou ```
+            Dim nettoyee As String = Regex.Replace(chaine, "```json|```", "", RegexOptions.IgnoreCase)
+
+            ' 2. Trouver le bloc JSON le plus profond avec des accolades équilibrées
+            Dim motif As String = "\{(?:[^{}]|(?<open>\{)|(?<-open>\}))*(?(open)(?!))\}"
+            Dim correspondances = Regex.Matches(nettoyee, motif, RegexOptions.Singleline)
+
+            For Each match As Match In correspondances
+                Dim possibleJson = match.Value.Trim()
+
+                ' 3. Valider le JSON
+                Try
+                    Dim jObj = JObject.Parse(possibleJson)
+                    Return jObj.ToString() ' JSON valide → on le renvoie
+                Catch ex As Exception
+                    ' Ignorer les erreurs, continuer
+                End Try
+            Next
+
+            Return Nothing ' Aucun JSON valide trouvé
+
+        Catch ex As Exception
+            Return Nothing
+        End Try
+    End Function
+
 End Class

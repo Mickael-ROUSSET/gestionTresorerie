@@ -1,8 +1,12 @@
 ﻿Imports System.Data.SqlClient
 Imports System.Globalization
+Imports System.IO
+Imports PdfiumViewer
+Imports System.Windows.Forms
 
 Public Class FrmSelectionneDocument
     Private _idDocSel As Integer
+    Private viewer As DocumentViewerManager
     Public Property idDocSel() As Integer
         Get
             Return _idDocSel
@@ -16,13 +20,39 @@ Public Class FrmSelectionneDocument
         ' Initialisez les composants
         InitializeComponent()
     End Sub
-    Public Sub alimlstCheques(cheques() As Cheque)
-        For Each chq As Cheque In cheques
-            Dim item As New ListViewItem(chq.id)
+
+    Private Sub FrmSelectionneDocument_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        viewer = New DocumentViewerManager(Me)
+        AddHandler viewer.DocumentLoaded, AddressOf OnDocumentLoaded
+        AddHandler viewer.DocumentFailed, AddressOf OnDocumentFailed
+    End Sub
+    Private Sub btnAfficheDoc_Click(sender As Object, e As EventArgs) Handles btnAfficheDoc.Click
+        Dim doc As DocumentAgumaaa
+        Dim sContenu As String = doc.ContenuDoc
+        viewer.AfficherDocumentBase64(sContenu)
+    End Sub
+
+    Private Sub OnDocumentLoaded()
+        MessageBox.Show("Document affiché avec succès !")
+    End Sub
+
+    Private Sub OnDocumentFailed(ex As Exception)
+        MessageBox.Show("Échec de l'affichage : " & ex.Message)
+    End Sub
+
+    Protected Overrides Sub OnFormClosing(e As FormClosingEventArgs)
+        viewer.Dispose()
+        MyBase.OnFormClosing(e)
+    End Sub
+    Public Sub alimlstDocuments(docs() As DocumentAgumaaa)
+        For Each doc As DocumentAgumaaa In docs
+            Dim item As New ListViewItem(doc.IdMvtDoc)
             With item.SubItems
-                .Add(chq.montant_numerique)
-                .Add(chq.dateChq)
-                .Add(chq.destinataire)
+                'TODO : vrai uniquement pour un chèque
+                .Add(Utilitaires.ExtractStringFromJson(doc.metaDonnees, "montant_numerique"))
+                .Add(Utilitaires.ExtractStringFromJson(doc.metaDonnees, "dateChq"))
+                .Add(Utilitaires.ExtractStringFromJson(doc.metaDonnees, "destinataire"))
+                .Add(doc.ContenuDoc)
             End With
             lstDocuments.Items.Add(item)
         Next
@@ -32,7 +62,7 @@ Public Class FrmSelectionneDocument
             Dim selectedItem As ListViewItem = lstDocuments.SelectedItems(0)
             Dim idDoc As Integer = Integer.Parse(selectedItem.Text)
 
-            Cheque.AfficherImage(idDoc, pbCheque)
+            Cheque.AfficherImage(idDoc, pbDocument)
             _idDocSel = idDoc
         End If
     End Sub
@@ -115,7 +145,5 @@ Public Class FrmSelectionneDocument
         AddHandler lstDocuments.SelectedIndexChanged, AddressOf LstDocuments_SelectedIndexChanged
     End Sub
 
-    Private Sub btnSelCheque_Click_1(sender As Object, e As EventArgs) Handles btnSelCheque.Click
 
-    End Sub
 End Class
