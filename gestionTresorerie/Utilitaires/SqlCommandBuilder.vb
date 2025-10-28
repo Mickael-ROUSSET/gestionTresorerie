@@ -18,6 +18,7 @@ Public Class SqlCommandBuilder
                     command.Parameters.AddWithValue(param.Key, param.Value)
                 Next
             End If
+            Logger.INFO($"Création de la commande : {command.CommandText }")
 
             Return command
         Catch ex As SqlException

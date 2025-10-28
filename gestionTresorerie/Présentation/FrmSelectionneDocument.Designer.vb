@@ -22,21 +22,21 @@ Partial Class FrmSelectionneDocument
     'Ne la modifiez pas à l'aide de l'éditeur de code.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        btnSelCheque = New Button()
+        btnSelDoc = New Button()
         pbDocument = New PictureBox()
         lstDocuments = New ListView()
         btnAfficheDoc = New Button()
         CType(pbDocument, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
         ' 
-        ' btnSelCheque
+        ' btnSelDoc
         ' 
-        btnSelCheque.Location = New Point(61, 145)
-        btnSelCheque.Name = "btnSelCheque"
-        btnSelCheque.Size = New Size(84, 23)
-        btnSelCheque.TabIndex = 2
-        btnSelCheque.Text = "&Sélectionne"
-        btnSelCheque.UseVisualStyleBackColor = True
+        btnSelDoc.Location = New Point(61, 145)
+        btnSelDoc.Name = "btnSelDoc"
+        btnSelDoc.Size = New Size(84, 23)
+        btnSelDoc.TabIndex = 2
+        btnSelDoc.Text = "&Sélectionne"
+        btnSelDoc.UseVisualStyleBackColor = True
         ' 
         ' pbDocument
         ' 
@@ -71,13 +71,13 @@ Partial Class FrmSelectionneDocument
         Controls.Add(btnAfficheDoc)
         Controls.Add(lstDocuments)
         Controls.Add(pbDocument)
-        Controls.Add(btnSelCheque)
+        Controls.Add(btnSelDoc)
         Name = "FrmSelectionneDocument"
         Text = "Sélectionne un document"
         CType(pbDocument, ComponentModel.ISupportInitialize).EndInit()
         ResumeLayout(False)
     End Sub
-    Friend WithEvents btnSelCheque As Button
+    Friend WithEvents btnSelDoc As Button
     Friend WithEvents pbDocument As PictureBox
     Friend WithEvents lstDocuments As ListView
     Friend WithEvents btnAfficheDoc As Button

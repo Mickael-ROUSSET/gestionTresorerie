@@ -146,7 +146,7 @@ Public Class Mouvements
             ' Créer un DataAdapter pour remplir le DataTable
             Using adapter As New SqlDataAdapter(cmd)
                 ' Remplir le DataTable avec les données de la base de données
-                Dim unused = adapter.Fill(dataTable)
+                adapter.Fill(dataTable)
             End Using
 
             ' Écrire un log d'information

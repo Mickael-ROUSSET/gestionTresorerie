@@ -39,7 +39,7 @@ Public Class FrmPrincipale
             FrmSaisie.chargeListes()
         Catch ex As Exception
             ' Gestion des erreurs
-            Dim unused = MessageBox.Show($"Une erreur est survenue lors de l'initialisation : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show($"Une erreur est survenue lors de l'initialisation : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Logger.ERR($"Une erreur est survenue lors de l'initialisation : {ex.Message}")
         End Try
     End Sub
@@ -72,7 +72,7 @@ Public Class FrmPrincipale
                 ' Créer un DataTable pour stocker les données
                 Dim dataTable As New DataTable()
                 ' Remplir le DataTable avec les données de la base de données
-                Dim unused = adapter.Fill(dataTable)
+                adapter.Fill(dataTable)
                 ' Lier le DataTable au DataGridView
                 dgvPrincipale.DataSource = dataTable
             End Using
@@ -155,7 +155,7 @@ Public Class FrmPrincipale
                 .Show()
             End With
         Catch ex As Exception
-            Dim unused = MsgBox($"Une erreur est survenue : {ex.Message}", MsgBoxStyle.Critical)
+            MsgBox($"Une erreur est survenue : {ex.Message}", MsgBoxStyle.Critical)
             Logger.ERR($"Une erreur est survenue : {ex.Message}")
         End Try
     End Sub

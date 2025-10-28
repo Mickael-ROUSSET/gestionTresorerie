@@ -2,7 +2,7 @@
 
 Public Class Logger
     ' Niveau de log minimum (DBG, INFO, WARN, ERR)
-    Private Shared logLevel As String = "INFO"
+    Private Shared logLevel As String = "DBG"
 
     ' Constructeur privé pour empêcher l'instanciation directe
     Private Sub New()

@@ -302,10 +302,7 @@
       <Value Profile="(Default)">INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers, dateCréation, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise, reference, typeReference, idDoc) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable, @numeroRemise, @reference, @typeReference, @idDoc);</Value>
     </Setting>
     <Setting Name="reqDoc" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">SELECT metaDonnees FROM Documents WHERE JSON_VALUE(metaDonnees, '$.numero_du_cheque') IS NOT NULL
-  AND JSON_VALUE(metaDonnees, '$.numero_du_cheque') = @numero
-  AND JSON_VALUE(metaDonnees, '$.montant_numerique') = @montant
-  AND JSON_VALUE(metaDonnees, '$.emetteur_du_cheque') like @emetteur;</Value>
+      <Value Profile="(Default)">SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees, dateModif  FROM Documents WHERE JSON_VALUE(metaDonnees, '$.numero_du_cheque') IS NOT NULL  AND JSON_VALUE(metaDonnees, '$.numero_du_cheque') = @numero  AND JSON_VALUE(metaDonnees, '$.montant_numerique') = @montant  AND JSON_VALUE(metaDonnees, '$.emetteur_du_cheque') like @emetteur;</Value>
     </Setting>
   </Settings>
 </SettingsFile>

@@ -1,4 +1,5 @@
-﻿Imports System.Globalization
+﻿Imports System.Data.SqlClient
+Imports System.Globalization
 Imports System.IO
 Imports System.Text.RegularExpressions
 Imports Newtonsoft.Json.Linq
@@ -365,6 +366,49 @@ Friend Class Utilitaires
         Catch ex As Exception
             Return Nothing
         End Try
+    End Function
+    ''' <summary>
+    ''' Récupère une chaîne depuis le reader en gérant DBNull et en nettoyant
+    ''' les guillemets superflus (ex: """"" -> "" -> "" -> String.Empty).
+    ''' </summary>
+    Public Function GetSafeStringFromReader(reader As SqlDataReader, index As Integer) As String
+        If reader Is Nothing Then Throw New ArgumentNullException(NameOf(reader))
+        If reader.IsDBNull(index) Then
+            Return String.Empty
+        End If
+
+        Dim raw As String = reader.GetString(index)
+
+        If String.IsNullOrEmpty(raw) Then
+            Return String.Empty
+        End If
+
+        ' Caractère guillemet
+        Dim q As Char = Chr(34)
+
+        ' Si la chaîne est uniquement des guillemets, renvoyer vide
+        If raw.Trim(q).Length = 0 Then
+            Return String.Empty
+        End If
+
+        ' Retirer guillemets entourants simples (ex: "val" -> val)
+        If raw.Length >= 2 AndAlso raw.StartsWith(q) AndAlso raw.EndsWith(q) Then
+            raw = raw.Substring(1, raw.Length - 2)
+        End If
+
+        ' Remplacer les doubles guillemets consécutifs par un seul (ex: "" -> ")
+        ' Boucle au cas où il y aurait des séquences répétées
+        Dim doubleQ As String = New String(q, 2)
+        While raw.Contains(doubleQ)
+            raw = raw.Replace(doubleQ, q.ToString())
+        End While
+
+        ' Si après nettoyage il ne reste que des guillemets -> vide
+        If raw.Trim(q).Length = 0 Then
+            Return String.Empty
+        End If
+
+        Return raw
     End Function
 
 End Class

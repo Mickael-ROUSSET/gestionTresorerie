@@ -1,12 +1,47 @@
 ﻿Imports System.Data.SqlClient
 
 Public MustInherit Class DocumentAgumaaa
+    'Identifiant interne
+    Public Property IdDoc As Integer
+    'Identifiant du mouvement associé
     Public Property IdMvtDoc As Integer
-
     ' Propriété pour dateDoc
     Public Property DateDoc As Date
+    ' Propriété pour cheminDoc
+    Public Property CheminDoc As String
+    ' Propriété pour categorieDoc
+    Public Property CategorieDoc As String
+    ' Propriété pour sousCategorieDoc
+    Public Property SousCategorieDoc As String
+    ' Propriété pour les méta donnees JSON
+    Public Property metaDonnees As String
+    ' Propriété pour la date de modification
+    Public Property dateModif As String
 
-    ' Propriété pour contenuDoc
+    Public Sub New()
+    End Sub
+    Public Sub New(idDoc As Integer,
+                   dateDoc As Date,
+                   contenuDoc As String,
+                   cheminDoc As String,
+                   categorieDoc As String,
+                   sousCategorieDoc As String,
+                   idMvtDoc As Integer,
+                   metaDonnees As String,
+                   dateModif As String)
+        Me.IdDoc = idDoc
+        Me.IdMvtDoc = idMvtDoc
+        Me.DateDoc = dateDoc
+        Me.ContenuDoc = contenuDoc
+        Me.CheminDoc = cheminDoc
+        Me.CategorieDoc = categorieDoc
+        Me.SousCategorieDoc = sousCategorieDoc
+        Me.metaDonnees = metaDonnees
+        Me.dateModif = dateModif
+    End Sub
+    ' Propriété pour le contenu du document (base64)
+    Private _contenuDoc As String
+
     Public Property ContenuDoc As String
         Get
             Return _contenuDoc
@@ -15,7 +50,7 @@ Public MustInherit Class DocumentAgumaaa
             If Not String.IsNullOrEmpty(value) Then
                 Try
                     ' Vérifier si la chaîne est un Base64 valide
-                    Dim unused = Convert.FromBase64String(value)
+                    Convert.FromBase64String(value)
                 Catch ex As FormatException
                     Logger.ERR($"ContenuDoc n'est pas une chaîne Base64 valide : {ex.Message}")
                     Throw New ArgumentException("La valeur de ContenuDoc doit être une chaîne Base64 valide.")
@@ -24,18 +59,7 @@ Public MustInherit Class DocumentAgumaaa
             _contenuDoc = value
         End Set
     End Property
-    Private _contenuDoc As String
 
-    ' Propriété pour cheminDoc
-    Public Property CheminDoc As String
-
-    ' Propriété pour categorieDoc
-    Public Property CategorieDoc As String
-
-    ' Propriété pour sousCategorieDoc
-    Public Property SousCategorieDoc As String
-    ' Propriété pour les méta donnees JSON
-    Public Property metaDonnees As String
 
     Public Shared Sub InsererDocument(doc As DocumentAgumaaa)
         Try

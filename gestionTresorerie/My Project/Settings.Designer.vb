@@ -970,9 +970,11 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT metaDonnees FROM Documents WHERE JSON_VALUE(metaDonnees, '$.numero_du_cheq"& _ 
-            "ue') IS NOT NULL"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"  AND JSON_VALUE(metaDonnees, '$.numero_du_cheque') = @numero"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"  AND JSON_VALUE(metaDonnees, '$.montant_numerique') = @montant"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"  AND JSON_VAL"& _ 
-            "UE(metaDonnees, '$.emetteur_du_cheque') like @emetteur;")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idM"& _ 
+            "vtDoc, metaDonnees, dateModif  FROM Documents WHERE JSON_VALUE(metaDonnees, '$.n"& _ 
+            "umero_du_cheque') IS NOT NULL  AND JSON_VALUE(metaDonnees, '$.numero_du_cheque')"& _ 
+            " = @numero  AND JSON_VALUE(metaDonnees, '$.montant_numerique') = @montant  AND J"& _ 
+            "SON_VALUE(metaDonnees, '$.emetteur_du_cheque') like @emetteur;")>  _
         Public ReadOnly Property reqDoc() As String
             Get
                 Return CType(Me("reqDoc"),String)

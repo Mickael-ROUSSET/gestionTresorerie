@@ -6,6 +6,7 @@ Public Class QuestionnaireSanteGym
 
     ' Constructeur par défaut
     Public Sub New()
+        MyBase.New()
     End Sub
 
     ' Constructeur avec paramètres
