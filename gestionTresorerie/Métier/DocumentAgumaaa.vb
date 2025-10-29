@@ -17,6 +17,8 @@ Public MustInherit Class DocumentAgumaaa
     Public Property metaDonnees As String
     ' Propriété pour la date de modification
     Public Property dateModif As String
+    ' Propriété pour le contenu du document (base64)
+    Private _contenuDoc As String
 
     Public Sub New()
     End Sub
@@ -39,8 +41,6 @@ Public MustInherit Class DocumentAgumaaa
         Me.metaDonnees = metaDonnees
         Me.dateModif = dateModif
     End Sub
-    ' Propriété pour le contenu du document (base64)
-    Private _contenuDoc As String
 
     Public Property ContenuDoc As String
         Get
@@ -50,7 +50,7 @@ Public MustInherit Class DocumentAgumaaa
             If Not String.IsNullOrEmpty(value) Then
                 Try
                     ' Vérifier si la chaîne est un Base64 valide
-                    Convert.FromBase64String(value)
+                    Dim unused = Convert.FromBase64String(value)
                 Catch ex As FormatException
                     Logger.ERR($"ContenuDoc n'est pas une chaîne Base64 valide : {ex.Message}")
                     Throw New ArgumentException("La valeur de ContenuDoc doit être une chaîne Base64 valide.")

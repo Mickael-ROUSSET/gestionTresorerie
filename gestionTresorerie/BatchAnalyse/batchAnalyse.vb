@@ -125,7 +125,7 @@ Public Class batchAnalyse
 
             ' Copier les propriétés de nouveauDoc vers derivedDoc
             derivedDoc.DateDoc = nouveauDoc.DateDoc
-            derivedDoc.ContenuDoc = nouveauDoc.ContenuDoc
+            'derivedDoc.ContenuDoc = nouveauDoc.ContenuDoc
             derivedDoc.CategorieDoc = nouveauDoc.CategorieDoc
             derivedDoc.SousCategorieDoc = nouveauDoc.SousCategorieDoc
             derivedDoc.IdMvtDoc = nouveauDoc.IdMvtDoc
@@ -204,7 +204,7 @@ Public Class batchAnalyse
             End Try
 
             ' Initialiser les propriétés de DocumentAgumaaa
-            nouveauDoc.ContenuDoc = doc.ContenuBase64
+            'nouveauDoc.ContenuDoc = doc.ContenuBase64
             nouveauDoc.DateDoc = Date.Now
             nouveauDoc.CategorieDoc = doc.ClasseTypeDoc
             nouveauDoc.SousCategorieDoc = "" ' Peut être ajusté si nécessaire

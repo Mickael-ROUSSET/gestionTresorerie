@@ -27,9 +27,36 @@ Public Class FrmSelectionneDocument
         AddHandler viewer.DocumentFailed, AddressOf OnDocumentFailed
     End Sub
     Private Sub btnSelDoc_Click(sender As Object, e As EventArgs) Handles btnSelDoc.Click
-        'Affichage du document sélectionné
-        viewer.AfficherDocumentBase64(lstDocuments.SelectedItems(0).SubItems(2).Text)
+        ' Vérifier qu'un élément est bien sélectionné
+        If lstDocuments.SelectedItems.Count = 0 Then
+            MessageBox.Show("Veuillez sélectionner un document dans la liste.", "Avertissement",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+
+        Try
+            ' Récupère le chemin du fichier à partir de la 2e colonne (index 1)
+            Dim cheminFichier As String = lstDocuments.SelectedItems(0).SubItems(2).Text
+
+            If Not File.Exists(cheminFichier) Then
+                MessageBox.Show("Le fichier indiqué est introuvable :" & Environment.NewLine & cheminFichier,
+                            "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Return
+            End If
+
+            ' Lire le contenu du fichier en base64
+            Dim bytes() As Byte = File.ReadAllBytes(cheminFichier)
+            Dim base64Data As String = Convert.ToBase64String(bytes)
+
+            ' Afficher le document dans le viewer
+            viewer.AfficherDocumentBase64(base64Data)
+
+        Catch ex As Exception
+            MessageBox.Show("Erreur lors du chargement du document : " & ex.Message,
+                        "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
     End Sub
+
 
     Private Sub OnDocumentLoaded()
         MessageBox.Show("Document affiché avec succès !")
@@ -48,10 +75,11 @@ Public Class FrmSelectionneDocument
             Dim item As New ListViewItem(doc.IdMvtDoc)
             With item.SubItems
                 .Add(doc.CategorieDoc)
+                'Eventuellement limiter l'affichage
                 .Add(doc.CheminDoc)
                 .Add(doc.DateDoc.ToString("yyyy-MM-dd"))
                 .Add(doc.SousCategorieDoc)
-                .Add(doc.ContenuDoc)
+                '.Add(doc.ContenuDoc)
             End With
             lstDocuments.Items.Add(item)
         Next
@@ -131,7 +159,7 @@ Public Class FrmSelectionneDocument
             .View = View.Details
             .Columns.Add("IdDoc", 50, HorizontalAlignment.Left)
             .Columns.Add("dateDoc", 100, HorizontalAlignment.Left)
-            .Columns.Add("contenuDoc", 100, HorizontalAlignment.Left)
+            '.Columns.Add("contenuDoc", 100, HorizontalAlignment.Left)
             .Columns.Add("cheminDoc", 150, HorizontalAlignment.Left)
             .Columns.Add("categorieDoc", 150, HorizontalAlignment.Left)
             .Columns.Add("sousCategorieDoc", 150, HorizontalAlignment.Left)
@@ -146,7 +174,7 @@ Public Class FrmSelectionneDocument
             ' Créer une nouvelle ligne pour le ListView
             Dim item As New ListViewItem(document.IdDoc)
             item.SubItems.Add(document.DateDoc)
-            item.SubItems.Add(document.ContenuDoc)
+            'item.SubItems.Add(document.ContenuDoc)
             item.SubItems.Add(document.CheminDoc)
             item.SubItems.Add(document.CategorieDoc)
             item.SubItems.Add(document.SousCategorieDoc)
