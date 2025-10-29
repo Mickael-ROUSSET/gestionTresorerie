@@ -40,9 +40,9 @@ Partial Class FrmSelectionneDocument
         ' 
         ' pbDocument
         ' 
-        pbDocument.Location = New Point(61, 197)
+        pbDocument.Location = New Point(61, 168)
         pbDocument.Name = "pbDocument"
-        pbDocument.Size = New Size(549, 233)
+        pbDocument.Size = New Size(653, 389)
         pbDocument.TabIndex = 3
         pbDocument.TabStop = False
         ' 
@@ -56,7 +56,7 @@ Partial Class FrmSelectionneDocument
         ' 
         ' btnAfficheDoc
         ' 
-        btnAfficheDoc.Location = New Point(58, 441)
+        btnAfficheDoc.Location = New Point(673, 139)
         btnAfficheDoc.Name = "btnAfficheDoc"
         btnAfficheDoc.Size = New Size(100, 23)
         btnAfficheDoc.TabIndex = 5
@@ -67,7 +67,7 @@ Partial Class FrmSelectionneDocument
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(800, 483)
+        ClientSize = New Size(800, 569)
         Controls.Add(btnAfficheDoc)
         Controls.Add(lstDocuments)
         Controls.Add(pbDocument)

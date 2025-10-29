@@ -1,7 +1,6 @@
 ﻿Imports System.IO
 Imports System.Windows.Forms
 Imports PdfiumViewer
-Imports SixLabors.ImageSharp.Metadata.Profiles
 
 Public Class DocumentViewerManager
     Implements IDisposable
@@ -10,10 +9,13 @@ Public Class DocumentViewerManager
     Public Event DocumentLoaded()
     Public Event DocumentFailed(ex As Exception)
 
+    ' Contrôles gérés
     Private ReadOnly _parent As Control
     Private _pdfViewer As PdfViewer
     Private _webBrowser As WebBrowser
     Private _pictureBox As PictureBox
+
+    ' Gestion des fichiers temporaires PDF
     Private _tempPdfFiles As New List(Of String)
     Private _disposed As Boolean = False
 
@@ -23,50 +25,84 @@ Public Class DocumentViewerManager
         AddHandler _parent.HandleDestroyed, AddressOf Parent_HandleDestroyed
     End Sub
 
+    ' =============================
+    ' Création / réutilisation des contrôles
+    ' =============================
     Private Sub CreateControls(dock As DockStyle)
-        _pictureBox = New PictureBox() With {
-            .Dock = dock,
-            .Visible = False,
-            .SizeMode = PictureBoxSizeMode.Zoom
-        }
-        _parent.Controls.Add(_pictureBox)
-        _pictureBox.BringToFront()
+        _pictureBox = _parent.Controls.OfType(Of PictureBox).FirstOrDefault()
+        If _pictureBox Is Nothing Then
+            _pictureBox = New PictureBox() With {
+                .Dock = dock,
+                .Visible = False,
+                .SizeMode = PictureBoxSizeMode.Zoom
+            }
+            _parent.Controls.Add(_pictureBox)
+        Else
+            _pictureBox.Visible = False
+            _pictureBox.SizeMode = PictureBoxSizeMode.Zoom
+        End If
 
-        _webBrowser = New WebBrowser() With {
-            .Dock = dock,
-            .Visible = False,
-            .AllowWebBrowserDrop = False
-        }
-        _parent.Controls.Add(_webBrowser)
-        _webBrowser.BringToFront()
+        _webBrowser = _parent.Controls.OfType(Of WebBrowser).FirstOrDefault()
+        If _webBrowser Is Nothing Then
+            _webBrowser = New WebBrowser() With {
+                .Dock = dock,
+                .Visible = False,
+                .AllowWebBrowserDrop = False
+            }
+            _parent.Controls.Add(_webBrowser)
+        Else
+            _webBrowser.Visible = False
+        End If
+
+        RemoveHandler _webBrowser.DocumentCompleted, AddressOf WebBrowser_DocumentCompleted
         AddHandler _webBrowser.DocumentCompleted, AddressOf WebBrowser_DocumentCompleted
 
-        _pdfViewer = New PdfViewer() With {
-            .Dock = dock,
-            .Visible = False
-        }
-        _parent.Controls.Add(_pdfViewer)
-        _pdfViewer.BringToFront()
+        _pdfViewer = _parent.Controls.OfType(Of PdfiumViewer.PdfViewer).FirstOrDefault()
+        If _pdfViewer Is Nothing Then
+            _pdfViewer = New PdfiumViewer.PdfViewer() With {
+                .Dock = dock,
+                .Visible = False
+            }
+            _parent.Controls.Add(_pdfViewer)
+        Else
+            _pdfViewer.Visible = False
+        End If
     End Sub
 
-    Private Sub WebBrowser_DocumentCompleted(sender As Object, e As WebBrowserDocumentCompletedEventArgs)
-        ' Supprime les fichiers temporaires qui ne sont plus utilisés
-        For i = _tempPdfFiles.Count - 1 To 0 Step -1
-            Dim fichier = _tempPdfFiles(i)
-            Try
-                If File.Exists(fichier) Then
-                    File.Delete(fichier)
-                    _tempPdfFiles.RemoveAt(i)
-                End If
-            Catch
-            End Try
-        Next
-        ' Déclenche l'événement DocumentLoaded pour PDF fallback WebBrowser
-        RaiseEvent DocumentLoaded()
-    End Sub
+    ' =============================
+    ' Fermeture et nettoyage
+    ' =============================
+    Public Sub FermerDocument()
+        Try
+            If _pdfViewer IsNot Nothing AndAlso _pdfViewer.Document IsNot Nothing Then
+                _pdfViewer.Document.Dispose()
+                _pdfViewer.Document = Nothing
+            End If
+            If _pdfViewer IsNot Nothing Then _pdfViewer.Visible = False
 
-    Private Sub Parent_HandleDestroyed(sender As Object, e As EventArgs)
-        DeleteAllTempFiles()
+            If _webBrowser IsNot Nothing Then
+                Try
+                    _webBrowser.Stop()
+                    _webBrowser.Navigate("about:blank")
+                Catch
+                End Try
+                _webBrowser.Visible = False
+            End If
+
+            If _pictureBox IsNot Nothing AndAlso _pictureBox.Image IsNot Nothing Then
+                _pictureBox.Image.Dispose()
+                _pictureBox.Image = Nothing
+            End If
+            If _pictureBox IsNot Nothing Then _pictureBox.Visible = False
+
+            DeleteAllTempFiles()
+
+            Dim form = _parent.FindForm()
+            If form IsNot Nothing Then form.ActiveControl = Nothing
+        Catch ex As Exception
+            ' En cas d'erreur dans la fermeture, signale mais ne throw pas
+            RaiseEvent DocumentFailed(ex)
+        End Try
     End Sub
 
     Private Sub DeleteAllTempFiles()
@@ -79,31 +115,13 @@ Public Class DocumentViewerManager
         _tempPdfFiles.Clear()
     End Sub
 
-    Public Sub FermerDocument()
-        If _pdfViewer IsNot Nothing AndAlso _pdfViewer.Document IsNot Nothing Then
-            _pdfViewer.Document.Dispose()
-            _pdfViewer.Document = Nothing
-            _pdfViewer.Visible = False
-        End If
-
-        If _webBrowser IsNot Nothing Then
-            Try
-                _webBrowser.Stop()
-                _webBrowser.Navigate("about:blank")
-            Catch
-            End Try
-            _webBrowser.Visible = False
-        End If
-
+    Private Sub Parent_HandleDestroyed(sender As Object, e As EventArgs)
         DeleteAllTempFiles()
-
-        If _pictureBox IsNot Nothing AndAlso _pictureBox.Image IsNot Nothing Then
-            _pictureBox.Image.Dispose()
-            _pictureBox.Image = Nothing
-            _pictureBox.Visible = False
-        End If
     End Sub
 
+    ' =============================
+    ' Affichage d’un document Base64
+    ' =============================
     Public Sub AfficherDocumentBase64(base64Data As String)
         If String.IsNullOrWhiteSpace(base64Data) Then
             RaiseEvent DocumentFailed(New Exception("Aucun document à afficher."))
@@ -123,12 +141,12 @@ Public Class DocumentViewerManager
             Dim isPdf As Boolean = bytes.Length > 4 AndAlso bytes(0) = &H25 AndAlso bytes(1) = &H50 AndAlso bytes(2) = &H44 AndAlso bytes(3) = &H46
 
             If isPdf Then
-                ' PDF via PdfViewer
                 Try
                     Using ms As New MemoryStream(bytes)
                         Dim doc = PdfDocument.Load(ms)
                         _pdfViewer.Document = doc
                         _pdfViewer.Visible = True
+                        _pdfViewer.BringToFront()
                         RaiseEvent DocumentLoaded()
                         Return
                     End Using
@@ -138,23 +156,53 @@ Public Class DocumentViewerManager
                     File.WriteAllBytes(tempPath, bytes)
                     _webBrowser.Navigate(tempPath)
                     _webBrowser.Visible = True
+                    _webBrowser.BringToFront()
                     _tempPdfFiles.Add(tempPath)
-                    ' DocumentLoaded sera déclenché par DocumentCompleted
+                    ' DocumentLoaded sera déclenché dans WebBrowser_DocumentCompleted
                     Return
                 End Try
             Else
-                ' IMAGE
                 Using ms As New MemoryStream(bytes)
                     Dim img = Image.FromStream(ms)
                     _pictureBox.Image = New Bitmap(img)
                     _pictureBox.Visible = True
+                    _pictureBox.BringToFront()
                     RaiseEvent DocumentLoaded()
                 End Using
             End If
 
+            Dim form = _parent.FindForm()
+            If form IsNot Nothing Then form.ActiveControl = Nothing
+
         Catch ex As Exception
             RaiseEvent DocumentFailed(ex)
         End Try
+    End Sub
+
+    Private Sub WebBrowser_DocumentCompleted(sender As Object, e As WebBrowserDocumentCompletedEventArgs)
+        ' Dès que la navigation a fini, considérer le document comme chargé
+        Try
+            ' On peut supprimer les fichiers temporaires s'ils sont libérables
+            For i = _tempPdfFiles.Count - 1 To 0 Step -1
+                Dim fichier = _tempPdfFiles(i)
+                Try
+                    If File.Exists(fichier) Then
+                        File.Delete(fichier)
+                        _tempPdfFiles.RemoveAt(i)
+                    End If
+                Catch
+                    ' ignore, on réessaiera plus tard
+                End Try
+            Next
+        Catch
+        End Try
+
+        ' Relâcher le focus (évite blocage)
+        Dim form = _parent.FindForm()
+        If form IsNot Nothing Then form.ActiveControl = Nothing
+
+        ' Signaler chargement réussi
+        RaiseEvent DocumentLoaded()
     End Sub
 
 #Region "IDisposable Support"
@@ -189,4 +237,3 @@ Public Class DocumentViewerManager
 #End Region
 
 End Class
-
