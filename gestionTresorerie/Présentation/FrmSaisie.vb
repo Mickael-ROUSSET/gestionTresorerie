@@ -209,9 +209,8 @@ Public Class FrmSaisie
         End If
     End Function
     Private Function CreerMouvement() As Mouvements
-        Dim sNumCheque As String = "", sTypeDoc As String = ""
-
-        sTypeDoc = dgvTypeDocuments.SelectedRows(0).Cells(0).Value.ToString()
+        Dim sNumCheque As String = ""
+        Dim sTypeDoc As String = dgvTypeDocuments.SelectedRows(0).Cells(0).Value.ToString()
         If dgvTypeDocuments.SelectedRows.Count > 0 And sTypeDoc = "Chèque" Then
             sNumCheque = Utilitaires.ExtraitNuméroChèque(txtNote.Text)
         End If

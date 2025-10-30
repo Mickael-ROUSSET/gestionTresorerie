@@ -85,6 +85,7 @@ Public Class DocumentViewerManager
                     _webBrowser.Stop()
                     _webBrowser.Navigate("about:blank")
                 Catch
+                    Logger.ERR("Erreur lors de l'arrêt de la navigation du WebBrowser.")
                 End Try
                 _webBrowser.Visible = False
             End If
@@ -110,6 +111,7 @@ Public Class DocumentViewerManager
             Try
                 If File.Exists(fichier) Then File.Delete(fichier)
             Catch
+                Logger.ERR($"Impossible de supprimer le fichier temporaire {fichier}.")
             End Try
         Next
         _tempPdfFiles.Clear()
@@ -195,6 +197,7 @@ Public Class DocumentViewerManager
                 End Try
             Next
         Catch
+            Logger.ERR("Erreur lors de la suppression des fichiers temporaires après chargement dans WebBrowser.")
         End Try
 
         ' Relâcher le focus (évite blocage)

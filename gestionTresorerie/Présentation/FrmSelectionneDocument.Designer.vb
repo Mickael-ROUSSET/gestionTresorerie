@@ -26,6 +26,7 @@ Partial Class FrmSelectionneDocument
         pbDocument = New PictureBox()
         lstDocuments = New ListView()
         btnAfficheDoc = New Button()
+        flpMetaDonnees = New FlowLayoutPanel()
         CType(pbDocument, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
         ' 
@@ -63,11 +64,19 @@ Partial Class FrmSelectionneDocument
         btnAfficheDoc.Text = "Affiche doc"
         btnAfficheDoc.UseVisualStyleBackColor = True
         ' 
+        ' flpMetaDonnees
+        ' 
+        flpMetaDonnees.Location = New Point(740, 250)
+        flpMetaDonnees.Name = "flpMetaDonnees"
+        flpMetaDonnees.Size = New Size(467, 226)
+        flpMetaDonnees.TabIndex = 6
+        ' 
         ' FrmSelectionneDocument
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(800, 569)
+        ClientSize = New Size(1257, 569)
+        Controls.Add(flpMetaDonnees)
         Controls.Add(btnAfficheDoc)
         Controls.Add(lstDocuments)
         Controls.Add(pbDocument)
@@ -81,4 +90,5 @@ Partial Class FrmSelectionneDocument
     Friend WithEvents pbDocument As PictureBox
     Friend WithEvents lstDocuments As ListView
     Friend WithEvents btnAfficheDoc As Button
+    Friend WithEvents flpMetaDonnees As FlowLayoutPanel
 End Class

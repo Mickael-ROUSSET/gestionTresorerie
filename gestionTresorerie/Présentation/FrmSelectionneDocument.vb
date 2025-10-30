@@ -1,8 +1,10 @@
 ﻿Imports System.Data.SqlClient
 Imports System.Globalization
 Imports System.IO
-Imports PdfiumViewer
 Imports System.Windows.Forms
+Imports Newtonsoft.Json
+Imports Newtonsoft.Json.Linq
+Imports PdfiumViewer
 
 Public Class FrmSelectionneDocument
     Private _idDocSel As Integer
@@ -83,15 +85,6 @@ Public Class FrmSelectionneDocument
             End With
             lstDocuments.Items.Add(item)
         Next
-    End Sub
-    Private Sub LstDocuments_SelectedIndexChanged(sender As Object, e As EventArgs)
-        If lstDocuments.SelectedItems.Count > 0 Then
-            Dim selectedItem As ListViewItem = lstDocuments.SelectedItems(0)
-            'Dim idDoc As Integer = Integer.Parse(selectedItem.Text)
-
-            'Cheque.AfficherImage(idDoc, pbDocument)
-            '_idDocSel = idDoc
-        End If
     End Sub
 
     Public Event IdDocSelectionneChanged(ByVal idDoc As Integer)
@@ -189,4 +182,113 @@ Public Class FrmSelectionneDocument
         AddHandler lstDocuments.SelectedIndexChanged, AddressOf LstDocuments_SelectedIndexChanged
     End Sub
 
+    ' ⚙️ Panneau où seront créés les champs dynamiques
+    ' (assure-toi que flpMetaDonnees existe sur le formulaire)
+    ' FlowLayoutPanel : Dock = Fill, FlowDirection = TopDown, AutoScroll = True
+
+    ' ID du document actuellement sélectionné
+    Private currentDocId As Integer?
+
+    ' 🔹 Lorsqu’un document est sélectionné dans la liste
+    Private Sub lstDocuments_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstDocuments.SelectedIndexChanged
+        If lstDocuments.SelectedItems.Count = 0 Then
+            flpMetaDonnees.Controls.Clear()
+            currentDocId = Nothing
+            Return
+        End If
+
+        Dim item = lstDocuments.SelectedItems(0)
+        currentDocId = CInt(item.SubItems(0).Text) ' suppose que la 1ʳᵉ colonne contient l’ID du document
+
+        Dim metaDonneesJson As String = item.SubItems(6).Text ' adapte l’index si besoin
+        If String.IsNullOrWhiteSpace(metaDonneesJson) Then
+            flpMetaDonnees.Controls.Clear()
+            Return
+        End If
+
+        Try
+            Dim jsonObj As JObject = JObject.Parse(metaDonneesJson)
+            AfficherChampsMetaDonnees(jsonObj)
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors du chargement des métadonnées : {ex.Message}")
+        End Try
+    End Sub
+
+    ' 🔹 Affiche les champs JSON sous forme Label + TextBox
+    Private Sub AfficherChampsMetaDonnees(jsonObj As JObject)
+        flpMetaDonnees.Controls.Clear()
+
+        For Each prop As JProperty In jsonObj.Properties
+            Dim panelLigne As New Panel With {
+                .AutoSize = True,
+                .Height = 28,
+                .Dock = DockStyle.Top
+            }
+
+            Dim lbl As New Label With {
+                .Text = prop.Name & " :",
+                .Width = 150,
+                .TextAlign = ContentAlignment.MiddleLeft,
+                .Anchor = AnchorStyles.Left,
+                .AutoSize = False
+            }
+
+            Dim txt As New TextBox With {
+                .Text = prop.Value.ToString(),
+                .Width = 250,
+                .Tag = prop.Name,
+                .Anchor = AnchorStyles.Left
+            }
+
+            AddHandler txt.Validated, AddressOf MetaDonnee_Validated
+
+            panelLigne.Controls.Add(lbl)
+            panelLigne.Controls.Add(txt)
+
+            lbl.Location = New Point(0, 3)
+            txt.Location = New Point(lbl.Right + 8, 0)
+
+            flpMetaDonnees.Controls.Add(panelLigne)
+        Next
+    End Sub
+
+    ' 🔹 Lorsqu’une zone de saisie perd le focus → mise à jour du JSON et de la base
+    Private Sub MetaDonnee_Validated(sender As Object, e As EventArgs)
+        If currentDocId Is Nothing OrElse lstDocuments.SelectedItems.Count = 0 Then Return
+
+        Dim txt As TextBox = DirectCast(sender, TextBox)
+        Dim champNom As String = txt.Tag.ToString()
+        Dim nouvelleValeur As String = txt.Text
+
+        Try
+            ' Charger le JSON actuel
+            Dim item = lstDocuments.SelectedItems(0)
+            Dim metaDonneesJson As String = item.SubItems(6).Text
+            Dim jsonObj As JObject = JObject.Parse(metaDonneesJson)
+
+            ' Mettre à jour le champ modifié
+            jsonObj(champNom) = nouvelleValeur
+
+            ' Convertir en chaîne compacte
+            Dim nouveauJson As String = jsonObj.ToString(Formatting.None)
+
+            ' Mettre à jour le ListView
+            item.SubItems(6).Text = nouveauJson
+
+            ' 🧠 Mise à jour de la base via CreateSqlCommand
+            Dim cmd As SqlCommand =
+                SqlCommandBuilder.CreateSqlCommand("updateDocumentMetaDonnees",
+                                                    New Dictionary(Of String, Object) From {
+                                                        {"@idDocument", currentDocId},
+                                                        {"@metaDonnees", nouveauJson}
+                                                    }
+                                                )
+            ' Exécuter la requête et obtenir le nombre de lignes affectées
+            Dim rowsAffected As Integer = cmd.ExecuteNonQuery()
+            Logger.INFO($"Nombre de lignes mises à jour : {rowsAffected}")
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors de la mise à jour de la base : {ex.Message}")
+        End Try
+    End Sub
 End Class

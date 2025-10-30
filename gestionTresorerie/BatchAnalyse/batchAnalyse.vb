@@ -59,7 +59,13 @@ Public Class batchAnalyse
             End If
 
             ' Obtenir tous les fichiers jpg dans le répertoire courant
-            Dim fichiers As String() = Directory.GetFiles(repertoire, "*.jpg")
+            Dim extensions As String() = {"*.jpg", "*.jpeg", "*.png", "*.bmp", "*.gif"}
+            Dim fichiers As New List(Of String)
+
+            For Each extension In extensions
+                fichiers.AddRange(Directory.GetFiles(repertoire, extension, SearchOption.AllDirectories))
+            Next
+
 
             ' Parcourir chaque fichier et appeler analyseChq
             For Each sNomFichier As String In fichiers
@@ -142,7 +148,7 @@ Public Class batchAnalyse
         End Try
     End Sub
 
-    Public Function analyseDocument(doc As ITypeDoc) As DocumentAgumaaa
+    Public Shared Function analyseDocument(doc As ITypeDoc) As DocumentAgumaaa
         Try
             ' Vérifier si l'objet doc est null
             If doc Is Nothing Then

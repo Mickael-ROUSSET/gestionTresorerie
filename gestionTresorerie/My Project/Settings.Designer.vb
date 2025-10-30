@@ -980,6 +980,16 @@ Namespace My
                 Return CType(Me("reqDoc"),String)
             End Get
         End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE Documents SET metaDonnees = @metaDonnees, dateModif = GETDATE() WHERE IdDo"& _ 
+            "c = @idDocument;")>  _
+        Public ReadOnly Property updateDocumentMetaDonnees() As String
+            Get
+                Return CType(Me("updateDocumentMetaDonnees"),String)
+            End Get
+        End Property
     End Class
 End Namespace
 

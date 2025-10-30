@@ -91,22 +91,22 @@ Public Class FrmPrincipale
     End Sub
     Private Sub AjouterColonneEtatImage()
         ' Parcourir les lignes du DataGridView pour définir les images
-        For Each row As DataGridViewRow In dgvPrincipale.Rows
-            If Not row.IsNewRow Then
+        For Each ligne As DataGridViewRow In dgvPrincipale.Rows
+            If Not ligne.IsNewRow Then
                 Try
                     ' On récupère la valeur de la colonne "etat" par son nom
-                    Dim etat As Object = row.Cells("etat").Value
+                    Dim etat As Object = ligne.Cells("EtatMasque").Value
 
                     If etat IsNot Nothing AndAlso TypeOf etat Is Boolean Then
-                        row.Cells("etatImage").Value = If(CType(etat, Boolean), My.Resources.OK, My.Resources.KO)
+                        ligne.Cells("colEtat").Value = If(CType(ligne.Cells("EtatMasque").Value, Boolean), My.Resources.OK, My.Resources.KO)
                     Else
-                        Logger.ERR($"Valeur invalide pour la colonne 'etat' dans la ligne {row.Index}: {If(etat, "null")}")
-                        row.Cells("etatImage").Value = My.Resources.KO
+                        Logger.ERR($"Valeur invalide pour la colonne 'etat' dans la ligne {ligne.Index}: {If(etat, "null")}")
+                        ligne.Cells("colEtat").Value = My.Resources.KO
                     End If
 
                 Catch ex As Exception
-                    Logger.ERR($"Erreur lors de la définition de l'image pour la colonne 'etat' dans la ligne {row.Index}: {ex.Message}")
-                    row.Cells("etatImage").Value = My.Resources.KO
+                    Logger.ERR($"Erreur lors de la définition de l'image pour la colonne 'etat' dans la ligne {ligne.Index}: {ex.Message}")
+                    ligne.Cells("colEtat").Value = My.Resources.KO
                 End Try
             End If
         Next

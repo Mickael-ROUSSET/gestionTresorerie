@@ -304,5 +304,8 @@
     <Setting Name="reqDoc" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees, dateModif  FROM Documents WHERE JSON_VALUE(metaDonnees, '$.numero_du_cheque') IS NOT NULL  AND JSON_VALUE(metaDonnees, '$.numero_du_cheque') = @numero  AND JSON_VALUE(metaDonnees, '$.montant_numerique') = @montant  AND JSON_VALUE(metaDonnees, '$.emetteur_du_cheque') like @emetteur;</Value>
     </Setting>
+    <Setting Name="updateDocumentMetaDonnees" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE Documents SET metaDonnees = @metaDonnees, dateModif = GETDATE() WHERE IdDoc = @idDocument;</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
