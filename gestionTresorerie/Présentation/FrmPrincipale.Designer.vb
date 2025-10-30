@@ -29,24 +29,6 @@ Partial Class FrmPrincipale
         btnHistogramme = New Button()
         btnConsultation = New Button()
         dgvPrincipale = New DataGridView()
-        MouvementsBindingSource = New BindingSource(components)
-        BindingSource1 = New BindingSource(components)
-        MenuStrip1 = New MenuStrip()
-        FichierToolStripMenuItem = New ToolStripMenuItem()
-        ChargerRelevéToolStripMenuItem = New ToolStripMenuItem()
-        GénérerBilanToolStripMenuItem = New ToolStripMenuItem()
-        FermerToolStripMenuItem = New ToolStripMenuItem()
-        AnalyseToolStripMenuItem = New ToolStripMenuItem()
-        ConsulterTrésorerieToolStripMenuItem = New ToolStripMenuItem()
-        GénérerBilanToolStripMenuItem1 = New ToolStripMenuItem()
-        GérerUnMouvementToolStripMenuItem = New ToolStripMenuItem()
-        ParamètresToolStripMenuItem = New ToolStripMenuItem()
-        RequêteToolStripMenuItem = New ToolStripMenuItem()
-        ParamètresTechniquesToolStripMenuItem = New ToolStripMenuItem()
-        FichiersParamètresToolStripMenuItem = New ToolStripMenuItem()
-        EnvironnementToolStripMenuItem = New ToolStripMenuItem()
-        btnBatch = New Button()
-        btnTraiteRelevé = New Button()
         colEtat = New DataGridViewImageColumn()
         etatImage = New DataGridViewTextBoxColumn()
         EtatMasque = New DataGridViewTextBoxColumn()
@@ -65,6 +47,26 @@ Partial Class FrmPrincipale
         reference = New DataGridViewTextBoxColumn()
         typeReference = New DataGridViewTextBoxColumn()
         idDoc = New DataGridViewTextBoxColumn()
+        MouvementsBindingSource = New BindingSource(components)
+        BindingSource1 = New BindingSource(components)
+        MenuStrip1 = New MenuStrip()
+        FichierToolStripMenuItem = New ToolStripMenuItem()
+        ChargerRelevéToolStripMenuItem = New ToolStripMenuItem()
+        GénérerBilanToolStripMenuItem = New ToolStripMenuItem()
+        FermerToolStripMenuItem = New ToolStripMenuItem()
+        AnalyseToolStripMenuItem = New ToolStripMenuItem()
+        ConsulterTrésorerieToolStripMenuItem = New ToolStripMenuItem()
+        GénérerBilanToolStripMenuItem1 = New ToolStripMenuItem()
+        GérerUnMouvementToolStripMenuItem = New ToolStripMenuItem()
+        ParamètresToolStripMenuItem = New ToolStripMenuItem()
+        RequêteToolStripMenuItem = New ToolStripMenuItem()
+        ParamètresTechniquesToolStripMenuItem = New ToolStripMenuItem()
+        FichiersParamètresToolStripMenuItem = New ToolStripMenuItem()
+        EnvironnementToolStripMenuItem = New ToolStripMenuItem()
+        btnBatch = New Button()
+        btnTraiteRelevé = New Button()
+        btnGestionUtilisateurs = New Button()
+        btnChangePassword = New Button()
         CType(dgvPrincipale, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -121,121 +123,6 @@ Partial Class FrmPrincipale
         dgvPrincipale.Name = "dgvPrincipale"
         dgvPrincipale.Size = New Size(798, 370)
         dgvPrincipale.TabIndex = 4
-        ' 
-        ' MouvementsBindingSource
-        ' 
-        MouvementsBindingSource.DataSource = GetType(Mouvements)
-        ' 
-        ' MenuStrip1
-        ' 
-        MenuStrip1.Items.AddRange(New ToolStripItem() {FichierToolStripMenuItem, AnalyseToolStripMenuItem, ParamètresToolStripMenuItem, ParamètresTechniquesToolStripMenuItem})
-        MenuStrip1.Location = New Point(0, 0)
-        MenuStrip1.Name = "MenuStrip1"
-        MenuStrip1.Size = New Size(966, 24)
-        MenuStrip1.TabIndex = 6
-        MenuStrip1.Text = "MenuStrip1"
-        ' 
-        ' FichierToolStripMenuItem
-        ' 
-        FichierToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ChargerRelevéToolStripMenuItem, GénérerBilanToolStripMenuItem, FermerToolStripMenuItem})
-        FichierToolStripMenuItem.Name = "FichierToolStripMenuItem"
-        FichierToolStripMenuItem.Size = New Size(54, 20)
-        FichierToolStripMenuItem.Text = "&Fichier"
-        ' 
-        ' ChargerRelevéToolStripMenuItem
-        ' 
-        ChargerRelevéToolStripMenuItem.Name = "ChargerRelevéToolStripMenuItem"
-        ChargerRelevéToolStripMenuItem.Size = New Size(153, 22)
-        ChargerRelevéToolStripMenuItem.Text = "Charger &Relevé"
-        ' 
-        ' GénérerBilanToolStripMenuItem
-        ' 
-        GénérerBilanToolStripMenuItem.Name = "GénérerBilanToolStripMenuItem"
-        GénérerBilanToolStripMenuItem.Size = New Size(153, 22)
-        GénérerBilanToolStripMenuItem.Text = "Générer &bilan"
-        ' 
-        ' FermerToolStripMenuItem
-        ' 
-        FermerToolStripMenuItem.Name = "FermerToolStripMenuItem"
-        FermerToolStripMenuItem.Size = New Size(153, 22)
-        FermerToolStripMenuItem.Text = "&Fermer"
-        ' 
-        ' AnalyseToolStripMenuItem
-        ' 
-        AnalyseToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ConsulterTrésorerieToolStripMenuItem, GénérerBilanToolStripMenuItem1, GérerUnMouvementToolStripMenuItem})
-        AnalyseToolStripMenuItem.Name = "AnalyseToolStripMenuItem"
-        AnalyseToolStripMenuItem.Size = New Size(60, 20)
-        AnalyseToolStripMenuItem.Text = "Analyse"
-        ' 
-        ' ConsulterTrésorerieToolStripMenuItem
-        ' 
-        ConsulterTrésorerieToolStripMenuItem.Name = "ConsulterTrésorerieToolStripMenuItem"
-        ConsulterTrésorerieToolStripMenuItem.Size = New Size(187, 22)
-        ConsulterTrésorerieToolStripMenuItem.Text = "Consulter &trésorerie"
-        ' 
-        ' GénérerBilanToolStripMenuItem1
-        ' 
-        GénérerBilanToolStripMenuItem1.Name = "GénérerBilanToolStripMenuItem1"
-        GénérerBilanToolStripMenuItem1.Size = New Size(187, 22)
-        GénérerBilanToolStripMenuItem1.Text = "Générer bilan"
-        ' 
-        ' GérerUnMouvementToolStripMenuItem
-        ' 
-        GérerUnMouvementToolStripMenuItem.Name = "GérerUnMouvementToolStripMenuItem"
-        GérerUnMouvementToolStripMenuItem.Size = New Size(187, 22)
-        GérerUnMouvementToolStripMenuItem.Text = "Gérer un &mouvement"
-        ' 
-        ' ParamètresToolStripMenuItem
-        ' 
-        ParamètresToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {RequêteToolStripMenuItem})
-        ParamètresToolStripMenuItem.Name = "ParamètresToolStripMenuItem"
-        ParamètresToolStripMenuItem.Size = New Size(147, 20)
-        ParamètresToolStripMenuItem.Text = "Paramètres fonctionnels"
-        ' 
-        ' RequêteToolStripMenuItem
-        ' 
-        RequêteToolStripMenuItem.Name = "RequêteToolStripMenuItem"
-        RequêteToolStripMenuItem.Size = New Size(117, 22)
-        RequêteToolStripMenuItem.Text = "Requête"
-        ' 
-        ' ParamètresTechniquesToolStripMenuItem
-        ' 
-        ParamètresTechniquesToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {FichiersParamètresToolStripMenuItem, EnvironnementToolStripMenuItem})
-        ParamètresTechniquesToolStripMenuItem.Name = "ParamètresTechniquesToolStripMenuItem"
-        ParamètresTechniquesToolStripMenuItem.Size = New Size(139, 20)
-        ParamètresTechniquesToolStripMenuItem.Text = "Paramètres techniques"
-        ' 
-        ' FichiersParamètresToolStripMenuItem
-        ' 
-        FichiersParamètresToolStripMenuItem.Name = "FichiersParamètresToolStripMenuItem"
-        FichiersParamètresToolStripMenuItem.Size = New Size(176, 22)
-        FichiersParamètresToolStripMenuItem.Text = "Fichiers paramètres"
-        ' 
-        ' EnvironnementToolStripMenuItem
-        ' 
-        EnvironnementToolStripMenuItem.Name = "EnvironnementToolStripMenuItem"
-        EnvironnementToolStripMenuItem.Size = New Size(176, 22)
-        EnvironnementToolStripMenuItem.Text = "Environnement"
-        ' 
-        ' btnBatch
-        ' 
-        btnBatch.Location = New Point(26, 352)
-        btnBatch.Name = "btnBatch"
-        btnBatch.Size = New Size(94, 23)
-        btnBatch.TabIndex = 8
-        btnBatch.Text = "Batch Analyse"
-        btnBatch.TextImageRelation = TextImageRelation.TextBeforeImage
-        btnBatch.UseVisualStyleBackColor = True
-        ' 
-        ' btnTraiteRelevé
-        ' 
-        btnTraiteRelevé.Location = New Point(29, 124)
-        btnTraiteRelevé.Name = "btnTraiteRelevé"
-        btnTraiteRelevé.Size = New Size(94, 23)
-        btnTraiteRelevé.TabIndex = 9
-        btnTraiteRelevé.Text = "Traite relevé"
-        btnTraiteRelevé.TextAlign = ContentAlignment.BottomCenter
-        btnTraiteRelevé.UseVisualStyleBackColor = True
         ' 
         ' colEtat
         ' 
@@ -352,11 +239,146 @@ Partial Class FrmPrincipale
         idDoc.HeaderText = "idDoc"
         idDoc.Name = "idDoc"
         ' 
+        ' MouvementsBindingSource
+        ' 
+        MouvementsBindingSource.DataSource = GetType(Mouvements)
+        ' 
+        ' MenuStrip1
+        ' 
+        MenuStrip1.Items.AddRange(New ToolStripItem() {FichierToolStripMenuItem, AnalyseToolStripMenuItem, ParamètresToolStripMenuItem, ParamètresTechniquesToolStripMenuItem})
+        MenuStrip1.Location = New Point(0, 0)
+        MenuStrip1.Name = "MenuStrip1"
+        MenuStrip1.Size = New Size(966, 24)
+        MenuStrip1.TabIndex = 6
+        MenuStrip1.Text = "MenuStrip1"
+        ' 
+        ' FichierToolStripMenuItem
+        ' 
+        FichierToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ChargerRelevéToolStripMenuItem, GénérerBilanToolStripMenuItem, FermerToolStripMenuItem})
+        FichierToolStripMenuItem.Name = "FichierToolStripMenuItem"
+        FichierToolStripMenuItem.Size = New Size(54, 20)
+        FichierToolStripMenuItem.Text = "&Fichier"
+        ' 
+        ' ChargerRelevéToolStripMenuItem
+        ' 
+        ChargerRelevéToolStripMenuItem.Name = "ChargerRelevéToolStripMenuItem"
+        ChargerRelevéToolStripMenuItem.Size = New Size(153, 22)
+        ChargerRelevéToolStripMenuItem.Text = "Charger &Relevé"
+        ' 
+        ' GénérerBilanToolStripMenuItem
+        ' 
+        GénérerBilanToolStripMenuItem.Name = "GénérerBilanToolStripMenuItem"
+        GénérerBilanToolStripMenuItem.Size = New Size(153, 22)
+        GénérerBilanToolStripMenuItem.Text = "Générer &bilan"
+        ' 
+        ' FermerToolStripMenuItem
+        ' 
+        FermerToolStripMenuItem.Name = "FermerToolStripMenuItem"
+        FermerToolStripMenuItem.Size = New Size(153, 22)
+        FermerToolStripMenuItem.Text = "&Fermer"
+        ' 
+        ' AnalyseToolStripMenuItem
+        ' 
+        AnalyseToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ConsulterTrésorerieToolStripMenuItem, GénérerBilanToolStripMenuItem1, GérerUnMouvementToolStripMenuItem})
+        AnalyseToolStripMenuItem.Name = "AnalyseToolStripMenuItem"
+        AnalyseToolStripMenuItem.Size = New Size(60, 20)
+        AnalyseToolStripMenuItem.Text = "Analyse"
+        ' 
+        ' ConsulterTrésorerieToolStripMenuItem
+        ' 
+        ConsulterTrésorerieToolStripMenuItem.Name = "ConsulterTrésorerieToolStripMenuItem"
+        ConsulterTrésorerieToolStripMenuItem.Size = New Size(187, 22)
+        ConsulterTrésorerieToolStripMenuItem.Text = "Consulter &trésorerie"
+        ' 
+        ' GénérerBilanToolStripMenuItem1
+        ' 
+        GénérerBilanToolStripMenuItem1.Name = "GénérerBilanToolStripMenuItem1"
+        GénérerBilanToolStripMenuItem1.Size = New Size(187, 22)
+        GénérerBilanToolStripMenuItem1.Text = "Générer bilan"
+        ' 
+        ' GérerUnMouvementToolStripMenuItem
+        ' 
+        GérerUnMouvementToolStripMenuItem.Name = "GérerUnMouvementToolStripMenuItem"
+        GérerUnMouvementToolStripMenuItem.Size = New Size(187, 22)
+        GérerUnMouvementToolStripMenuItem.Text = "Gérer un &mouvement"
+        ' 
+        ' ParamètresToolStripMenuItem
+        ' 
+        ParamètresToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {RequêteToolStripMenuItem})
+        ParamètresToolStripMenuItem.Name = "ParamètresToolStripMenuItem"
+        ParamètresToolStripMenuItem.Size = New Size(147, 20)
+        ParamètresToolStripMenuItem.Text = "Paramètres fonctionnels"
+        ' 
+        ' RequêteToolStripMenuItem
+        ' 
+        RequêteToolStripMenuItem.Name = "RequêteToolStripMenuItem"
+        RequêteToolStripMenuItem.Size = New Size(117, 22)
+        RequêteToolStripMenuItem.Text = "Requête"
+        ' 
+        ' ParamètresTechniquesToolStripMenuItem
+        ' 
+        ParamètresTechniquesToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {FichiersParamètresToolStripMenuItem, EnvironnementToolStripMenuItem})
+        ParamètresTechniquesToolStripMenuItem.Name = "ParamètresTechniquesToolStripMenuItem"
+        ParamètresTechniquesToolStripMenuItem.Size = New Size(139, 20)
+        ParamètresTechniquesToolStripMenuItem.Text = "Paramètres techniques"
+        ' 
+        ' FichiersParamètresToolStripMenuItem
+        ' 
+        FichiersParamètresToolStripMenuItem.Name = "FichiersParamètresToolStripMenuItem"
+        FichiersParamètresToolStripMenuItem.Size = New Size(176, 22)
+        FichiersParamètresToolStripMenuItem.Text = "Fichiers paramètres"
+        ' 
+        ' EnvironnementToolStripMenuItem
+        ' 
+        EnvironnementToolStripMenuItem.Name = "EnvironnementToolStripMenuItem"
+        EnvironnementToolStripMenuItem.Size = New Size(176, 22)
+        EnvironnementToolStripMenuItem.Text = "Environnement"
+        ' 
+        ' btnBatch
+        ' 
+        btnBatch.Location = New Point(26, 352)
+        btnBatch.Name = "btnBatch"
+        btnBatch.Size = New Size(94, 23)
+        btnBatch.TabIndex = 8
+        btnBatch.Text = "Batch Analyse"
+        btnBatch.TextImageRelation = TextImageRelation.TextBeforeImage
+        btnBatch.UseVisualStyleBackColor = True
+        ' 
+        ' btnTraiteRelevé
+        ' 
+        btnTraiteRelevé.Location = New Point(29, 124)
+        btnTraiteRelevé.Name = "btnTraiteRelevé"
+        btnTraiteRelevé.Size = New Size(94, 23)
+        btnTraiteRelevé.TabIndex = 9
+        btnTraiteRelevé.Text = "Traite relevé"
+        btnTraiteRelevé.TextAlign = ContentAlignment.BottomCenter
+        btnTraiteRelevé.UseVisualStyleBackColor = True
+        ' 
+        ' btnGestionUtilisateurs
+        ' 
+        btnGestionUtilisateurs.Location = New Point(28, 400)
+        btnGestionUtilisateurs.Name = "btnGestionUtilisateurs"
+        btnGestionUtilisateurs.Size = New Size(75, 23)
+        btnGestionUtilisateurs.TabIndex = 10
+        btnGestionUtilisateurs.Text = "GestionUtilisateurs"
+        btnGestionUtilisateurs.UseVisualStyleBackColor = True
+        ' 
+        ' btnChangePassword
+        ' 
+        btnChangePassword.Location = New Point(27, 449)
+        btnChangePassword.Name = "btnChangePassword"
+        btnChangePassword.Size = New Size(75, 23)
+        btnChangePassword.TabIndex = 11
+        btnChangePassword.Text = "ChangePassword"
+        btnChangePassword.UseVisualStyleBackColor = True
+        ' 
         ' FrmPrincipale
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(966, 541)
+        Controls.Add(btnChangePassword)
+        Controls.Add(btnGestionUtilisateurs)
         Controls.Add(btnTraiteRelevé)
         Controls.Add(btnBatch)
         Controls.Add(dgvPrincipale)
@@ -420,4 +442,6 @@ Partial Class FrmPrincipale
     Friend WithEvents reference As DataGridViewTextBoxColumn
     Friend WithEvents typeReference As DataGridViewTextBoxColumn
     Friend WithEvents idDoc As DataGridViewTextBoxColumn
+    Friend WithEvents btnGestionUtilisateurs As Button
+    Friend WithEvents btnChangePassword As Button
 End Class

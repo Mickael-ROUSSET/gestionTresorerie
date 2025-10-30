@@ -307,5 +307,17 @@
     <Setting Name="updateDocumentMetaDonnees" Type="System.String" Scope="Application">
       <Value Profile="(Default)">UPDATE Documents SET metaDonnees = @metaDonnees, dateModif = GETDATE() WHERE IdDoc = @idDocument;</Value>
     </Setting>
+    <Setting Name="insertUtilisateur" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INSERT INTO Utilisateurs (NomUtilisateur, MotDePasse, Role, Actif) VALUES (@nom, @pwd, @role, @actif);</Value>
+    </Setting>
+    <Setting Name="updUtilisateur" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE Utilisateurs SET NomUtilisateur = @nom, Role = @role, Actif = @actif, MotDePasse = ISNULL(@pwd, MotDePasse) WHERE Id = @id;</Value>
+    </Setting>
+    <Setting Name="updDesactiveUtilisateur" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE Utilisateurs SET Actif = @actif WHERE Id = @id;</Value>
+    </Setting>
+    <Setting Name="updMdPUtilisateur" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE Utilisateurs SET MotDePasse = @pwd WHERE Id = @id;</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

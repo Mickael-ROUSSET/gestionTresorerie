@@ -168,6 +168,21 @@ Public Class FrmPrincipale
         FrmChargeRelevé.Show()
     End Sub
 
+    Private Sub btnGestionUtilisateurs_Click(sender As Object, e As EventArgs) Handles btnGestionUtilisateurs.Click
+        If UtilisateurActif Is Nothing OrElse Not UtilisateurActif.EstAdmin() Then
+            MessageBox.Show("Accès réservé aux administrateurs.")
+            Exit Sub
+        End If
+
+        Dim frm As New FrmGestionUtilisateurs()
+        frm.ShowDialog()
+    End Sub
+    Private Sub btnChangePassword_Click(sender As Object, e As EventArgs) Handles btnChangePassword.Click
+        Dim frm As New FrmChangePassword()
+        frm.ShowDialog()
+    End Sub
+
+
     'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
     '    'Call CreeBilans()
     '    'Call genereBilans.AjouteImage()

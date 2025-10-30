@@ -990,6 +990,44 @@ Namespace My
                 Return CType(Me("updateDocumentMetaDonnees"),String)
             End Get
         End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO Utilisateurs (NomUtilisateur, MotDePasse, Role, Actif) VALUES (@nom, "& _ 
+            "@pwd, @role, @actif);")>  _
+        Public ReadOnly Property insertUtilisateur() As String
+            Get
+                Return CType(Me("insertUtilisateur"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE Utilisateurs SET NomUtilisateur = @nom, Role = @role, Actif = @actif, MotD"& _ 
+            "ePasse = ISNULL(@pwd, MotDePasse) WHERE Id = @id;")>  _
+        Public ReadOnly Property updUtilisateur() As String
+            Get
+                Return CType(Me("updUtilisateur"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE Utilisateurs SET Actif = @actif WHERE Id = @id;")>  _
+        Public ReadOnly Property updDesactiveUtilisateur() As String
+            Get
+                Return CType(Me("updDesactiveUtilisateur"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE Utilisateurs SET MotDePasse = @pwd WHERE Id = @id;")>  _
+        Public ReadOnly Property updMdPUtilisateur() As String
+            Get
+                Return CType(Me("updMdPUtilisateur"),String)
+            End Get
+        End Property
     End Class
 End Namespace
 
