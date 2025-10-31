@@ -1028,6 +1028,17 @@ Namespace My
                 Return CType(Me("updMdPUtilisateur"),String)
             End Get
         End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idM"& _ 
+            "vtDoc, metaDonnees, dateModif  FROM Documents WHERE JSON_VALUE(metaDonnees, '$.m"& _ 
+            "ontant_numerique') = @montant;")>  _
+        Public ReadOnly Property reqDocMontant() As String
+            Get
+                Return CType(Me("reqDocMontant"),String)
+            End Get
+        End Property
     End Class
 End Namespace
 

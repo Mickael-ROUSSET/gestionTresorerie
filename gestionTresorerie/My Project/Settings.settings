@@ -319,5 +319,8 @@
     <Setting Name="updMdPUtilisateur" Type="System.String" Scope="Application">
       <Value Profile="(Default)">UPDATE Utilisateurs SET MotDePasse = @pwd WHERE Id = @id;</Value>
     </Setting>
+    <Setting Name="reqDocMontant" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees, dateModif  FROM Documents WHERE JSON_VALUE(metaDonnees, '$.montant_numerique') = @montant;</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

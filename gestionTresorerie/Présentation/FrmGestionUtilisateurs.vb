@@ -43,17 +43,19 @@ Public Class FrmGestionUtilisateurs
 
     ' 🔹 Modifier un utilisateur
     Private Sub btnModifier_Click(sender As Object, e As EventArgs) Handles btnModifier.Click
-        If dgvUtilisateurs.SelectedRows.Count = 0 Then Return
+        Throw New NotImplementedException()
+        'If dgvUtilisateurs.SelectedRows.Count = 0 Then Return
 
-        Dim id = CInt(dgvUtilisateurs.SelectedRows(0).Cells("Id").Value)
-        Dim nom = dgvUtilisateurs.SelectedRows(0).Cells("NomUtilisateur").Value.ToString()
-        Dim role = dgvUtilisateurs.SelectedRows(0).Cells("Role").Value.ToString()
-        Dim actif = CBool(dgvUtilisateurs.SelectedRows(0).Cells("Actif").Value)
+        'Dim id = CInt(dgvUtilisateurs.SelectedRows(0).Cells("Id").Value)
+        'Dim nom = dgvUtilisateurs.SelectedRows(0).Cells("NomUtilisateur").Value.ToString()
+        'Dim role = dgvUtilisateurs.SelectedRows(0).Cells("Role").Value.ToString()
+        'Dim actif = CBool(dgvUtilisateurs.SelectedRows(0).Cells("Actif").Value)
 
-        Dim frm As New FrmGestionUtilisateurs(id, nom, role, actif)
-        If frm.ShowDialog() = DialogResult.OK Then
-            ChargerUtilisateurs()
-        End If
+        'TODO : ne compile pas car FrmGestionUtilisateurs n'a pas de constructeur avec paramètres   
+        'Dim frm As New FrmGestionUtilisateurs(id, nom, role, actif)
+        'If frm.ShowDialog() = DialogResult.OK Then
+        '    ChargerUtilisateurs()
+        'End If
     End Sub
 
     ' 🔹 Supprimer (désactiver) un utilisateur

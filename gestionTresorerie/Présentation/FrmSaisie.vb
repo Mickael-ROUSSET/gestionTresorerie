@@ -1,4 +1,5 @@
-﻿Imports System.Text.RegularExpressions
+﻿Imports System.Globalization
+Imports System.Text.RegularExpressions
 
 Public Class FrmSaisie
     Inherits System.Windows.Forms.Form
@@ -8,6 +9,8 @@ Public Class FrmSaisie
     Private _dtMvtsIdentiques As DataTable = Nothing
     Public Property Properties As Object
     Private isExpanded As Boolean = True
+    Private _idDocSelectionne As Integer = 0
+
     Private Sub FrmSaisie_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Try
             InitialiserListeTiers()
@@ -209,45 +212,128 @@ Public Class FrmSaisie
         End If
     End Function
     Private Function CreerMouvement() As Mouvements
-        Dim sNumCheque As String = ""
-        Dim sTypeDoc As String = dgvTypeDocuments.SelectedRows(0).Cells(0).Value.ToString()
-        If dgvTypeDocuments.SelectedRows.Count > 0 And sTypeDoc = "Chèque" Then
-            sNumCheque = Utilitaires.ExtraitNuméroChèque(txtNote.Text)
-        End If
-        Return New Mouvements(
-            note:=txtNote.Text,
+        Try
+            ' 🔹 Validation minimale des sélections
+            If dgvCategorie.SelectedRows.Count = 0 OrElse dgvSousCategorie.SelectedRows.Count = 0 OrElse dgvTiers.SelectedRows.Count = 0 Then
+                Throw New InvalidOperationException("Veuillez sélectionner une catégorie, une sous-catégorie et un tiers.")
+            End If
+
+            ' 🔹 Récupération du type de document
+            Dim sTypeDoc As String = ""
+            If dgvTypeDocuments.SelectedRows.Count > 0 Then
+                sTypeDoc = dgvTypeDocuments.SelectedRows(0).Cells(0).Value.ToString()
+            End If
+
+            ' 🔹 Extraction du numéro de chèque uniquement si le type est "Chèque"
+            Dim sNumCheque As String = ""
+            If sTypeDoc.Equals("Chèque", StringComparison.OrdinalIgnoreCase) Then
+                sNumCheque = Utilitaires.ExtraitNuméroChèque(txtNote.Text)
+            End If
+
+            ' 🔹 Conversion sécurisée du montant
+            Dim montantDecimal As Decimal
+            Dim montantTexte As String = txtMontant.Text.Trim().Replace(Constantes.espace, String.Empty)
+
+            If Not Decimal.TryParse(montantTexte, NumberStyles.Any, CultureInfo.CurrentCulture, montantDecimal) Then
+                Throw New FormatException($"Montant invalide : « {txtMontant.Text} »")
+            End If
+
+            ' 🔹 Ajustement du sens : négatif si débit sélectionné
+            If rbDebit.Checked Then
+                montantDecimal *= -1D
+            End If
+
+            ' 🔹 Création de l'objet Mouvements
+            Dim mouvement As New Mouvements(
+            note:=txtNote.Text.Trim(),
             categorie:=dgvCategorie.SelectedRows(0).Cells(0).Value.ToString(),
             sousCategorie:=dgvSousCategorie.SelectedRows(0).Cells(0).Value.ToString(),
             tiers:=Convert.ToInt32(dgvTiers.SelectedRows(0).Cells(0).Value),
             dateMvt:=dateMvt.Value,
-            montant:=txtMontant.Text.Trim().Replace(Constantes.espace, String.Empty),
+            montant:=montantDecimal,
             sens:=rbCredit.Checked,
             etat:=rbRapproche.Checked,
-            événement:=dgvEvenement.SelectedRows(0).Cells(1).Value.ToString(),
-            type:=dgvType.SelectedRows(0).Cells(1).Value.ToString(),
+            événement:=If(dgvEvenement.SelectedRows.Count > 0, dgvEvenement.SelectedRows(0).Cells(1).Value.ToString(), String.Empty),
+            type:=If(dgvType.SelectedRows.Count > 0, dgvType.SelectedRows(0).Cells(1).Value.ToString(), String.Empty),
             modifiable:=False,
-            numeroRemise:=txtRemise.Text,
+            numeroRemise:=txtRemise.Text.Trim(),
             reference:=sNumCheque,
             typeReference:=sTypeDoc,
-            idDoc:=0
-            )
+            idDoc:=_idDocSelectionne
+        )
 
+            ' 🔹 Log de création
+            Logger.INFO($"Mouvement créé : {mouvement.Note} | Montant {montantDecimal} | TypeDoc={sTypeDoc} | idDoc={_idDocSelectionne}")
+
+            Return mouvement
+
+        Catch ex As Exception
+            MessageBox.Show($"Erreur lors de la création du mouvement : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Logger.ERR("Erreur CreerMouvement : " & ex.ToString())
+            Return Nothing
+        End Try
     End Function
-    Private Sub btnSelChq_Click(sender As Object, e As EventArgs) Handles btnSelChq.Click
-        Dim selectionneDocument As New FrmSelectionneDocument()
 
-        AddHandler selectionneDocument.IdDocSelectionneChanged, AddressOf IdDocSelectionneChangedHandler
-        'selectionneDocument.ShowDialog()
-        ' Récupère le montant et applique le signe selon le sens
-        Dim montant As Decimal = CDec(txtMontant.Text)
-        If rbDebit.Checked Then
-            montant *= -1
-        End If
-        selectionneDocument.chargeListeDoc(CDec(Utilitaires.ExtraitNuméroChèque(txtNote.Text)),
-                                           montant,
-                                           dgvTiers.SelectedRows(0).Cells(1).Value.ToString())
-        selectionneDocument.Show()
+    Private Sub btnSelDoc_Click(sender As Object, e As EventArgs) Handles btnSelDoc.Click
+        Try
+            ' Vérifie qu’une ligne est bien sélectionnée dans dgvTypeDocuments
+            If dgvTypeDocuments.SelectedRows.Count = 0 Then
+                MessageBox.Show("Veuillez sélectionner un type de document.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            End If
+
+            ' Récupère le type de document
+            Dim typeDoc As String = dgvTypeDocuments.SelectedRows(0).Cells(0).Value.ToString().Trim().ToLower()
+
+            ' Récupère et valide le montant
+            Dim montant As Decimal
+            If Not Decimal.TryParse(txtMontant.Text, montant) Then
+                MessageBox.Show("Montant invalide.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End If
+
+            ' ✅ Si rbDebit est sélectionné → montant négatif
+            If rbDebit.Checked Then
+                montant = -Math.Abs(montant)
+            Else
+                montant = Math.Abs(montant)
+            End If
+
+            ' Instancie la fenêtre de sélection
+            Dim selectionneDocument As New FrmSelectionneDocument()
+
+            AddHandler selectionneDocument.IdDocSelectionneChanged, AddressOf IdDocSelectionneChangedHandler
+
+            ' 🔹 Cas 1 : type "cheque" → 3 arguments
+            'TODO : supprimer la valeur en dur "Cheque" et utiliser une constante ou une énumération
+            If typeDoc = "Cheque" Then
+                Dim numeroCheque As Decimal = CDec(Utilitaires.ExtraitNuméroChèque(txtNote.Text))
+                Dim nomTiers As String = dgvTiers.SelectedRows(0).Cells(1).Value.ToString()
+
+                selectionneDocument.chargeListeDoc(numeroCheque, montant, nomTiers)
+
+                ' 🔹 Cas 2 : autres types → 1 seul argument
+            Else
+                selectionneDocument.chargeListeDoc(montant)
+            End If
+
+            ' Affiche la fenêtre modale
+            If selectionneDocument.ShowDialog() = DialogResult.OK Then
+                _idDocSelectionne = selectionneDocument.IdDocSelectionne
+                If _idDocSelectionne = 0 Then
+                    Logger.WARN($"Aucun document associé à ce mouvement pour le montant : {montant}")
+                Else
+                    Logger.INFO($"Document sélectionné : ID {_idDocSelectionne}")
+                End If
+
+
+                ' 💡 Ici tu peux lancer ton traitement :
+                ' Charger les métadonnées, afficher le contenu, lier à un mouvement, etc.
+            End If
+
+        Catch ex As Exception
+            MessageBox.Show($"Erreur lors de la sélection du document : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
     End Sub
+
     Private Sub IdDocSelectionneChangedHandler(ByVal idDoc As Integer)
         'Mettre à jour le Mouvement 
         Mouvements.MettreAJourIdDoc(_Mvt.Id, idDoc)
@@ -299,7 +385,7 @@ Public Class FrmSaisie
         End If
     End Sub
     Private Sub btnNouveauChq_Click(sender As Object, e As EventArgs) Handles btnNouveauChq.Click
-        'On réinitialise les zones de saisir pour un nouveau mouvement
+        'On réinitialise les zones de saisie pour un nouveau mouvement
         dgvCategorie.ClearSelection()
         dgvSousCategorie.ClearSelection()
         dgvTiers.ClearSelection()
@@ -308,4 +394,5 @@ Public Class FrmSaisie
         txtMontant.Text = String.Empty
         rbRapproche.Checked = False
     End Sub
+
 End Class

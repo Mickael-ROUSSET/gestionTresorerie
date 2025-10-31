@@ -25,7 +25,7 @@ Partial Class FrmSelectionneDocument
         btnSelDoc = New Button()
         pbDocument = New PictureBox()
         lstDocuments = New ListView()
-        btnAfficheDoc = New Button()
+        btnValider = New Button()
         flpMetaDonnees = New FlowLayoutPanel()
         CType(pbDocument, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
@@ -55,14 +55,14 @@ Partial Class FrmSelectionneDocument
         lstDocuments.TabIndex = 4
         lstDocuments.UseCompatibleStateImageBehavior = False
         ' 
-        ' btnAfficheDoc
+        ' btnValider
         ' 
-        btnAfficheDoc.Location = New Point(673, 139)
-        btnAfficheDoc.Name = "btnAfficheDoc"
-        btnAfficheDoc.Size = New Size(100, 23)
-        btnAfficheDoc.TabIndex = 5
-        btnAfficheDoc.Text = "Affiche doc"
-        btnAfficheDoc.UseVisualStyleBackColor = True
+        btnValider.Location = New Point(673, 139)
+        btnValider.Name = "btnValider"
+        btnValider.Size = New Size(100, 23)
+        btnValider.TabIndex = 5
+        btnValider.Text = "&Valider"
+        btnValider.UseVisualStyleBackColor = True
         ' 
         ' flpMetaDonnees
         ' 
@@ -77,7 +77,7 @@ Partial Class FrmSelectionneDocument
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(1257, 569)
         Controls.Add(flpMetaDonnees)
-        Controls.Add(btnAfficheDoc)
+        Controls.Add(btnValider)
         Controls.Add(lstDocuments)
         Controls.Add(pbDocument)
         Controls.Add(btnSelDoc)
@@ -89,6 +89,6 @@ Partial Class FrmSelectionneDocument
     Friend WithEvents btnSelDoc As Button
     Friend WithEvents pbDocument As PictureBox
     Friend WithEvents lstDocuments As ListView
-    Friend WithEvents btnAfficheDoc As Button
+    Friend WithEvents btnValider As Button
     Friend WithEvents flpMetaDonnees As FlowLayoutPanel
 End Class

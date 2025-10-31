@@ -51,7 +51,7 @@ Partial Class frmSaisie
         dgvCategorie = New DataGridView()
         dgvSousCategorie = New DataGridView()
         txtRechercheTiers = New TextBox()
-        btnSelChq = New Button()
+        btnSelDoc = New Button()
         btnCreerTiers = New Button()
         pnlDgvEvt = New Panel()
         dgvEvenement = New DataGridView()
@@ -347,14 +347,14 @@ Partial Class frmSaisie
         txtRechercheTiers.Size = New Size(100, 23)
         txtRechercheTiers.TabIndex = 36
         ' 
-        ' btnSelChq
+        ' btnSelDoc
         ' 
-        btnSelChq.Location = New Point(1022, 449)
-        btnSelChq.Name = "btnSelChq"
-        btnSelChq.Size = New Size(168, 23)
-        btnSelChq.TabIndex = 38
-        btnSelChq.Text = "Sélectionne document"
-        btnSelChq.UseVisualStyleBackColor = True
+        btnSelDoc.Location = New Point(1022, 449)
+        btnSelDoc.Name = "btnSelDoc"
+        btnSelDoc.Size = New Size(168, 23)
+        btnSelDoc.TabIndex = 38
+        btnSelDoc.Text = "Sélectionne document"
+        btnSelDoc.UseVisualStyleBackColor = True
         ' 
         ' btnCreerTiers
         ' 
@@ -510,7 +510,7 @@ Partial Class frmSaisie
         Controls.Add(btnToggleEvt)
         Controls.Add(pnlDgvEvt)
         Controls.Add(btnCreerTiers)
-        Controls.Add(btnSelChq)
+        Controls.Add(btnSelDoc)
         Controls.Add(txtRechercheTiers)
         Controls.Add(dgvSousCategorie)
         Controls.Add(dgvCategorie)
@@ -583,7 +583,7 @@ Partial Class frmSaisie
     Friend WithEvents dgvSousCategorie As DataGridView
     Friend WithEvents TiersBindingSource As BindingSource
     Friend WithEvents txtRechercheTiers As TextBox
-    Friend WithEvents btnSelChq As Button
+    Friend WithEvents btnSelDoc As Button
     Friend WithEvents btnCreerTiers As Button
     Friend WithEvents pnlDgvEvt As Panel
     Friend WithEvents btnToggleEvt As Button

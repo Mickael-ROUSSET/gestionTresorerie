@@ -371,7 +371,7 @@ Friend Class Utilitaires
     ''' Récupère une chaîne depuis le reader en gérant DBNull et en nettoyant
     ''' les guillemets superflus (ex: """"" -> "" -> "" -> String.Empty).
     ''' </summary>
-    Public Function GetSafeStringFromReader(reader As SqlDataReader, index As Integer) As String
+    Public Shared Function GetSafeStringFromReader(reader As SqlDataReader, index As Integer) As String
         If reader Is Nothing Then Throw New ArgumentNullException(NameOf(reader))
         If reader.IsDBNull(index) Then
             Return String.Empty
@@ -409,6 +409,17 @@ Friend Class Utilitaires
         End If
 
         Return raw
+    End Function
+    Public Shared Function SafeGetString(rdr As SqlDataReader, index As Integer) As String
+        Return If(rdr.IsDBNull(index), String.Empty, rdr.GetString(index))
+    End Function
+
+    Public Shared Function SafeGetInt(rdr As SqlDataReader, index As Integer) As Integer
+        Return If(rdr.IsDBNull(index), 0, rdr.GetInt32(index))
+    End Function
+
+    Public Shared Function SafeGetDate(rdr As SqlDataReader, index As Integer) As Date
+        Return If(rdr.IsDBNull(index), Date.MinValue, rdr.GetDateTime(index))
     End Function
 
 End Class

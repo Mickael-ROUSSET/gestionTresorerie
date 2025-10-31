@@ -9,6 +9,7 @@ Imports PdfiumViewer
 Public Class FrmSelectionneDocument
     Private _idDocSel As Integer
     Private viewer As DocumentViewerManager
+    Public Property IdDocSelectionne As Integer
     Public Property idDocSel() As Integer
         Get
             Return _idDocSel
@@ -59,13 +60,12 @@ Public Class FrmSelectionneDocument
         End Try
     End Sub
 
-
     Private Sub OnDocumentLoaded()
-        MessageBox.Show("Document affiché avec succès !")
+        Logger.INFO("Document affiché avec succès !")
     End Sub
 
     Private Sub OnDocumentFailed(ex As Exception)
-        MessageBox.Show("Échec de l'affichage : " & ex.Message)
+        Logger.ERR("Échec de l'affichage : " & ex.Message)
     End Sub
 
     Protected Overrides Sub OnFormClosing(e As FormClosingEventArgs)
@@ -104,48 +104,62 @@ Public Class FrmSelectionneDocument
         Return 123 ' Exemple d'idDoc
     End Function
 
+
     Public Sub chargeListeDoc(numero As Decimal, montant As Decimal, emetteur As String)
+        ' Appelle la version générique avec la requête "reqDoc"
+        chargeListeDocInterne("reqDoc", New Dictionary(Of String, Object) From {
+        {"@numero", numero},
+        {"@montant", montant.ToString("0.00", CultureInfo.InvariantCulture).Replace("."c, ","c)},
+        {"@emetteur", emetteur}
+    })
+    End Sub
+
+    Public Sub chargeListeDoc(montant As Decimal)
+        ' Appelle la version générique avec la requête "reqDocMontant"
+        chargeListeDocInterne("reqDocMontant", New Dictionary(Of String, Object) From {
+        {"@montant", montant.ToString("0.00", CultureInfo.InvariantCulture).Replace("."c, ","c)}
+    })
+    End Sub
+
+    ' 🔧 Méthode factorisée interne
+    Private Sub chargeListeDocInterne(nomRequete As String, parametres As Dictionary(Of String, Object))
         Dim tabDocuments As New List(Of DocumentAgumaaa)()
 
-        ' Convertir txtMontant.Text en Decimal 
-        'If Decimal.TryParse(FrmSaisie.txtMontant.Text.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, montant) Then
-        ' Utilisation de Using pour garantir la fermeture des objets
         Try
-            Using readerDocuments As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqDoc",
-                             New Dictionary(Of String, Object) From {{"@numero", numero},
-                             {"@montant", montant.ToString("0.00").Replace("."c, ","c)},
-                             {"@emetteur", emetteur}}
-                             ).ExecuteReader()
+            Using readerDocuments As SqlDataReader =
+            SqlCommandBuilder.CreateSqlCommand(nomRequete, parametres).ExecuteReader()
+
                 While readerDocuments.Read()
                     Try
-                        'idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees, dateModif
+                        ' Création d’un DocumentAgumaaaImpl à partir du DataReader
                         Dim docSel As New DocumentAgumaaaImpl(
-                                            If(IsDBNull(readerDocuments.GetValue(0)), 0, readerDocuments.GetInt32(0)),
-                                            If(IsDBNull(readerDocuments.GetValue(1)), Date.MinValue, readerDocuments.GetDateTime(1)),
-                                            If(IsDBNull(readerDocuments.GetValue(2)), String.Empty, readerDocuments.GetString(2)),
-                                            If(IsDBNull(readerDocuments.GetValue(3)), String.Empty, readerDocuments.GetString(3)),
-                                            If(IsDBNull(readerDocuments.GetValue(4)), String.Empty, readerDocuments.GetString(4)),
-                                            If(IsDBNull(readerDocuments.GetValue(5)), String.Empty, readerDocuments.GetString(5)),
-                                            If(IsDBNull(readerDocuments.GetValue(6)), 0, readerDocuments.GetInt32(6)),
-                                            If(IsDBNull(readerDocuments.GetValue(7)), String.Empty, readerDocuments.GetString(7)),
-                                            If(IsDBNull(readerDocuments.GetValue(8)), Date.MinValue, readerDocuments.GetDateTime(8))
-                                        )
+                        Utilitaires.SafeGetInt(readerDocuments, 0),
+                        Utilitaires.SafeGetDate(readerDocuments, 1),
+                        Utilitaires.SafeGetString(readerDocuments, 2),
+                        Utilitaires.SafeGetString(readerDocuments, 3),
+                        Utilitaires.SafeGetString(readerDocuments, 4),
+                        Utilitaires.SafeGetString(readerDocuments, 5),
+                        Utilitaires.SafeGetInt(readerDocuments, 6),
+                        Utilitaires.SafeGetString(readerDocuments, 7),
+                        Utilitaires.SafeGetDate(readerDocuments, 8)
+                    )
 
                         tabDocuments.Add(docSel)
+
                     Catch ex As Exception
-                        MessageBox.Show("Erreur lors de la lecture des données : " & ex.Message)
+                        Logger.ERR($"Erreur lecture document (ligne {tabDocuments.Count}): {ex.Message}")
                     End Try
                 End While
             End Using
+
         Catch ex As Exception
-            MessageBox.Show("Erreur lors de l'exécution de la commande SQL : " & ex.Message)
+            MessageBox.Show("Erreur SQL : " & ex.Message, "Erreur de chargement", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
-        'End Using
-        'Else
-        '    MessageBox.Show($"Valeur de montant invalide : {montant}")
-        'End If
-        Call alimListeDoc(tabDocuments)
+
+        ' Alimente la liste
+        alimListeDoc(tabDocuments)
     End Sub
+
     Public Sub alimListeDoc(tabDocuments As List(Of DocumentAgumaaa))
         ' Configurer le ListView
         With lstDocuments
@@ -290,5 +304,41 @@ Public Class FrmSelectionneDocument
         Catch ex As Exception
             Logger.ERR($"Erreur lors de la mise à jour de la base : {ex.Message}")
         End Try
+    End Sub
+
+    Private Sub btnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
+        Try
+            ' Vérifie qu’un élément est bien sélectionné
+            If lstDocuments.SelectedItems.Count = 0 Then
+                MessageBox.Show("Veuillez sélectionner un document dans la liste.",
+                                "Aucune sélection", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            End If
+
+            ' 🔹 Récupère l’idDoc dans la 1ʳᵉ colonne (SubItem(0))
+            Dim idText As String = lstDocuments.SelectedItems(0).SubItems(0).Text
+
+            ' Conversion sécurisée en entier
+            Dim id As Integer
+            If Not Integer.TryParse(idText, id) Then
+                MessageBox.Show("Identifiant de document invalide.",
+                                "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End If
+
+            ' ✅ Sauvegarde dans la propriété publique
+            IdDocSelectionne = id
+
+            ' ✅ Ferme la fenêtre avec un résultat positif
+            Me.DialogResult = DialogResult.OK
+            Me.Close()
+
+        Catch ex As Exception
+            MessageBox.Show("Erreur lors de la validation du document : " & ex.Message,
+                            "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
+    Private Sub lstDocuments_DoubleClick(sender As Object, e As EventArgs) Handles lstDocuments.DoubleClick
+        If lstDocuments.SelectedItems.Count > 0 Then
+            btnValider.PerformClick()
+        End If
     End Sub
 End Class
