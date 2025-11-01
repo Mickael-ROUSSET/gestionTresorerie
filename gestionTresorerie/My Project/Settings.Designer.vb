@@ -682,7 +682,7 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Bdd\bddAgumaaaProd.mdf")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Bdd\bddAgumaaaProd2.mdf")>  _
         Public ReadOnly Property AttachDbFilenameProd() As String
             Get
                 Return CType(Me("AttachDbFilenameProd"),String)
@@ -906,15 +906,6 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE Mouvements SET idCheque = @nouvelIdCheque WHERE Id = @idMouvement")>  _
-        Public ReadOnly Property updMvtIdChq() As String
-            Get
-                Return CType(Me("updMvtIdChq"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("select Id , (select libelle from Categorie where id = catégorie) as Catégorie, (s"& _ 
             "elect libelle from sousCategorie where id = sousCatégorie) as sousCatégorie, mon"& _ 
             "tant , CASE sens WHEN 1 THEN 'Crédit' ELSE 'Débit' END as 'Sens', (select coales"& _ 
@@ -1037,6 +1028,15 @@ Namespace My
         Public ReadOnly Property reqDocMontant() As String
             Get
                 Return CType(Me("reqDocMontant"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\BacASable\mistral_state.json")>  _
+        Public ReadOnly Property ficAgentMistral() As String
+            Get
+                Return CType(Me("ficAgentMistral"),String)
             End Get
         End Property
     End Class

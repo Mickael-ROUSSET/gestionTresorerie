@@ -1,4 +1,4 @@
-﻿Module menuSelonDroitsUtilisateur
+﻿Friend Module menuSelonDroitsUtilisateur
     Private Sub ConfigurerMenusSelonRole(menu As MenuStrip)
         ' Tout masquer par défaut
         menu.Items("mnuDocuments").Visible = False

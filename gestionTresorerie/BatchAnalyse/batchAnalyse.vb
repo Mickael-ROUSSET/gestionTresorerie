@@ -203,7 +203,7 @@ Public Class batchAnalyse
 
             ' Valider que sMetaDonnees est un JSON valide
             Try
-                JObject.Parse(sMetaDonnees)
+                Dim unused = JObject.Parse(sMetaDonnees)
             Catch ex As Exception
                 Logger.ERR($"Les métadonnées retournées par AppelMistral.litImage ne sont pas un JSON valide : {ex.Message}")
                 Return Nothing

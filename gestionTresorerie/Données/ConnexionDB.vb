@@ -35,7 +35,7 @@ Public Class ConnexionDB
         Catch sqlEx As SqlException
             ' Gestion spécifique des erreu{rs SQL
             Logger.ERR($"Erreur SQL : {sqlEx.Message}")
-            MessageBox.Show("Impossible de se connecter à la base de données." & vbCrLf &
+            Dim unused2 = MessageBox.Show("Impossible de se connecter à la base de données." & vbCrLf &
                         "Vérifiez vos paramètres de connexion.", "Erreur de connexion SQL",
                         MessageBoxButtons.OK, MessageBoxIcon.Error)
             Return Nothing
@@ -43,7 +43,7 @@ Public Class ConnexionDB
         Catch ioEx As IOException
             ' Gestion spécifique pour Google Drive ou accès fichiers
             Logger.ERR($"Erreur d’accès Drive : {ioEx.Message}")
-            MessageBox.Show("Le stockage Google Drive semble inactif ou inaccessible." & vbCrLf &
+            Dim unused1 = MessageBox.Show("Le stockage Google Drive semble inactif ou inaccessible." & vbCrLf &
                         "Veuillez vérifier votre connexion Internet ou le client Drive.",
                         "Erreur Google Drive", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return Nothing
@@ -51,7 +51,7 @@ Public Class ConnexionDB
         Catch ex As Exception
             ' Gestion générique de toute autre erreur
             Logger.ERR($"Erreur inattendue : {ex.Message}")
-            MessageBox.Show("Une erreur inattendue est survenue : " & ex.Message,
+            Dim unused = MessageBox.Show("Une erreur inattendue est survenue : " & ex.Message,
                         "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Return Nothing
         End Try

@@ -215,7 +215,7 @@
       <Value Profile="(Default)">G:\Mon Drive\AGUMAAA</Value>
     </Setting>
     <Setting Name="AttachDbFilenameProd" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Bdd\bddAgumaaaProd.mdf</Value>
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Bdd\bddAgumaaaProd2.mdf</Value>
     </Setting>
     <Setting Name="repFichiersDocumentsATrier" Type="System.String" Scope="Application">
       <Value Profile="(Default)">\A_Trier</Value>
@@ -286,9 +286,6 @@
     <Setting Name="reqChq" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT id, numero, date, emetteur, destinataire FROM Cheque WHERE montant = @montant;</Value>
     </Setting>
-    <Setting Name="updMvtIdChq" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">UPDATE Mouvements SET idCheque = @nouvelIdCheque WHERE Id = @idMouvement</Value>
-    </Setting>
     <Setting Name="sqlSelectMouvementsLibelles" Type="System.String" Scope="Application">
       <Value Profile="(Default)">select Id , (select libelle from Categorie where id = catégorie) as Catégorie, (select libelle from sousCategorie where id = sousCatégorie) as sousCatégorie, montant , CASE sens WHEN 1 THEN 'Crédit' ELSE 'Débit' END as 'Sens', (select coalesce(nom + ' ' + prenom, raisonSociale ) from Tiers where id = tiers) as Tiers, note, dateMvt, dateCréation, dateModification, etat, événement, type, CASE modifiable WHEN 1 THEN 'modifiable' ELSE 'Non modifiable' END as 'Modifiable', numeroRemise, reference, typeReference, idDoc from Mouvements;</Value>
     </Setting>
@@ -321,6 +318,9 @@
     </Setting>
     <Setting Name="reqDocMontant" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees, dateModif  FROM Documents WHERE JSON_VALUE(metaDonnees, '$.montant_numerique') = @montant;</Value>
+    </Setting>
+    <Setting Name="ficAgentMistral" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\BacASable\mistral_state.json</Value>
     </Setting>
   </Settings>
 </SettingsFile>

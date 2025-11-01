@@ -1,6 +1,5 @@
 ﻿Imports System.Security.Cryptography
 Imports System.Text
-Imports System.Data.SqlClient
 
 Public Class FrmEditUtilisateur
     Private _id As Integer? = Nothing
@@ -8,13 +7,13 @@ Public Class FrmEditUtilisateur
     ' Constructeur pour ajout
     Public Sub New()
         InitializeComponent()
-        Me.Text = "Nouvel utilisateur"
+        Text = "Nouvel utilisateur"
     End Sub
 
     ' Constructeur pour modification
     Public Sub New(id As Integer, nom As String, role As String, actif As Boolean)
         InitializeComponent()
-        Me.Text = "Modifier l'utilisateur"
+        Text = "Modifier l'utilisateur"
         _id = id
         txtNom.Text = nom
         cboRole.Text = role
@@ -29,7 +28,7 @@ Public Class FrmEditUtilisateur
 
     Private Sub btnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
         If String.IsNullOrWhiteSpace(txtNom.Text) Then
-            MessageBox.Show("Nom requis.")
+            Dim unused3 = MessageBox.Show("Nom requis.")
             Exit Sub
         End If
 
@@ -41,7 +40,7 @@ Public Class FrmEditUtilisateur
         Try
             If _id Is Nothing Then
                 ' Insertion
-                SqlCommandBuilder.CreateSqlCommand("insertUtilisateur",
+                Dim unused2 = SqlCommandBuilder.CreateSqlCommand("insertUtilisateur",
                                  New Dictionary(Of String, Object) From {
                                      {"@nom", txtNom.Text.Trim()},
                                      {"@pwd", hashMdp},
@@ -50,7 +49,7 @@ Public Class FrmEditUtilisateur
                                  }).ExecuteNonQuery()
             Else
                 ' Mise à jour
-                SqlCommandBuilder.CreateSqlCommand("updateUtilisateur",
+                Dim unused1 = SqlCommandBuilder.CreateSqlCommand("updateUtilisateur",
                                  New Dictionary(Of String, Object) From {
                                      {"@id", _id},
                                      {"@nom", txtNom.Text.Trim()},
@@ -60,11 +59,11 @@ Public Class FrmEditUtilisateur
                                  }).ExecuteNonQuery()
             End If
 
-            Me.DialogResult = DialogResult.OK
-            Me.Close()
+            DialogResult = DialogResult.OK
+            Close()
 
         Catch ex As Exception
-            MessageBox.Show("Erreur SQL : " & ex.Message)
+            Dim unused = MessageBox.Show("Erreur SQL : " & ex.Message)
         End Try
     End Sub
 
@@ -76,6 +75,6 @@ Public Class FrmEditUtilisateur
     End Function
 
     Private Sub btnAnnuler_Click(sender As Object, e As EventArgs) Handles btnAnnuler.Click
-        Me.Close()
+        Close()
     End Sub
 End Class

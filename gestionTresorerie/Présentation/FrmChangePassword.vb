@@ -1,55 +1,55 @@
-﻿Imports System.Security.Cryptography
+﻿Imports System.Data.SqlClient
+Imports System.Security.Cryptography
 Imports System.Text
-Imports System.Data.SqlClient
 
 Public Class FrmChangePassword
 
     Private Sub FrmChangePassword_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        Me.Text = "Modifier mon mot de passe"
-        Me.AcceptButton = btnValider
-        Me.CancelButton = btnAnnuler
+        Text = "Modifier mon mot de passe"
+        AcceptButton = btnValider
+        CancelButton = btnAnnuler
     End Sub
 
     Private Sub btnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
         If String.IsNullOrWhiteSpace(txtAncien.Text) OrElse
            String.IsNullOrWhiteSpace(txtNouveau.Text) OrElse
            String.IsNullOrWhiteSpace(txtConfirm.Text) Then
-            MessageBox.Show("Veuillez remplir tous les champs.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Dim unused5 = MessageBox.Show("Veuillez remplir tous les champs.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Exit Sub
         End If
 
         If txtNouveau.Text <> txtConfirm.Text Then
-            MessageBox.Show("Le nouveau mot de passe et la confirmation ne correspondent pas.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Dim unused4 = MessageBox.Show("Le nouveau mot de passe et la confirmation ne correspondent pas.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Exit Sub
         End If
 
         Try
             ' Vérification de l’ancien mot de passe
             If Not VerifierAncienMotDePasse(UtilisateurActif.NomUtilisateur, txtAncien.Text) Then
-                MessageBox.Show("Ancien mot de passe incorrect.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Dim unused3 = MessageBox.Show("Ancien mot de passe incorrect.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
                 Exit Sub
             End If
 
             ' Mise à jour du mot de passe
             Dim hash = HacherMotDePasse(txtNouveau.Text)
-            SqlCommandBuilder.CreateSqlCommand("updateMotDePasse",
+            Dim unused2 = SqlCommandBuilder.CreateSqlCommand("updateMotDePasse",
                              New Dictionary(Of String, Object) From {
                                  {"@id", UtilisateurActif.Id},
                                  {"@pwd", hash}
                              }).ExecuteNonQuery()
 
-            MessageBox.Show("Mot de passe mis à jour avec succès !", "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information)
-            Me.DialogResult = DialogResult.OK
-            Me.Close()
+            Dim unused1 = MessageBox.Show("Mot de passe mis à jour avec succès !", "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            DialogResult = DialogResult.OK
+            Close()
 
         Catch ex As Exception
-            MessageBox.Show("Erreur lors de la mise à jour du mot de passe : " & ex.Message,
+            Dim unused = MessageBox.Show("Erreur lors de la mise à jour du mot de passe : " & ex.Message,
                             "Erreur SQL", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
     Private Sub btnAnnuler_Click(sender As Object, e As EventArgs) Handles btnAnnuler.Click
-        Me.Close()
+        Close()
     End Sub
 
     Private Function HacherMotDePasse(mdp As String) As String
@@ -70,8 +70,8 @@ Public Class FrmChangePassword
                 AND MotDePasse = @pwd 
                 AND Actif = 1", cn)
 
-            cmd.Parameters.AddWithValue("@nom", nomUtilisateur)
-            cmd.Parameters.AddWithValue("@pwd", HacherMotDePasse(ancienMdp))
+            Dim unused1 = cmd.Parameters.AddWithValue("@nom", nomUtilisateur)
+            Dim unused = cmd.Parameters.AddWithValue("@pwd", HacherMotDePasse(ancienMdp))
 
             Dim count As Integer = CInt(cmd.ExecuteScalar())
             Return count > 0

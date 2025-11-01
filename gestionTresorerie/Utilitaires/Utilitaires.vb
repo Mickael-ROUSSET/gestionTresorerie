@@ -2,6 +2,7 @@
 Imports System.Globalization
 Imports System.IO
 Imports System.Text.RegularExpressions
+Imports Microsoft.Extensions.Logging
 Imports Newtonsoft.Json.Linq
 Friend Class Utilitaires
     Public Shared Sub selLigneDgvParLibelle(dgv As DataGridView, libelle As String)
@@ -230,7 +231,7 @@ Friend Class Utilitaires
             ' Vérifier si le répertoire de sortie existe, sinon le créer 
             Dim sRepSortie As String = Path.GetDirectoryName(sNouveauNom)
             If Not Directory.Exists(sRepSortie) Then
-                Directory.CreateDirectory(sRepSortie)
+                Dim unused = Directory.CreateDirectory(sRepSortie)
             End If
 
             ' Vérifier si un fichier avec le même nom existe déjà
@@ -258,7 +259,7 @@ Friend Class Utilitaires
             Dim resultat As New JObject()
 
             For Each item As JProperty In referenceMessage
-                item.CreateReader()
+                Dim unused = item.CreateReader()
 
                 Select Case item.Name
                     Case "message"
@@ -332,11 +333,7 @@ Friend Class Utilitaires
         ' 3) Dernier recours : première suite de >=4 chiffres
         Dim patternDigits As New Regex("\b(\d{4,})\b")
         m = patternDigits.Match(libelle)
-        If m.Success Then
-            Return m.Groups(1).Value
-        End If
-
-        Return Nothing
+        Return If(m.Success, m.Groups(1).Value, Nothing)
     End Function
 
 
@@ -398,17 +395,13 @@ Friend Class Utilitaires
 
         ' Remplacer les doubles guillemets consécutifs par un seul (ex: "" -> ")
         ' Boucle au cas où il y aurait des séquences répétées
-        Dim doubleQ As String = New String(q, 2)
+        Dim doubleQ As New String(q, 2)
         While raw.Contains(doubleQ)
             raw = raw.Replace(doubleQ, q.ToString())
         End While
 
         ' Si après nettoyage il ne reste que des guillemets -> vide
-        If raw.Trim(q).Length = 0 Then
-            Return String.Empty
-        End If
-
-        Return raw
+        Return If(raw.Trim(q).Length = 0, String.Empty, raw)
     End Function
     Public Shared Function SafeGetString(rdr As SqlDataReader, index As Integer) As String
         Return If(rdr.IsDBNull(index), String.Empty, rdr.GetString(index))
@@ -421,5 +414,46 @@ Friend Class Utilitaires
     Public Shared Function SafeGetDate(rdr As SqlDataReader, index As Integer) As Date
         Return If(rdr.IsDBNull(index), Date.MinValue, rdr.GetDateTime(index))
     End Function
+    ''' <summary>
+    ''' Logue une commande SQL avec ses paramètres et leurs valeurs réelles.
+    ''' </summary>
+    ''' <param name="cmd">La commande SQL à logger</param>
+    ''' <param name="level">Niveau de log : INFO, DEBUG, etc.</param>
+    Public Shared Sub LogCommand(cmd As SqlCommand)
+        If cmd Is Nothing Then Return
 
+        Dim sb As New Text.StringBuilder()
+        sb.AppendLine($"-- SQL COMMAND: {cmd.CommandText}")
+        sb.AppendLine("EXEC " & cmd.CommandText)
+
+        If cmd.Parameters.Count = 0 Then
+            sb.AppendLine(" -- (Aucun paramètre)")
+        Else
+            sb.AppendLine("   " & String.Join(vbCrLf & " , ", cmd.Parameters.Cast(Of SqlParameter)().Select(Function(p) $"{p.ParameterName} = {FormatParamValue(p.Value)}")))
+        End If
+
+        Logger.INFO(sb.ToString().Trim())
+    End Sub
+
+    ''' <summary>
+    ''' Formate une valeur de paramètre pour le log (gère DBNull, Date, String, etc.)
+    ''' </summary>
+    Private Shared Function FormatParamValue(value As Object) As String
+    If value Is Nothing OrElse IsDBNull(value) Then
+        Return "NULL"
+    End If
+
+    Select Case value.GetType()
+        Case GetType(String)
+            Return $"'{value.ToString().Replace("'", "''")}'" ' Échappement SQL
+        Case GetType(Date), GetType(DateTime)
+                Return $"'{DirectCast(value, DateTime).ToString("yyyy-MM-dd HH:mm:ss")}'"
+            Case GetType(Boolean)
+                Return If(DirectCast(value, Boolean), "1", "0")
+            Case GetType(Decimal), GetType(Double), GetType(Single)
+                Return DirectCast(value, IFormattable).ToString("G", CultureInfo.InvariantCulture)
+            Case Else
+                Return value.ToString()
+        End Select
+    End Function
 End Class

@@ -63,10 +63,15 @@ Partial Class FrmPrincipale
         ParamètresTechniquesToolStripMenuItem = New ToolStripMenuItem()
         FichiersParamètresToolStripMenuItem = New ToolStripMenuItem()
         EnvironnementToolStripMenuItem = New ToolStripMenuItem()
-        btnBatch = New Button()
+        GestionBDDToolStripMenuItem = New ToolStripMenuItem()
+        SauvegarderToolStripMenuItem = New ToolStripMenuItem()
+        RestaurerToolStripMenuItem = New ToolStripMenuItem()
+        GestionUtilisateurToolStripMenuItem = New ToolStripMenuItem()
+        ConsoleToolStripMenuItem = New ToolStripMenuItem()
+        ChangeMdPToolStripMenuItem = New ToolStripMenuItem()
+        BatchToolStripMenuItem = New ToolStripMenuItem()
+        AnalyseDocumentsToolStripMenuItem = New ToolStripMenuItem()
         btnTraiteRelevé = New Button()
-        btnGestionUtilisateurs = New Button()
-        btnChangePassword = New Button()
         CType(dgvPrincipale, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -245,7 +250,7 @@ Partial Class FrmPrincipale
         ' 
         ' MenuStrip1
         ' 
-        MenuStrip1.Items.AddRange(New ToolStripItem() {FichierToolStripMenuItem, AnalyseToolStripMenuItem, ParamètresToolStripMenuItem, ParamètresTechniquesToolStripMenuItem})
+        MenuStrip1.Items.AddRange(New ToolStripItem() {FichierToolStripMenuItem, AnalyseToolStripMenuItem, ParamètresToolStripMenuItem, ParamètresTechniquesToolStripMenuItem, GestionBDDToolStripMenuItem, GestionUtilisateurToolStripMenuItem, BatchToolStripMenuItem})
         MenuStrip1.Location = New Point(0, 0)
         MenuStrip1.Name = "MenuStrip1"
         MenuStrip1.Size = New Size(966, 24)
@@ -334,15 +339,56 @@ Partial Class FrmPrincipale
         EnvironnementToolStripMenuItem.Size = New Size(176, 22)
         EnvironnementToolStripMenuItem.Text = "Environnement"
         ' 
-        ' btnBatch
+        ' GestionBDDToolStripMenuItem
         ' 
-        btnBatch.Location = New Point(26, 352)
-        btnBatch.Name = "btnBatch"
-        btnBatch.Size = New Size(94, 23)
-        btnBatch.TabIndex = 8
-        btnBatch.Text = "Batch Analyse"
-        btnBatch.TextImageRelation = TextImageRelation.TextBeforeImage
-        btnBatch.UseVisualStyleBackColor = True
+        GestionBDDToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {SauvegarderToolStripMenuItem, RestaurerToolStripMenuItem})
+        GestionBDDToolStripMenuItem.Name = "GestionBDDToolStripMenuItem"
+        GestionBDDToolStripMenuItem.Size = New Size(85, 20)
+        GestionBDDToolStripMenuItem.Text = "Gestion BDD"
+        ' 
+        ' SauvegarderToolStripMenuItem
+        ' 
+        SauvegarderToolStripMenuItem.Name = "SauvegarderToolStripMenuItem"
+        SauvegarderToolStripMenuItem.Size = New Size(139, 22)
+        SauvegarderToolStripMenuItem.Text = "Sauvegarder"
+        ' 
+        ' RestaurerToolStripMenuItem
+        ' 
+        RestaurerToolStripMenuItem.Name = "RestaurerToolStripMenuItem"
+        RestaurerToolStripMenuItem.Size = New Size(139, 22)
+        RestaurerToolStripMenuItem.Text = "Restaurer"
+        ' 
+        ' GestionUtilisateurToolStripMenuItem
+        ' 
+        GestionUtilisateurToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ConsoleToolStripMenuItem, ChangeMdPToolStripMenuItem})
+        GestionUtilisateurToolStripMenuItem.Name = "GestionUtilisateurToolStripMenuItem"
+        GestionUtilisateurToolStripMenuItem.Size = New Size(112, 20)
+        GestionUtilisateurToolStripMenuItem.Text = "GestionUtilisateur"
+        ' 
+        ' ConsoleToolStripMenuItem
+        ' 
+        ConsoleToolStripMenuItem.Name = "ConsoleToolStripMenuItem"
+        ConsoleToolStripMenuItem.Size = New Size(143, 22)
+        ConsoleToolStripMenuItem.Text = "Console"
+        ' 
+        ' ChangeMdPToolStripMenuItem
+        ' 
+        ChangeMdPToolStripMenuItem.Name = "ChangeMdPToolStripMenuItem"
+        ChangeMdPToolStripMenuItem.Size = New Size(143, 22)
+        ChangeMdPToolStripMenuItem.Text = "Change MdP"
+        ' 
+        ' BatchToolStripMenuItem
+        ' 
+        BatchToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {AnalyseDocumentsToolStripMenuItem})
+        BatchToolStripMenuItem.Name = "BatchToolStripMenuItem"
+        BatchToolStripMenuItem.Size = New Size(49, 20)
+        BatchToolStripMenuItem.Text = "Batch"
+        ' 
+        ' AnalyseDocumentsToolStripMenuItem
+        ' 
+        AnalyseDocumentsToolStripMenuItem.Name = "AnalyseDocumentsToolStripMenuItem"
+        AnalyseDocumentsToolStripMenuItem.Size = New Size(178, 22)
+        AnalyseDocumentsToolStripMenuItem.Text = "Analyse documents"
         ' 
         ' btnTraiteRelevé
         ' 
@@ -354,33 +400,12 @@ Partial Class FrmPrincipale
         btnTraiteRelevé.TextAlign = ContentAlignment.BottomCenter
         btnTraiteRelevé.UseVisualStyleBackColor = True
         ' 
-        ' btnGestionUtilisateurs
-        ' 
-        btnGestionUtilisateurs.Location = New Point(28, 400)
-        btnGestionUtilisateurs.Name = "btnGestionUtilisateurs"
-        btnGestionUtilisateurs.Size = New Size(75, 23)
-        btnGestionUtilisateurs.TabIndex = 10
-        btnGestionUtilisateurs.Text = "GestionUtilisateurs"
-        btnGestionUtilisateurs.UseVisualStyleBackColor = True
-        ' 
-        ' btnChangePassword
-        ' 
-        btnChangePassword.Location = New Point(27, 449)
-        btnChangePassword.Name = "btnChangePassword"
-        btnChangePassword.Size = New Size(75, 23)
-        btnChangePassword.TabIndex = 11
-        btnChangePassword.Text = "ChangePassword"
-        btnChangePassword.UseVisualStyleBackColor = True
-        ' 
         ' FrmPrincipale
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(966, 541)
-        Controls.Add(btnChangePassword)
-        Controls.Add(btnGestionUtilisateurs)
         Controls.Add(btnTraiteRelevé)
-        Controls.Add(btnBatch)
         Controls.Add(dgvPrincipale)
         Controls.Add(btnConsultation)
         Controls.Add(btnHistogramme)
@@ -420,7 +445,6 @@ Partial Class FrmPrincipale
     Friend WithEvents EnvironnementToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents GérerUnMouvementToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents FermerToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents btnBatch As Button
     Friend WithEvents btnTraiteRelevé As Button
     Friend WithEvents CategorieDataGridViewTextBoxColumn As DataGridViewTextBoxColumn
     Friend WithEvents SousCategorieDataGridViewTextBoxColumn As DataGridViewTextBoxColumn
@@ -442,6 +466,12 @@ Partial Class FrmPrincipale
     Friend WithEvents reference As DataGridViewTextBoxColumn
     Friend WithEvents typeReference As DataGridViewTextBoxColumn
     Friend WithEvents idDoc As DataGridViewTextBoxColumn
-    Friend WithEvents btnGestionUtilisateurs As Button
-    Friend WithEvents btnChangePassword As Button
+    Friend WithEvents GestionBDDToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents SauvegarderToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents RestaurerToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents GestionUtilisateurToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ConsoleToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ChangeMdPToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents BatchToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents AnalyseDocumentsToolStripMenuItem As ToolStripMenuItem
 End Class

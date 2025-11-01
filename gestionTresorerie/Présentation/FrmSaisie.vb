@@ -1,5 +1,5 @@
 ﻿Imports System.Globalization
-Imports System.Text.RegularExpressions
+Imports System.Text.RegularExpressions ' ← À AJOUTER EN HAUT DU FICHIER
 
 Public Class FrmSaisie
     Inherits System.Windows.Forms.Form
@@ -88,19 +88,81 @@ Public Class FrmSaisie
         Call UtilitairesDgv.ChargeDgvGenerique(dgvTypeDocuments, Constantes.sqlSelTypesDocuments)
     End Sub
     Private Sub BtnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
-        Call InsereMouvement()
-        Hide()
-        Call initZonesSaisies()
-        If Not btnNouveauChq.Visible Then
-            FrmPrincipale.Show()
+        ' Récupérer tous les DataGridView du formulaire courant
+        Dim grilles As IEnumerable(Of DataGridView) = Me.Controls.OfType(Of DataGridView)()
+
+        ' Si tu es dans un formulaire enfant et veux vérifier frmSaisie spécifiquement :
+        ' Dim frmSaisie As frmSaisie = DirectCast(Me, frmSaisie)
+        ' Dim grilles = frmSaisie.Controls.OfType(Of DataGridView)()
+
+        Dim grilleSansSelection As New List(Of String)
+
+        ' Vérifier chaque DataGridView
+        For Each dgv As DataGridView In grilles
+            ' Ignorer les grilles non visibles ou désactivées (optionnel)
+            If Not dgv.Visible OrElse Not dgv.Enabled Then Continue For
+
+            ' Vérifier s'il y a au moins une ligne sélectionnée (ligne complète ou cellule)
+            If dgv.SelectedRows.Count = 0 AndAlso dgv.SelectedCells.Count = 0 Then
+                ' Extraire un nom lisible (ex: "Mouvements" au lieu de "dgvMouvements")
+                Dim nomGrille As String = NettoyerNomGrille(dgv.Name)
+                grilleSansSelection.Add(nomGrille)
+            End If
+        Next
+
+        ' S'il y a des grilles sans sélection → bloquer
+        If grilleSansSelection.Count > 0 Then
+            Dim message As String = If(grilleSansSelection.Count = 1,
+            $"Veuillez sélectionner une ligne dans la grille : {grilleSansSelection(0)}.",
+            "Veuillez sélectionner une ligne dans les grilles suivantes :" & vbCrLf & "• " & String.Join(vbCrLf & "• ", grilleSansSelection))
+
+            MessageBox.Show(message, "Sélection requise", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
         End If
+
+        '' Toutes les grilles ont une sélection → procéder
+        'Try
+        '    Call InsereMouvement()
+        '    Me.Hide()
+        '    Call initZonesSaisies()
+
+        '    If Not btnNouveauChq.Visible Then
+        '        FrmPrincipale.Show()
+        '    End If
+
+        'Catch ex As Exception
+        '    MessageBox.Show("Erreur lors de la validation : " & ex.Message,
+        '                "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        'End Try
     End Sub
+
+    ' Fonction utilitaire : transforme "dgvMouvements" → "Mouvements"
+    Private Function NettoyerNomGrille(nom As String) As String
+        If String.IsNullOrEmpty(nom) Then Return "Grille inconnue"
+
+        Dim nomPropre As String = nom
+
+        ' Enlever le préfixe "dgv" ou "Dgv" ou "dataGridView"
+        If nomPropre.StartsWith("dgv", StringComparison.OrdinalIgnoreCase) Then
+            nomPropre = nomPropre.Substring(3)
+        ElseIf nomPropre.StartsWith("dataGridView", StringComparison.OrdinalIgnoreCase) Then
+            nomPropre = nomPropre.Substring(12)
+        End If
+
+        ' Insérer un espace avant chaque majuscule (ex: ListeClients → Liste Clients)
+        nomPropre = Regex.Replace(nomPropre, "([a-z])([A-Z])", "$1 $2")
+
+        ' Enlever les underscores et remplacer par des espaces
+        nomPropre = nomPropre.Replace("_", " ")
+
+        Return nomPropre.Trim()
+    End Function
     Private Sub TxtMontant_TextChanged(sender As Object, e As EventArgs) Handles txtMontant.Leave
 
         If Not Regex.Match(txtMontant.Text, Constantes.regExMontant, RegexOptions.IgnoreCase).Success Then
-            MessageBox.Show($"Le montant {txtMontant.Text} doit être numérique!")
+            Dim unused1 = MessageBox.Show($"Le montant {txtMontant.Text} doit être numérique!")
             'Remet le focus sur la zone de saisie du montant
-            txtMontant.Focus()
+            Dim unused = txtMontant.Focus()
         End If
     End Sub
     Private Sub dgvTiers_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvTiers.CellContentClick
@@ -151,14 +213,14 @@ Public Class FrmSaisie
                 'Un mouvement identique existe déjà
                 Dim frmListe As New FrmListe(_dtMvtsIdentiques)
                 AddHandler frmListe.objetSelectionneChanged, AddressOf mvtSelectionneChangedHandler
-                frmListe.ShowDialog()
+                Dim unused1 = frmListe.ShowDialog()
                 Logger.INFO($"Le mouvement existe déjà : {mouvement.ObtenirValeursConcatenees}")
             Else
                 Mouvements.InsererMouvementEnBase(mouvement)
                 Logger.INFO($"Insertion du mouvement pour : {mouvement.ObtenirValeursConcatenees}")
             End If
         Catch ex As Exception
-            MsgBox($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
+            Dim unused = MsgBox($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
             Logger.ERR($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
         End Try
     End Sub
@@ -268,7 +330,7 @@ Public Class FrmSaisie
             Return mouvement
 
         Catch ex As Exception
-            MessageBox.Show($"Erreur lors de la création du mouvement : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Dim unused = MessageBox.Show($"Erreur lors de la création du mouvement : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Logger.ERR("Erreur CreerMouvement : " & ex.ToString())
             Return Nothing
         End Try
@@ -278,7 +340,7 @@ Public Class FrmSaisie
         Try
             ' Vérifie qu’une ligne est bien sélectionnée dans dgvTypeDocuments
             If dgvTypeDocuments.SelectedRows.Count = 0 Then
-                MessageBox.Show("Veuillez sélectionner un type de document.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Dim unused2 = MessageBox.Show("Veuillez sélectionner un type de document.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
             End If
 
             ' Récupère le type de document
@@ -287,15 +349,11 @@ Public Class FrmSaisie
             ' Récupère et valide le montant
             Dim montant As Decimal
             If Not Decimal.TryParse(txtMontant.Text, montant) Then
-                MessageBox.Show("Montant invalide.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Dim unused1 = MessageBox.Show("Montant invalide.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
             End If
 
             ' ✅ Si rbDebit est sélectionné → montant négatif
-            If rbDebit.Checked Then
-                montant = -Math.Abs(montant)
-            Else
-                montant = Math.Abs(montant)
-            End If
+            montant = If(rbDebit.Checked, -Math.Abs(montant), Math.Abs(montant))
 
             ' Instancie la fenêtre de sélection
             Dim selectionneDocument As New FrmSelectionneDocument()
@@ -324,13 +382,28 @@ Public Class FrmSaisie
                     Logger.INFO($"Document sélectionné : ID {_idDocSelectionne}")
                 End If
 
+                ' Toutes les grilles ont une sélection → procéder
+                Try
+                    Call InsereMouvement()
+                    Me.Hide()
+                    Call initZonesSaisies()
+
+                    If Not btnNouveauChq.Visible Then
+                        FrmPrincipale.Show()
+                    End If
+
+                Catch ex As Exception
+                    MessageBox.Show("Erreur lors de la validation : " & ex.Message,
+                        "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                End Try
+
 
                 ' 💡 Ici tu peux lancer ton traitement :
                 ' Charger les métadonnées, afficher le contenu, lier à un mouvement, etc.
             End If
 
         Catch ex As Exception
-            MessageBox.Show($"Erreur lors de la sélection du document : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Dim unused = MessageBox.Show($"Erreur lors de la sélection du document : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 

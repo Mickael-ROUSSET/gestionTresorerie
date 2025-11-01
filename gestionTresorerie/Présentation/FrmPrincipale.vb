@@ -20,10 +20,6 @@ Public Class FrmPrincipale
 
     ''Public Property Properties As Object
 
-    Private Sub BtnHistogramme_Click(sender As Object, e As EventArgs) Handles btnHistogramme.Click
-        'Création du fichier LibreOffice Writer
-        CreePresentation.LectureBase()
-    End Sub
     Private Sub FrmPrincipale_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Try
             'Initialisation de la lecture des propriétés
@@ -159,27 +155,48 @@ Public Class FrmPrincipale
             Logger.ERR($"Une erreur est survenue : {ex.Message}")
         End Try
     End Sub
-    Private Sub btnBatch_Click(sender As Object, e As EventArgs) Handles btnBatch.Click
-
-        Call Lanceur.LanceTrt()
-    End Sub
     Private Sub btnTraiteRelevé_Click(sender As Object, e As EventArgs) Handles btnTraiteRelevé.Click
         Call FrmChargeRelevé.AlimenteLstMvtCA(LectureProprietes.GetCheminEtVariable("ficRelevéTraité"))
         FrmChargeRelevé.Show()
     End Sub
 
-    Private Sub btnGestionUtilisateurs_Click(sender As Object, e As EventArgs) Handles btnGestionUtilisateurs.Click
+
+    Private Sub SauvegarderToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SauvegarderToolStripMenuItem.Click
+        GestionBDD.SauvegarderBase()
+    End Sub
+
+    Private Sub RestaurerToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RestaurerToolStripMenuItem.Click
+        Dim ofd As New OpenFileDialog With {
+    .Filter = "Sauvegardes SQL (*.bak)|*.bak",
+    .InitialDirectory = GestionBDD.DossierSauvegarde
+}
+        If ofd.ShowDialog() = DialogResult.OK Then
+            GestionBDD.RestaurerBase(ofd.FileName)
+        End If
+    End Sub
+
+    Private Sub ConsoleToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ConsoleToolStripMenuItem.Click
+
         If UtilisateurActif Is Nothing OrElse Not UtilisateurActif.EstAdmin() Then
             MessageBox.Show("Accès réservé aux administrateurs.")
-            Exit Sub
         End If
 
         Dim frm As New FrmGestionUtilisateurs()
         frm.ShowDialog()
     End Sub
-    Private Sub btnChangePassword_Click(sender As Object, e As EventArgs) Handles btnChangePassword.Click
+
+    Private Sub ChangeMdPToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ChangeMdPToolStripMenuItem.Click
         Dim frm As New FrmChangePassword()
         frm.ShowDialog()
+    End Sub
+
+    Private Sub AnalyseDocumentsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles AnalyseDocumentsToolStripMenuItem.Click
+        Call Lanceur.LanceTrt()
+    End Sub
+
+    Private Sub GénérerBilanToolStripMenuItem1_Click(sender As Object, e As EventArgs) Handles GénérerBilanToolStripMenuItem1.Click
+        'Création du fichier LibreOffice Writer
+        CreePresentation.LectureBase()
     End Sub
 
 

@@ -1,6 +1,4 @@
 ﻿Imports System.Data.SqlClient
-Imports System.Security.Cryptography
-Imports System.Text
 
 Public Class FrmGestionUtilisateurs
 
@@ -17,7 +15,7 @@ Public Class FrmGestionUtilisateurs
                 Dim cmd As New SqlCommand("SELECT Id, NomUtilisateur, Role, Actif FROM Utilisateurs ORDER BY NomUtilisateur", cn)
                 Using rdr = cmd.ExecuteReader()
                     While rdr.Read()
-                        dgvUtilisateurs.Rows.Add(rdr.GetInt32(0),
+                        Dim unused1 = dgvUtilisateurs.Rows.Add(rdr.GetInt32(0),
                                                  rdr.GetString(1),
                                                  rdr.GetString(2),
                                                  rdr.GetBoolean(3))
@@ -25,7 +23,7 @@ Public Class FrmGestionUtilisateurs
                 End Using
             End Using
         Catch ex As Exception
-            MessageBox.Show("Erreur lors du chargement : " & ex.Message)
+            Dim unused = MessageBox.Show("Erreur lors du chargement : " & ex.Message)
         End Try
     End Sub
 
@@ -68,19 +66,19 @@ Public Class FrmGestionUtilisateurs
         If MessageBox.Show($"Désactiver l'utilisateur {nom} ?", "Confirmation",
                            MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.Yes Then
             Try
-                SqlCommandBuilder.CreateSqlCommand("updateUtilisateurActif",
+                Dim unused1 = SqlCommandBuilder.CreateSqlCommand("updateUtilisateurActif",
                                  New Dictionary(Of String, Object) From {
                                      {"@id", id},
                                      {"@actif", 0}
                                  }).ExecuteNonQuery()
                 ChargerUtilisateurs()
             Catch ex As Exception
-                MessageBox.Show("Erreur lors de la suppression : " & ex.Message)
+                Dim unused = MessageBox.Show("Erreur lors de la suppression : " & ex.Message)
             End Try
         End If
     End Sub
 
     Private Sub btnFermer_Click(sender As Object, e As EventArgs) Handles btnFermer.Click
-        Me.Close()
+        Close()
     End Sub
 End Class

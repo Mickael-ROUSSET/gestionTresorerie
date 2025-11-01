@@ -1,14 +1,14 @@
 ﻿Imports System.Data.SqlClient
 Imports System.Globalization
 Imports System.IO
-Imports System.Windows.Forms
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
-Imports PdfiumViewer
 
 Public Class FrmSelectionneDocument
     Private _idDocSel As Integer
     Private viewer As DocumentViewerManager
+    ' --- Déclaration ici, accessible à toutes les procédures ---
+    Private anciennesValeurs As New Dictionary(Of String, String)
     Public Property IdDocSelectionne As Integer
     Public Property idDocSel() As Integer
         Get
@@ -32,7 +32,7 @@ Public Class FrmSelectionneDocument
     Private Sub btnSelDoc_Click(sender As Object, e As EventArgs) Handles btnSelDoc.Click
         ' Vérifier qu'un élément est bien sélectionné
         If lstDocuments.SelectedItems.Count = 0 Then
-            MessageBox.Show("Veuillez sélectionner un document dans la liste.", "Avertissement",
+            Dim unused2 = MessageBox.Show("Veuillez sélectionner un document dans la liste.", "Avertissement",
                         MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
@@ -42,7 +42,7 @@ Public Class FrmSelectionneDocument
             Dim cheminFichier As String = lstDocuments.SelectedItems(0).SubItems(2).Text
 
             If Not File.Exists(cheminFichier) Then
-                MessageBox.Show("Le fichier indiqué est introuvable :" & Environment.NewLine & cheminFichier,
+                Dim unused1 = MessageBox.Show("Le fichier indiqué est introuvable :" & Environment.NewLine & cheminFichier,
                             "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
                 Return
             End If
@@ -55,7 +55,7 @@ Public Class FrmSelectionneDocument
             viewer.AfficherDocumentBase64(base64Data)
 
         Catch ex As Exception
-            MessageBox.Show("Erreur lors du chargement du document : " & ex.Message,
+            Dim unused = MessageBox.Show("Erreur lors du chargement du document : " & ex.Message,
                         "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
@@ -76,14 +76,14 @@ Public Class FrmSelectionneDocument
         For Each doc As DocumentAgumaaa In docs
             Dim item As New ListViewItem(doc.IdMvtDoc)
             With item.SubItems
-                .Add(doc.CategorieDoc)
+                Dim unused4 = .Add(doc.CategorieDoc)
                 'Eventuellement limiter l'affichage
-                .Add(doc.CheminDoc)
-                .Add(doc.DateDoc.ToString("yyyy-MM-dd"))
-                .Add(doc.SousCategorieDoc)
+                Dim unused3 = .Add(doc.CheminDoc)
+                Dim unused2 = .Add(doc.DateDoc.ToString("yyyy-MM-dd"))
+                Dim unused1 = .Add(doc.SousCategorieDoc)
                 '.Add(doc.ContenuDoc)
             End With
-            lstDocuments.Items.Add(item)
+            Dim unused = lstDocuments.Items.Add(item)
         Next
     End Sub
 
@@ -153,7 +153,7 @@ Public Class FrmSelectionneDocument
             End Using
 
         Catch ex As Exception
-            MessageBox.Show("Erreur SQL : " & ex.Message, "Erreur de chargement", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Dim unused = MessageBox.Show("Erreur SQL : " & ex.Message, "Erreur de chargement", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
 
         ' Alimente la liste
@@ -164,15 +164,15 @@ Public Class FrmSelectionneDocument
         ' Configurer le ListView
         With lstDocuments
             .View = View.Details
-            .Columns.Add("IdDoc", 50, HorizontalAlignment.Left)
-            .Columns.Add("dateDoc", 100, HorizontalAlignment.Left)
+            Dim unused15 = .Columns.Add("IdDoc", 50, HorizontalAlignment.Left)
+            Dim unused14 = .Columns.Add("dateDoc", 100, HorizontalAlignment.Left)
             '.Columns.Add("contenuDoc", 100, HorizontalAlignment.Left)
-            .Columns.Add("cheminDoc", 150, HorizontalAlignment.Left)
-            .Columns.Add("categorieDoc", 150, HorizontalAlignment.Left)
-            .Columns.Add("sousCategorieDoc", 150, HorizontalAlignment.Left)
-            .Columns.Add("idMvtDoc", 150, HorizontalAlignment.Left)
-            .Columns.Add("metaDonnees", 150, HorizontalAlignment.Left)
-            .Columns.Add("dateModif", 150, HorizontalAlignment.Left)
+            Dim unused13 = .Columns.Add("cheminDoc", 150, HorizontalAlignment.Left)
+            Dim unused12 = .Columns.Add("categorieDoc", 150, HorizontalAlignment.Left)
+            Dim unused11 = .Columns.Add("sousCategorieDoc", 150, HorizontalAlignment.Left)
+            Dim unused10 = .Columns.Add("idMvtDoc", 150, HorizontalAlignment.Left)
+            Dim unused9 = .Columns.Add("metaDonnees", 150, HorizontalAlignment.Left)
+            Dim unused8 = .Columns.Add("dateModif", 150, HorizontalAlignment.Left)
             .FullRowSelect = True
         End With
 
@@ -180,20 +180,20 @@ Public Class FrmSelectionneDocument
         For Each document As DocumentAgumaaa In tabDocuments
             ' Créer une nouvelle ligne pour le ListView
             Dim item As New ListViewItem(document.IdDoc)
-            item.SubItems.Add(document.DateDoc)
+            Dim unused7 = item.SubItems.Add(document.DateDoc)
             'item.SubItems.Add(document.ContenuDoc)
-            item.SubItems.Add(document.CheminDoc)
-            item.SubItems.Add(document.CategorieDoc)
-            item.SubItems.Add(document.SousCategorieDoc)
-            item.SubItems.Add(document.IdMvtDoc)
-            item.SubItems.Add(document.metaDonnees)
-            item.SubItems.Add(document.dateModif)
+            Dim unused6 = item.SubItems.Add(document.CheminDoc)
+            Dim unused5 = item.SubItems.Add(document.CategorieDoc)
+            Dim unused4 = item.SubItems.Add(document.SousCategorieDoc)
+            Dim unused3 = item.SubItems.Add(document.IdMvtDoc)
+            Dim unused2 = item.SubItems.Add(document.metaDonnees)
+            Dim unused1 = item.SubItems.Add(document.dateModif)
             ' Ajouter la ligne au ListView
-            lstDocuments.Items.Add(item)
+            Dim unused = lstDocuments.Items.Add(item)
         Next
 
         ' Gérer l'événement de changement de sélection
-        AddHandler lstDocuments.SelectedIndexChanged, AddressOf LstDocuments_SelectedIndexChanged
+        AddHandler lstDocuments.SelectedIndexChanged, AddressOf lstDocuments_SelectedIndexChanged
     End Sub
 
     ' ⚙️ Panneau où seront créés les champs dynamiques
@@ -289,6 +289,9 @@ Public Class FrmSelectionneDocument
             ' Mettre à jour le ListView
             item.SubItems(6).Text = nouveauJson
 
+            'Renomme le fichier si besoin
+            renommeFichier(sender, e)
+
             ' 🧠 Mise à jour de la base via CreateSqlCommand
             Dim cmd As SqlCommand =
                 SqlCommandBuilder.CreateSqlCommand("updateDocumentMetaDonnees",
@@ -300,9 +303,72 @@ Public Class FrmSelectionneDocument
             ' Exécuter la requête et obtenir le nombre de lignes affectées
             Dim rowsAffected As Integer = cmd.ExecuteNonQuery()
             Logger.INFO($"Nombre de lignes mises à jour : {rowsAffected}")
-
         Catch ex As Exception
             Logger.ERR($"Erreur lors de la mise à jour de la base : {ex.Message}")
+        End Try
+    End Sub
+    Private Sub renommeFichier(sender As Object, e As EventArgs)
+
+        Dim txt As TextBox = DirectCast(sender, TextBox)
+        Dim nomChamp As String = txt.Tag.ToString()
+        Dim nouvelleValeur As String = txt.Text.Trim()
+
+        Dim ancienneValeur As String = ""
+        If anciennesValeurs.ContainsKey(nomChamp) Then
+            ancienneValeur = anciennesValeurs(nomChamp)
+        Else
+            anciennesValeurs(nomChamp) = nouvelleValeur
+            Return
+        End If
+
+        If String.IsNullOrEmpty(ancienneValeur) OrElse ancienneValeur = nouvelleValeur Then
+            anciennesValeurs(nomChamp) = nouvelleValeur
+            Return
+        End If
+
+        ' On prend la ligne sélectionnée dans lstDocuments
+        If lstDocuments.SelectedItems.Count = 0 Then Exit Sub
+
+        Dim item As ListViewItem = lstDocuments.SelectedItems(0)
+        Dim cheminActuel As String = item.SubItems(2).Text ' ← 3ᵉ colonne (index 2)
+
+        If String.IsNullOrEmpty(cheminActuel) Then
+            anciennesValeurs(nomChamp) = nouvelleValeur
+            Return
+        End If
+
+        Try
+            Dim dossier As String = Path.GetDirectoryName(cheminActuel)
+            Dim nomFichier As String = Path.GetFileName(cheminActuel)
+
+            If nomFichier.Contains(ancienneValeur) Then
+                Dim nouveauNomFichier As String = nomFichier.Replace(ancienneValeur, nouvelleValeur)
+                Dim nouveauChemin As String = Path.Combine(dossier, nouveauNomFichier)
+
+                ' Vérifie que le fichier source existe avant renommage
+                If File.Exists(cheminActuel) Then
+                    ' Vérifie qu'on n’écrase pas un fichier existant
+                    If Not File.Exists(nouveauChemin) Then
+                        File.Move(cheminActuel, nouveauChemin)
+                        Logger.INFO($"Fichier '{cheminActuel}' renommé en '{nouveauChemin}' car correction utilisateur")
+                    Else
+                        MessageBox.Show($"Le fichier '{nouveauNomFichier}' existe déjà.", "Renommage impossible", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                        Return
+                    End If
+                Else
+                    MessageBox.Show($"Le fichier '{cheminActuel}' est introuvable.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                    Return
+                End If
+
+                ' Met à jour la 3ᵉ colonne avec le nouveau chemin
+                item.SubItems(2).Text = nouveauChemin
+            End If
+
+            ' Mets à jour la valeur mémorisée
+            anciennesValeurs(nomChamp) = nouvelleValeur
+
+        Catch ex As Exception
+            MessageBox.Show("Erreur lors du renommage du fichier : " & ex.Message, "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -310,7 +376,7 @@ Public Class FrmSelectionneDocument
         Try
             ' Vérifie qu’un élément est bien sélectionné
             If lstDocuments.SelectedItems.Count = 0 Then
-                MessageBox.Show("Veuillez sélectionner un document dans la liste.",
+                Dim unused2 = MessageBox.Show("Veuillez sélectionner un document dans la liste.",
                                 "Aucune sélection", MessageBoxButtons.OK, MessageBoxIcon.Information)
             End If
 
@@ -320,7 +386,7 @@ Public Class FrmSelectionneDocument
             ' Conversion sécurisée en entier
             Dim id As Integer
             If Not Integer.TryParse(idText, id) Then
-                MessageBox.Show("Identifiant de document invalide.",
+                Dim unused1 = MessageBox.Show("Identifiant de document invalide.",
                                 "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
             End If
 
@@ -328,11 +394,11 @@ Public Class FrmSelectionneDocument
             IdDocSelectionne = id
 
             ' ✅ Ferme la fenêtre avec un résultat positif
-            Me.DialogResult = DialogResult.OK
-            Me.Close()
+            DialogResult = DialogResult.OK
+            Close()
 
         Catch ex As Exception
-            MessageBox.Show("Erreur lors de la validation du document : " & ex.Message,
+            Dim unused = MessageBox.Show("Erreur lors de la validation du document : " & ex.Message,
                             "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub

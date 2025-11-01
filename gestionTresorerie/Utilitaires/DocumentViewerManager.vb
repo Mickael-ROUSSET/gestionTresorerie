@@ -1,5 +1,4 @@
 ﻿Imports System.IO
-Imports System.Windows.Forms
 Imports PdfiumViewer
 
 Public Class DocumentViewerManager
@@ -131,7 +130,7 @@ Public Class DocumentViewerManager
         End If
 
         If _parent.InvokeRequired Then
-            _parent.Invoke(New Action(Of String)(AddressOf AfficherDocumentBase64), base64Data)
+            Dim unused = _parent.Invoke(New Action(Of String)(AddressOf AfficherDocumentBase64), base64Data)
             Return
         End If
 
