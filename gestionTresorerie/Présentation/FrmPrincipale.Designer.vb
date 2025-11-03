@@ -58,11 +58,7 @@ Partial Class FrmPrincipale
         ConsulterTrésorerieToolStripMenuItem = New ToolStripMenuItem()
         GénérerBilanToolStripMenuItem1 = New ToolStripMenuItem()
         GérerUnMouvementToolStripMenuItem = New ToolStripMenuItem()
-        ParamètresToolStripMenuItem = New ToolStripMenuItem()
-        RequêteToolStripMenuItem = New ToolStripMenuItem()
-        ParamètresTechniquesToolStripMenuItem = New ToolStripMenuItem()
-        FichiersParamètresToolStripMenuItem = New ToolStripMenuItem()
-        EnvironnementToolStripMenuItem = New ToolStripMenuItem()
+        DocumentsToolStripMenuItem = New ToolStripMenuItem()
         GestionBDDToolStripMenuItem = New ToolStripMenuItem()
         SauvegarderToolStripMenuItem = New ToolStripMenuItem()
         RestaurerToolStripMenuItem = New ToolStripMenuItem()
@@ -71,7 +67,18 @@ Partial Class FrmPrincipale
         ChangeMdPToolStripMenuItem = New ToolStripMenuItem()
         BatchToolStripMenuItem = New ToolStripMenuItem()
         AnalyseDocumentsToolStripMenuItem = New ToolStripMenuItem()
+        ParamètresToolStripMenuItem = New ToolStripMenuItem()
+        RequêteToolStripMenuItem = New ToolStripMenuItem()
+        ParamètresTechniquesToolStripMenuItem = New ToolStripMenuItem()
+        EnvironnementToolStripMenuItem = New ToolStripMenuItem()
+        AgentMistralToolStripMenuItem = New ToolStripMenuItem()
+        RecréerToolStripMenuItem = New ToolStripMenuItem()
+        CréerToolStripMenuItem = New ToolStripMenuItem()
+        ParamètresToolStripMenuItem1 = New ToolStripMenuItem()
+        FichiersParamètresToolStripMenuItem = New ToolStripMenuItem()
+        ParamètresTechniquesToolStripMenuItem1 = New ToolStripMenuItem()
         btnTraiteRelevé = New Button()
+        FolderBrowserDialog1 = New FolderBrowserDialog()
         CType(dgvPrincipale, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -250,7 +257,8 @@ Partial Class FrmPrincipale
         ' 
         ' MenuStrip1
         ' 
-        MenuStrip1.Items.AddRange(New ToolStripItem() {FichierToolStripMenuItem, AnalyseToolStripMenuItem, ParamètresToolStripMenuItem, ParamètresTechniquesToolStripMenuItem, GestionBDDToolStripMenuItem, GestionUtilisateurToolStripMenuItem, BatchToolStripMenuItem})
+        MenuStrip1.GripStyle = ToolStripGripStyle.Visible
+        MenuStrip1.Items.AddRange(New ToolStripItem() {FichierToolStripMenuItem, AnalyseToolStripMenuItem, GestionBDDToolStripMenuItem, GestionUtilisateurToolStripMenuItem, BatchToolStripMenuItem, ParamètresToolStripMenuItem, ParamètresTechniquesToolStripMenuItem, ParamètresToolStripMenuItem1})
         MenuStrip1.Location = New Point(0, 0)
         MenuStrip1.Name = "MenuStrip1"
         MenuStrip1.Size = New Size(966, 24)
@@ -284,7 +292,7 @@ Partial Class FrmPrincipale
         ' 
         ' AnalyseToolStripMenuItem
         ' 
-        AnalyseToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ConsulterTrésorerieToolStripMenuItem, GénérerBilanToolStripMenuItem1, GérerUnMouvementToolStripMenuItem})
+        AnalyseToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ConsulterTrésorerieToolStripMenuItem, GénérerBilanToolStripMenuItem1, GérerUnMouvementToolStripMenuItem, DocumentsToolStripMenuItem})
         AnalyseToolStripMenuItem.Name = "AnalyseToolStripMenuItem"
         AnalyseToolStripMenuItem.Size = New Size(60, 20)
         AnalyseToolStripMenuItem.Text = "Analyse"
@@ -307,37 +315,11 @@ Partial Class FrmPrincipale
         GérerUnMouvementToolStripMenuItem.Size = New Size(187, 22)
         GérerUnMouvementToolStripMenuItem.Text = "Gérer un &mouvement"
         ' 
-        ' ParamètresToolStripMenuItem
+        ' DocumentsToolStripMenuItem
         ' 
-        ParamètresToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {RequêteToolStripMenuItem})
-        ParamètresToolStripMenuItem.Name = "ParamètresToolStripMenuItem"
-        ParamètresToolStripMenuItem.Size = New Size(147, 20)
-        ParamètresToolStripMenuItem.Text = "Paramètres fonctionnels"
-        ' 
-        ' RequêteToolStripMenuItem
-        ' 
-        RequêteToolStripMenuItem.Name = "RequêteToolStripMenuItem"
-        RequêteToolStripMenuItem.Size = New Size(117, 22)
-        RequêteToolStripMenuItem.Text = "Requête"
-        ' 
-        ' ParamètresTechniquesToolStripMenuItem
-        ' 
-        ParamètresTechniquesToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {FichiersParamètresToolStripMenuItem, EnvironnementToolStripMenuItem})
-        ParamètresTechniquesToolStripMenuItem.Name = "ParamètresTechniquesToolStripMenuItem"
-        ParamètresTechniquesToolStripMenuItem.Size = New Size(139, 20)
-        ParamètresTechniquesToolStripMenuItem.Text = "Paramètres techniques"
-        ' 
-        ' FichiersParamètresToolStripMenuItem
-        ' 
-        FichiersParamètresToolStripMenuItem.Name = "FichiersParamètresToolStripMenuItem"
-        FichiersParamètresToolStripMenuItem.Size = New Size(176, 22)
-        FichiersParamètresToolStripMenuItem.Text = "Fichiers paramètres"
-        ' 
-        ' EnvironnementToolStripMenuItem
-        ' 
-        EnvironnementToolStripMenuItem.Name = "EnvironnementToolStripMenuItem"
-        EnvironnementToolStripMenuItem.Size = New Size(176, 22)
-        EnvironnementToolStripMenuItem.Text = "Environnement"
+        DocumentsToolStripMenuItem.Name = "DocumentsToolStripMenuItem"
+        DocumentsToolStripMenuItem.Size = New Size(187, 22)
+        DocumentsToolStripMenuItem.Text = "Documents"
         ' 
         ' GestionBDDToolStripMenuItem
         ' 
@@ -368,13 +350,13 @@ Partial Class FrmPrincipale
         ' ConsoleToolStripMenuItem
         ' 
         ConsoleToolStripMenuItem.Name = "ConsoleToolStripMenuItem"
-        ConsoleToolStripMenuItem.Size = New Size(143, 22)
+        ConsoleToolStripMenuItem.Size = New Size(180, 22)
         ConsoleToolStripMenuItem.Text = "Console"
         ' 
         ' ChangeMdPToolStripMenuItem
         ' 
         ChangeMdPToolStripMenuItem.Name = "ChangeMdPToolStripMenuItem"
-        ChangeMdPToolStripMenuItem.Size = New Size(143, 22)
+        ChangeMdPToolStripMenuItem.Size = New Size(180, 22)
         ChangeMdPToolStripMenuItem.Text = "Change MdP"
         ' 
         ' BatchToolStripMenuItem
@@ -389,6 +371,70 @@ Partial Class FrmPrincipale
         AnalyseDocumentsToolStripMenuItem.Name = "AnalyseDocumentsToolStripMenuItem"
         AnalyseDocumentsToolStripMenuItem.Size = New Size(178, 22)
         AnalyseDocumentsToolStripMenuItem.Text = "Analyse documents"
+        ' 
+        ' ParamètresToolStripMenuItem
+        ' 
+        ParamètresToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {RequêteToolStripMenuItem})
+        ParamètresToolStripMenuItem.Name = "ParamètresToolStripMenuItem"
+        ParamètresToolStripMenuItem.Size = New Size(147, 20)
+        ParamètresToolStripMenuItem.Text = "Paramètres fonctionnels"
+        ' 
+        ' RequêteToolStripMenuItem
+        ' 
+        RequêteToolStripMenuItem.Name = "RequêteToolStripMenuItem"
+        RequêteToolStripMenuItem.Size = New Size(117, 22)
+        RequêteToolStripMenuItem.Text = "Requête"
+        ' 
+        ' ParamètresTechniquesToolStripMenuItem
+        ' 
+        ParamètresTechniquesToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {EnvironnementToolStripMenuItem, AgentMistralToolStripMenuItem})
+        ParamètresTechniquesToolStripMenuItem.Name = "ParamètresTechniquesToolStripMenuItem"
+        ParamètresTechniquesToolStripMenuItem.Size = New Size(139, 20)
+        ParamètresTechniquesToolStripMenuItem.Text = "Paramètres techniques"
+        ' 
+        ' EnvironnementToolStripMenuItem
+        ' 
+        EnvironnementToolStripMenuItem.Name = "EnvironnementToolStripMenuItem"
+        EnvironnementToolStripMenuItem.Size = New Size(180, 22)
+        EnvironnementToolStripMenuItem.Text = "Environnement"
+        ' 
+        ' AgentMistralToolStripMenuItem
+        ' 
+        AgentMistralToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {RecréerToolStripMenuItem, CréerToolStripMenuItem})
+        AgentMistralToolStripMenuItem.Name = "AgentMistralToolStripMenuItem"
+        AgentMistralToolStripMenuItem.Size = New Size(180, 22)
+        AgentMistralToolStripMenuItem.Text = "Agent Mistral"
+        ' 
+        ' RecréerToolStripMenuItem
+        ' 
+        RecréerToolStripMenuItem.Name = "RecréerToolStripMenuItem"
+        RecréerToolStripMenuItem.Size = New Size(164, 22)
+        RecréerToolStripMenuItem.Text = "Recréer (forçage)"
+        ' 
+        ' CréerToolStripMenuItem
+        ' 
+        CréerToolStripMenuItem.Name = "CréerToolStripMenuItem"
+        CréerToolStripMenuItem.Size = New Size(164, 22)
+        CréerToolStripMenuItem.Text = "Créer"
+        ' 
+        ' ParamètresToolStripMenuItem1
+        ' 
+        ParamètresToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {FichiersParamètresToolStripMenuItem, ParamètresTechniquesToolStripMenuItem1})
+        ParamètresToolStripMenuItem1.Name = "ParamètresToolStripMenuItem1"
+        ParamètresToolStripMenuItem1.Size = New Size(78, 20)
+        ParamètresToolStripMenuItem1.Text = "Paramètres"
+        ' 
+        ' FichiersParamètresToolStripMenuItem
+        ' 
+        FichiersParamètresToolStripMenuItem.Name = "FichiersParamètresToolStripMenuItem"
+        FichiersParamètresToolStripMenuItem.Size = New Size(194, 22)
+        FichiersParamètresToolStripMenuItem.Text = "Fichiers paramètres"
+        ' 
+        ' ParamètresTechniquesToolStripMenuItem1
+        ' 
+        ParamètresTechniquesToolStripMenuItem1.Name = "ParamètresTechniquesToolStripMenuItem1"
+        ParamètresTechniquesToolStripMenuItem1.Size = New Size(194, 22)
+        ParamètresTechniquesToolStripMenuItem1.Text = "Paramètres techniques"
         ' 
         ' btnTraiteRelevé
         ' 
@@ -440,9 +486,6 @@ Partial Class FrmPrincipale
     Friend WithEvents ConsulterTrésorerieToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents GénérerBilanToolStripMenuItem1 As ToolStripMenuItem
     Friend WithEvents RequêteToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents ParamètresTechniquesToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents FichiersParamètresToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents EnvironnementToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents GérerUnMouvementToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents FermerToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents btnTraiteRelevé As Button
@@ -474,4 +517,14 @@ Partial Class FrmPrincipale
     Friend WithEvents ChangeMdPToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents BatchToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents AnalyseDocumentsToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ParamètresToolStripMenuItem1 As ToolStripMenuItem
+    Friend WithEvents FolderBrowserDialog1 As FolderBrowserDialog
+    Friend WithEvents DocumentsToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ParamètresTechniquesToolStripMenuItem1 As ToolStripMenuItem
+    Friend WithEvents ParamètresTechniquesToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents EnvironnementToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents AgentMistralToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents RecréerToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents CréerToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents FichiersParamètresToolStripMenuItem As ToolStripMenuItem
 End Class

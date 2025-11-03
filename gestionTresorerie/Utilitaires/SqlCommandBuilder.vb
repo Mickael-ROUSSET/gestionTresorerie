@@ -18,7 +18,7 @@ Public Class SqlCommandBuilder
                     Dim unused = command.Parameters.AddWithValue(param.Key, param.Value)
                 Next
             End If
-            Logger.INFO($"Création de la commande : {command.CommandText }")
+            'Logger.INFO($"Création de la commande : {command.CommandText }")
 
             Return command
         Catch ex As SqlException

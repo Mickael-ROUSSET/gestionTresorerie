@@ -47,11 +47,6 @@ Public Class FrmSaisie
             listeTiers = New ListeTiers()
         End If
     End Sub
-    'Private Sub SelectionnerTiers(indTiersDetecte As Integer)
-    '    Dim idTiers As Integer = UtilitairesDgv.selectionneIndiceDvg(indTiersDetecte, dgvTiers)
-    '    dgvTiers.Rows(idTiers).Selected = True
-    '    dgvTiers.FirstDisplayedScrollingRowIndex = idTiers
-    'End Sub
     Private Sub ChargerCategoriesEtSousCategories(indTiersDetecte As Integer)
         Dim parameters As Dictionary(Of String, Object)
 
@@ -119,21 +114,6 @@ Public Class FrmSaisie
             MessageBox.Show(message, "Sélection requise", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
-
-        '' Toutes les grilles ont une sélection → procéder
-        'Try
-        '    Call InsereMouvement()
-        '    Me.Hide()
-        '    Call initZonesSaisies()
-
-        '    If Not btnNouveauChq.Visible Then
-        '        FrmPrincipale.Show()
-        '    End If
-
-        'Catch ex As Exception
-        '    MessageBox.Show("Erreur lors de la validation : " & ex.Message,
-        '                "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        'End Try
     End Sub
 
     ' Fonction utilitaire : transforme "dgvMouvements" → "Mouvements"
@@ -362,7 +342,7 @@ Public Class FrmSaisie
 
             ' 🔹 Cas 1 : type "cheque" → 3 arguments
             'TODO : supprimer la valeur en dur "Cheque" et utiliser une constante ou une énumération
-            If typeDoc = "Cheque" Then
+            If typeDoc = "Chèque" Then
                 Dim numeroCheque As Decimal = CDec(Utilitaires.ExtraitNuméroChèque(txtNote.Text))
                 Dim nomTiers As String = dgvTiers.SelectedRows(0).Cells(1).Value.ToString()
 

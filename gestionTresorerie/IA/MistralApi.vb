@@ -102,5 +102,25 @@ Public Class MistralApi
             Return data("output_text").ToString()
         End Using
     End Function
+    '------------------------------------------------------------
+    ' 🕵️‍♂️ Vérifie si un agent Mistral existe encore côté serveur
+    '------------------------------------------------------------
+    Public Shared Async Function AgentExisteAsync(agentId As String) As Task(Of Boolean)
+        If String.IsNullOrEmpty(agentId) Then Return False
+
+        Using client As New HttpClient()
+            client.DefaultRequestHeaders.Authorization =
+            New AuthenticationHeaderValue("Bearer", apiKey)
+
+            Dim response = Await client.GetAsync($"{baseUrl}/agents/{agentId}")
+
+            ' Si l’API retourne 404 ou autre → l’agent n’existe plus
+            If Not response.IsSuccessStatusCode Then
+                Return False
+            End If
+
+            Return True
+        End Using
+    End Function
 
 End Class

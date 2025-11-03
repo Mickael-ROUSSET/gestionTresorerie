@@ -135,13 +135,16 @@ Namespace My
             End Get
         End Property
         
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf")>  _
-        Public ReadOnly Property ficBddDonnees() As String
+        Public Property ficBddDonnees() As String
             Get
                 Return CType(Me("ficBddDonnees"),String)
             End Get
+            Set
+                Me("ficBddDonnees") = value
+            End Set
         End Property
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
@@ -671,13 +674,16 @@ Namespace My
             End Get
         End Property
         
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA")>  _
-        Public ReadOnly Property repRacineAgumaaa() As String
+        Public Property repRacineAgumaaa() As String
             Get
                 Return CType(Me("repRacineAgumaaa"),String)
             End Get
+            Set
+                Me("repRacineAgumaaa") = value
+            End Set
         End Property
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
@@ -1037,6 +1043,36 @@ Namespace My
         Public ReadOnly Property ficAgentMistral() As String
             Get
                 Return CType(Me("ficAgentMistral"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE Documents SET cheminDoc = @cheminDoc WHERE idDoc = @idDoc;")>  _
+        Public ReadOnly Property updCheminDoc() As String
+            Get
+                Return CType(Me("updCheminDoc"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT COUNT(*) FROM Documents  ;")>  _
+        Public ReadOnly Property cptDocPagination() As String
+            Get
+                Return CType(Me("cptDocPagination"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idM"& _ 
+            "vtDoc, metaDonnees, dateModif  FROM Documents WHERE "&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"    (@whereClause IS NULL "& _ 
+            "OR @whereClause = '' OR "&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"     dateDoc >= @whereClause) ORDER BY dateDoc desc OF"& _ 
+            "FSET @Offset ROWS FETCH NEXT @TaillePage ROWS ONLY;")>  _
+        Public ReadOnly Property selDocPagination() As String
+            Get
+                Return CType(Me("selDocPagination"),String)
             End Get
         End Property
     End Class

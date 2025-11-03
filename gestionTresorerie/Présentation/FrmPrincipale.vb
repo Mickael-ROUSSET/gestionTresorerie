@@ -1,4 +1,5 @@
 ﻿Imports System.Data.SqlClient
+Imports System.Reflection.Metadata
 
 Public Class FrmPrincipale
     Inherits System.Windows.Forms.Form
@@ -199,6 +200,51 @@ Public Class FrmPrincipale
         CreePresentation.LectureBase()
     End Sub
 
+    Private Async Sub mnuAgentMistral_Click(sender As Object, e As EventArgs)
+        Dim menu = DirectCast(sender, ToolStripMenuItem)
+        Dim force = menu.Name = "RecréerToolStripMenuItem" ' ou menu.Tag=True
+        Await ExecuterCreationAgentMistral(force)
+    End Sub
+    '-------------------------------------------------------------
+    ' 📌 Procédure mutualisée : création ou recréation de l’agent
+    '-------------------------------------------------------------
+    Private Async Function ExecuterCreationAgentMistral(forceRecreation As Boolean) As Task
+        Try
+            Cursor = Cursors.WaitCursor
+
+            If forceRecreation Then
+                Logger.INFO("♻️ Recréation forcée de l’agent Mistral...")
+            Else
+                Logger.INFO("⏳ Vérification / création de l’agent Mistral...")
+            End If
+
+            ' Appel à la méthode partagée (par ex. dans TestMistral)
+            Dim agentId As String = Await TestMistral.CreeAgent(forceRecreation)
+
+            If Not String.IsNullOrEmpty(agentId) Then
+                Dim msg = If(forceRecreation,
+                         $"✅ Nouvel agent Mistral créé : {agentId}",
+                         $"✅ Agent Mistral prêt : {agentId}")
+                MessageBox.Show(msg, "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            Else
+                MessageBox.Show("⚠️ Impossible de créer ou recharger l’agent Mistral.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            End If
+
+        Catch ex As Exception
+            Logger.ERR("❌ Erreur dans ExecuterCreationAgentMistral : " & ex.Message)
+            MessageBox.Show("❌ Erreur : " & ex.Message, "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Finally
+            Cursor = Cursors.Default
+        End Try
+    End Function
+
+    Private Sub DocumentsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles DocumentsToolStripMenuItem.Click
+        'Afficher frmSelectionneDocument pour ramener tous les documents
+
+        Dim selectionneDocument As New FrmSelectionneDocument()
+        selectionneDocument.chargeListeDoc()
+        selectionneDocument.Show()
+    End Sub
 
     'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
     '    'Call CreeBilans()

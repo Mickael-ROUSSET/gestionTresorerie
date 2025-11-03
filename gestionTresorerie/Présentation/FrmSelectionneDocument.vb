@@ -1,6 +1,8 @@
 ﻿Imports System.Data.SqlClient
 Imports System.Globalization
 Imports System.IO
+Imports System.Windows.Forms
+Imports DocumentFormat.OpenXml.Drawing
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 
@@ -10,6 +12,17 @@ Public Class FrmSelectionneDocument
     ' --- Déclaration ici, accessible à toutes les procédures ---
     Private anciennesValeurs As New Dictionary(Of String, String)
     Public Property IdDocSelectionne As Integer
+
+
+    ' --- Variables de pagination ---
+    Private pageCourante As Integer = 1
+    Private taillePage As Integer = 20
+    Private totalDocuments As Integer = 0
+    Private filtreRecherche As String = ""
+
+    ' --- Variables de tri ---
+    Private colonneTri As String = "dateDoc"
+    Private triAscendant As Boolean = False
     Public Property idDocSel() As Integer
         Get
             Return _idDocSel
@@ -28,6 +41,12 @@ Public Class FrmSelectionneDocument
         viewer = New DocumentViewerManager(Me)
         AddHandler viewer.DocumentLoaded, AddressOf OnDocumentLoaded
         AddHandler viewer.DocumentFailed, AddressOf OnDocumentFailed
+
+        ' ============================================
+        ' ========== CHARGEMENT INITIAL ==============
+        ' ============================================
+        InitialiserListView()
+        ChargerDocuments()
     End Sub
     Private Sub btnSelDoc_Click(sender As Object, e As EventArgs) Handles btnSelDoc.Click
         ' Vérifier qu'un élément est bien sélectionné
@@ -119,6 +138,11 @@ Public Class FrmSelectionneDocument
         chargeListeDocInterne("reqDocMontant", New Dictionary(Of String, Object) From {
         {"@montant", montant.ToString("0.00", CultureInfo.InvariantCulture).Replace("."c, ","c)}
     })
+    End Sub
+    Public Sub chargeListeDoc()
+        ' Appelle la version générique avec la requête "selDocPagination" qui ramène tous les documents
+        'chargeListeDocInterne("selDocPagination", New Dictionary(Of String, Object))
+        ChargerDocuments()
     End Sub
 
     ' 🔧 Méthode factorisée interne
@@ -229,41 +253,174 @@ Public Class FrmSelectionneDocument
     End Sub
 
     ' 🔹 Affiche les champs JSON sous forme Label + TextBox
+
     Private Sub AfficherChampsMetaDonnees(jsonObj As JObject)
         flpMetaDonnees.Controls.Clear()
 
+        ' --- 1️⃣ Champs des métadonnées JSON ---
         For Each prop As JProperty In jsonObj.Properties
             Dim panelLigne As New Panel With {
-                .AutoSize = True,
-                .Height = 28,
-                .Dock = DockStyle.Top
-            }
+            .AutoSize = True,
+            .Height = 28,
+            .Dock = DockStyle.Top
+        }
 
             Dim lbl As New Label With {
-                .Text = prop.Name & " :",
-                .Width = 150,
-                .TextAlign = ContentAlignment.MiddleLeft,
-                .Anchor = AnchorStyles.Left,
-                .AutoSize = False
-            }
+            .Text = prop.Name & " :",
+            .Width = 150,
+            .TextAlign = ContentAlignment.MiddleLeft,
+            .Anchor = AnchorStyles.Left,
+            .AutoSize = False
+        }
 
             Dim txt As New TextBox With {
-                .Text = prop.Value.ToString(),
-                .Width = 250,
-                .Tag = prop.Name,
-                .Anchor = AnchorStyles.Left
-            }
+            .Text = prop.Value.ToString(),
+            .Width = 250,
+            .Tag = prop.Name,
+            .Anchor = AnchorStyles.Left
+        }
 
             AddHandler txt.Validated, AddressOf MetaDonnee_Validated
 
             panelLigne.Controls.Add(lbl)
             panelLigne.Controls.Add(txt)
 
-            lbl.Location = New Point(0, 3)
-            txt.Location = New Point(lbl.Right + 8, 0)
+            lbl.Location = New System.Drawing.Point(0, 3)
+            txt.Location = New System.Drawing.Point(lbl.Right + 8, 0)
 
             flpMetaDonnees.Controls.Add(panelLigne)
         Next
+
+        ' --- 2️⃣ Ligne spéciale : chemin du document et bouton (version visible garantie) ---
+        ' --- Version robuste : s'assure que le bouton est complètement visible ---
+        If lstDocuments.SelectedItems.Count > 0 Then
+
+            Dim panelChemin As New Panel With {
+        .Width = flpMetaDonnees.ClientSize.Width - 25,
+        .AutoSize = False,
+        .BorderStyle = BorderStyle.None,
+        .Margin = New Padding(4),
+        .BackColor = Color.Transparent
+    }
+
+            ' Label
+            Dim lblChemin As New Label With {
+        .Text = "Emplacement du fichier :",
+        .TextAlign = ContentAlignment.MiddleLeft,
+        .Location = New System.Drawing.Point(0, 5),
+        .Width = 180,
+        .AutoSize = False
+    }
+
+            ' TextBox (aligne à droite du label)
+            Dim txtChemin As New TextBox With {
+        .Location = New System.Drawing.Point(lblChemin.Right + 6, 5),
+        .Width = panelChemin.Width - lblChemin.Width - 20,
+        .ReadOnly = True
+    }
+            txtChemin.Text = lstDocuments.SelectedItems(0).SubItems(2).Text
+
+            ' Bouton
+            Dim btnChanger As New Button With {
+        .Text = "Changer / Renommer...",
+        .AutoSize = False
+    }
+            ' Définir explicitement la hauteur (ou utiliser PreferredSize)
+            Dim preferred As Size = btnChanger.GetPreferredSize(New Size(0, 0))
+            btnChanger.Height = Math.Max(preferred.Height, 28) ' 28 ou 30 est souvent une bonne valeur
+            btnChanger.Width = Math.Min(preferred.Width + 20, panelChemin.Width - lblChemin.Width - 20)
+
+            ' Position du bouton : sous le textbox (avec marge)
+            btnChanger.Location = New System.Drawing.Point(txtChemin.Left, txtChemin.Bottom + 8)
+
+            ' Événement clic
+            AddHandler btnChanger.Click,
+        Sub(sender As Object, e As EventArgs)
+            ChangerEmplacementOuNomFichier(txtChemin)
+        End Sub
+
+            ' Ajouter les contrôles
+            panelChemin.Controls.Add(lblChemin)
+            panelChemin.Controls.Add(txtChemin)
+            panelChemin.Controls.Add(btnChanger)
+
+            ' Ajuster la hauteur du panel pour contenir le bouton complètement
+            panelChemin.Height = btnChanger.Bottom + 8 ' marge inférieure
+
+            ' Ajouter au FlowLayoutPanel
+            flpMetaDonnees.Controls.Add(panelChemin)
+
+            ' Forcer recalcul layout
+            panelChemin.PerformLayout()
+            flpMetaDonnees.PerformLayout()
+        End If
+
+    End Sub
+
+    Private Sub ChangerEmplacementOuNomFichier(txtChemin As TextBox)
+        Try
+            Dim ancienChemin As String = txtChemin.Text
+            If String.IsNullOrWhiteSpace(ancienChemin) OrElse Not File.Exists(ancienChemin) Then
+                MessageBox.Show("Le fichier source est introuvable.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Exit Sub
+            End If
+
+            ' 🗂️ Ouvre un SaveFileDialog pour choisir emplacement et nom
+            Using dlg As New SaveFileDialog
+                dlg.Title = "Choisir le nouvel emplacement et nom du fichier"
+                dlg.InitialDirectory = IO.Path.GetDirectoryName(ancienChemin)
+                dlg.FileName = IO.Path.GetFileName(ancienChemin)
+                dlg.Filter = "Tous les fichiers (*.*)|*.*"
+
+                If dlg.ShowDialog() = DialogResult.OK Then
+                    Dim nouveauChemin = dlg.FileName
+
+                    ' Si c’est le même → rien à faire
+                    If String.Equals(ancienChemin, nouveauChemin, StringComparison.OrdinalIgnoreCase) Then Exit Sub
+
+                    ' Vérification : fichier existant
+                    If File.Exists(nouveauChemin) Then
+                        Dim rep = MessageBox.Show(
+                        "Un fichier du même nom existe déjà à cet emplacement." & vbCrLf &
+                        "Souhaitez-vous le remplacer ?",
+                        "Fichier existant",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question)
+                        If rep = DialogResult.No Then Exit Sub
+                    End If
+
+                    ' 🔁 Déplacement (avec remplacement possible)
+                    File.Move(ancienChemin, nouveauChemin, True)
+
+                    ' 🧭 Mise à jour du champ
+                    txtChemin.Text = nouveauChemin
+
+                    ' 🗄️ MAJ de la base
+                    Dim idDoc As Integer = CInt(lstDocuments.SelectedItems(0).Text)
+                    Call majCheminDoc(nouveauChemin, idDoc)
+
+                    ' 🪶 MAJ dans la liste
+                    lstDocuments.SelectedItems(0).SubItems(2).Text = nouveauChemin
+
+                    MessageBox.Show("✅ Fichier déplacé/renommé et base mise à jour.", "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                End If
+            End Using
+
+        Catch ex As Exception
+            MessageBox.Show("❌ Erreur lors du déplacement ou renommage : " & ex.Message, "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
+    'Mise à jour du chemin du document
+    Private Sub majCheminDoc(nouveauChemin As String, idDoc As Integer)
+        ' 🧠 Mise à jour de la base via CreateSqlCommand
+        Dim cmd As SqlCommand =
+                SqlCommandBuilder.CreateSqlCommand("updCheminDoc",
+                                                   New Dictionary(Of String, Object) From {{"@cheminDoc", nouveauChemin},
+                                                                                          {"@idDoc", idDoc}
+                                                   })
+        ' Exécuter la requête et obtenir le nombre de lignes affectées
+        Dim rowsAffected As Integer = cmd.ExecuteNonQuery()
+        Logger.INFO($"Nombre de lignes mises à jour : {rowsAffected}")
     End Sub
 
     ' 🔹 Lorsqu’une zone de saisie perd le focus → mise à jour du JSON et de la base
@@ -338,12 +495,12 @@ Public Class FrmSelectionneDocument
         End If
 
         Try
-            Dim dossier As String = Path.GetDirectoryName(cheminActuel)
-            Dim nomFichier As String = Path.GetFileName(cheminActuel)
+            Dim dossier As String = IO.Path.GetDirectoryName(cheminActuel)
+            Dim nomFichier As String = IO.Path.GetFileName(cheminActuel)
 
             If nomFichier.Contains(ancienneValeur) Then
                 Dim nouveauNomFichier As String = nomFichier.Replace(ancienneValeur, nouvelleValeur)
-                Dim nouveauChemin As String = Path.Combine(dossier, nouveauNomFichier)
+                Dim nouveauChemin As String = IO.Path.Combine(dossier, nouveauNomFichier)
 
                 ' Vérifie que le fichier source existe avant renommage
                 If File.Exists(cheminActuel) Then
@@ -407,4 +564,153 @@ Public Class FrmSelectionneDocument
             btnValider.PerformClick()
         End If
     End Sub
+
+    ' ============================================
+    ' ========== CONFIGURATION LISTVIEW ===========
+    ' ============================================
+    Private Sub InitialiserListView()
+        lstDocuments.View = View.Details
+        lstDocuments.FullRowSelect = True
+        lstDocuments.Columns.Clear()
+
+        lstDocuments.Columns.Add("NomFichier", "Nom du fichier", 250)
+        lstDocuments.Columns.Add("Chemin", "Chemin", 300)
+        lstDocuments.Columns.Add("DateCreation", "Date de création", 150)
+    End Sub
+
+
+    ' ============================================
+    ' ========== CHARGEMENT DES DONNÉES ==========
+    ' ============================================
+    Private Sub ChargerDocuments()
+        Try
+            ' --- Clause WHERE pour la recherche ---
+            Dim whereClause As String = filtreRecherche
+
+            ' --- Comptage total ---  
+            totalDocuments = cptDocumentsPagines("%" & filtreRecherche & "%")
+
+            ' --- Pagination + Tri dynamique ---
+            Dim offset As Integer = (pageCourante - 1) * taillePage
+            Dim ordreTri As String = If(triAscendant, "ASC", "DESC")
+
+            Using r = GetDocumentsPagines(whereClause, offset, taillePage, colonneTri, ordreTri)
+                lstDocuments.Items.Clear()
+                While r.Read()
+                    Dim it As New ListViewItem(r("NomFichier").ToString())
+                    it.SubItems.Add(r("Chemin").ToString())
+                    it.SubItems.Add(Convert.ToDateTime(r("DateCreation")).ToString("dd/MM/yyyy HH:mm"))
+                    lstDocuments.Items.Add(it)
+                End While
+            End Using
+
+            MajBoutonsPagination()
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors du chargement des documents : {ex.Message}")
+        End Try
+    End Sub
+
+    Private Shared Function cptDocumentsPagines(sWhereClause As String) As Integer
+        Dim nbDoc As Integer =
+            SqlCommandBuilder.CreateSqlCommand("cptDocPagination",
+                             New Dictionary(Of String, Object) From {{"@whereClause", sWhereClause}}).ExecuteScalar()
+        Return CInt(nbDoc)
+    End Function
+    Private Shared Function GetDocumentsPagines(sWhereClause As String, sOffset As Integer, sTaillePage As Integer, sColonneTri As String, sOrdreTri As String) As SqlDataReader
+        'Si whereParam est vide = "", on envoie DBNull.Value
+        'Dim whereParam As Object = If(String.IsNullOrWhiteSpace(sWhereClause), String.Empty, sWhereClause)
+        Dim cmd As SqlCommand =
+            SqlCommandBuilder.CreateSqlCommand("selDocPagination",
+                             New Dictionary(Of String, Object) From {{"@whereClause", sWhereClause},
+                                                                     {"@Offset", sOffset},
+                                                                     {"@TaillePage", sTaillePage},
+                                                                     {"@ColonneTri", sColonneTri},
+                                                                     {"@OrdreTri", sOrdreTri}
+                                                                    }
+                             )
+        Utilitaires.LogCommand(cmd)
+        Dim reader As SqlDataReader = cmd.ExecuteReader()
+        Return reader
+    End Function
+    ' ============================================
+    ' ====== MISE À JOUR DES BOUTONS ============
+    ' ============================================
+    Private Sub MajBoutonsPagination()
+        Dim nbPages As Integer = CInt(Math.Ceiling(totalDocuments / taillePage))
+        If nbPages = 0 Then nbPages = 1
+
+        If pageCourante > nbPages Then pageCourante = nbPages
+        If pageCourante < 1 Then pageCourante = 1
+
+        lblPage.Text = $"Page {pageCourante} / {nbPages}"
+        btnPrecedent.Enabled = (pageCourante > 1)
+        btnSuivant.Enabled = (pageCourante < nbPages)
+    End Sub
+
+
+    ' ============================================
+    ' ====== BOUTONS DE NAVIGATION ===============
+    ' ============================================
+    Private Sub btnPrecedent_Click(sender As Object, e As EventArgs) Handles btnPrecedent.Click
+        pageCourante -= 1
+        ChargerDocuments()
+    End Sub
+
+    Private Sub btnSuivant_Click(sender As Object, e As EventArgs) Handles btnSuivant.Click
+        pageCourante += 1
+        ChargerDocuments()
+    End Sub
+
+
+    ' ============================================
+    ' ====== RECHERCHE ============================
+    ' ============================================
+    Private Sub btnRechercher_Click(sender As Object, e As EventArgs) Handles btnRechercher.Click
+        filtreRecherche = txtRecherche.Text.Trim()
+        pageCourante = 1
+        ChargerDocuments()
+    End Sub
+
+    Private Sub btnEffacerFiltre_Click(sender As Object, e As EventArgs) Handles btnEffacerFiltre.Click
+        txtRecherche.Clear()
+        filtreRecherche = ""
+        pageCourante = 1
+        ChargerDocuments()
+    End Sub
+
+    Private Sub txtRecherche_KeyDown(sender As Object, e As KeyEventArgs) Handles txtRecherche.KeyDown
+        If e.KeyCode = Keys.Enter Then
+            e.SuppressKeyPress = True
+            btnRechercher.PerformClick()
+        End If
+    End Sub
+
+
+    ' ============================================
+    ' ====== TRI PAR COLONNE =====================
+    ' ============================================
+    Private Sub lstDocuments_ColumnClick(sender As Object, e As ColumnClickEventArgs) Handles lstDocuments.ColumnClick
+        Dim nomColonne As String = lstDocuments.Columns(e.Column).Text
+
+        ' Adapter au nom réel de la colonne SQL
+        Select Case nomColonne
+            Case "Nom du fichier" : nomColonne = "cheminDoc"
+            'Case "Chemin" : nomColonne = "Chemin"
+            Case "Date de création" : nomColonne = "dateCreation"
+        End Select
+
+        ' Si on clique sur la même colonne -> inversion du tri
+        If nomColonne = colonneTri Then
+            triAscendant = Not triAscendant
+        Else
+            colonneTri = nomColonne
+            triAscendant = True
+        End If
+
+        ' Recharger la liste
+        ChargerDocuments()
+    End Sub
+
+
 End Class
