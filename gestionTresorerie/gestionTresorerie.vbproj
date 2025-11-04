@@ -21,6 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Resources\client_secret_533498319739-9n7vp1d4vjealj8j7ud2spviq27jgunt.apps.googleusercontent.com.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <COMReference Include="ADOX">
       <WrapperTool>tlbimp</WrapperTool>
       <VersionMinor>0</VersionMinor>
