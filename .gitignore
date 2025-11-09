@@ -379,3 +379,5 @@ FodyWeavers.xsd
 /gestionTresorerie/Présentation/SplashScreen2.vb
 /gestionTresorerie/Resources/client_secret_533498319739-9n7vp1d4vjealj8j7ud2spviq27jgunt.apps.googleusercontent.com.json
 /gestionTresorerie/Resources/client_secret_533498319739-9n7vp1d4vjealj8j7ud2spviq27jgunt.apps.googleusercontent.com.json
+"gestionTresorerie/Resources/client_secret_*.json" 
+echo "C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\Resources\client_secret_533498319739-9n7vp1d4vjealj8j7ud2spviq27jgunt.apps.googleusercontent.com.json" 
