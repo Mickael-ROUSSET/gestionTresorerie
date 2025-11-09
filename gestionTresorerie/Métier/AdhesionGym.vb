@@ -66,7 +66,7 @@ Public Class AdhesionGym
 
         ' Construire le nouveau chemin complet du fichier dans le répertoire de sortie
         Dim nom As String = Utilitaires.ExtractStringFromJson(JsonMetaDonnées, "Nom")
-        Dim prenom As String = Utilitaires.ExtractStringFromJson(JsonMetaDonnées, "Prénom")
+        Dim prenom As String = Utilitaires.ExtractStringFromJson(JsonMetaDonnées, "Prenom")
         Return Path.Combine(
             sRepSortie,
             $"{nom}_{prenom}"

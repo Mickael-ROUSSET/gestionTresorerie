@@ -1,6 +1,7 @@
 ﻿Imports System.Data.SqlClient
 Imports System.Globalization
 Imports System.IO
+Imports System.Runtime.Intrinsics
 Imports System.Windows.Forms
 Imports DocumentFormat.OpenXml.Drawing
 Imports Newtonsoft.Json
@@ -12,11 +13,12 @@ Public Class FrmSelectionneDocument
     ' --- Déclaration ici, accessible à toutes les procédures ---
     Private anciennesValeurs As New Dictionary(Of String, String)
     Public Property IdDocSelectionne As Integer
+    Private tooltipDoc As New ToolTip()
 
 
     ' --- Variables de pagination ---
     Private pageCourante As Integer = 1
-    Private taillePage As Integer = 20
+    Private taillePage As Integer = 5
     Private totalDocuments As Integer = 0
     Private filtreRecherche As String = ""
 
@@ -41,6 +43,8 @@ Public Class FrmSelectionneDocument
         viewer = New DocumentViewerManager(Me)
         AddHandler viewer.DocumentLoaded, AddressOf OnDocumentLoaded
         AddHandler viewer.DocumentFailed, AddressOf OnDocumentFailed
+        AddHandler lstDocuments.MouseMove, AddressOf lstDocuments_MouseMove
+        AddHandler lstDocuments.SelectedIndexChanged, AddressOf lstDocuments_SelectedIndexChanged
 
         ' ============================================
         ' ========== CHARGEMENT INITIAL ==============
@@ -48,36 +52,48 @@ Public Class FrmSelectionneDocument
         InitialiserListView()
         ChargerDocuments()
     End Sub
-    Private Sub btnSelDoc_Click(sender As Object, e As EventArgs) Handles btnSelDoc.Click
-        ' Vérifier qu'un élément est bien sélectionné
-        If lstDocuments.SelectedItems.Count = 0 Then
-            Dim unused2 = MessageBox.Show("Veuillez sélectionner un document dans la liste.", "Avertissement",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning)
+    Private lastTooltipItem As ListViewItem = Nothing
+    Private lastTooltipSubItemIndex As Integer = -1
+
+    Private Sub lstDocuments_MouseMove(sender As Object, e As MouseEventArgs)
+        Dim info As ListViewHitTestInfo = lstDocuments.HitTest(e.Location)
+
+        If info.Item Is Nothing OrElse info.SubItem Is Nothing Then
+            tooltipDoc.Hide(lstDocuments)
+            lastTooltipItem = Nothing
+            lastTooltipSubItemIndex = -1
             Return
         End If
 
-        Try
-            ' Récupère le chemin du fichier à partir de la 2e colonne (index 1)
-            Dim cheminFichier As String = lstDocuments.SelectedItems(0).SubItems(2).Text
+        Dim subItemText As String = info.SubItem.Text
 
-            If Not File.Exists(cheminFichier) Then
-                Dim unused1 = MessageBox.Show("Le fichier indiqué est introuvable :" & Environment.NewLine & cheminFichier,
-                            "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
-                Return
+        ' Calcule la largeur du texte affiché
+        Using g As Graphics = lstDocuments.CreateGraphics()
+            Dim textSize As SizeF = g.MeasureString(subItemText, lstDocuments.Font)
+
+            ' Largeur visible de la cellule
+            Dim colWidth As Integer = lstDocuments.Columns(info.Item.SubItems.IndexOf(info.SubItem)).Width
+
+            ' Si le texte dépasse la largeur, on montre une info-bulle
+            If textSize.Width > colWidth Then
+                ' Évite de redéclencher la bulle inutilement
+                If info.Item IsNot lastTooltipItem OrElse info.Item.SubItems.IndexOf(info.SubItem) <> lastTooltipSubItemIndex Then
+                    tooltipDoc.Show(subItemText, lstDocuments, e.Location.X + 15, e.Location.Y + 15, 4000)
+                    lastTooltipItem = info.Item
+                    lastTooltipSubItemIndex = info.Item.SubItems.IndexOf(info.SubItem)
+                End If
+            Else
+                tooltipDoc.Hide(lstDocuments)
+                lastTooltipItem = Nothing
+                lastTooltipSubItemIndex = -1
             End If
-
-            ' Lire le contenu du fichier en base64
-            Dim bytes() As Byte = File.ReadAllBytes(cheminFichier)
-            Dim base64Data As String = Convert.ToBase64String(bytes)
-
-            ' Afficher le document dans le viewer
-            viewer.AfficherDocumentBase64(base64Data)
-
-        Catch ex As Exception
-            Dim unused = MessageBox.Show("Erreur lors du chargement du document : " & ex.Message,
-                        "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        End Try
+        End Using
     End Sub
+
+    Private Sub btnSelDoc_Click(sender As Object, e As EventArgs) Handles btnSelDoc.Click
+        SelectionnerDocument()
+    End Sub
+
 
     Private Sub OnDocumentLoaded()
         Logger.INFO("Document affiché avec succès !")
@@ -124,25 +140,24 @@ Public Class FrmSelectionneDocument
     End Function
 
 
-    Public Sub chargeListeDoc(numero As Decimal, montant As Decimal, emetteur As String)
-        ' Appelle la version générique avec la requête "reqDoc"
-        chargeListeDocInterne("reqDoc", New Dictionary(Of String, Object) From {
-        {"@numero", numero},
-        {"@montant", montant.ToString("0.00", CultureInfo.InvariantCulture).Replace("."c, ","c)},
-        {"@emetteur", emetteur}
-    })
+    Public Sub chargeListeDoc()
+        ' Appelle la version générique avec la requête "selDocPagination" qui ramène tous les documents
+        'chargeListeDocInterne("selDocPagination", New Dictionary(Of String, Object))
+        ChargerDocuments()
     End Sub
-
     Public Sub chargeListeDoc(montant As Decimal)
         ' Appelle la version générique avec la requête "reqDocMontant"
         chargeListeDocInterne("reqDocMontant", New Dictionary(Of String, Object) From {
         {"@montant", montant.ToString("0.00", CultureInfo.InvariantCulture).Replace("."c, ","c)}
     })
     End Sub
-    Public Sub chargeListeDoc()
-        ' Appelle la version générique avec la requête "selDocPagination" qui ramène tous les documents
-        'chargeListeDocInterne("selDocPagination", New Dictionary(Of String, Object))
-        ChargerDocuments()
+    Public Sub chargeListeDoc(numero As Decimal, montant As Decimal, emetteur As String)
+        ' Appelle la version générique avec la requête "reqDoc" pour les chèques
+        chargeListeDocInterne("reqDoc", New Dictionary(Of String, Object) From {
+        {"@numero", numero},
+        {"@montant", montant.ToString("0.00", CultureInfo.InvariantCulture).Replace("."c, ","c)},
+        {"@emetteur", emetteur}
+    })
     End Sub
 
     ' 🔧 Méthode factorisée interne
@@ -167,7 +182,6 @@ Public Class FrmSelectionneDocument
                         Utilitaires.SafeGetString(readerDocuments, 7),
                         Utilitaires.SafeGetDate(readerDocuments, 8)
                     )
-
                         tabDocuments.Add(docSel)
 
                     Catch ex As Exception
@@ -243,6 +257,9 @@ Public Class FrmSelectionneDocument
             flpMetaDonnees.Controls.Clear()
             Return
         End If
+
+        ' Affiche l'image : appelle directement le bouton "Sélectionner" (même logique qu’un clic)
+        SelectionnerDocument()
 
         Try
             Dim jsonObj As JObject = JObject.Parse(metaDonneesJson)
@@ -573,9 +590,14 @@ Public Class FrmSelectionneDocument
         lstDocuments.FullRowSelect = True
         lstDocuments.Columns.Clear()
 
-        lstDocuments.Columns.Add("NomFichier", "Nom du fichier", 250)
-        lstDocuments.Columns.Add("Chemin", "Chemin", 300)
-        lstDocuments.Columns.Add("DateCreation", "Date de création", 150)
+        lstDocuments.Columns.Add("idDoc", "id", 250)
+        lstDocuments.Columns.Add("dateDoc", "Date", 300)
+        lstDocuments.Columns.Add("cheminDoc", "Chemin", 150)
+        lstDocuments.Columns.Add("categorieDoc", "Catégorie", 150)
+        lstDocuments.Columns.Add("sousCategorieDoc", "sous-catégorie", 150)
+        lstDocuments.Columns.Add("idMvtDoc", "id Mvt", 150)
+        lstDocuments.Columns.Add("metaDonnees", "meta-données", 150)
+        lstDocuments.Columns.Add("dateModif", "Date modif", 150)
     End Sub
 
 
@@ -585,21 +607,33 @@ Public Class FrmSelectionneDocument
     Private Sub ChargerDocuments()
         Try
             ' --- Clause WHERE pour la recherche ---
-            Dim whereClause As String = filtreRecherche
+            'Dim whereClause As String = filtreRecherche
 
             ' --- Comptage total ---  
-            totalDocuments = cptDocumentsPagines("%" & filtreRecherche & "%")
+            'totalDocuments = cptDocumentsPagines("%" & filtreRecherche & "%")
+            totalDocuments = cptDocumentsPagines()
 
             ' --- Pagination + Tri dynamique ---
             Dim offset As Integer = (pageCourante - 1) * taillePage
             Dim ordreTri As String = If(triAscendant, "ASC", "DESC")
 
-            Using r = GetDocumentsPagines(whereClause, offset, taillePage, colonneTri, ordreTri)
+            Using r = GetDocumentsPagines(offset, taillePage, colonneTri, ordreTri)
                 lstDocuments.Items.Clear()
                 While r.Read()
-                    Dim it As New ListViewItem(r("NomFichier").ToString())
-                    it.SubItems.Add(r("Chemin").ToString())
-                    it.SubItems.Add(Convert.ToDateTime(r("DateCreation")).ToString("dd/MM/yyyy HH:mm"))
+                    'La requête ramène : idDoc, dateDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees, dateModif
+                    Dim it As New ListViewItem(r("idDoc").ToString())
+                    it.SubItems.Add(Convert.ToDateTime(r("dateDoc")).ToString("dd/MM/yyyy HH:mm"))
+                    it.SubItems.Add(r("cheminDoc").ToString())
+                    it.SubItems.Add(r("categorieDoc").ToString())
+                    it.SubItems.Add(r("sousCategorieDoc").ToString())
+                    it.SubItems.Add(r("idMvtDoc").ToString())
+                    it.SubItems.Add(r("metaDonnees").ToString())
+                    Dim dateModifText As String = ""
+                    If Not Convert.IsDBNull(r("dateModif")) Then
+                        dateModifText = Convert.ToDateTime(r("dateModif")).ToString("dd/MM/yyyy HH:mm")
+                    End If
+                    it.SubItems.Add(dateModifText)
+
                     lstDocuments.Items.Add(it)
                 End While
             End Using
@@ -611,19 +645,29 @@ Public Class FrmSelectionneDocument
         End Try
     End Sub
 
-    Private Shared Function cptDocumentsPagines(sWhereClause As String) As Integer
+    'Private Shared Function cptDocumentsPagines(sWhereClause As String) As Integer
+    Private Shared Function cptDocumentsPagines() As Integer
+        'Dim nbDoc As Integer =
+        '    SqlCommandBuilder.CreateSqlCommand("cptDocPagination",
+        '                     New Dictionary(Of String, Object) From {{"@whereClause", sWhereClause}}).ExecuteScalar()
         Dim nbDoc As Integer =
-            SqlCommandBuilder.CreateSqlCommand("cptDocPagination",
-                             New Dictionary(Of String, Object) From {{"@whereClause", sWhereClause}}).ExecuteScalar()
+            SqlCommandBuilder.CreateSqlCommand("cptDocPagination").ExecuteScalar()
         Return CInt(nbDoc)
     End Function
-    Private Shared Function GetDocumentsPagines(sWhereClause As String, sOffset As Integer, sTaillePage As Integer, sColonneTri As String, sOrdreTri As String) As SqlDataReader
-        'Si whereParam est vide = "", on envoie DBNull.Value
-        'Dim whereParam As Object = If(String.IsNullOrWhiteSpace(sWhereClause), String.Empty, sWhereClause)
+    'Private Shared Function GetDocumentsPagines(sWhereClause As String, sOffset As Integer, sTaillePage As Integer, sColonneTri As String, sOrdreTri As String) As SqlDataReader
+    Private Shared Function GetDocumentsPagines(sOffset As Integer, sTaillePage As Integer, sColonneTri As String, sOrdreTri As String) As SqlDataReader
+        'Dim cmd As SqlCommand =
+        'SqlCommandBuilder.CreateSqlCommand("selDocPagination",
+        '                 New Dictionary(Of String, Object) From {{"@whereClause", sWhereClause},
+        '                                                         {"@Offset", sOffset},
+        '                                                         {"@TaillePage", sTaillePage},
+        '                                                         {"@ColonneTri", sColonneTri},
+        '                                                         {"@OrdreTri", sOrdreTri}
+        '                                                        }
+        '                 )
         Dim cmd As SqlCommand =
             SqlCommandBuilder.CreateSqlCommand("selDocPagination",
-                             New Dictionary(Of String, Object) From {{"@whereClause", sWhereClause},
-                                                                     {"@Offset", sOffset},
+                             New Dictionary(Of String, Object) From {{"@Offset", sOffset},
                                                                      {"@TaillePage", sTaillePage},
                                                                      {"@ColonneTri", sColonneTri},
                                                                      {"@OrdreTri", sOrdreTri}
@@ -695,9 +739,14 @@ Public Class FrmSelectionneDocument
 
         ' Adapter au nom réel de la colonne SQL
         Select Case nomColonne
-            Case "Nom du fichier" : nomColonne = "cheminDoc"
-            'Case "Chemin" : nomColonne = "Chemin"
-            Case "Date de création" : nomColonne = "dateCreation"
+            Case "idDoc" : nomColonne = "idDoc"
+            Case "DateCreation" : nomColonne = "DateCreation"
+            Case "cheminDoc" : nomColonne = "cheminDoc"
+            Case "categorieDoc" : nomColonne = "categorieDoc"
+            Case "sousCategorieDoc" : nomColonne = "sousCategorieDoc"
+            Case "idMvtDoc" : nomColonne = "idMvtDoc"
+            Case "metaDonnees" : nomColonne = "metaDonnees"
+            Case "dateModif" : nomColonne = "dateModif"
         End Select
 
         ' Si on clique sur la même colonne -> inversion du tri
@@ -712,5 +761,116 @@ Public Class FrmSelectionneDocument
         ChargerDocuments()
     End Sub
 
+    Private Sub SelectionnerDocument()
+        ' Vérifier qu'un élément est bien sélectionné
+        If lstDocuments.SelectedItems.Count = 0 Then
+            MessageBox.Show("Veuillez sélectionner un document dans la liste.", "Avertissement",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+
+        Try
+            ' Récupère le chemin du fichier à partir de la 2e colonne (index 2)
+            Dim cheminFichier As String = lstDocuments.SelectedItems(0).SubItems(2).Text
+
+            If Not File.Exists(cheminFichier) Then
+                MessageBox.Show("Le fichier indiqué est introuvable :" & Environment.NewLine & cheminFichier,
+                            "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Return
+            End If
+
+            ' Lire le contenu du fichier en base64
+            Dim bytes() As Byte = File.ReadAllBytes(cheminFichier)
+            Dim base64Data As String = Convert.ToBase64String(bytes)
+
+            ' Afficher le document dans le viewer
+            viewer.AfficherDocumentBase64(base64Data)
+
+        Catch ex As Exception
+            MessageBox.Show("Erreur lors du chargement du document : " & ex.Message,
+                        "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
+
+    'Private Sub btnChercheTiers_Click(sender As Object, e As EventArgs) Handles btnChercheTiers.Click
+
+    '    Using frm As New FrmSelectionGenerique("reqIdentiteCatTiers")
+    '        If frm.ShowDialog() = DialogResult.OK Then
+    '            Dim lst = frm.ResultatsSelectionnes
+    '            For Each r In lst
+    '                Logger.INFO($"Tiers sélectionné : {r("Nom")}, {r("Prenom")}, {r("raisonSociale")}")
+    '            Next
+    '        End If
+    '    End Using
+    'End Sub
+    Private Sub btnChercheTiers_Click(sender As Object, e As EventArgs) Handles btnChercheTiers.Click
+        Try
+            ' --- Ouvre la fenêtre de sélection des tiers ---
+            Dim frmTiers As New FrmSelectionGenerique(
+                                GetType(Tiers),
+                                nomRequete:="reqIdentiteCatTiers",  ' Nom de la requête SQL
+                                parametres:=Nothing,                ' Paramètres si nécessaires
+                                multiSelect:=False,                 ' Sélection unique
+                                lectureSeule:=True                  ' Lecture seule
+                                )
+            frmTiers.Text = "Sélection du tiers"
+
+            ' --- Si un tiers est sélectionné ---
+            If frmTiers.ShowDialog() = DialogResult.OK AndAlso
+           frmTiers.ResultatsSelectionnes IsNot Nothing AndAlso
+           frmTiers.ResultatsSelectionnes.Count > 0 Then
+
+                ' Convertit le premier DataRow en objet Tiers
+                Dim dr As DataRow = frmTiers.ResultatsSelectionnes(0)
+                Dim tiersSelectionne As Tiers = Tiers.FromDataRow(dr)
+
+                Logger.INFO($"Tiers sélectionné : {tiersSelectionne}")
+
+                ' --- Met à jour automatiquement les champs destinataire ---
+                MettreAJourChampsDestinataire(tiersSelectionne)
+
+            Else
+                Logger.INFO("Aucun tiers sélectionné.")
+            End If
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur dans btnChercheTiers_Click : {ex.Message}")
+        End Try
+    End Sub
+
+    Private Sub MettreAJourChampsDestinataire(tiers As Tiers)
+        Try
+            For Each ctrl As Control In flpMetaDonnees.Controls
+                Dim nomCtrl As String = ctrl.Name.ToLowerInvariant()
+
+                If nomCtrl.Contains("destinataire") Then
+                    Dim texteTiers As String
+
+                    ' Si le tiers a un prénom/nom
+                    If Not String.IsNullOrEmpty(tiers.Prenom) Then
+                        texteTiers = $"{tiers.Prenom} {tiers.Nom}"
+                    Else
+                        texteTiers = tiers.RaisonSociale
+                    End If
+
+                    ' Mise à jour selon le type de contrôle
+                    Select Case True
+                        Case TypeOf ctrl Is TextBox
+                            DirectCast(ctrl, TextBox).Text = texteTiers
+                        Case TypeOf ctrl Is ComboBox
+                            DirectCast(ctrl, ComboBox).Text = texteTiers
+                        Case TypeOf ctrl Is Label
+                            DirectCast(ctrl, Label).Text = texteTiers
+                        Case Else
+                            Logger.INFO($"Contrôle ignoré : {ctrl.Name} (type {ctrl.GetType().Name})")
+                    End Select
+
+                    Logger.INFO($"Champ '{ctrl.Name}' mis à jour avec le destinataire : {texteTiers}")
+                End If
+            Next
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors de la mise à jour des champs destinataire : {ex.Message}")
+        End Try
+    End Sub
 
 End Class

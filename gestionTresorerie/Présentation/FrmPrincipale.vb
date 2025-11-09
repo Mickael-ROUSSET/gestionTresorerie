@@ -200,11 +200,6 @@ Public Class FrmPrincipale
         CreePresentation.LectureBase()
     End Sub
 
-    Private Async Sub mnuAgentMistral_Click(sender As Object, e As EventArgs)
-        Dim menu = DirectCast(sender, ToolStripMenuItem)
-        Dim force = menu.Name = "RecréerToolStripMenuItem" ' ou menu.Tag=True
-        Await ExecuterCreationAgentMistral(force)
-    End Sub
     '-------------------------------------------------------------
     ' 📌 Procédure mutualisée : création ou recréation de l’agent
     '-------------------------------------------------------------
@@ -242,8 +237,28 @@ Public Class FrmPrincipale
         'Afficher frmSelectionneDocument pour ramener tous les documents
 
         Dim selectionneDocument As New FrmSelectionneDocument()
-        selectionneDocument.chargeListeDoc()
+        'selectionneDocument.chargeListeDoc()
         selectionneDocument.Show()
+    End Sub
+
+    Private Sub CopierVersLeDriveToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles CopierVersLeDriveToolStripMenuItem.Click
+        Call Utilitaires.SauvegarderBaseVersDrive("C2Drive")
+    End Sub
+
+    Private Sub RécupérerDuDriveToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RécupérerDuDriveToolStripMenuItem.Click
+        Call Utilitaires.SauvegarderBaseVersDrive("Drive2C")
+    End Sub
+
+    Private Async Sub CréerToolStripMenuItem_Click_1(sender As Object, e As EventArgs) Handles CréerToolStripMenuItem.Click
+        Dim menu = DirectCast(sender, ToolStripMenuItem)
+        Dim force = menu.Name = "RecréerToolStripMenuItem" ' ou menu.Tag=True
+        Await ExecuterCreationAgentMistral(False)
+    End Sub
+
+    Private Async Sub RecréerToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RecréerToolStripMenuItem.Click
+        Dim menu = DirectCast(sender, ToolStripMenuItem)
+        Dim force = menu.Name = "RecréerToolStripMenuItem" ' ou menu.Tag=True
+        Await ExecuterCreationAgentMistral(True)
     End Sub
 
     'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click

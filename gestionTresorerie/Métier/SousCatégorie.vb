@@ -1,22 +1,22 @@
 ﻿Public Class SousCategorie
-    'Implements IDataService
+    Inherits BaseDataRow
 
-    'Public Function ExecuterRequete(query As String, Optional parameters As Dictionary(Of String, Object) = Nothing) As DataTable Implements IDataService.ExecuterRequete
-    '    Dim dt As New DataTable
-    '    Try
-    '        Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand(query, parameters)
-    '        Using adpt As New SqlDataAdapter(command)
-    '            adpt.Fill(dt)
-    '        End Using
+    Public Property Id As Int32
+    Public Property Libelle As String
+    Public Property DateDebut As Date?
+    Public Property DateFin As Date?
+    Public Property idCategorie As Integer?
 
-    '        Logger.INFO($"Requête exécutée avec succès : {query}")
-    '    Catch ex As SqlException
-    '        Logger.ERR($"Erreur SQL lors de l'exécution de la requête. Message: {ex.Message}")
-    '        Throw
-    '    Catch ex As Exception
-    '        Logger.ERR($"Erreur inattendue lors de l'exécution de la requête. Message: {ex.Message}")
-    '        Throw
-    '    End Try
-    '    Return dt
-    'End Function
+    Public Sub New()
+        MyBase.New()
+    End Sub
+    ' --- Constructeur principal ---
+    Public Sub New(id As Integer, libelle As String, Optional dateDebut As Date? = Nothing,
+                   Optional dateFin As Date? = Nothing, Optional idCategorie As Integer? = 0)
+        Me.Id = id
+        Me.Libelle = libelle
+        Me.DateDebut = dateDebut
+        Me.DateFin = dateFin
+        Me.idCategorie = idCategorie
+    End Sub
 End Class

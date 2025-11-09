@@ -65,7 +65,7 @@ Partial Class FrmListe
         btnSansSelection.Text = "Ne rien sélectionner"
         btnSansSelection.UseVisualStyleBackColor = True
         ' 
-        ' frmListe
+        ' FrmListe
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
@@ -74,7 +74,7 @@ Partial Class FrmListe
         Controls.Add(btnAnnuler)
         Controls.Add(btnSel)
         Controls.Add(dgvListe)
-        Name = "frmListe"
+        Name = "FrmListe"
         Text = "frmListe"
         CType(dgvListe, ComponentModel.ISupportInitialize).EndInit()
         ResumeLayout(False)

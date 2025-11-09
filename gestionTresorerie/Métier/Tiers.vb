@@ -1,13 +1,46 @@
 ﻿Imports System.Data.SqlClient
 
 Public Class Tiers
+    Inherits BaseDataRow
+
+    Public ReadOnly Property id As Integer
+    Public Property RaisonSociale As String
+
+    Public Property Nom As String
+
+    Public Property Prenom As String
+
+    Public Property CategorieDefaut As Integer
+
+    Public Property SousCategorieDefaut As Integer
+
+    Public Property dateCreation As Date
+        Get
+            Return _dateCreation
+        End Get
+        Set()
+            _dateCreation = Now
+        End Set
+    End Property
+    Public Property dateModification As Date
+        Get
+            Return _dateModification
+        End Get
+        Set()
+            _dateModification = Now
+        End Set
+    End Property
     Private _dateCreation As Date
     Private _dateModification As Date
+
+    Public Sub New()
+        'MyBase.New()
+    End Sub
     Public Sub New(id As Integer, sNom As String, sPrenom As String, Optional sCategorie As Integer = 0, Optional sSousCategorie As Integer = 0)
         If sNom IsNot Nothing Then
             Me.id = id
             Nom = sNom
-            Prénom = sPrenom
+            Prenom = sPrenom
             CategorieDefaut = sCategorie
             SousCategorieDefaut = sSousCategorie
         End If
@@ -82,39 +115,35 @@ Public Class Tiers
 
         ' Parcourir chaque élément de la liste et ajouter une ligne pour chaque occurrence
         For Each tiers In listeTiers
-            Dim unused = sb.AppendLine($"Nom: {tiers.nom}, Prénom: {tiers.prenom}, Raison Sociale: {tiers.raisonSociale}")
+            Dim unused = sb.AppendLine($"Nom: {tiers.nom}, Prenom: {tiers.prenom}, Raison Sociale: {tiers.raisonSociale}")
         Next
 
         ' Retourner la chaîne de caractères complète
         Return sb.ToString()
     End Function
+    ' --- Méthode Shared pour convertir un DataRow en Tiers ---
+    Public Shared Function FromDataRow(dr As DataRow) As Tiers
+        If dr Is Nothing Then Return Nothing
 
-    Public ReadOnly Property id As Integer
-    Public Property RaisonSociale As String
+        Dim id As Integer = If(dr.Table.Columns.Contains("id") AndAlso dr("id") IsNot DBNull.Value, Convert.ToInt32(dr("id")), 0)
+        Dim categorie As Integer = If(dr.Table.Columns.Contains("categorie") AndAlso dr("categorie") IsNot DBNull.Value, Convert.ToInt32(dr("categorie")), 0)
+        Dim sousCategorie As Integer = If(dr.Table.Columns.Contains("sousCategorie") AndAlso dr("sousCategorie") IsNot DBNull.Value, Convert.ToInt32(dr("sousCategorie")), 0)
 
-    Public Property Nom As String
+        ' Priorité à la Raison sociale si disponible
+        If dr.Table.Columns.Contains("raisonSociale") AndAlso Not String.IsNullOrWhiteSpace(dr("raisonSociale").ToString()) Then
+            Return New Tiers(id, dr("raisonSociale").ToString(), categorie, sousCategorie)
+        Else
+            Dim nom As String = If(dr.Table.Columns.Contains("nom"), dr("nom").ToString(), "")
+            Dim prenom As String = If(dr.Table.Columns.Contains("prenom"), dr("prenom").ToString(), "")
+            Return New Tiers(id, nom, prenom, categorie, sousCategorie)
+        End If
+    End Function
 
-    Public Property Prénom As String
-
-    Public Property CategorieDefaut As Integer
-
-    Public Property SousCategorieDefaut As Integer
-
-    Public Property dateCreation As Date
-        Get
-            Return _dateCreation
-        End Get
-        Set()
-            _dateCreation = Now
-        End Set
-    End Property
-    Public Property dateModification As Date
-        Get
-            Return _dateModification
-        End Get
-        Set()
-            _dateModification = Now
-        End Set
-    End Property
-
+    Public Overrides Function ResumeTexte() As String
+        If Not String.IsNullOrEmpty(RaisonSociale) Then
+            Return RaisonSociale
+        Else
+            Return $"{Prenom} {Nom}".Trim()
+        End If
+    End Function
 End Class

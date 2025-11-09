@@ -67,6 +67,18 @@ Partial Class frmSaisie
         TypeDocImplBindingSource = New BindingSource(components)
         btnToggleTypeDocument = New Button()
         pnlDgvTypeDocument = New Panel()
+        btnSelTiers = New Button()
+        txtTiers = New TextBox()
+        btnSelCat = New Button()
+        txtCategorie = New TextBox()
+        btnSelSousCategorie = New Button()
+        txtSousCategorie = New TextBox()
+        txtTypeDoc = New TextBox()
+        btnSelTypeDoc = New Button()
+        btnSelTypeMvt = New Button()
+        txtTypeMvt = New TextBox()
+        txtEvenement = New TextBox()
+        btnSelEvenement = New Button()
         grpSens.SuspendLayout()
         GroupBox1.SuspendLayout()
         CType(dgvTiers, ComponentModel.ISupportInitialize).BeginInit()
@@ -194,7 +206,7 @@ Partial Class frmSaisie
         ' lblEvénement
         ' 
         lblEvénement.AutoSize = True
-        lblEvénement.Location = New Point(698, 277)
+        lblEvénement.Location = New Point(698, 297)
         lblEvénement.Name = "lblEvénement"
         lblEvénement.Size = New Size(66, 15)
         lblEvénement.TabIndex = 17
@@ -278,7 +290,7 @@ Partial Class frmSaisie
         ' cbEvénement
         ' 
         cbEvénement.FormattingEnabled = True
-        cbEvénement.Location = New Point(862, 283)
+        cbEvénement.Location = New Point(862, 303)
         cbEvénement.Name = "cbEvénement"
         cbEvénement.Size = New Size(328, 23)
         cbEvénement.TabIndex = 31
@@ -297,7 +309,7 @@ Partial Class frmSaisie
         dgvTiers.Name = "dgvTiers"
         dgvTiers.ReadOnly = True
         dgvTiers.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvTiers.Size = New Size(547, 157)
+        dgvTiers.Size = New Size(547, 101)
         dgvTiers.TabIndex = 33
         ' 
         ' TiersBindingSource
@@ -337,7 +349,7 @@ Partial Class frmSaisie
         dgvSousCategorie.MultiSelect = False
         dgvSousCategorie.Name = "dgvSousCategorie"
         dgvSousCategorie.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvSousCategorie.Size = New Size(476, 88)
+        dgvSousCategorie.Size = New Size(476, 44)
         dgvSousCategorie.TabIndex = 35
         ' 
         ' txtRechercheTiers
@@ -368,7 +380,7 @@ Partial Class frmSaisie
         ' pnlDgvEvt
         ' 
         pnlDgvEvt.Controls.Add(dgvEvenement)
-        pnlDgvEvt.Location = New Point(809, 277)
+        pnlDgvEvt.Location = New Point(809, 297)
         pnlDgvEvt.Name = "pnlDgvEvt"
         pnlDgvEvt.Size = New Size(400, 50)
         pnlDgvEvt.TabIndex = 40
@@ -387,7 +399,7 @@ Partial Class frmSaisie
         ' 
         ' btnToggleEvt
         ' 
-        btnToggleEvt.Location = New Point(1236, 277)
+        btnToggleEvt.Location = New Point(1236, 297)
         btnToggleEvt.Name = "btnToggleEvt"
         btnToggleEvt.Size = New Size(75, 23)
         btnToggleEvt.TabIndex = 41
@@ -492,14 +504,122 @@ Partial Class frmSaisie
         pnlDgvTypeDocument.Controls.Add(dgvTypeDocuments)
         pnlDgvTypeDocument.Location = New Point(694, 106)
         pnlDgvTypeDocument.Name = "pnlDgvTypeDocument"
-        pnlDgvTypeDocument.Size = New Size(617, 90)
+        pnlDgvTypeDocument.Size = New Size(617, 65)
         pnlDgvTypeDocument.TabIndex = 50
+        ' 
+        ' btnSelTiers
+        ' 
+        btnSelTiers.Location = New Point(111, 254)
+        btnSelTiers.Name = "btnSelTiers"
+        btnSelTiers.Size = New Size(110, 23)
+        btnSelTiers.TabIndex = 51
+        btnSelTiers.Text = "Sélection du tiers"
+        btnSelTiers.UseVisualStyleBackColor = True
+        ' 
+        ' txtTiers
+        ' 
+        txtTiers.Location = New Point(285, 254)
+        txtTiers.Name = "txtTiers"
+        txtTiers.Size = New Size(366, 23)
+        txtTiers.TabIndex = 52
+        ' 
+        ' btnSelCat
+        ' 
+        btnSelCat.Location = New Point(107, 513)
+        btnSelCat.Name = "btnSelCat"
+        btnSelCat.Size = New Size(156, 23)
+        btnSelCat.TabIndex = 53
+        btnSelCat.Text = "Sélection de la catégorie"
+        btnSelCat.UseVisualStyleBackColor = True
+        ' 
+        ' txtCategorie
+        ' 
+        txtCategorie.Location = New Point(285, 513)
+        txtCategorie.Name = "txtCategorie"
+        txtCategorie.Size = New Size(366, 23)
+        txtCategorie.TabIndex = 54
+        ' 
+        ' btnSelSousCategorie
+        ' 
+        btnSelSousCategorie.Location = New Point(809, 70)
+        btnSelSousCategorie.Name = "btnSelSousCategorie"
+        btnSelSousCategorie.Size = New Size(168, 23)
+        btnSelSousCategorie.TabIndex = 55
+        btnSelSousCategorie.Text = "Sélection sous-catégorie"
+        btnSelSousCategorie.UseVisualStyleBackColor = True
+        ' 
+        ' txtSousCategorie
+        ' 
+        txtSousCategorie.Location = New Point(1005, 71)
+        txtSousCategorie.Name = "txtSousCategorie"
+        txtSousCategorie.Size = New Size(280, 23)
+        txtSousCategorie.TabIndex = 56
+        ' 
+        ' txtTypeDoc
+        ' 
+        txtTypeDoc.Location = New Point(1030, 179)
+        txtTypeDoc.Name = "txtTypeDoc"
+        txtTypeDoc.Size = New Size(255, 23)
+        txtTypeDoc.TabIndex = 57
+        ' 
+        ' btnSelTypeDoc
+        ' 
+        btnSelTypeDoc.Location = New Point(809, 178)
+        btnSelTypeDoc.Name = "btnSelTypeDoc"
+        btnSelTypeDoc.Size = New Size(215, 23)
+        btnSelTypeDoc.TabIndex = 58
+        btnSelTypeDoc.Text = "Sélection du tye de document"
+        btnSelTypeDoc.UseVisualStyleBackColor = True
+        ' 
+        ' btnSelTypeMvt
+        ' 
+        btnSelTypeMvt.Location = New Point(815, 274)
+        btnSelTypeMvt.Name = "btnSelTypeMvt"
+        btnSelTypeMvt.Size = New Size(211, 23)
+        btnSelTypeMvt.TabIndex = 59
+        btnSelTypeMvt.Text = "Sélection du type de mouvement"
+        btnSelTypeMvt.UseVisualStyleBackColor = True
+        ' 
+        ' txtTypeMvt
+        ' 
+        txtTypeMvt.Location = New Point(1059, 276)
+        txtTypeMvt.Name = "txtTypeMvt"
+        txtTypeMvt.Size = New Size(100, 23)
+        txtTypeMvt.TabIndex = 60
+        ' 
+        ' txtEvenement
+        ' 
+        txtEvenement.Location = New Point(976, 354)
+        txtEvenement.Name = "txtEvenement"
+        txtEvenement.Size = New Size(309, 23)
+        txtEvenement.TabIndex = 61
+        ' 
+        ' btnSelEvenement
+        ' 
+        btnSelEvenement.Location = New Point(811, 353)
+        btnSelEvenement.Name = "btnSelEvenement"
+        btnSelEvenement.Size = New Size(159, 23)
+        btnSelEvenement.TabIndex = 62
+        btnSelEvenement.Text = "Sélection de l'événement"
+        btnSelEvenement.UseVisualStyleBackColor = True
         ' 
         ' FrmSaisie
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(1506, 542)
+        Controls.Add(btnSelEvenement)
+        Controls.Add(txtEvenement)
+        Controls.Add(txtTypeMvt)
+        Controls.Add(btnSelTypeMvt)
+        Controls.Add(btnSelTypeDoc)
+        Controls.Add(txtTypeDoc)
+        Controls.Add(txtSousCategorie)
+        Controls.Add(btnSelSousCategorie)
+        Controls.Add(txtCategorie)
+        Controls.Add(btnSelCat)
+        Controls.Add(txtTiers)
+        Controls.Add(btnSelTiers)
         Controls.Add(lblTypeDocument)
         Controls.Add(pnlDgvTypeDocument)
         Controls.Add(btnNouveauChq)
@@ -600,5 +720,17 @@ Partial Class frmSaisie
     Friend WithEvents btnToggleTypeDocument As Button
     Friend WithEvents pnlDgvTypeDocument As Panel
     Friend WithEvents ClasseTypeDocDataGridViewTextBoxColumn As DataGridViewTextBoxColumn
+    Friend WithEvents btnSelTiers As Button
+    Friend WithEvents txtTiers As TextBox
+    Friend WithEvents btnSelCat As Button
+    Friend WithEvents txtCategorie As TextBox
+    Friend WithEvents btnSelSousCategorie As Button
+    Friend WithEvents txtSousCategorie As TextBox
+    Friend WithEvents txtTypeDoc As TextBox
+    Friend WithEvents btnSelTypeDoc As Button
+    Friend WithEvents btnSelTypeMvt As Button
+    Friend WithEvents txtTypeMvt As TextBox
+    Friend WithEvents txtEvenement As TextBox
+    Friend WithEvents btnSelEvenement As Button
 
 End Class

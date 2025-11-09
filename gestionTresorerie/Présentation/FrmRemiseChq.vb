@@ -11,7 +11,7 @@
             ' Définir les valeurs des cellules de la nouvelle ligne
             dgvRemiseChq.Rows(rowIndex).Cells("id").Value = tiers.id
             dgvRemiseChq.Rows(rowIndex).Cells("nom").Value = tiers.Nom
-            dgvRemiseChq.Rows(rowIndex).Cells("prenom").Value = tiers.Prénom
+            dgvRemiseChq.Rows(rowIndex).Cells("prenom").Value = tiers.Prenom
             dgvRemiseChq.Rows(rowIndex).Cells("raisonSociale").Value = tiers.RaisonSociale
         Next
     End Sub

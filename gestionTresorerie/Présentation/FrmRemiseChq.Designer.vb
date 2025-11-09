@@ -54,10 +54,10 @@ Partial Class FrmRemiseChq
         Nom.HeaderText = "Nom"
         Nom.Name = "Nom"
         ' 
-        ' Prénom
+        ' Prenom
         ' 
-        Prénom.HeaderText = "Prénom"
-        Prénom.Name = "Prénom"
+        Prénom.HeaderText = "Prenom"
+        Prénom.Name = "Prenom"
         ' 
         ' RaisonSociale
         ' 

@@ -105,7 +105,7 @@ Partial Class FrmNouveauTiers
         lblPrenom.Name = "lblPrenom"
         lblPrenom.Size = New Size(49, 15)
         lblPrenom.TabIndex = 4
-        lblPrenom.Text = "Prénom"
+        lblPrenom.Text = "Prenom"
         ' 
         ' txtRaisonSociale
         ' 

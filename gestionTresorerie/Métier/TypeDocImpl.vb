@@ -1,10 +1,23 @@
 ﻿Imports System.IO
 ' Classe concrète implémentant ITypeDoc pour pouvoir instancier des objets
 Public Class TypeDocImpl
+    Inherits BaseDataRow ' Héritage de BaseDataRow pour compatibilité avec les utilitaires de sélection
     Implements ITypeDoc
 
     Private _contenuBase64 As String
     Private _jsonMetaDonnées As String
+
+    ' Implémentation des propriétés de l'interface
+    Public Property Prompt As String Implements ITypeDoc.Prompt
+
+    Public Property GabaritRepertoire As String Implements ITypeDoc.GabaritRepertoire
+
+    Public Property GabaritNomFichier As String Implements ITypeDoc.GabaritNomFichier
+
+    Public Property ClasseTypeDoc As String Implements ITypeDoc.ClasseTypeDoc
+    Public Sub New()
+
+    End Sub
     Public Shared Function EncodeImageToBase64(filePath As String) As String
         ' Lire le fichier image en tant que tableau d'octets
         Dim imageBytes As Byte() = File.ReadAllBytes(filePath)
@@ -34,15 +47,6 @@ Public Class TypeDocImpl
         Me.GabaritNomFichier = gabaritNomFichier
         ClasseTypeDoc = classe
     End Sub
-
-    ' Implémentation des propriétés de l'interface
-    Public Property Prompt As String Implements ITypeDoc.Prompt
-
-    Public Property GabaritRepertoire As String Implements ITypeDoc.GabaritRepertoire
-
-    Public Property GabaritNomFichier As String Implements ITypeDoc.GabaritNomFichier
-
-    Public Property ClasseTypeDoc As String Implements ITypeDoc.ClasseTypeDoc
 
     Public Property JsonMetaDonnées As String Implements ITypeDoc.JsonMetaDonnées
         Get

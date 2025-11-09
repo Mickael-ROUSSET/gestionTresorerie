@@ -439,14 +439,14 @@ Friend Class Utilitaires
     ''' Formate une valeur de paramètre pour le log (gère DBNull, Date, String, etc.)
     ''' </summary>
     Private Shared Function FormatParamValue(value As Object) As String
-    If value Is Nothing OrElse IsDBNull(value) Then
-        Return "NULL"
-    End If
+        If value Is Nothing OrElse IsDBNull(value) Then
+            Return "NULL"
+        End If
 
-    Select Case value.GetType()
-        Case GetType(String)
-            Return $"'{value.ToString().Replace("'", "''")}'" ' Échappement SQL
-        Case GetType(Date), GetType(DateTime)
+        Select Case value.GetType()
+            Case GetType(String)
+                Return $"'{value.ToString().Replace("'", "''")}'" ' Échappement SQL
+            Case GetType(Date), GetType(DateTime)
                 Return $"'{DirectCast(value, DateTime).ToString("yyyy-MM-dd HH:mm:ss")}'"
             Case GetType(Boolean)
                 Return If(DirectCast(value, Boolean), "1", "0")
@@ -456,4 +456,73 @@ Friend Class Utilitaires
                 Return value.ToString()
         End Select
     End Function
+    Public Shared Sub SauvegarderBaseVersDrive(direction As String)
+        ' Chemin du fichier MDB source
+        Dim sourceFile As String = LectureProprietes.GetVariable("AttachDbFilenameProd")
+
+        ' Chemin du dossier Google Drive local
+        Dim googleDriveFolder As String = LectureProprietes.GetVariable("copieMdbGoogleDrive")
+
+        Dim sourcePath As String
+        Dim destPath As String
+
+        ' Déterminer le sens de la copie
+        Select Case direction
+            Case "C2Drive"
+                sourcePath = sourceFile
+                destPath = googleDriveFolder
+            Case "Drive2C"
+                sourcePath = Path.Combine(googleDriveFolder, Path.GetFileName(sourceFile))
+                destPath = Path.GetDirectoryName(sourceFile)
+            Case Else
+                Logger.INFO("Direction de copie invalide. Utiliser 'C2Drive' ou 'Drive2C'.")
+                Return
+        End Select
+
+        ' Vérifier que le fichier source existe
+        If Not File.Exists(sourcePath) Then
+            Logger.INFO("Fichier source introuvable !: " & sourcePath)
+            Return
+        End If
+
+        ' Vérifier que le dossier de destination existe
+        If Not Directory.Exists(destPath) Then
+            Directory.CreateDirectory(destPath)
+        End If
+
+        ' Obtenir le nom de base depuis le fichier source (sans extension)
+        Dim baseName As String = Path.GetFileNameWithoutExtension(sourcePath)
+        If baseName.Length > 6 Then
+            baseName = baseName.Substring(0, 6)
+        End If
+
+        ' Obtenir la liste des fichiers de sauvegarde existants
+        Dim existingFiles = Directory.GetFiles(destPath, baseName & "_*.mdb")
+
+        ' Vérifier si le fichier source a été modifié depuis la dernière sauvegarde
+        Dim derniereSauvegarde As DateTime = DateTime.MinValue
+        If existingFiles.Length > 0 Then
+            derniereSauvegarde = existingFiles.Select(Function(f) File.GetLastWriteTime(f)).Max()
+        End If
+
+        Dim sourceLastWrite As DateTime = File.GetLastWriteTime(sourcePath)
+
+        If sourceLastWrite <= derniereSauvegarde Then
+            Logger.INFO("Aucune modification détectée depuis la dernière sauvegarde. Copie annulée.")
+            Return
+        End If
+
+        ' Générer un nom de fichier avec horodatage
+        Dim destFile As String = Path.Combine(destPath, baseName & "_" & DateTime.Now.ToString("yyyyMMdd_HHmmss") & ".mdb")
+
+        Try
+            ' Copier le fichier
+            File.Copy(sourcePath, destFile)
+            Logger.INFO("Fichier copié avec succès : " & destFile)
+        Catch ex As Exception
+            Logger.INFO("Erreur lors de la copie : " & ex.Message)
+        End Try
+    End Sub
+
+
 End Class

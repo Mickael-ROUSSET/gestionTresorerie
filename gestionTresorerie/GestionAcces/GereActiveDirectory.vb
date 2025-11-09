@@ -27,7 +27,7 @@
 '            'On peut maintenant afficher les informations désirées
 '            MsgBox("Login : " + DirEntry.Properties("SAMAccountName").Value)
 '            MsgBox("Nom : " + DirEntry.Properties("sn").Value)
-'            MsgBox("Prénom : " + DirEntry.Properties("givenName").Value)
+'            MsgBox("Prenom : " + DirEntry.Properties("givenName").Value)
 '            MsgBox("Email : " + DirEntry.Properties("mail").Value)
 '            MsgBox("Tél : " + DirEntry.Properties("TelephoneNumber").Value)
 '            MsgBox("Description : " + DirEntry.Properties("description").Value)

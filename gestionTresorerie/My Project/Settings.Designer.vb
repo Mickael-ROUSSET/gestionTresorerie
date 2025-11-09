@@ -135,18 +135,6 @@ Namespace My
             End Get
         End Property
         
-        <Global.System.Configuration.UserScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf")>  _
-        Public Property ficBddDonnees() As String
-            Get
-                Return CType(Me("ficBddDonnees"),String)
-            End Get
-            Set
-                Me("ficBddDonnees") = value
-            End Set
-        End Property
-        
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.SpecialSettingAttribute(Global.System.Configuration.SpecialSetting.ConnectionString),  _
@@ -166,24 +154,6 @@ Namespace My
         Public ReadOnly Property DBsourceTest() As String
             Get
                 Return CType(Me("DBsourceTest"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf")>  _
-        Public ReadOnly Property ficBddDonneesProd() As String
-            Get
-                Return CType(Me("ficBddDonneesProd"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf")>  _
-        Public ReadOnly Property ficBddDonneesTest() As String
-            Get
-                Return CType(Me("ficBddDonneesTest"),String)
             End Get
         End Property
         
@@ -688,10 +658,19 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Bdd\bddAgumaaaProd2.mdf")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\Documents\Agumaaa\Trésorerie\bddAgumaaaProd2.mdf")>  _
         Public ReadOnly Property AttachDbFilenameProd() As String
             Get
                 Return CType(Me("AttachDbFilenameProd"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Bdd\bddAgumaaaProd2.mdf")>  _
+        Public ReadOnly Property copieMdbGoogleDrive() As String
+            Get
+                Return CType(Me("copieMdbGoogleDrive"),String)
             End Get
         End Property
         
@@ -1066,10 +1045,9 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idM"& _ 
-            "vtDoc, metaDonnees, dateModif  FROM Documents WHERE "&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"    (@whereClause IS NULL "& _ 
-            "OR @whereClause = '' OR "&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"     dateDoc >= @whereClause) ORDER BY dateDoc desc OF"& _ 
-            "FSET @Offset ROWS FETCH NEXT @TaillePage ROWS ONLY;")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT idDoc, dateDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaD"& _ 
+            "onnees, dateModif  FROM Documents ORDER BY dateDoc desc OFFSET @Offset ROWS FETC"& _ 
+            "H NEXT @TaillePage ROWS ONLY;")>  _
         Public ReadOnly Property selDocPagination() As String
             Get
                 Return CType(Me("selDocPagination"),String)
