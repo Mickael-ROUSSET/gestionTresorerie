@@ -54,9 +54,9 @@ Public Class batchAnalyse
             Dim resultatDoublons = GestionDoublons.DeplacerDoublons(repertoire)
 
             ' Log du compte-rendu
-            Logger.INFO("----- COMPTE-RENDU DES DOUBLONS -----")
+            Logger.INFO("--------- COMPTE-RENDU DES DOUBLONS ---------")
             Logger.INFO($"Nombre de fichiers déplacés dans Doublons : {resultatDoublons.Count}")
-            Logger.INFO("--------------------------------------")
+            Logger.INFO("-------------------------------------------------")
 
             Dim compteur As (fichiersTraites As Integer, traitementOK As Integer, traitementKO As Integer) = Nothing            ' Initialiser les compteurs pour le répertoire courant
             If Not compteursParRepertoire.TryGetValue(repertoire, compteur) Then
