@@ -389,6 +389,15 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, libelle FROM Categorie;")>  _
+        Public ReadOnly Property selIdLibCat() As String
+            Get
+                Return CType(Me("selIdLibCat"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("DELETE FROM [dbo].[Mouvements] WHERE [Id] = @Id")>  _
         Public ReadOnly Property delMvt() As String
             Get
@@ -459,15 +468,6 @@ Namespace My
         Public ReadOnly Property selTiersMorale() As String
             Get
                 Return CType(Me("selTiersMorale"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, libelle FROM Categorie;")>  _
-        Public ReadOnly Property selIdLibCat() As String
-            Get
-                Return CType(Me("selIdLibCat"),String)
             End Get
         End Property
         
@@ -1051,6 +1051,72 @@ Namespace My
         Public ReadOnly Property selDocPagination() As String
             Get
                 Return CType(Me("selDocPagination"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("\Documents\Cinéma\Entrées\EntréesCinéma2025.xlsx")>  _
+        Public ReadOnly Property fichierEntreesCinemaExcel() As String
+            Get
+                Return CType(Me("fichierEntreesCinemaExcel"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO Films(Titre, DureeMinutes, Genre, Realisateur, DateSortie, Synopsis, "& _ 
+            "AgeMinimum, AfficheUrl)VALUES(@Titre, @DureeMinutes, @Genre, @Realisateur, @Date"& _ 
+            "Sortie, @Synopsis, @AgeMinimum, @AfficheUrl);")>  _
+        Public ReadOnly Property insertFilm() As String
+            Get
+                Return CType(Me("insertFilm"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO Seances(IdFilm, DateHeureDebut, TarifBase, Langue, Format) VALUES (@I"& _ 
+            "dFilm, @DateHeureDebut, @TarifBase, @Langue, @Format);")>  _
+        Public ReadOnly Property insertSeance() As String
+            Get
+                Return CType(Me("insertSeance"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT * FROM Films ORDER BY Titre")>  _
+        Public ReadOnly Property selTousFilms() As String
+            Get
+                Return CType(Me("selTousFilms"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("DELETE FROM Films WHERE IdFilm=@Id")>  _
+        Public ReadOnly Property delFilm() As String
+            Get
+                Return CType(Me("delFilm"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("DELETE FROM Seances WHERE IdSeance=@Id")>  _
+        Public ReadOnly Property delSeance() As String
+            Get
+                Return CType(Me("delSeance"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT * FROM Seances WHERE IdFilm=@IdFilm ORDER BY DateHeureDebut")>  _
+        Public ReadOnly Property selSeanceIdFilm() As String
+            Get
+                Return CType(Me("selSeanceIdFilm"),String)
             End Get
         End Property
     End Class

@@ -325,5 +325,26 @@
     <Setting Name="selDocPagination" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT idDoc, dateDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees, dateModif  FROM Documents ORDER BY dateDoc desc OFFSET @Offset ROWS FETCH NEXT @TaillePage ROWS ONLY;</Value>
     </Setting>
+    <Setting Name="fichierEntreesCinemaExcel" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Documents\Cinéma\Entrées\EntréesCinéma2025.xlsx</Value>
+    </Setting>
+    <Setting Name="insertFilm" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INSERT INTO Films(Titre, DureeMinutes, Genre, Realisateur, DateSortie, Synopsis, AgeMinimum, AfficheUrl)VALUES(@Titre, @DureeMinutes, @Genre, @Realisateur, @DateSortie, @Synopsis, @AgeMinimum, @AfficheUrl);</Value>
+    </Setting>
+    <Setting Name="insertSeance" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INSERT INTO Seances(IdFilm, DateHeureDebut, TarifBase, Langue, Format) VALUES (@IdFilm, @DateHeureDebut, @TarifBase, @Langue, @Format);</Value>
+    </Setting>
+    <Setting Name="selTousFilms" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT * FROM Films ORDER BY Titre</Value>
+    </Setting>
+    <Setting Name="delFilm" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DELETE FROM Films WHERE IdFilm=@Id</Value>
+    </Setting>
+    <Setting Name="delSeance" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DELETE FROM Seances WHERE IdSeance=@Id</Value>
+    </Setting>
+    <Setting Name="selSeanceIdFilm" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT * FROM Seances WHERE IdFilm=@IdFilm ORDER BY DateHeureDebut</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -51,7 +51,7 @@ Public Class batchAnalyse
     Private Sub ParcourirEtAnalyserRecursif(repertoire As String)
         Try
             'Détecter et déplacer les doublons (sur leur contenu)
-            Dim resultatDoublons = GestionDoublons.DeplacerDoublons(repertoire)
+            Dim resultatDoublons = GestionDoublons.DeplacerDoublonsAvecProgress(repertoire)
 
             ' Log du compte-rendu
             Logger.INFO("--------- COMPTE-RENDU DES DOUBLONS ---------")

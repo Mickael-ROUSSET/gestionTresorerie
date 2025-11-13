@@ -67,21 +67,15 @@ Public Class FrmSaisie
             Call UtilitairesDgv.ChargeDgvGenerique(dgvCategorie, Constantes.sqlSelCategoriesTout, parameters)
         End If
 
-        'Dim idCategorie As Integer = UtilitairesDgv.selectionneIndiceDvg(Tiers.getCategorieTiers(indTiersDetecte), dgvCategorie)
         UtilitairesDgv.selectionneIndiceDvg(Tiers.getCategorieTiers(indTiersDetecte), dgvCategorie)
         sRequete = Constantes.sqlSelSousCategories
         parameters = New Dictionary(Of String, Object) From {{"@idCategorie", Tiers.getCategorieTiers(indTiersDetecte)}}
-        'dgvCategorie.Rows(idCategorie).Selected = True
-        'dgvCategorie.FirstDisplayedScrollingRowIndex = idCategorie
 
         If dgvSousCategorie.RowCount = 0 Then
             Call UtilitairesDgv.ChargeDgvGenerique(dgvSousCategorie, sRequete, parameters)
         End If
 
         UtilitairesDgv.selectionneIndiceDvg(Tiers.getSousCategorieTiers(indTiersDetecte), dgvSousCategorie)
-        'Dim idSousCategorie As Integer = UtilitairesDgv.selectionneIndiceDvg(Tiers.getSousCategorieTiers(indTiersDetecte), dgvSousCategorie)
-        'dgvSousCategorie.Rows(idSousCategorie).Selected = True
-        'dgvSousCategorie.FirstDisplayedScrollingRowIndex = idSousCategorie
     End Sub
     Public Sub chargeListes()
         'Chargement des Tiers  
@@ -96,10 +90,6 @@ Public Class FrmSaisie
     Private Sub BtnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
         ' Récupérer tous les DataGridView du formulaire courant
         Dim grilles As IEnumerable(Of DataGridView) = Me.Controls.OfType(Of DataGridView)()
-
-        ' Si tu es dans un formulaire enfant et veux vérifier frmSaisie spécifiquement :
-        ' Dim frmSaisie As frmSaisie = DirectCast(Me, frmSaisie)
-        ' Dim grilles = frmSaisie.Controls.OfType(Of DataGridView)()
 
         Dim grilleSansSelection As New List(Of String)
 

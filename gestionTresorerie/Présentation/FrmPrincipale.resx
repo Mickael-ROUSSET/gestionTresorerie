@@ -255,13 +255,13 @@ SET IDENTITY_INSERT [dbo].[Mouvements] OFF
   <data name="OuvrirToolStripMenuItem.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFQSURBVDhPjZOxSgNBEIbvCcQnkLyA4CP4DtaCnYWNttpo
-        aWkZsYggqIVgJdFCxEjUwiAheBAkpwEvaELu1N2dcuUfs+dmL2uy8MPu3sy3/8zuBYEzhBBzSqlHIlpy
-        v40dg+R0Zbei78I3PTGEiApENC+lXFVK6dm1Ez21uD8ZREpZQhJUfohYx5UmAwxESrnp5mUDicXzBgcH
-        C3s5zSwfMhzu4HKgwhDAPg3rTi/Nyrip1fX7U1kncZhJfPUBLDEgbHf5pI2De052e9Br3erns/UhvV7v
-        cBw7MQ4AQe1Ym1swQFtwAAjm7AB2qo2IIbYLn2wA+hFgI7rc5g3A7FpHqdu8YgDm7MImjqrXp9bFVh6A
-        5riBPnXqp783YQCfH1Eu6D999+O/HmAjrh3lgnxqV4taCPFiHlKKZNTkBvqEXuFlMgA/CyDudY1TkiTT
-        yP8BD5eye8EvkUsAAAAASUVORK5CYII=
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFRSURBVDhPjZOxSgNBEIbvCcQnkLyA4CP4DtaCnYWNttpo
+        aWkZsYggqIVgJdFCxEjUwiAheBAkpwEvmITc6d3sliv/mD03e1mThR9292a+/Wd2z/OskabpghDiWUq5
+        Yn+bOIbJ8dp+RT34H2pqiJSyIKVcJKJ1IYSa3zhTM8uH00GIqIQkqPwUsE4rTQZoCBFt23nZQGLxssHB
+        3tJBTnOrxwyHO7gcqjACME/DutOPszLuanX1+VJWUehnSr8HAJYY4Ld7fNLW0SMn2z3ot+7V68XmiN5v
+        9ziOnWgHgKB2rPUtaKApOAAEc3YAO9VGwBDThUsmAP3wsBFc7/IGYGat49Rr3jAAc3ZhEsfV61LraicP
+        QHPsQJc69fPfm9CAr26QC/pPySD86wE2wtpJLsildrWokiR50w8pRjJqsgNdQq/wMhmAnwUQ+7omKYqi
+        WeT/AA38snh24PDbAAAAAElFTkSuQmCC
 </value>
   </data>
   <data name="EnregistrerToolStripMenuItem.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
@@ -293,12 +293,12 @@ SET IDENTITY_INSERT [dbo].[Mouvements] OFF
   <data name="CouperToolStripMenuItem.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAEtSURBVDhPfVI7boNAEPURcoQcIWegR0pJT509ABUNjdP4
-        LLS2UErTuaAndYiEI+0O5UZv5FnNLpgnjYB5781nl8NBwVr7RkR3xDzPL5LHu+Sh0Z4I1tovY4xv29Y7
-        52rJ4x05cNDELgUi8lmW+aIovEwh3ZEDB03qC7DWfpdlyUKZQrojBw6a1BcAcdd10RS6e9/30WqbQAfs
-        KlNI98f+z7sLnHPvwzCEKaQ7cuBS/SaI6NY0DRsRVVVhnVuqewqcNEa+XnuOPM/3Tx8gohNEEjCdzxcu
-        INen4rQyY0eYIJanDs1BGxWRjubD+Onnl+8b4mmaOPgWFLdaSf5ACO7zHz/xPY4jC7c4FF6W5TWa4Hj8
-        ZEFd16HLHqcnWJ2B7LnHhQJSRJ+0/mVTTpv/Abwu6nHfyND/AAAAAElFTkSuQmCC
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAEsSURBVDhPfVI7boQwEN0j5Ag5Qs5Aj5SSnjo+ABUNzabZ
+        s9BuhFIu3Rb0pA6R2Ah7KB29kcYaG8KTRsC89+ZjczopWGtfiOiBmOf5SfJ4lzw02hPBWvtpjPFt23rn
+        XC15vCMHDprYpUBEPssyXxSFlymkO3LgoEl9AcuyfJVlyUKZQrojBw6a1BcAcdd10RS6e9/30Wq7QAfs
+        KlNId+QOuwucc6/DMIQppDty4FL9Lojo3jQNGxFVVWGde6r7FzhpjHy79Rx5nh+fPkBEF4gkYLpeP7iA
+        XJ+Ky8aMHWGCWJ46NAdtVEQ6mjfjp+8fvm+Ip2ni4FtQ3GYl+QMheMy//MT3OI4s3ONQeF3X52iC8/md
+        BXVdhy5HnJ5gcway5xEXCkgRfdL6l005bf4DmR7qZaWl0doAAAAASUVORK5CYII=
 </value>
   </data>
   <data name="CopierToolStripMenuItem.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
