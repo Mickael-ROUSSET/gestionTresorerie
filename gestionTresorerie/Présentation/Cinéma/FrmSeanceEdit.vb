@@ -136,7 +136,7 @@ Public Class FrmSeanceEdit
         lblFilm.Name = "lblFilm"
         lblFilm.Size = New Size(30, 15)
         lblFilm.TabIndex = 9
-        lblFilm.Text = "Film"
+        lblFilm.Text = "TitreFilm"
         ' 
         ' lblDate
         ' 

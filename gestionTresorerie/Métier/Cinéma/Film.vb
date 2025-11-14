@@ -11,6 +11,49 @@ Public Class Film
     Public Property AgeMinimum As Integer?
     Public Property AfficheUrl As String
 
+    ' --- Constructeur principal ---
+    Public Sub New(titre As String,
+                   Optional dureeMinutes As Integer = 0,
+                   Optional genre As String = Nothing,
+                   Optional realisateur As String = Nothing,
+                   Optional dateSortie As Date? = Nothing,
+                   Optional synopsis As String = Nothing,
+                   Optional ageMinimum As Integer? = Nothing,
+                   Optional afficheUrl As String = Nothing)
+
+        ' ===== VALIDATIONS =====
+
+        If String.IsNullOrWhiteSpace(titre) Then
+            Throw New ArgumentException("Le titre du film est obligatoire.", NameOf(titre))
+        End If
+
+        If dureeMinutes < 0 Then
+            Throw New ArgumentException("La durée du film ne peut pas être négative.", NameOf(dureeMinutes))
+        End If
+
+        If ageMinimum.HasValue AndAlso ageMinimum.Value < 0 Then
+            Throw New ArgumentException("L'âge minimum ne peut pas être négatif.", NameOf(ageMinimum))
+        End If
+
+        If dateSortie.HasValue AndAlso dateSortie.Value = Date.MinValue Then
+            Throw New ArgumentException("La date de sortie fournie n'est pas valide.", NameOf(dateSortie))
+        End If
+
+        ' ===== AFFECTATIONS =====
+
+        Me.Titre = titre
+        Me.DureeMinutes = dureeMinutes
+        Me.Genre = genre
+        Me.Realisateur = realisateur
+        Me.DateSortie = dateSortie
+        Me.Synopsis = synopsis
+        Me.AgeMinimum = ageMinimum
+        Me.AfficheUrl = afficheUrl
+    End Sub
+
+    ' --- Constructeur vide (nécessaire pour EF / sérialisation) ---
+    Public Sub New()
+    End Sub
     ' ---------- CRUD ----------
     Public Shared Function GetAll() As List(Of Film)
         Dim result As New List(Of Film)
@@ -101,7 +144,7 @@ Public Class Film
                 Throw New Exception("Aucune ligne insérée : l’opération a échoué.")
             End If
 
-            Logger.INFO($"Film inséré : {film.Titre} ({film.DureeMinutes} min)")
+            Logger.INFO($"TitreFilm inséré : {film.Titre} ({film.DureeMinutes} min)")
         End Using
     End Sub
 

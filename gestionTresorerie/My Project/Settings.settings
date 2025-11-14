@@ -332,10 +332,10 @@
       <Value Profile="(Default)">INSERT INTO Films(Titre, DureeMinutes, Genre, Realisateur, DateSortie, Synopsis, AgeMinimum, AfficheUrl)VALUES(@Titre, @DureeMinutes, @Genre, @Realisateur, @DateSortie, @Synopsis, @AgeMinimum, @AfficheUrl);</Value>
     </Setting>
     <Setting Name="insertSeance" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">INSERT INTO Seances(IdFilm, DateHeureDebut, TarifBase, Langue, Format) VALUES (@IdFilm, @DateHeureDebut, @TarifBase, @Langue, @Format);</Value>
+      <Value Profile="(Default)">INSERT INTO Seances(IdFilm, DateHeureDebut, TarifBase, Langue, Format, NbEntreesAdultes, NbEntreesEnfants, NbEntreesGroupeEnfants) VALUES (@IdFilm, @DateHeureDebut, @TarifBase, @Langue, @Format, @NbEntreesAdultes, @NbEntreesEnfants, @NbEntreesGroupeEnfants);</Value>
     </Setting>
-    <Setting Name="selTousFilms" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">SELECT * FROM Films ORDER BY Titre</Value>
+    <Setting Name="selFilmParTitre" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT * FROM Films where Titre=@titre</Value>
     </Setting>
     <Setting Name="delFilm" Type="System.String" Scope="Application">
       <Value Profile="(Default)">DELETE FROM Films WHERE IdFilm=@Id</Value>

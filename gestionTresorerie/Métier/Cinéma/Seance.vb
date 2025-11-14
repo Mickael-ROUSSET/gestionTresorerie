@@ -7,7 +7,61 @@ Public Class Seance
     Public Property TarifBase As Decimal
     Public Property Langue As String
     Public Property Format As String
+    ' --- Les nouvelles propriétés demandées ---
+    Public Property NbEntreesAdultes As Integer
+    Public Property NbEntreesEnfants As Integer
+    Public Property NbEntreesGroupeEnfants As Integer
 
+    ' --- Constructeur principal ---
+    Public Sub New(idFilm As Integer,
+                   dateHeureDebut As Date,
+                   Optional tarifBase As Decimal = 0D,
+                   Optional langue As String = Nothing,
+                   Optional format As String = Nothing,
+                   Optional nbAdultes As Integer = 0,
+                   Optional nbEnfants As Integer = 0,
+                   Optional nbGroupeEnfants As Integer = 0)
+
+        ' ==== VALIDATIONS ====
+
+        If idFilm <= 0 Then
+            Throw New ArgumentException("IdFilm doit être un entier positif.", NameOf(idFilm))
+        End If
+
+        If dateHeureDebut.Date = Date.MinValue Then
+            Throw New ArgumentException("La date de début est obligatoire et doit être valide.", NameOf(dateHeureDebut))
+        End If
+
+        If tarifBase < 0 Then
+            Throw New ArgumentException("Le tarif de base ne peut pas être négatif.", NameOf(tarifBase))
+        End If
+
+        If nbAdultes < 0 Then
+            Throw New ArgumentException("NbEntreesAdultes ne peut pas être négatif.", NameOf(nbAdultes))
+        End If
+        If nbEnfants < 0 Then
+            Throw New ArgumentException("NbEntreesEnfants ne peut pas être négatif.", NameOf(nbEnfants))
+        End If
+        If nbGroupeEnfants < 0 Then
+            Throw New ArgumentException("NbEntreesGroupeEnfants ne peut pas être négatif.", NameOf(nbGroupeEnfants))
+        End If
+
+        ' ==== AFFECTATIONS ====
+        Me.IdFilm = idFilm
+        Me.DateHeureDebut = dateHeureDebut
+        Me.TarifBase = tarifBase
+        Me.Langue = langue
+        Me.Format = format
+
+        Me.NbEntreesAdultes = nbAdultes
+        Me.NbEntreesEnfants = nbEnfants
+        Me.NbEntreesGroupeEnfants = nbGroupeEnfants
+    End Sub
+
+
+    ' --- Constructeur vide si nécessaire par EF, Sérialisation, etc. ---
+    Public Sub New()
+    End Sub
     Public Shared Function GetByFilm(idFilm As Integer) As List(Of Seance)
         Dim result As New List(Of Seance)
         ' ✅ 2. Préparation des paramètres SQL
@@ -58,7 +112,9 @@ Public Class Seance
     '    End Using
     'End Sub
     Public Sub InsererSeance(seance As Seance)
-        ' ✅ 1. Validation des données
+
+        ' ==== VALIDATIONS ====
+
         If seance.IdFilm <= 0 Then
             Throw New ArgumentException("L'identifiant du film (IdFilm) doit être valide.")
         End If
@@ -68,33 +124,41 @@ Public Class Seance
         End If
 
         If seance.TarifBase < 0 Then
-            Throw New ArgumentException("Le tarif de base doit être supérieur ou égal à 0.")
+            Throw New ArgumentException("Le tarif de base doit être >= 0.")
         End If
 
-        ' (Optionnel) Si tu veux interdire les séances dans le passé :
-        If seance.DateHeureDebut < DateTime.Now Then
-            Logger.WARN($"Séance insérée dans le passé : {seance.DateHeureDebut}.")
+        If seance.NbEntreesAdultes < 0 OrElse
+           seance.NbEntreesEnfants < 0 OrElse
+           seance.NbEntreesGroupeEnfants < 0 Then
+
+            Throw New ArgumentException("Les nombres d’entrées ne peuvent pas être négatifs.")
         End If
 
-        ' ✅ 2. Préparation des paramètres SQL
+        ' ==== PRÉPARATION PARAMÈTRES SQL ====
+
         Dim parametres As New Dictionary(Of String, Object) From {
-        {"@IdFilm", seance.IdFilm},
-        {"@DateHeureDebut", seance.DateHeureDebut},
-        {"@TarifBase", seance.TarifBase},
-        {"@Langue", If(seance.Langue, DBNull.Value)},
-        {"@Format", If(seance.Format, DBNull.Value)}
-    }
+            {"@IdFilm", seance.IdFilm},
+            {"@DateHeureDebut", seance.DateHeureDebut},
+            {"@TarifBase", seance.TarifBase},
+            {"@Langue", If(seance.Langue, DBNull.Value)},
+            {"@Format", If(seance.Format, DBNull.Value)},
+            {"@NbEntreesAdultes", seance.NbEntreesAdultes},
+            {"@NbEntreesEnfants", seance.NbEntreesEnfants},
+            {"@NbEntreesGroupeEnfants", seance.NbEntreesGroupeEnfants}
+        }
 
-        ' ✅ 3. Exécution avec SqlCommandBuilder
+        ' ==== EXÉCUTION ====
+
         Using cmd = SqlCommandBuilder.CreateSqlCommand("insertSeance", parametres)
-            Dim lignesAffectees = cmd.ExecuteNonQuery()
+            Dim lignes = cmd.ExecuteNonQuery()
 
-            If lignesAffectees = 0 Then
-                Throw New Exception("Aucune ligne insérée dans Seances : l’opération a échoué.")
+            If lignes = 0 Then
+                Throw New Exception("Aucune ligne insérée dans Seances.")
             End If
 
-            Logger.INFO($"Séance insérée pour le film #{seance.IdFilm} - {seance.DateHeureDebut:dd/MM/yyyy HH:mm}")
+            Logger.INFO($"Séance insérée : film #{seance.IdFilm}, {seance.DateHeureDebut:dd/MM/yyyy HH:mm}")
         End Using
+
     End Sub
 
     Public Sub Delete()

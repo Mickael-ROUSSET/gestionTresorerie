@@ -1076,8 +1076,10 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO Seances(IdFilm, DateHeureDebut, TarifBase, Langue, Format) VALUES (@I"& _ 
-            "dFilm, @DateHeureDebut, @TarifBase, @Langue, @Format);")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO Seances(IdFilm, DateHeureDebut, TarifBase, Langue, Format, NbEntreesA"& _ 
+            "dultes, NbEntreesEnfants, NbEntreesGroupeEnfants) VALUES (@IdFilm, @DateHeureDeb"& _ 
+            "ut, @TarifBase, @Langue, @Format, @NbEntreesAdultes, @NbEntreesEnfants, @NbEntre"& _ 
+            "esGroupeEnfants);")>  _
         Public ReadOnly Property insertSeance() As String
             Get
                 Return CType(Me("insertSeance"),String)
@@ -1086,10 +1088,10 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT * FROM Films ORDER BY Titre")>  _
-        Public ReadOnly Property selTousFilms() As String
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT * FROM Films where Titre=@titre")>  _
+        Public ReadOnly Property selFilmParTitre() As String
             Get
-                Return CType(Me("selTousFilms"),String)
+                Return CType(Me("selFilmParTitre"),String)
             End Get
         End Property
         
