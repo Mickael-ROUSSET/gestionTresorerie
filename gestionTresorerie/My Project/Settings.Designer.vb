@@ -160,9 +160,9 @@ Namespace My
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf")>  _
-        Public ReadOnly Property AttachDbFilenameTest() As String
+        Public ReadOnly Property bddAgumaaaTest() As String
             Get
-                Return CType(Me("AttachDbFilenameTest"),String)
+                Return CType(Me("bddAgumaaaTest"),String)
             End Get
         End Property
         
@@ -659,9 +659,9 @@ Namespace My
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\Documents\Agumaaa\Trésorerie\bddAgumaaaProd2.mdf")>  _
-        Public ReadOnly Property AttachDbFilenameProd() As String
+        Public ReadOnly Property bddAgumaaaProd() As String
             Get
-                Return CType(Me("AttachDbFilenameProd"),String)
+                Return CType(Me("bddAgumaaaProd"),String)
             End Get
         End Property
         
@@ -1066,8 +1066,9 @@ Namespace My
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO Films(Titre, DureeMinutes, Genre, Realisateur, DateSortie, Synopsis, "& _ 
-            "AgeMinimum, AfficheUrl)VALUES(@Titre, @DureeMinutes, @Genre, @Realisateur, @Date"& _ 
-            "Sortie, @Synopsis, @AgeMinimum, @AfficheUrl);")>  _
+            "AgeMinimum, AfficheUrl) VALUES (@Titre, @DureeMinutes, @Genre, @Realisateur, @Da"& _ 
+            "teSortie, @Synopsis, @AgeMinimum, @AfficheUrl);SELECT CAST(SCOPE_IDENTITY() AS I"& _ 
+            "NT);")>  _
         Public ReadOnly Property insertFilm() As String
             Get
                 Return CType(Me("insertFilm"),String)
@@ -1120,6 +1121,81 @@ Namespace My
             Get
                 Return CType(Me("selSeanceIdFilm"),String)
             End Get
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\OneDrive\Documents\CinemaDB.mdf")>  _
+        Public Property cinemaDBProd() As String
+            Get
+                Return CType(Me("cinemaDBProd"),String)
+            End Get
+            Set
+                Me("cinemaDBProd") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\OneDrive\Documents\CinemaDBTest.mdf")>  _
+        Public Property cinemaDBTest() As String
+            Get
+                Return CType(Me("cinemaDBTest"),String)
+            End Get
+            Set
+                Me("cinemaDBTest") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT TOP 10 * FROM vStatsParFilm ORDER BY CA_Total DESC;")>  _
+        Public ReadOnly Property sel10Stat() As String
+            Get
+                Return CType(Me("sel10Stat"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT * FROM vStatsParFilm;")>  _
+        Public ReadOnly Property selStatsParFilm() As String
+            Get
+                Return CType(Me("selStatsParFilm"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT * FROM vStatsParMois;")>  _
+        Public ReadOnly Property selStatsParMois() As String
+            Get
+                Return CType(Me("selStatsParMois"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT * FROM vStatistiquesSeances;")>  _
+        Public Property selSeancesAvecFilm() As String
+            Get
+                Return CType(Me("selSeancesAvecFilm"),String)
+            End Get
+            Set
+                Me("selSeancesAvecFilm") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("select * from tarifs;")>  _
+        Public Property selTarifsValides() As String
+            Get
+                Return CType(Me("selTarifsValides"),String)
+            End Get
+            Set
+                Me("selTarifsValides") = value
+            End Set
         End Property
     End Class
 End Namespace

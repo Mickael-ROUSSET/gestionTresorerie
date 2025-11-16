@@ -166,7 +166,7 @@ Public Class FrmSelectionneDocument
 
         Try
             Using readerDocuments As SqlDataReader =
-            SqlCommandBuilder.CreateSqlCommand(nomRequete, parametres).ExecuteReader()
+            SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, nomRequete, parametres).ExecuteReader()
 
                 While readerDocuments.Read()
                     Try
@@ -431,7 +431,7 @@ Public Class FrmSelectionneDocument
     Private Sub majCheminDoc(nouveauChemin As String, idDoc As Integer)
         ' 🧠 Mise à jour de la base via CreateSqlCommand
         Dim cmd As SqlCommand =
-                SqlCommandBuilder.CreateSqlCommand("updCheminDoc",
+                SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "updCheminDoc",
                                                    New Dictionary(Of String, Object) From {{"@cheminDoc", nouveauChemin},
                                                                                           {"@idDoc", idDoc}
                                                    })
@@ -468,7 +468,7 @@ Public Class FrmSelectionneDocument
 
             ' 🧠 Mise à jour de la base via CreateSqlCommand
             Dim cmd As SqlCommand =
-                SqlCommandBuilder.CreateSqlCommand("updateDocumentMetaDonnees",
+                SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "updateDocumentMetaDonnees",
                                                     New Dictionary(Of String, Object) From {
                                                         {"@idDocument", currentDocId},
                                                         {"@metaDonnees", nouveauJson}
@@ -651,7 +651,7 @@ Public Class FrmSelectionneDocument
         '    SqlCommandBuilder.CreateSqlCommand("cptDocPagination",
         '                     New Dictionary(Of String, Object) From {{"@whereClause", sWhereClause}}).ExecuteScalar()
         Dim nbDoc As Integer =
-            SqlCommandBuilder.CreateSqlCommand("cptDocPagination").ExecuteScalar()
+            SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "cptDocPagination").ExecuteScalar()
         Return CInt(nbDoc)
     End Function
     'Private Shared Function GetDocumentsPagines(sWhereClause As String, sOffset As Integer, sTaillePage As Integer, sColonneTri As String, sOrdreTri As String) As SqlDataReader
@@ -666,7 +666,7 @@ Public Class FrmSelectionneDocument
         '                                                        }
         '                 )
         Dim cmd As SqlCommand =
-            SqlCommandBuilder.CreateSqlCommand("selDocPagination",
+            SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "selDocPagination",
                              New Dictionary(Of String, Object) From {{"@Offset", sOffset},
                                                                      {"@TaillePage", sTaillePage},
                                                                      {"@ColonneTri", sColonneTri},

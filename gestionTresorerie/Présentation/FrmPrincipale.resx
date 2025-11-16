@@ -256,12 +256,12 @@ SET IDENTITY_INSERT [dbo].[Mouvements] OFF
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
         YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFRSURBVDhPjZOxSgNBEIbvCcQnkLyA4CP4DtaCnYWNttpo
-        aWkZsYggqIVgJdFCxEjUwiAheBAkpwEvmITc6d3sliv/mD03e1mThR9292a+/Wd2z/OskabpghDiWUq5
+        aWkZsYggqIVgJdFCxEjUwiAheBAkpwEvmITced7sliv/mD03e1mThR9292a+/Wd2z/OskabpghDiWUq5
         Yn+bOIbJ8dp+RT34H2pqiJSyIKVcJKJ1IYSa3zhTM8uH00GIqIQkqPwUsE4rTQZoCBFt23nZQGLxssHB
-        3tJBTnOrxwyHO7gcqjACME/DutOPszLuanX1+VJWUehnSr8HAJYY4Ld7fNLW0SMn2z3ot+7V68XmiN5v
-        9ziOnWgHgKB2rPUtaKApOAAEc3YAO9VGwBDThUsmAP3wsBFc7/IGYGat49Rr3jAAc3ZhEsfV61LraicP
-        QHPsQJc69fPfm9CAr26QC/pPySD86wE2wtpJLsildrWokiR50w8pRjJqsgNdQq/wMhmAnwUQ+7omKYqi
-        WeT/AA38snh24PDbAAAAAElFTkSuQmCC
+        3tJBTnOrxwyHO7gcqjACME/DutOPszLuanX1+VJWUehnSpMBgCUG+O0en7R19MjJdg/6rXv1erE5ovfb
+        PY5jJ9oBIKgda30LGmgKDgDBnB3ATrURMMR04ZIJQD88bATXu7wBmFnrOPWaNwzAnF2YxHH1utS62skD
+        0Bw70KVO/fz3JjTgqxvkgv7T9yD86wE2wtpJLsildrWokiR50w8pRjJqsgNdQq/wMhmAnwUQ+7omKYqi
+        WeT/AAxhsnVSJ9X+AAAAAElFTkSuQmCC
 </value>
   </data>
   <data name="EnregistrerToolStripMenuItem.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
@@ -294,11 +294,11 @@ SET IDENTITY_INSERT [dbo].[Mouvements] OFF
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
         YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAEsSURBVDhPfVI7boQwEN0j5Ag5Qs5Aj5SSnjo+ABUNzabZ
-        s9BuhFIu3Rb0pA6R2Ah7KB29kcYaG8KTRsC89+ZjczopWGtfiOiBmOf5SfJ4lzw02hPBWvtpjPFt23rn
+        s9BuhFIu3Rb0pA6R2CB7KB29kcYaG8KTRsC89+ZjczopWGtfiOiBmOf5SfJ4lzw02hPBWvtpjPFt23rn
         XC15vCMHDprYpUBEPssyXxSFlymkO3LgoEl9AcuyfJVlyUKZQrojBw6a1BcAcdd10RS6e9/30Wq7QAfs
         KlNId+QOuwucc6/DMIQppDty4FL9Lojo3jQNGxFVVWGde6r7FzhpjHy79Rx5nh+fPkBEF4gkYLpeP7iA
         XJ+Ky8aMHWGCWJ46NAdtVEQ6mjfjp+8fvm+Ip2ni4FtQ3GYl+QMheMy//MT3OI4s3ONQeF3X52iC8/md
-        BXVdhy5HnJ5gcway5xEXCkgRfdL6l005bf4DmR7qZaWl0doAAAAASUVORK5CYII=
+        BXVdhy5HnJ5gcway5xEXCkgRfdL6l005bf4Ddg7qWVp1cmIAAAAASUVORK5CYII=
 </value>
   </data>
   <data name="CopierToolStripMenuItem.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">

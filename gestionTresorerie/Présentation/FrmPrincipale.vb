@@ -63,7 +63,7 @@ Public Class FrmPrincipale
     Private Sub ChargerDgvPrincipale()
         Try
             ' Créer une commande SQL 
-            Dim cmd = SqlCommandBuilder.CreateSqlCommand("sqlSelectMouvementsLibelles")
+            Dim cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "sqlSelectMouvementsLibelles")
             ' Créer un DataAdapter pour remplir le DataTable
             Using adapter As New SqlDataAdapter(cmd)
                 ' Créer un DataTable pour stocker les données
@@ -110,7 +110,7 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub FrmMain_Closing(sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
-        ConnexionDB.GetInstance.Dispose()
+        ConnexionDB.GetInstance(Constantes.bddAgumaaa).Dispose()
     End Sub
     Private Sub BtnSaisie_Click(sender As Object, e As EventArgs) Handles btnSaisie.Click
         FrmSaisie.Show()
@@ -259,6 +259,23 @@ Public Class FrmPrincipale
         Dim menu = DirectCast(sender, ToolStripMenuItem)
         Dim force = menu.Name = "RecréerToolStripMenuItem" ' ou menu.Tag=True
         Await ExecuterCreationAgentMistral(True)
+    End Sub
+
+    Private Sub ChargerFichierToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ChargerFichierToolStripMenuItem.Click
+        'Chargement de la base à partir du fichier Excel des entrées cinéma
+        'Les fichiers annuels se trouvent dans G:\Mon Drive\AGUMAAA\Documents\Cinéma\Entrées
+        Dim entreeCinema As New EntreeCinema
+        entreeCinema.ImporterEntreesDepuisExcel()
+    End Sub
+
+    Private Sub GénérerStatsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles GénérerStatsToolStripMenuItem.Click
+        'StatistiquesHelper.GetStatsParFilm()
+        Dim listeFilms As New List(Of StatFilm)
+        listeFilms = StatsCinema.GetStatsParFilm()
+        StatsCinema.GenererGraphiqueCAParMois()
+        StatsCinema.GenererGraphiqueCAParFilm(listeFilms)
+        StatsCinema.GenererGraphiqueCAParPublic(listeFilms)
+        frmStatsCinema.Show()
     End Sub
 
     'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click

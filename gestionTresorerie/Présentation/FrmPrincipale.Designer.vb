@@ -69,6 +69,9 @@ Partial Class FrmPrincipale
         ChangeMdPToolStripMenuItem = New ToolStripMenuItem()
         BatchToolStripMenuItem = New ToolStripMenuItem()
         AnalyseDocumentsToolStripMenuItem = New ToolStripMenuItem()
+        CinémaToolStripMenuItem = New ToolStripMenuItem()
+        ChargerFichierToolStripMenuItem = New ToolStripMenuItem()
+        GénérerStatsToolStripMenuItem = New ToolStripMenuItem()
         ParamètresTechniquesToolStripMenuItem = New ToolStripMenuItem()
         EnvironnementToolStripMenuItem = New ToolStripMenuItem()
         AgentMistralToolStripMenuItem = New ToolStripMenuItem()
@@ -288,7 +291,7 @@ Partial Class FrmPrincipale
         ' MenuStrip1
         ' 
         MenuStrip1.GripStyle = ToolStripGripStyle.Visible
-        MenuStrip1.Items.AddRange(New ToolStripItem() {FichierToolStripMenuItem, AnalyseToolStripMenuItem, GestionBDDToolStripMenuItem, GestionUtilisateurToolStripMenuItem, BatchToolStripMenuItem, ParamètresTechniquesToolStripMenuItem, ParamètresToolStripMenuItem1, FichierToolStripMenuItem1, ModifierToolStripMenuItem, OutilsToolStripMenuItem, AideToolStripMenuItem})
+        MenuStrip1.Items.AddRange(New ToolStripItem() {FichierToolStripMenuItem, AnalyseToolStripMenuItem, GestionBDDToolStripMenuItem, GestionUtilisateurToolStripMenuItem, BatchToolStripMenuItem, CinémaToolStripMenuItem, ParamètresTechniquesToolStripMenuItem, ParamètresToolStripMenuItem1, FichierToolStripMenuItem1, ModifierToolStripMenuItem, OutilsToolStripMenuItem, AideToolStripMenuItem})
         MenuStrip1.Location = New Point(0, 0)
         MenuStrip1.Name = "MenuStrip1"
         MenuStrip1.RenderMode = ToolStripRenderMode.System
@@ -414,6 +417,25 @@ Partial Class FrmPrincipale
         AnalyseDocumentsToolStripMenuItem.Name = "AnalyseDocumentsToolStripMenuItem"
         AnalyseDocumentsToolStripMenuItem.Size = New Size(178, 22)
         AnalyseDocumentsToolStripMenuItem.Text = "Analyse documents"
+        ' 
+        ' CinémaToolStripMenuItem
+        ' 
+        CinémaToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ChargerFichierToolStripMenuItem, GénérerStatsToolStripMenuItem})
+        CinémaToolStripMenuItem.Name = "CinémaToolStripMenuItem"
+        CinémaToolStripMenuItem.Size = New Size(60, 20)
+        CinémaToolStripMenuItem.Text = "Cinéma"
+        ' 
+        ' ChargerFichierToolStripMenuItem
+        ' 
+        ChargerFichierToolStripMenuItem.Name = "ChargerFichierToolStripMenuItem"
+        ChargerFichierToolStripMenuItem.Size = New Size(180, 22)
+        ChargerFichierToolStripMenuItem.Text = "Charger fichier..."
+        ' 
+        ' GénérerStatsToolStripMenuItem
+        ' 
+        GénérerStatsToolStripMenuItem.Name = "GénérerStatsToolStripMenuItem"
+        GénérerStatsToolStripMenuItem.Size = New Size(180, 22)
+        GénérerStatsToolStripMenuItem.Text = "Générer stats..."
         ' 
         ' ParamètresTechniquesToolStripMenuItem
         ' 
@@ -792,4 +814,7 @@ Partial Class FrmPrincipale
     Friend WithEvents toolStripSeparator5 As ToolStripSeparator
     Friend WithEvents ÀproposdeToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents pgBar As ProgressBar
+    Friend WithEvents CinémaToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ChargerFichierToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents GénérerStatsToolStripMenuItem As ToolStripMenuItem
 End Class

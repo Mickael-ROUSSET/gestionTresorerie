@@ -6,7 +6,7 @@ Public Class UtilitairesDgv
     Public Function ExecuterRequete(query As String, Optional parameters As Dictionary(Of String, Object) = Nothing) As DataTable Implements IDataService.ExecuterRequete
         Dim dt As New DataTable
         Try
-            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand(query, parameters)
+            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, query, parameters)
             Using adpt As New SqlDataAdapter(command)
                 Dim unused = adpt.Fill(dt)
             End Using

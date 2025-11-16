@@ -1,62 +1,63 @@
-﻿Imports System.Data.SqlClient
-
-Public Class Tarif
+﻿Public Class Tarif
     Public Property IdTarif As Integer
     Public Property NomTarif As String
     Public Property ReductionPourcent As Decimal
+    Public Property Montant As Decimal
     Public Property Conditions As String
+    Public Property DateDebutValidite As Date
+    Public Property DateFinValidite As Date?
 
-    Public Shared Function GetAll() As List(Of Tarif)
-        Dim result As New List(Of Tarif)
-        Using cn = GetConnection()
-            cn.Open()
-            Using cmd As New SqlCommand("SELECT * FROM Tarifs ORDER BY NomTarif", cn)
-                Using rdr = cmd.ExecuteReader()
-                    While rdr.Read()
-                        result.Add(New Tarif With {
-                            .IdTarif = rdr("IdTarif"),
-                            .NomTarif = rdr("NomTarif").ToString(),
-                            .ReductionPourcent = rdr("ReductionPourcent"),
-                            .Conditions = rdr("Conditions").ToString()
-                        })
-                    End While
-                End Using
-            End Using
-        End Using
-        Return result
-    End Function
+    Public Sub New()
+        ' Valeurs par défaut
+        DateDebutValidite = New Date(1901, 1, 1)
+    End Sub
 
-    Public Sub Save()
-        Using cn = GetConnection()
-            cn.Open()
-            Dim sql As String = If(IdTarif = 0,
-                "INSERT INTO Tarifs (NomTarif, ReductionPourcent, Conditions)
-                 VALUES (@Nom, @Reduc, @Cond); SELECT SCOPE_IDENTITY();",
-                "UPDATE Tarifs SET NomTarif=@Nom, ReductionPourcent=@Reduc, Conditions=@Cond WHERE IdTarif=@Id")
+    Public Sub New(nom As String,
+                   montant As Decimal,
+                   Optional reduction As Decimal = 0,
+                   Optional conditions As String = Nothing,
+                   Optional debut As Date = Nothing,
+                   Optional fin As Date? = Nothing)
 
-            Using cmd As New SqlCommand(sql, cn)
-                cmd.Parameters.AddWithValue("@Id", IdTarif)
-                cmd.Parameters.AddWithValue("@Nom", NomTarif)
-                cmd.Parameters.AddWithValue("@Reduc", ReductionPourcent)
-                cmd.Parameters.AddWithValue("@Cond", Conditions)
+        If String.IsNullOrWhiteSpace(nom) Then
+            Throw New ArgumentException("Le nom du tarif est obligatoire.", NameOf(nom))
+        End If
+        If montant < 0 Then
+            Throw New ArgumentException("Le montant doit être positif.", NameOf(montant))
+        End If
+        If reduction < 0 OrElse reduction > 100 Then
+            Throw New ArgumentException("La réduction doit être comprise entre 0 et 100.", NameOf(reduction))
+        End If
 
-                If IdTarif = 0 Then
-                    IdTarif = Convert.ToInt32(cmd.ExecuteScalar())
-                Else
-                    cmd.ExecuteNonQuery()
+        Me.NomTarif = nom
+        Me.Montant = montant
+        Me.ReductionPourcent = reduction
+        Me.Conditions = conditions
+        Me.DateDebutValidite = If(debut = Nothing, New Date(1901, 1, 1), debut)
+        Me.DateFinValidite = fin
+    End Sub
+    Public Shared Function GetTarifActif(nomTarif As String, dateRef As Date) As Tarif
+        Dim param As New Dictionary(Of String, Object) From {
+        {"@NomTarif", nomTarif},
+        {"@DateCible", dateRef.Date}
+    }
+
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "selTarifActifAdate", param)
+            Using rdr = cmd.ExecuteReader()
+                If rdr.Read() Then
+                    Return New Tarif With {
+                    .IdTarif = rdr("IdTarif"),
+                    .NomTarif = rdr("NomTarif"),
+                    .ReductionPourcent = rdr("ReductionPourcent"),
+                    .Montant = rdr("Montant"),
+                    .Conditions = rdr("Conditions").ToString(),
+                    .DateDebutValidite = rdr("DateDebutValidite"),
+                    .DateFinValidite = If(IsDBNull(rdr("DateFinValidite")), Nothing, rdr("DateFinValidite"))
+                }
                 End If
             End Using
         End Using
-    End Sub
 
-    Public Sub Delete()
-        If IdTarif = 0 Then Exit Sub
-        Using cn = GetConnection()
-            cn.Open()
-            Using cmd As New SqlCommand("DELETE FROM Tarifs WHERE IdTarif=@Id", cn)
-                cmd.Parameters.AddWithValue("@Id", IdTarif)
-                cmd.ExecuteNonQuery()
-            End Using
-        End Using
-    End Sub
+        Return Nothing
+    End Function
 End Class

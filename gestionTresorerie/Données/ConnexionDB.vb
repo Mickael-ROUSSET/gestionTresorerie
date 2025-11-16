@@ -1,131 +1,157 @@
 ﻿Imports System.Data.SqlClient
 Imports System.IO
 
-' Classe permettant de se connecter à une base de donnée SQLSERVER 
-
+''' <summary>
+''' Classe singleton thread-safe pour gérer les connexions SQL Server.
+''' </summary>
 Public Class ConnexionDB
     Implements IDisposable
-    Public _maConnexion As SqlConnection
-    Public _maCommandeSql As New SqlCommand()
-    Private Shared _instance As ConnexionDB
-    Private disposed As Boolean = False ' Pour détecter les appels redondants
 
-    ' Méthode publique pour accéder à l'instance unique
-    Public Shared Function GetInstance() As ConnexionDB
-        If _instance Is Nothing Then
-            _instance = New ConnexionDB()
-        End If
-        Return _instance
+    Private _connexionBddAgumaaa As SqlConnection
+    Private _connexionCinema As SqlConnection
+    Private disposedValue As Boolean
+
+    ' Locks pour le thread-safe
+    Private Shared ReadOnly _lockBddAgumaaa As New Object()
+    Private Shared ReadOnly _lockCinema As New Object()
+
+    ' Singleton par base
+    Private Shared _instanceBddAgumaaa As ConnexionDB
+    Private Shared _instanceCinema As ConnexionDB
+
+    ' Accès aux instances singleton
+    Public Shared Function GetInstance(sBase As String) As ConnexionDB
+        Select Case sBase
+            Case Constantes.bddAgumaaa
+                If _instanceBddAgumaaa Is Nothing Then
+                    SyncLock _lockBddAgumaaa
+                        If _instanceBddAgumaaa Is Nothing Then
+                            _instanceBddAgumaaa = New ConnexionDB()
+                        End If
+                    End SyncLock
+                End If
+                Return _instanceBddAgumaaa
+            Case Constantes.cinemaDB
+                If _instanceCinema Is Nothing Then
+                    SyncLock _lockCinema
+                        If _instanceCinema Is Nothing Then
+                            _instanceCinema = New ConnexionDB()
+                        End If
+                    End SyncLock
+                End If
+                Return _instanceCinema
+            Case Else
+                Throw New ArgumentException($"Base inconnue : {sBase}")
+        End Select
     End Function
-    Public Function getConnexion() As SqlConnection
-        'Crée la connexion si elle n'existe pas, sinon renvoie celle existante 
+
+    ''' <summary>
+    ''' Renvoie la connexion SQL pour la base demandée
+    ''' </summary>
+    Public Function GetConnexion(sBase As String) As SqlConnection
         Try
-            ' Vérifie si Google Drive (ou le dossier attendu) est accessible
-            ' (exemple : on vérifie la présence d’un répertoire monté ou d’un fichier test) 
+            ' Vérifie l'accès au dossier racine
             If Not Directory.Exists(LectureProprietes.GetVariable("repRacineAgumaaa")) Then
-                Throw New IOException("Google Drive n'est pas accessible ou non monté sur ce poste.")
+                Throw New IOException("Le stockage Google Drive n'est pas accessible.")
             End If
 
-            ' Vérifie si la connexion existe et est ouverte
-            If _maConnexion Is Nothing OrElse _maConnexion.State = ConnectionState.Closed Then
-                creeConnexion(LectureProprietes.connexionString)
-            End If
-            Return _maConnexion
+            Select Case sBase
+                Case Constantes.bddAgumaaa
+                    SyncLock _lockBddAgumaaa
+                        If _connexionBddAgumaaa Is Nothing OrElse _connexionBddAgumaaa.State = ConnectionState.Closed Then
+                            _connexionBddAgumaaa = CreeConnexion(LectureProprietes.connexionString(sBase))
+                        End If
+                        Return _connexionBddAgumaaa
+                    End SyncLock
+                Case Constantes.cinemaDB
+                    SyncLock _lockCinema
+                        If _connexionCinema Is Nothing OrElse _connexionCinema.State = ConnectionState.Closed Then
+                            _connexionCinema = CreeConnexion(LectureProprietes.connexionString(sBase))
+                        End If
+                        Return _connexionCinema
+                    End SyncLock
+                Case Else
+                    Throw New ArgumentException($"Base inconnue : {sBase}")
+            End Select
 
-        Catch sqlEx As SqlException
-            ' Gestion spécifique des erreu{rs SQL
-            Logger.ERR($"Erreur SQL : {sqlEx.Message}")
-            Dim unused2 = MessageBox.Show("Impossible de se connecter à la base de données." & vbCrLf &
-                        "Vérifiez vos paramètres de connexion.", "Erreur de connexion SQL",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Return Nothing
-
-        Catch ioEx As IOException
-            ' Gestion spécifique pour Google Drive ou accès fichiers
-            Logger.ERR($"Erreur d’accès Drive : {ioEx.Message}")
-            Dim unused1 = MessageBox.Show("Le stockage Google Drive semble inactif ou inaccessible." & vbCrLf &
-                        "Veuillez vérifier votre connexion Internet ou le client Drive.",
-                        "Erreur Google Drive", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-            Return Nothing
-
-        Catch ex As Exception
-            ' Gestion générique de toute autre erreur
-            Logger.ERR($"Erreur inattendue : {ex.Message}")
-            Dim unused = MessageBox.Show("Une erreur inattendue est survenue : " & ex.Message,
-                        "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Return Nothing
-        End Try
-    End Function
-
-
-    Public Sub creeConnexion(connexionString As String)
-        Dim connexionOuverte As Boolean
-        Try
-            ' Crée la connexion si elle n'existe pas, sinon renvoie celle existante
-            If _maConnexion Is Nothing Then
-                _maConnexion = New SqlConnection(connexionString)
-                _maConnexion.Open()
-                connexionOuverte = True
-                Logger.INFO("Connexion à la base : " & connexionString)
-            End If
         Catch ex As SqlException
-            ' Gère les erreurs de connexion SQL
-            Dim unused1 = MsgBox("creeConnexion : erreur SQL : " & ex.Message)
-            Logger.ERR(ex.Message)
-            End
+            Logger.ERR($"Erreur SQL : {ex.Message}")
+            MessageBox.Show("Impossible de se connecter à la base de données.", "Erreur SQL",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Return Nothing
+        Catch ex As IOException
+            Logger.ERR($"Erreur d'accès Drive : {ex.Message}")
+            MessageBox.Show("Le stockage Google Drive semble inactif ou inaccessible.", "Erreur Drive",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return Nothing
         Catch ex As Exception
-            ' Gère toutes les autres erreurs
-            Dim unused = MsgBox("Erreur : " & ex.Message)
-            Logger.ERR(ex.Message)
-            End
+            Logger.ERR($"Erreur inattendue : {ex.Message}")
+            MessageBox.Show("Une erreur inattendue est survenue : " & ex.Message, "Erreur",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Return Nothing
         End Try
-    End Sub
-
-
-    Public Function getRequete(indiceRequete As Integer) As String
-        Return My.Settings.Requetes.Item(indiceRequete)
     End Function
-    Public Sub setRequete(sRequete As String)
-        Dim unused = My.Settings.Requetes.Add(sRequete)
-        Logger.INFO("Requête : " & sRequete & " ajoutée")
-    End Sub
-    Private Sub SuprimeConnexion()
-        'Close the reader and the database connection. 
-        _maConnexion.Close()
-        Logger.INFO("Connexion : " & _maConnexion.ConnectionString & " fermée")
+
+    ''' <summary>
+    ''' Crée et ouvre une connexion SQL
+    ''' </summary>
+    Private Function CreeConnexion(connexionString As String) As SqlConnection
+        Dim cn As New SqlConnection(connexionString)
+        cn.Open()
+        Logger.INFO($"Connexion ouverte : {connexionString}")
+        Return cn
+    End Function
+
+    ''' <summary>
+    ''' Ferme la connexion pour la base spécifiée
+    ''' </summary>
+    Public Sub FermerConnexion(sBase As String)
+        Select Case sBase
+            Case Constantes.bddAgumaaa
+                SyncLock _lockBddAgumaaa
+                    FermerConnexion(_connexionBddAgumaaa)
+                    _connexionBddAgumaaa = Nothing
+                End SyncLock
+            Case Constantes.cinemaDB
+                SyncLock _lockCinema
+                    FermerConnexion(_connexionCinema)
+                    _connexionCinema = Nothing
+                End SyncLock
+        End Select
     End Sub
 
-    ' Destructeur
-    Protected Overrides Sub Finalize()
-        Dispose(False)
-        MyBase.Finalize()
+    Private Sub FermerConnexion(ByRef cn As SqlConnection)
+        If cn IsNot Nothing Then
+            Try
+                If cn.State = ConnectionState.Open Then cn.Close()
+                cn.Dispose()
+                Logger.INFO("Connexion fermée.")
+            Catch ex As Exception
+                Logger.ERR($"Erreur à la fermeture de connexion : {ex.Message}")
+            End Try
+        End If
     End Sub
 
-    ' Implémentation de IDisposable
+#Region "IDisposable Support"
+    Protected Overridable Sub Dispose(disposing As Boolean)
+        If Not disposedValue Then
+            If disposing Then
+                FermerConnexion(_connexionBddAgumaaa)
+                FermerConnexion(_connexionCinema)
+            End If
+            disposedValue = True
+        End If
+    End Sub
+
     Public Sub Dispose() Implements IDisposable.Dispose
         Dispose(True)
         GC.SuppressFinalize(Me)
     End Sub
-    Protected Overridable Sub Dispose(disposing As Boolean)
-        If Not disposed Then
-            If disposing Then
-                ' Libérer les ressources managées ici.
-                If _maConnexion IsNot Nothing Then
-                    If _maConnexion.State = ConnectionState.Open Then
-                        _maConnexion.Close()
-                    End If
-                    _maConnexion.Dispose()
-                    _maConnexion = Nothing
-                End If
-                If _maCommandeSql IsNot Nothing Then
-                    _maCommandeSql.Dispose()
-                    _maCommandeSql = Nothing
-                End If
-                ' Libérer d'autres ressources managées ici si nécessaire.
-            End If
 
-            ' Libérer les ressources non managées ici (si vous en avez).
-            disposed = True
-        End If
+    Protected Overrides Sub Finalize()
+        Dispose(False)
+        MyBase.Finalize()
     End Sub
+#End Region
+
 End Class

@@ -7,11 +7,11 @@ Public Class SqlCommandBuilder
     End Sub
 
     ' Méthode pour créer et renvoyer un SqlCommand
-    Public Shared Function CreateSqlCommand(query As String, Optional parameters As Dictionary(Of String, Object) = Nothing) As SqlCommand
+    Public Shared Function CreateSqlCommand(sBase As String, query As String, Optional parameters As Dictionary(Of String, Object) = Nothing) As SqlCommand
         Try
             ' Associer la connexion à la commande
             Dim command As New SqlCommand(LectureProprietes.GetVariable(query)) With {
-                .Connection = ConnexionDB.GetInstance.getConnexion
+                .Connection = ConnexionDB.GetInstance(sBase).getConnexion(sBase)
             }
             ' Ajouter les paramètres à la commande si fournis
             If parameters IsNot Nothing Then
@@ -37,10 +37,10 @@ Public Class SqlCommandBuilder
     ''' <param name="parametres">Dictionnaire de paramètres nommés</param>
     ''' <returns>Liste d'objets de type T</returns>
     ' 🔹 Exécute une requête et renvoie un DataTable
-    Public Shared Function ExecuteDataTable(nomRequete As String, Optional params As Dictionary(Of String, Object) = Nothing) As DataTable
+    Public Shared Function ExecuteDataTable(sBase As String, nomRequete As String, Optional params As Dictionary(Of String, Object) = Nothing) As DataTable
         Dim dt As New DataTable
-        Dim conn As SqlConnection = ConnexionDB.GetInstance.getConnexion
-        Using cmd = CreateSqlCommand(nomRequete, params)
+        Dim conn As SqlConnection = ConnexionDB.GetInstance(sBase).getConnexion(sBase)
+        Using cmd = CreateSqlCommand(sBase, nomRequete, params)
             cmd.Connection = conn
             Using da As New SqlDataAdapter(cmd)
                 da.Fill(dt)
@@ -50,9 +50,9 @@ Public Class SqlCommandBuilder
     End Function
 
     ' 🔹 Exécute une requête et renvoie une liste d'entités typées
-    Public Shared Function GetEntities(Of T As {BaseDataRow, New})(nomRequete As String, Optional params As Dictionary(Of String, Object) = Nothing) As List(Of T)
+    Public Shared Function GetEntities(Of T As {BaseDataRow, New})(sBase As String, nomRequete As String, Optional params As Dictionary(Of String, Object) = Nothing) As List(Of T)
         Try
-            Dim dt = ExecuteDataTable(nomRequete, params)
+            Dim dt = ExecuteDataTable(sBase, nomRequete, params)
             Return DataRowUtils.FromDataTableGeneric(Of T)(dt)
         Catch ex As Exception
             Logger.ERR($"Erreur lors du chargement des entités {GetType(T).Name} depuis {nomRequete} : {ex.Message}")

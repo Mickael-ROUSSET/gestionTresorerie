@@ -24,7 +24,7 @@ Public Class Lanceur
     Private Shared Function GetTypesDocument() As List(Of ITypeDoc)
         Dim listTypeDoc As New List(Of ITypeDoc)
 
-        Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("sqlTypesDocuments").ExecuteReader()
+        Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "sqlTypesDocuments").ExecuteReader()
             ' Vérifier si le reader contient des lignes
             If reader.HasRows Then
                 While reader.Read()
@@ -49,7 +49,7 @@ Public Class Lanceur
             Logger.WARN("Le fichier lstTiers.csv est introuvable. Génération en cours...")
 
             Try
-                Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqIdentiteTiers").ExecuteReader()
+                Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqIdentiteTiers").ExecuteReader()
                     Using writer As New StreamWriter(sFicLstTiers, False, System.Text.Encoding.UTF8)
                         ' Écrire les en-têtes
                         For i As Integer = 0 To reader.FieldCount - 1

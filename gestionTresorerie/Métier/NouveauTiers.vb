@@ -45,7 +45,7 @@ Public Class FrmNouveauTiers
 
         Try
             count = CInt(SqlCommandBuilder.
-                     CreateSqlCommand("cptTiers",
+                     CreateSqlCommand(Constantes.bddAgumaaa, "cptTiers",
                      New Dictionary(Of String, Object) From {{"@nom", txtNom.Text.Trim()},
                                                              {"@prenom", txtPrenom.Text.Trim()},
                                                              {"@raisonSociale", txtRaisonSociale.Text.Trim()}}
@@ -64,7 +64,7 @@ Public Class FrmNouveauTiers
     Public Shared Sub insereNouveauTiers(sRaisonSociale As String, sPrenom As String, sNom As String, iCategorie As Integer?, iSousCategorie As Integer?)
         Try
             Dim unused = SqlCommandBuilder.
-            CreateSqlCommand("insertTiers",
+            CreateSqlCommand(Constantes.bddAgumaaa, "insertTiers",
                              New Dictionary(Of String, Object) From {{"@nom", sNom.Trim()},
                                                                      {"@prenom", sPrenom.Trim()},
                                                                      {"@raisonSociale", sRaisonSociale},

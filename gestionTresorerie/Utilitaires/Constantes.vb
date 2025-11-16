@@ -11,6 +11,13 @@ Public Class Constantes
     Public Const euro As String = " €"
     Public Const plus As String = "+"
 
+    'Bases de données
+    '-----------------
+    'Base de gestion de la trésorerie de l'Agumaaa
+    Public Const bddAgumaaa As String = "bddAgumaaa"
+    'Base du cinéma
+    Public Const cinemaDB As String = "cinemaDB"
+
     'Requêtes SQL
     '------------
     'Suppressions

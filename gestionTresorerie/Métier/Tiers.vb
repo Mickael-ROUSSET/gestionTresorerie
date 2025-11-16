@@ -56,7 +56,7 @@ Public Class Tiers
     Public Shared Function getCategorieTiers(idTiers As Double) As Integer
         ' Renvoie la catégorie et la sous catégorie d'un tiers  
         Dim iCategorie As Integer
-        Dim monReader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqCategoriesDefautMouvements",
+        Dim monReader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqCategoriesDefautMouvements",
                              New Dictionary(Of String, Object) From {{"@id", idTiers}}
                              ).ExecuteReader()
         Do While monReader.Read()
@@ -73,7 +73,7 @@ Public Class Tiers
     Public Shared Function getSousCategorieTiers(idTiers As Double) As Integer
         ' Renvoie la sous catégorie d'un tiers  
         Dim iSousCategorie As Integer
-        Dim monReader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqSousCategoriesDefautMouvements",
+        Dim monReader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqSousCategoriesDefautMouvements",
                              New Dictionary(Of String, Object) From {{"@id", idTiers}}
                              ).ExecuteReader()
         Do While monReader.Read()
@@ -91,7 +91,7 @@ Public Class Tiers
     Public Shared Function ExtraireTiers() As List(Of (nom As String, prenom As String, raisonSociale As String))
         Dim ListeTiers As List(Of (nom As String, prenom As String, raisonSociale As String))
         Try
-            Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqIdentiteTiers"
+            Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqIdentiteTiers"
                              ).ExecuteReader()
                 ' Parcourir les résultats et ajouter chaque enregistrement à la liste
                 While reader.Read()

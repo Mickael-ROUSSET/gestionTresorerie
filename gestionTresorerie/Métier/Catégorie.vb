@@ -28,7 +28,7 @@
         Dim sLib As String
         Try
             sLib = SqlCommandBuilder.
-            CreateSqlCommand("reqLibCat",
+            CreateSqlCommand(Constantes.bddAgumaaa, "reqLibCat",
                              New Dictionary(Of String, Object) From {{"@Id", Id}}
                              ).
                              ExecuteScalar

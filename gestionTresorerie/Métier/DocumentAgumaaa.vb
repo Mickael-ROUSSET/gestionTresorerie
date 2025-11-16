@@ -63,7 +63,7 @@ Public MustInherit Class DocumentAgumaaa
 
     Public Shared Sub InsererDocument(doc As DocumentAgumaaa)
         Try
-            Dim unused = SqlCommandBuilder.CreateSqlCommand("insertDocAgumaaa",
+            Dim unused = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertDocAgumaaa",
                              New Dictionary(Of String, Object) From {{"@dateDoc", doc.DateDoc},
                                                                      {"@contenuDoc", doc.ContenuDoc},
                                                                      {"@cheminDoc", doc.CheminDoc},
@@ -81,7 +81,7 @@ Public MustInherit Class DocumentAgumaaa
     Public Shared Function LireDocuments() As DataTable
         Dim table As New DataTable()
         Try
-            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand("reqDocs")
+            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqDocs")
 
             Using adapter As New SqlDataAdapter(command)
                 Dim unused = adapter.Fill(table)
@@ -95,7 +95,7 @@ Public MustInherit Class DocumentAgumaaa
     End Function
     Public Shared Sub MettreAJourDocument(idDoc As Integer, dateDoc As Date, contenuDoc As String, cheminDoc As String, categorieDoc As String, sousCategorieDoc As String, idMvtDoc As Integer)
         Try
-            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand("updDocs",
+            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "updDocs",
                              New Dictionary(Of String, Object) From {{"@idDoc", idDoc},
                                                                      {"@dateDoc", dateDoc},
                                                                      {"@contenuDoc", contenuDoc},
@@ -112,7 +112,7 @@ Public MustInherit Class DocumentAgumaaa
     End Sub
     Public Shared Sub SupprimerDocument(idDoc As Integer)
         Try
-            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand("delDocs",
+            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "delDocs",
                              New Dictionary(Of String, Object) From {{"@idDoc", idDoc}}
                              )
             Dim unused = command.ExecuteNonQuery()

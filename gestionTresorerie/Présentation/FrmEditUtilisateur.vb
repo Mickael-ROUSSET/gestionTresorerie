@@ -40,7 +40,7 @@ Public Class FrmEditUtilisateur
         Try
             If _id Is Nothing Then
                 ' Insertion
-                Dim unused2 = SqlCommandBuilder.CreateSqlCommand("insertUtilisateur",
+                Dim unused2 = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertUtilisateur",
                                  New Dictionary(Of String, Object) From {
                                      {"@nom", txtNom.Text.Trim()},
                                      {"@pwd", hashMdp},
@@ -49,7 +49,7 @@ Public Class FrmEditUtilisateur
                                  }).ExecuteNonQuery()
             Else
                 ' Mise à jour
-                Dim unused1 = SqlCommandBuilder.CreateSqlCommand("updateUtilisateur",
+                Dim unused1 = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "updateUtilisateur",
                                  New Dictionary(Of String, Object) From {
                                      {"@id", _id},
                                      {"@nom", txtNom.Text.Trim()},

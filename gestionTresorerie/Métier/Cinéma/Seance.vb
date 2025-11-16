@@ -11,6 +11,10 @@ Public Class Seance
     Public Property NbEntreesAdultes As Integer
     Public Property NbEntreesEnfants As Integer
     Public Property NbEntreesGroupeEnfants As Integer
+    Public Property CA_Adultes As Decimal
+    Public Property CA_Enfants As Decimal
+    Public Property CA_GroupeEnfants As Decimal
+    Public Property CA_Total As Decimal
 
     ' --- Constructeur principal ---
     Public Sub New(idFilm As Integer,
@@ -20,7 +24,8 @@ Public Class Seance
                    Optional format As String = Nothing,
                    Optional nbAdultes As Integer = 0,
                    Optional nbEnfants As Integer = 0,
-                   Optional nbGroupeEnfants As Integer = 0)
+                   Optional nbGroupeEnfants As Integer = 0
+                   )
 
         ' ==== VALIDATIONS ====
 
@@ -68,7 +73,7 @@ Public Class Seance
         Dim parametres As New Dictionary(Of String, Object) From {
         {"@IdFilm", idFilm}
     }
-        Using cmd = SqlCommandBuilder.CreateSqlCommand("selSeanceIdFilm", parametres)
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "selSeanceIdFilm", parametres)
             cmd.Parameters.AddWithValue("@IdFilm", idFilm)
             Using rdr = cmd.ExecuteReader()
                 While rdr.Read()
@@ -149,7 +154,7 @@ Public Class Seance
 
         ' ==== EXÉCUTION ====
 
-        Using cmd = SqlCommandBuilder.CreateSqlCommand("insertSeance", parametres)
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "insertSeance", parametres)
             Dim lignes = cmd.ExecuteNonQuery()
 
             If lignes = 0 Then
@@ -166,9 +171,24 @@ Public Class Seance
         Dim parametres As New Dictionary(Of String, Object) From {
                         {"@Id", IdSeance}
                     }
-        Using cmd = SqlCommandBuilder.CreateSqlCommand("delSeance", parametres)
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "delSeance", parametres)
             cmd.Parameters.AddWithValue("@Id", IdSeance)
             cmd.ExecuteNonQuery()
         End Using
     End Sub
+    ' Méthode Clone
+    Public Function Clone() As Seance
+        Return New Seance With {
+            .IdSeance = Me.IdSeance,
+            .IdFilm = Me.IdFilm,
+            .DateHeureDebut = Me.DateHeureDebut,
+            .NbEntreesAdultes = Me.NbEntreesAdultes,
+            .NbEntreesEnfants = Me.NbEntreesEnfants,
+            .NbEntreesGroupeEnfants = Me.NbEntreesGroupeEnfants,
+            .CA_Adultes = Me.CA_Adultes,
+            .CA_Enfants = Me.CA_Enfants,
+            .CA_GroupeEnfants = Me.CA_GroupeEnfants,
+            .CA_Total = Me.CA_Total
+        }
+    End Function
 End Class

@@ -57,7 +57,7 @@ Public Class Film
     ' ---------- CRUD ----------
     Public Shared Function GetAll() As List(Of Film)
         Dim result As New List(Of Film)
-        Using cmd = SqlCommandBuilder.CreateSqlCommand("selTousFilms")
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "selTousFilms")
             Using rdr = cmd.ExecuteReader()
                 While rdr.Read()
                     result.Add(New Film With {
@@ -137,7 +137,7 @@ Public Class Film
                     }
 
         ' ✅ 3. Exécution de la requête via SqlCommandBuilder
-        Using cmd = SqlCommandBuilder.CreateSqlCommand("insertFilm", parametres)
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "insertFilm", parametres)
             Dim lignesAffectees = cmd.ExecuteNonQuery()
 
             If lignesAffectees = 0 Then
@@ -154,7 +154,7 @@ Public Class Film
         Dim parametres As New Dictionary(Of String, Object) From {
                         {"@Id", IdFilm}
                     }
-        Using cmd = SqlCommandBuilder.CreateSqlCommand("delFilm", parametres)
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "delFilm", parametres)
             cmd.Parameters.AddWithValue("@Id", IdFilm)
             cmd.ExecuteNonQuery()
         End Using

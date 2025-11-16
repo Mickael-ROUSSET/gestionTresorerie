@@ -104,8 +104,8 @@ Public Class Mouvements
             {"@typeReference", If(String.IsNullOrWhiteSpace(mouvement.typeReference), DBNull.Value, mouvement.typeReference.Trim())},
             {"@idDoc", If(mouvement.idDoc = 0, DBNull.Value, mouvement.idDoc)}
         }
-            Utilitaires.LogCommand(SqlCommandBuilder.CreateSqlCommand("insertMvts", paramètres))
-            Dim lignes = SqlCommandBuilder.CreateSqlCommand("insertMvts", paramètres).ExecuteNonQuery()
+            Utilitaires.LogCommand(SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertMvts", paramètres))
+            Dim lignes = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertMvts", paramètres).ExecuteNonQuery()
 
             If lignes = 1 Then
                 'Logger.INFO($"Mouvement inséré : {mouvement.ObtenirValeursConcatenees()}")
@@ -125,7 +125,7 @@ Public Class Mouvements
     End Sub
     Public Shared Sub MettreAJourIdDoc(idMouvement As Integer, nouvelIdDoc As Integer)
         Try
-            Dim rowsAffected As Integer = SqlCommandBuilder.CreateSqlCommand("updMvtIdDoc",
+            Dim rowsAffected As Integer = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "updMvtIdDoc",
                                       New Dictionary(Of String, Object) From {
                                       {"@nouvelIdDoc", nouvelIdDoc},
                                       {"@idMouvement", idMouvement}}).ExecuteNonQuery
@@ -145,7 +145,7 @@ Public Class Mouvements
 
         Try
             Using reader As SqlDataReader =
-                SqlCommandBuilder.CreateSqlCommand("reqNbMouvements",
+                SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqNbMouvements",
                                            New Dictionary(Of String, Object) From {{"@dateMvt", mouvement.DateMvt.ToString("yyyy-MM-dd")},
                                            {"@montant", CDec(mouvement.Montant)},
                                            {"@sens", mouvement.Sens}
@@ -182,7 +182,7 @@ Public Class Mouvements
 
         Try
             ' Définir la commande SQL pour appeler la procédure stockée 
-            Dim cmd As SqlCommand = SqlCommandBuilder.CreateSqlCommand("procMvtsIdentiques",
+            Dim cmd As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "procMvtsIdentiques",
                                            New Dictionary(Of String, Object) From {{"@dateMvt", mouvement.DateMvt},
                                            {"@montant", CDec(mouvement.Montant)},
                                            {"@sens", mouvement.Sens}})
@@ -204,7 +204,7 @@ Public Class Mouvements
     Public Shared Function MettreAJourMouvement(Id As Integer, categorie As Integer, sousCategorie As Integer, montant As Decimal, sens As Boolean, tiers As Integer, note As String, dateMvt As Date, etat As Boolean, evenement As String, type As String, modifiable As Boolean, numeroRemise As Integer?, reference As String, typeReference As String, idDoc As Integer) As Integer
         Try
             Return SqlCommandBuilder.
-            CreateSqlCommand("updMvt",
+            CreateSqlCommand(Constantes.bddAgumaaa, "updMvt",
                              New Dictionary(Of String, Object) From {{"@Id", Id},
                                                                      {"@Categorie", categorie},
                                                                      {"@SousCategorie", sousCategorie},
@@ -236,7 +236,7 @@ Public Class Mouvements
         Dim sqlConnexion As SqlConnection = Nothing
 
         Try
-            Dim command = SqlCommandBuilder.CreateSqlCommand("delMvt")
+            Dim command = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "delMvt")
             ' Ajouter le paramètre Id à la requête
             Dim unused = command.Parameters.AddWithValue("@Id", id)
 

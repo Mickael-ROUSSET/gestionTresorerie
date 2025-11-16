@@ -28,7 +28,7 @@ Public Class CreePresentation
     Private Shared Function GetCategories() As List(Of Integer)
         Dim categories As New List(Of Integer)
 
-        Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("reqCategoriesMouvements").ExecuteReader()
+        Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqCategoriesMouvements").ExecuteReader()
             While reader.Read()
                 categories.Add(reader.GetSqlInt32(0))
             End While
@@ -81,7 +81,7 @@ Public Class CreePresentation
 
         Using reader As SqlDataReader =
             SqlCommandBuilder.
-            CreateSqlCommand("reqSommeCatMouvements",
+            CreateSqlCommand(Constantes.bddAgumaaa, "reqSommeCatMouvements",
                              New Dictionary(Of String, Object) From {{"@categorie", category}}
                              ).
             ExecuteReader()
@@ -94,7 +94,7 @@ Public Class CreePresentation
                 Logger.INFO($"Sous-catégories chargées pour la catégorie '{category}'.")
             Else
                 ' Gérer le cas où le reader est vide
-                Logger.WARN($"Aucune sous-catégorie trouvée pour la catégorie '{Category}'.")
+                Logger.WARN($"Aucune sous-catégorie trouvée pour la catégorie '{category}'.")
             End If
         End Using
 

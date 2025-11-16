@@ -511,7 +511,7 @@ Public Class FrmSaisie
             }
 
             ' --- Exécuter la requête selIdLibCat --- 
-            Using Reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand("selIdLibCat", parametres).ExecuteReader
+            Using Reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "selIdLibCat", parametres).ExecuteReader
 
                 If Reader.HasRows Then
                     While Reader.Read()

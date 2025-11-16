@@ -27,14 +27,26 @@
             Return _repInstallation
         End Get
     End Property
-    Public Shared ReadOnly Property connexionString() As String
+    Public Shared ReadOnly Property connexionString(sBase As String) As String
         Get
-            If _env = "Prod" Then
-                '"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=&quot;G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf&quot;;Integrated Security=True;Connect Timeout=30" /> 
-                Return My.Settings.DataSource & "'" & My.Settings.AttachDbFilenameProd & "'" & My.Settings.ParamDb
-            Else
-                Return My.Settings.DataSource & My.Settings.AttachDbFilenameTest & My.Settings.ParamDb
-            End If
+            Select Case _env
+                Case "Prod"
+                    '"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=&quot;G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf&quot;;Integrated Security=True;Connect Timeout=30" /> 
+                    Select Case sBase
+                        Case Constantes.bddAgumaaa
+                            Return My.Settings.DataSource & "'" & My.Settings.bddAgumaaaProd & "'" & My.Settings.ParamDb
+                        Case Constantes.cinemaDB
+                            Return My.Settings.DataSource & "'" & My.Settings.cinemaDBProd & "'" & My.Settings.ParamDb
+                End Select
+                Case "Test"
+                    Select Case sBase
+                        Case Constantes.bddAgumaaa
+                            Return My.Settings.DataSource & "'" & My.Settings.bddAgumaaaTest & "'" & My.Settings.ParamDb
+                        Case Constantes.cinemaDB
+                            Return My.Settings.DataSource & "'" & My.Settings.cinemaDBTest & "'" & My.Settings.ParamDb
+                    End Select
+            End Select
+            Return String.Empty
         End Get
     End Property
     Public Shared Function GetVariable(nomVariable As String) As String

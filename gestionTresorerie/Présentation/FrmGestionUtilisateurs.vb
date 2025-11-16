@@ -9,7 +9,7 @@ Public Class FrmGestionUtilisateurs
     Private Sub ChargerUtilisateurs()
         dgvUtilisateurs.Rows.Clear()
         Try
-            Using cn As New SqlConnection(LectureProprietes.connexionString)
+            Using cn As New SqlConnection(LectureProprietes.connexionString(Constantes.bddAgumaaa))
                 cn.Open()
 
                 Dim cmd As New SqlCommand("SELECT Id, NomUtilisateur, Role, Actif FROM Utilisateurs ORDER BY NomUtilisateur", cn)
@@ -66,7 +66,7 @@ Public Class FrmGestionUtilisateurs
         If MessageBox.Show($"Désactiver l'utilisateur {nom} ?", "Confirmation",
                            MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.Yes Then
             Try
-                Dim unused1 = SqlCommandBuilder.CreateSqlCommand("updateUtilisateurActif",
+                Dim unused1 = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "updateUtilisateurActif",
                                  New Dictionary(Of String, Object) From {
                                      {"@id", id},
                                      {"@actif", 0}
