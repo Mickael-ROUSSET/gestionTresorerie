@@ -270,11 +270,11 @@ Public Class FrmPrincipale
 
     Private Sub GénérerStatsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles GénérerStatsToolStripMenuItem.Click
         'StatistiquesHelper.GetStatsParFilm()
-        Dim listeFilms As New List(Of StatFilm)
-        listeFilms = StatsCinema.GetStatsParFilm()
-        StatsCinema.GenererGraphiqueCAParMois()
-        StatsCinema.GenererGraphiqueCAParFilm(listeFilms)
-        StatsCinema.GenererGraphiqueCAParPublic(listeFilms)
+        'Dim listeFilms As New List(Of StatFilm)
+        'listeFilms = StatsCinema.GetStatsParFilm()
+        'StatsCinema.GenererGraphiqueCAParMois()
+        'StatsCinema.GenererGraphiqueCAParFilm(listeFilms)
+        'StatsCinema.GenererGraphiqueCAParPublic(listeFilms)
         frmStatsCinema.Show()
     End Sub
 

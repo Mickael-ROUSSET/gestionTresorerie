@@ -18,21 +18,24 @@ Public Class FrmStatsCinema
     Public Sub New()
         ' Initialisation de la fenêtre
         Me.Text = "Statistiques cinéma"
-        Me.Width = 800
-        Me.Height = 900
+        Me.Width = 1000
+        Me.Height = 700
+        Me.StartPosition = FormStartPosition.CenterScreen
+        ' Charge les graphiques au démarrage
+        AddHandler Me.Load, AddressOf frmStatsCinema_Load
 
-        ' Ajout des contrôles
-        Me.Controls.Add(dtpDebut)
-        Me.Controls.Add(dtpFin)
-        Me.Controls.Add(btnFiltrer)
+        '' Ajout des contrôles
+        'Me.Controls.Add(dtpDebut)
+        'Me.Controls.Add(dtpFin)
+        'Me.Controls.Add(btnFiltrer)
 
-        ChartParMois.ChartAreas.Add(New ChartArea("CAParMois"))
-        ChartParFilm.ChartAreas.Add(New ChartArea("CAParFilm"))
-        ChartParPublic.ChartAreas.Add(New ChartArea("CAParPublic"))
+        'ChartParMois.ChartAreas.Add(New ChartArea("CAParMois"))
+        'ChartParFilm.ChartAreas.Add(New ChartArea("CAParFilm"))
+        'ChartParPublic.ChartAreas.Add(New ChartArea("CAParPublic"))
 
-        Me.Controls.Add(ChartParPublic)
-        Me.Controls.Add(ChartParFilm)
-        Me.Controls.Add(ChartParMois)
+        'Me.Controls.Add(ChartParPublic)
+        'Me.Controls.Add(ChartParFilm)
+        'Me.Controls.Add(ChartParMois)
     End Sub
 
     ' ----- Propriété pour les stats -----
@@ -127,17 +130,49 @@ Public Class FrmStatsCinema
     Private Sub frmStatsCinema_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Dim stats = StatsCinema.GetStatsParFilm()
 
-        ' Filtrer par période
-        Dim dateDebut As Date = #2025-01-01#
-        Dim dateFin As Date = #2025-12-31#
-        Dim statsFiltres = stats.Select(Function(f)
-                                            Dim clone = f.Clone()
-                                            clone.Seances = clone.Seances.Where(Function(s) s.DateHeureDebut.Date >= dateDebut AndAlso s.DateHeureDebut.Date <= dateFin).ToList()
-                                            Return clone
-                                        End Function).ToList()
+        '' Filtrer par période
+        'Dim dateDebut As Date = #2025-01-01#
+        'Dim dateFin As Date = #2025-12-31#
+        'Dim statsFiltres = stats.Select(Function(f)
+        '                                    Dim clone = f.Clone()
+        '                                    clone.Seances = clone.Seances.Where(Function(s) s.DateHeureDebut.Date >= dateDebut AndAlso s.DateHeureDebut.Date <= dateFin).ToList()
+        '                                    Return clone
+        '                                End Function).ToList()
 
-        ' Génération de graphiques
-        Dim chartParMois = StatsCinema.GenererGraphiqueCAParMois()
-        Dim chartParPublic = StatsCinema.GenererGraphiqueCAParPublic(statsFiltres)
+        Try
+            ' Création du TabControl
+            Dim tab As New TabControl With {
+                .Dock = DockStyle.Fill,
+                .Name = "TabStats"
+            }
+            Me.Controls.Add(tab)
+
+            ' Création des trois onglets
+            Dim tabFilm As New TabPage("Par Film")
+            Dim tabMois As New TabPage("Par Mois")
+            Dim tabPublic As New TabPage("Par Public")
+            tab.TabPages.AddRange(New TabPage() {tabFilm, tabMois, tabPublic})
+
+            ' --- Récupération des données ---
+            Dim listeFilms = StatsCinema.GetStatsParFilm()
+            Dim statsFiltres = listeFilms ' À filtrer si besoin selon période ou autres critères
+
+            ' --- Création des charts ---
+            Dim chartFilm = StatsCinema.GenererGraphiqueCAParFilm(listeFilms)
+            chartFilm.Dock = DockStyle.Fill
+            tabFilm.Controls.Add(chartFilm)
+
+            Dim chartMois = StatsCinema.GenererGraphiqueCAParMois()
+            chartMois.Dock = DockStyle.Fill
+            tabMois.Controls.Add(chartMois)
+
+            Dim chartPublic = StatsCinema.GenererGraphiqueCAParPublic(statsFiltres)
+            chartPublic.Dock = DockStyle.Fill
+            tabPublic.Controls.Add(chartPublic)
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors du chargement des statistiques : {ex.Message}")
+        End Try
     End Sub
+
 End Class
