@@ -237,7 +237,6 @@ Public Class FrmPrincipale
         'Afficher frmSelectionneDocument pour ramener tous les documents
 
         Dim selectionneDocument As New FrmSelectionneDocument()
-        'selectionneDocument.chargeListeDoc()
         selectionneDocument.Show()
     End Sub
 
@@ -269,14 +268,34 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub GénérerStatsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles GénérerStatsToolStripMenuItem.Click
-        'StatistiquesHelper.GetStatsParFilm()
-        'Dim listeFilms As New List(Of StatFilm)
-        'listeFilms = StatsCinema.GetStatsParFilm()
-        'StatsCinema.GenererGraphiqueCAParMois()
-        'StatsCinema.GenererGraphiqueCAParFilm(listeFilms)
-        'StatsCinema.GenererGraphiqueCAParPublic(listeFilms)
         frmStatsCinema.Show()
     End Sub
+
+    Private Async Sub GénérerProgrammeToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles GénérerProgrammeToolStripMenuItem.Click
+        ' Crée le programme du cinéma à partir d'un fichier fourni par Hélène
+        Using ofd As New OpenFileDialog()
+            ofd.Title = "Sélectionnez le fichier du programme"
+            ofd.Filter = "Fichiers TXT|*.txt|Fichiers CSV|*.csv|Tous les fichiers|*.*"
+
+            ' Si l'utilisateur choisit un fichier
+            If ofd.ShowDialog() = DialogResult.OK Then
+                Dim sCheminFichier As String = ofd.FileName
+
+                Dim service As New ProgrammeCinemaCreator
+
+                ' On attend que la liste soit enrichie / chargée
+                Await service.ChargerProgramme(sCheminFichier)
+
+                Logger.INFO($"Programme {sCheminFichier} chargé et enrichi avec succès !")
+                MessageBox.Show($"Programme {sCheminFichier} chargé et enrichi avec succès !", "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            Else
+                ' L'utilisateur a annulé
+                Logger.INFO("Opération annulée.")
+                MessageBox.Show("Opération annulée.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            End If
+        End Using
+    End Sub
+
 
     'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
     '    'Call CreeBilans()

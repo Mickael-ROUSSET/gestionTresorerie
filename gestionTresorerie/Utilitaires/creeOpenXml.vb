@@ -12,6 +12,8 @@ Imports Run = DocumentFormat.OpenXml.Wordprocessing.Run
 Imports Table = DocumentFormat.OpenXml.Wordprocessing.Table
 Imports Text = DocumentFormat.OpenXml.Wordprocessing.Text
 Imports TopBorder = DocumentFormat.OpenXml.Wordprocessing.TopBorder
+Imports Drawing = DocumentFormat.OpenXml.Drawing
+
 
 Friend Module CreeOpenXml
     'https://learn.microsoft.com/fr-fr/office/open-xml/word/overview
@@ -214,77 +216,129 @@ Friend Module CreeOpenXml
     '    Return part
     'End Function
     Public Sub ajouteImage(ByVal document As String, ByVal fileName As String)
-        'https://learn.microsoft.com/fr-fr/office/open-xml/word/how-to-insert-a-picture-into-a-word-processing-document?tabs=cs-0%2Ccs-1%2Ccs-2%2Cvb-3%2Cvb 
-        Using wordprocessingDocument As WordprocessingDocument = WordprocessingDocument.Open(document, True)
-            Dim mainPart As MainDocumentPart = wordprocessingDocument.MainDocumentPart
 
+        Using wordprocessingDocument As WordprocessingDocument = WordprocessingDocument.Open(document, True)
+
+            Dim mainPart As MainDocumentPart = wordprocessingDocument.MainDocumentPart
             Dim imagePart As ImagePart = mainPart.AddImagePart(ImagePartType.Jpeg)
 
             Using stream As New FileStream(fileName, FileMode.Open)
                 imagePart.FeedData(stream)
             End Using
 
-            AddImageToBody(wordprocessingDocument, mainPart.GetIdOfPart(imagePart))
+            Dim imgId = mainPart.GetIdOfPart(imagePart)
+
+            ' Ajout au document
+            mainPart.Document.Body.Append(
+            CreateImageParagraph(imgId, 3000000, 2000000)
+        )
+
         End Using
     End Sub
-    Public Sub ajouteImage(document As WordprocessingDocument, ByVal fileName As String)
-        'https://learn.microsoft.com/fr-fr/office/open-xml/word/how-to-insert-a-picture-into-a-word-processing-document?tabs=cs-0%2Ccs-1%2Ccs-2%2Cvb-3%2Cvb  
-        Dim mainPart As MainDocumentPart = document.MainDocumentPart
 
+    Public Sub ajouteImage(document As WordprocessingDocument, ByVal fileName As String)
+
+        Dim mainPart As MainDocumentPart = document.MainDocumentPart
         Dim imagePart As ImagePart = mainPart.AddImagePart(ImagePartType.Jpeg)
 
         Using stream As New FileStream(fileName, FileMode.Open)
             imagePart.FeedData(stream)
         End Using
 
-        AddImageToBody(document, mainPart.GetIdOfPart(imagePart))
-    End Sub
+        Dim imgId = mainPart.GetIdOfPart(imagePart)
 
-    Private Sub AddImageToBody(ByVal wordDoc As WordprocessingDocument, ByVal relationshipId As String)
-        ' Define the reference of the image.
-        Dim element = New Drawing(
-                              New DW.Inline(
-                          New DW.Extent() With {.Cx = 5990000L, .Cy = 5792000L},
-                          New DW.EffectExtent() With {.LeftEdge = 0L, .TopEdge = 0L, .RightEdge = 0L, .BottomEdge = 0L},
-                          New DW.DocProperties() With {.Id = CType(1UI, UInt32Value), .Name = "Picture1"},
-                          New DW.NonVisualGraphicFrameDrawingProperties(
-                              New A.GraphicFrameLocks() With {.NoChangeAspect = True}
-                              ),
-                          New A.Graphic(New A.GraphicData(
-                                        New PIC.Picture(
-                                            New PIC.NonVisualPictureProperties(
-                                                New PIC.NonVisualDrawingProperties() With {.Id = 0UI, .Name = "Koala.jpg"},
-                                                New PIC.NonVisualPictureDrawingProperties()
-                                                ),
-                                            New PIC.BlipFill(
-                                                New A.Blip(
-                                                    New A.BlipExtensionList(
-                                                        New A.BlipExtension() With {.Uri = "{28A0092B-C50C-407E-A947-70E740481C1C}"})
-                                                    ) With {.Embed = relationshipId, .CompressionState = A.BlipCompressionValues.Print},
-                                                New A.Stretch(
-                                                    New A.FillRectangle()
-                                                    )
-                                                ),
-                                            New PIC.ShapeProperties(
-                                                New A.Transform2D(
-                                                    New A.Offset() With {.X = 0L, .Y = 0L},
-                                                    New A.Extents() With {.Cx = 5990000L, .Cy = 5792000L}),
-                                                New A.PresetGeometry(
-                                                    New A.AdjustValueList()
-                                                    ) With {.Preset = A.ShapeTypeValues.Rectangle}
-                                                )
-                                            )
-                                        ) With {.Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture"}
-                                    )
-                                ) With {.DistanceFromTop = 0UI,
-                                        .DistanceFromBottom = 0UI,
-                                        .DistanceFromLeft = 0UI,
-                                        .DistanceFromRight = 0UI}
-                            )
-
-        ' Append the reference to body, the element should be in a Run.
-        Dim unused = wordDoc.MainDocumentPart.Document.Body.AppendChild(New Paragraph(New Run(element)))
+        mainPart.Document.Body.Append(
+        CreateImageParagraph(imgId, 3000000, 2000000)
+    )
     End Sub
+    Public Function CreateImageParagraph(imagePartId As String, width As Long, height As Long) As Paragraph
+        ' picture (Drawing namespace)
+        Dim picture = New Drawing.Pictures.Picture(
+        New Drawing.Pictures.NonVisualPictureProperties(
+            New Drawing.Pictures.NonVisualDrawingProperties() With {.Id = CType(0UI, UInt32), .Name = "Image"},
+            New Drawing.Pictures.NonVisualPictureDrawingProperties()
+        ),
+        New Drawing.Pictures.BlipFill(
+            New Drawing.Blip() With {.Embed = imagePartId},
+            New Drawing.Stretch(New Drawing.FillRectangle())
+        ),
+        New Drawing.Pictures.ShapeProperties()
+    )
+
+        ' graphicData
+        Dim graphicData = New Drawing.GraphicData(picture)
+        graphicData.Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture"
+
+        Dim graphic = New Drawing.Graphic(graphicData)
+
+        ' inline (Drawing.Wordprocessing namespace)
+        Dim inline = New Drawing.Wordprocessing.Inline(
+        New Drawing.Wordprocessing.Extent() With {.Cx = width, .Cy = height},
+        New Drawing.Wordprocessing.EffectExtent() With {.LeftEdge = 0L, .TopEdge = 0L, .RightEdge = 0L, .BottomEdge = 0L},
+        New Drawing.Wordprocessing.DocProperties() With {.Id = CType(1UI, UInt32), .Name = "Picture"},
+        New Drawing.Wordprocessing.NonVisualGraphicFrameDrawingProperties(
+            New Drawing.GraphicFrameLocks() With {.NoChangeAspect = True}
+        ),
+        graphic
+    )
+
+        ' <-- ici : on utilise le type Wordprocessing.Drawing (pas Drawing.Drawing)
+        Dim wpDrawing = New DocumentFormat.OpenXml.Wordprocessing.Drawing(inline)
+
+        Dim para As New Paragraph(New Run(wpDrawing))
+        para.ParagraphProperties = New ParagraphProperties(
+        New Justification() With {.Val = JustificationValues.Left}
+    )
+        Return para
+    End Function
+
+
+
+    'Private Sub AddImageToBody(ByVal wordDoc As WordprocessingDocument, ByVal relationshipId As String)
+    '    ' Define the reference of the image.
+    '    Dim element = New Drawing(
+    '                          New DW.Inline(
+    '                      New DW.Extent() With {.Cx = 5990000L, .Cy = 5792000L},
+    '                      New DW.EffectExtent() With {.LeftEdge = 0L, .TopEdge = 0L, .RightEdge = 0L, .BottomEdge = 0L},
+    '                      New DW.DocProperties() With {.Id = CType(1UI, UInt32Value), .Name = "Picture1"},
+    '                      New DW.NonVisualGraphicFrameDrawingProperties(
+    '                          New A.GraphicFrameLocks() With {.NoChangeAspect = True}
+    '                          ),
+    '                      New A.Graphic(New A.GraphicData(
+    '                                    New PIC.Picture(
+    '                                        New PIC.NonVisualPictureProperties(
+    '                                            New PIC.NonVisualDrawingProperties() With {.Id = 0UI, .Name = "Koala.jpg"},
+    '                                            New PIC.NonVisualPictureDrawingProperties()
+    '                                            ),
+    '                                        New PIC.BlipFill(
+    '                                            New A.Blip(
+    '                                                New A.BlipExtensionList(
+    '                                                    New A.BlipExtension() With {.Uri = "{28A0092B-C50C-407E-A947-70E740481C1C}"})
+    '                                                ) With {.Embed = relationshipId, .CompressionState = A.BlipCompressionValues.Print},
+    '                                            New A.Stretch(
+    '                                                New A.FillRectangle()
+    '                                                )
+    '                                            ),
+    '                                        New PIC.ShapeProperties(
+    '                                            New A.Transform2D(
+    '                                                New A.Offset() With {.X = 0L, .Y = 0L},
+    '                                                New A.Extents() With {.Cx = 5990000L, .Cy = 5792000L}),
+    '                                            New A.PresetGeometry(
+    '                                                New A.AdjustValueList()
+    '                                                ) With {.Preset = A.ShapeTypeValues.Rectangle}
+    '                                            )
+    '                                        )
+    '                                    ) With {.Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture"}
+    '                                )
+    '                            ) With {.DistanceFromTop = 0UI,
+    '                                    .DistanceFromBottom = 0UI,
+    '                                    .DistanceFromLeft = 0UI,
+    '                                    .DistanceFromRight = 0UI}
+    '                        )
+
+    '    ' Append the reference to body, the element should be in a Run.
+    '    Dim unused = wordDoc.MainDocumentPart.Document.Body.AppendChild(New Paragraph(New Run(element)))
+    'End Sub
     '2005'
     Public Function ajouteParagraphe(ByVal document As WordprocessingDocument, ByVal txt As String) As Paragraph
         ' Open a WordprocessingDocument for editing using the filepath. 

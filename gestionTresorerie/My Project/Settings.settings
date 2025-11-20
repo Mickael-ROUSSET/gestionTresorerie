@@ -367,5 +367,32 @@
     <Setting Name="selTarifsValides" Type="System.String" Scope="User">
       <Value Profile="(Default)">select * from tarifs;</Value>
     </Setting>
+    <Setting Name="cleApiTmdb" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">d4371f28c29f00bf2c168bd709a26059</Value>
+    </Setting>
+    <Setting Name="jetonApiTmdb" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNDM3MWYyOGMyOWYwMGJmMmMxNjhiZDcwOWEyNjA1OSIsIm5iZiI6MTY0NDA3ODkzMS41OTEsInN1YiI6IjYxZmVhNzUzMzg0NjlhMDAxY2FhOTYwOCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Sf5hUzafWHm_MlfHRFKKOATpBIBst5AOWFDqwHwk344</Value>
+    </Setting>
+    <Setting Name="selListeFilms" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT DISTINCT TitreFilm FROM Seances;</Value>
+    </Setting>
+    <Setting Name="selTitreFilm" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT COUNT(*) FROM Films WHERE Titre=@Titre</Value>
+    </Setting>
+    <Setting Name="selTitreFilmParId" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT Titre FROM Films WHERE IdFilm = @IdFilm</Value>
+    </Setting>
+    <Setting Name="logoAgumaaa" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\Resources\logoAgumaaa.png</Value>
+    </Setting>
+    <Setting Name="logoCinema" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\Resources\logoCinema.png</Value>
+    </Setting>
+    <Setting Name="cheminProgramme" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Users\User\Downloads\programme.docx</Value>
+    </Setting>
+    <Setting Name="logoCinevasion" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\Resources\logoCinevasion.png</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

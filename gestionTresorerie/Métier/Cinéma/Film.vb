@@ -159,4 +159,21 @@ Public Class Film
             cmd.ExecuteNonQuery()
         End Using
     End Sub
+    ' Récupère le titre d’un film à partir de son IdFilm
+    Public Function GetTitreById() As String
+        Try
+            Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "selTitreFilmParId")
+                cmd.Parameters.AddWithValue("@IdFilm", Me.IdFilm)
+                Dim result = cmd.ExecuteScalar()
+                If result IsNot Nothing Then
+                    Return result.ToString()
+                Else
+                    Return "Titre inconnu"
+                End If
+            End Using
+        Catch ex As Exception
+            Logger.ERR($"Erreur GetTitreById : {ex.Message}")
+            Return "Erreur"
+        End Try
+    End Function
 End Class

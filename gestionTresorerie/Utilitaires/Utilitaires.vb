@@ -248,6 +248,17 @@ Friend Class Utilitaires
             Logger.ERR($"Erreur lors du renommage/déplacement du fichier {sAncienNom} vers {sNouveauNom}: {ex.Message}")
         End Try
     End Sub
+    Public Shared Sub supprimeSiExiste(sNomFichier As String)
+        If IO.File.Exists(sNomFichier) Then
+            Try
+                IO.File.Delete(sNomFichier)
+            Catch ex As Exception
+                Logger.ERR($"Impossible de supprimer le fichier existant '{sNomFichier}' : {ex.Message}")
+                Return
+            End Try
+        End If
+    End Sub
+
     Public Shared Function ParseJson(json As String, fieldMappings As Dictionary(Of String, String)) As String
         Try
             ' Parse le JSON d'entrée
@@ -523,6 +534,4 @@ Friend Class Utilitaires
             Logger.INFO("Erreur lors de la copie : " & ex.Message)
         End Try
     End Sub
-
-
 End Class

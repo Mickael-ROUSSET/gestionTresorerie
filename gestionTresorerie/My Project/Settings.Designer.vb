@@ -1197,6 +1197,92 @@ Namespace My
                 Me("selTarifsValides") = value
             End Set
         End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("d4371f28c29f00bf2c168bd709a26059")>  _
+        Public ReadOnly Property cleApiTmdb() As String
+            Get
+                Return CType(Me("cleApiTmdb"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNDM3MWYyOGMyOWYwMGJmMmMxNjhiZDcwOWEyNjA1OSIsIm5i"& _ 
+            "ZiI6MTY0NDA3ODkzMS41OTEsInN1YiI6IjYxZmVhNzUzMzg0NjlhMDAxY2FhOTYwOCIsInNjb3BlcyI6"& _ 
+            "WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Sf5hUzafWHm_MlfHRFKKOATpBIBst5AOWFDqwHwk344")>  _
+        Public ReadOnly Property jetonApiTmdb() As String
+            Get
+                Return CType(Me("jetonApiTmdb"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT DISTINCT TitreFilm FROM Seances;")>  _
+        Public ReadOnly Property selListeFilms() As String
+            Get
+                Return CType(Me("selListeFilms"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT COUNT(*) FROM Films WHERE Titre=@Titre")>  _
+        Public ReadOnly Property selTitreFilm() As String
+            Get
+                Return CType(Me("selTitreFilm"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT Titre FROM Films WHERE IdFilm = @IdFilm")>  _
+        Public ReadOnly Property selTitreFilmParId() As String
+            Get
+                Return CType(Me("selTitreFilmParId"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\Resources\logoAgum"& _ 
+            "aaa.png")>  _
+        Public ReadOnly Property logoAgumaaa() As String
+            Get
+                Return CType(Me("logoAgumaaa"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\Resources\logoCine"& _ 
+            "ma.png")>  _
+        Public ReadOnly Property logoCinema() As String
+            Get
+                Return CType(Me("logoCinema"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\Downloads\programme.docx")>  _
+        Public ReadOnly Property cheminProgramme() As String
+            Get
+                Return CType(Me("cheminProgramme"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\Resources\logoCine"& _ 
+            "vasion.png")>  _
+        Public ReadOnly Property logoCinevasion() As String
+            Get
+                Return CType(Me("logoCinevasion"),String)
+            End Get
+        End Property
     End Class
 End Namespace
 

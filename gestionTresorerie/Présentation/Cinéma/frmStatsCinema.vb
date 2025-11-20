@@ -94,7 +94,7 @@ Public Class FrmStatsCinema
 
         ChartParMois.Series.Add(series)
         ChartParMois.ChartAreas(0).AxisX.Interval = 1
-        ChartParMois.ChartAreas(0).AxisX.LabelStyle.Angle = -45
+        'ChartParMois.ChartAreas(0).AxisX.LabelStyle.Angle = -45
     End Sub
 
     ' ----- Graphique CA par film -----

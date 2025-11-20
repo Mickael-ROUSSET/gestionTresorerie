@@ -24,7 +24,10 @@ Public Class Seance
                    Optional format As String = Nothing,
                    Optional nbAdultes As Integer = 0,
                    Optional nbEnfants As Integer = 0,
-                   Optional nbGroupeEnfants As Integer = 0
+                   Optional nbGroupeEnfants As Integer = 0,
+                   Optional tarifAdulte As Decimal = 0D,
+                   Optional tarifEnfant As Decimal = 0D,
+                   Optional tarifGroupeEnfant As Decimal = 0D
                    )
 
         ' ==== VALIDATIONS ====
@@ -61,6 +64,12 @@ Public Class Seance
         Me.NbEntreesAdultes = nbAdultes
         Me.NbEntreesEnfants = nbEnfants
         Me.NbEntreesGroupeEnfants = nbGroupeEnfants
+
+        ' Calcul du CA
+        Me.CA_Adultes = nbAdultes * tarifAdulte
+        Me.CA_Enfants = nbEnfants * tarifEnfant
+        Me.CA_GroupeEnfants = nbGroupeEnfants * tarifGroupeEnfant
+        Me.CA_Total = CA_Adultes + CA_Enfants + CA_GroupeEnfants
     End Sub
 
 

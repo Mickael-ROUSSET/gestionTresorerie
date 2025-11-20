@@ -112,6 +112,7 @@ Partial Class FrmPrincipale
         btnTraiteRelevé = New Button()
         FolderBrowserDialog1 = New FolderBrowserDialog()
         pgBar = New ProgressBar()
+        GénérerProgrammeToolStripMenuItem = New ToolStripMenuItem()
         CType(dgvPrincipale, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -420,7 +421,7 @@ Partial Class FrmPrincipale
         ' 
         ' CinémaToolStripMenuItem
         ' 
-        CinémaToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ChargerFichierToolStripMenuItem, GénérerStatsToolStripMenuItem})
+        CinémaToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ChargerFichierToolStripMenuItem, GénérerStatsToolStripMenuItem, GénérerProgrammeToolStripMenuItem})
         CinémaToolStripMenuItem.Name = "CinémaToolStripMenuItem"
         CinémaToolStripMenuItem.Size = New Size(60, 20)
         CinémaToolStripMenuItem.Text = "Cinéma"
@@ -428,13 +429,13 @@ Partial Class FrmPrincipale
         ' ChargerFichierToolStripMenuItem
         ' 
         ChargerFichierToolStripMenuItem.Name = "ChargerFichierToolStripMenuItem"
-        ChargerFichierToolStripMenuItem.Size = New Size(180, 22)
+        ChargerFichierToolStripMenuItem.Size = New Size(181, 22)
         ChargerFichierToolStripMenuItem.Text = "Charger fichier..."
         ' 
         ' GénérerStatsToolStripMenuItem
         ' 
         GénérerStatsToolStripMenuItem.Name = "GénérerStatsToolStripMenuItem"
-        GénérerStatsToolStripMenuItem.Size = New Size(180, 22)
+        GénérerStatsToolStripMenuItem.Size = New Size(181, 22)
         GénérerStatsToolStripMenuItem.Text = "Générer stats..."
         ' 
         ' ParamètresTechniquesToolStripMenuItem
@@ -702,6 +703,12 @@ Partial Class FrmPrincipale
         pgBar.Size = New Size(262, 23)
         pgBar.TabIndex = 10
         ' 
+        ' GénérerProgrammeToolStripMenuItem
+        ' 
+        GénérerProgrammeToolStripMenuItem.Name = "GénérerProgrammeToolStripMenuItem"
+        GénérerProgrammeToolStripMenuItem.Size = New Size(181, 22)
+        GénérerProgrammeToolStripMenuItem.Text = "Générer programme"
+        ' 
         ' FrmPrincipale
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
@@ -817,4 +824,5 @@ Partial Class FrmPrincipale
     Friend WithEvents CinémaToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ChargerFichierToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents GénérerStatsToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents GénérerProgrammeToolStripMenuItem As ToolStripMenuItem
 End Class
