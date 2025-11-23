@@ -13,6 +13,7 @@ Public Class Tiers
     Public Property CategorieDefaut As Integer
 
     Public Property SousCategorieDefaut As Integer
+    Public Property Adresses As List(Of Adresse) ' Collection des adresses associées
 
     Public Property dateCreation As Date
         Get

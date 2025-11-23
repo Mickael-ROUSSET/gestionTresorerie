@@ -1,0 +1,412 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="" GeneratedClassName="Settings" UseMySettingsClassName="true">
+  <Profiles />
+  <Settings>
+    <Setting Name="ficRessources" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ressources\categories.ini</Value>
+    </Setting>
+    <Setting Name="ficTiers" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ressources\tiers.xml</Value>
+    </Setting>
+    <Setting Name="repDonnées" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">gestionTresorerie\Données</Value>
+    </Setting>
+    <Setting Name="Requetes" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+  &lt;string&gt;SELECT ssCat.libelle, sum(mvt.montant) FROM Mouvements mvt, sousCategorie ssCat where ssCat.id = mvt.tabCategorie and mvt.Categorie = '%Id' group by sscat.id order by sum(mvt.montant) desc;&lt;/string&gt;
+  &lt;string&gt;SELECT evt.libelle, sum(mvt.montant) FROM Mouvements mvt, Evenements evt where evt.id = mvt.tabCategorie and mvt.événement = '%Id' group by événement.id order by événement.id desc;&lt;/string&gt;
+  &lt;string /&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="DBsource" Type="(Connection string)" Scope="Application">
+      <DesignTimeValue Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;SerializableConnectionString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+  &lt;ConnectionString&gt;Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf";Integrated Security=True;Connect Timeout=30&lt;/ConnectionString&gt;
+&lt;/SerializableConnectionString&gt;</DesignTimeValue>
+      <Value Profile="(Default)">Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf";Integrated Security=True;Connect Timeout=30</Value>
+    </Setting>
+    <Setting Name="fichierLog" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ressources\gestionTresorerie.log</Value>
+    </Setting>
+    <Setting Name="repInstallationProd" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\</Value>
+    </Setting>
+    <Setting Name="repInstallationTest" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\</Value>
+    </Setting>
+    <Setting Name="DBsourceProd" Type="(Connection string)" Scope="Application">
+      <DesignTimeValue Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;SerializableConnectionString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+  &lt;ConnectionString&gt;Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf";Integrated Security=True;Connect Timeout=30&lt;/ConnectionString&gt;
+&lt;/SerializableConnectionString&gt;</DesignTimeValue>
+      <Value Profile="(Default)">Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf";Integrated Security=True;Connect Timeout=30</Value>
+    </Setting>
+    <Setting Name="DBsourceTest" Type="(Connection string)" Scope="Application">
+      <DesignTimeValue Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;SerializableConnectionString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+  &lt;ConnectionString&gt;Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf";Integrated Security=True;Connect Timeout=30&lt;/ConnectionString&gt;
+&lt;/SerializableConnectionString&gt;</DesignTimeValue>
+      <Value Profile="(Default)">Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf";Integrated Security=True;Connect Timeout=30</Value>
+    </Setting>
+    <Setting Name="bddAgumaaaTest" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf</Value>
+    </Setting>
+    <Setting Name="ParamDb" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">;Integrated Security=True;Connect Timeout=30</Value>
+    </Setting>
+    <Setting Name="DataSource" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=</Value>
+    </Setting>
+    <Setting Name="ficRelevéTraité" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ficRelevéTraité.txt</Value>
+    </Setting>
+    <Setting Name="ficEvénement" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ressources\événement.ini</Value>
+    </Setting>
+    <Setting Name="ficType" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ressources\type.ini</Value>
+    </Setting>
+    <Setting Name="urlMistral" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">https://api.mistral.ai/v1/chat/completions</Value>
+    </Setting>
+    <Setting Name="repFichierBilan" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\ressources</Value>
+    </Setting>
+    <Setting Name="reqSelectToutMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT * FROM Mouvements;</Value>
+    </Setting>
+    <Setting Name="reqNbMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT COUNT(*) FROM Mouvements WHERE dateMvt = @dateMvt AND montant = @montant AND sens = @sens;</Value>
+    </Setting>
+    <Setting Name="reqImagesChq" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT [imageChq] FROM [dbo].Cheque WHERE [id] = @id</Value>
+    </Setting>
+    <Setting Name="reqIdentiteTiers" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT [nom], [prenom], [raisonSociale] FROM [dbo].Tiers</Value>
+    </Setting>
+    <Setting Name="reqCategorie" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, libelle FROM Categorie WHERE debit = @debit;</Value>
+    </Setting>
+    <Setting Name="reqSousCategorie" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, libelle FROM SousCategorie where idCategorie = @idCategorie;</Value>
+    </Setting>
+    <Setting Name="reqIdentiteCatTiers" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, nom, prenom, raisonSociale, categorieDefaut, sousCategorieDefaut FROM Tiers;</Value>
+    </Setting>
+    <Setting Name="reqIdentitePPTiers" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id,nom, prenom FROM Tiers where nom is not null;</Value>
+    </Setting>
+    <Setting Name="reqIdentitePMTiers" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id,raisonSociale FROM Tiers where raisonSociale is not null;</Value>
+    </Setting>
+    <Setting Name="reqLibelleSousCategorie" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT libelle FROM SousCategorie where idCategorie =</Value>
+    </Setting>
+    <Setting Name="reqSommeSousCatMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT sousCatégorie, sum(montant) FROM Mouvements where catégorie = '</Value>
+    </Setting>
+    <Setting Name="selAleatoire" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">3rD/s9+aP2fG4h5jK7lMnO=</Value>
+    </Setting>
+    <Setting Name="procMvtsIdentiquesEX" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">EXEC dbo.ObtenirMouvementsSimilaires @dateMvt, @montant, @sens</Value>
+    </Setting>
+    <Setting Name="updMvt" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE [dbo].[Mouvements] SET [catégorie] = @Categorie, [sousCatégorie] = @SousCategorie, [tiers] = @Tiers, [note] = @Note, [dateModification] = GETDATE(), [etat] = @Etat, [événement] = @Evenement, [type] = @Type, [modifiable] = @Modifiable, [numeroRemise] = @NumeroRemise where [Id] = @Id</Value>
+    </Setting>
+    <Setting Name="ficBilan" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">gestionTresorerie\monFichier.docx</Value>
+    </Setting>
+    <Setting Name="updMvtIdDoc" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE Mouvements SET idDoc = @nouvelIdDoc WHERE Id = @idMouvement</Value>
+    </Setting>
+    <Setting Name="reqCategorieTout" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, libelle FROM Categorie</Value>
+    </Setting>
+    <Setting Name="selIdLibCat" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, libelle FROM Categorie;</Value>
+    </Setting>
+    <Setting Name="delMvt" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DELETE FROM [dbo].[Mouvements] WHERE [Id] = @Id</Value>
+    </Setting>
+    <Setting Name="delCompte" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DELETE FROM [dbo].[Comptes] WHERE [login] = @login</Value>
+    </Setting>
+    <Setting Name="updCompte" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE [dbo].[Comptes] SET [motDePasse] = @motDePasse WHERE [login] = @login</Value>
+    </Setting>
+    <Setting Name="insertCompte" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INSERT INTO [dbo].[Comptes] ([login], [motDePasse], [typeAcces]) VALUES (@login, @motDePasse, @typeAcces)</Value>
+    </Setting>
+    <Setting Name="insertChq" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INSERT INTO [dbo].Cheque ([numero], [date], [emetteur], [montant], [banque], [destinataire], [imageChq]) VALUES (@numero, @date, @emetteur, @montant, @banque, @destinataire, @imageChq);</Value>
+    </Setting>
+    <Setting Name="delDocs" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DELETE FROM [dbo].[Documents] WHERE idDoc = @idDoc	;</Value>
+    </Setting>
+    <Setting Name="selTiersPhysique" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, nom, prenom FROM Tiers WHERE nom IS NOT NULL;</Value>
+    </Setting>
+    <Setting Name="selTiersMorale" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, raisonSociale FROM Tiers WHERE raisonSociale IS NOT NULL;</Value>
+    </Setting>
+    <Setting Name="cptTiers" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT COUNT(*) FROM Tiers WHERE (nom = @nom AND prenom = @prenom and raisonSociale is null) OR raisonSociale = @raisonSociale and nom is null AND prenom is null;</Value>
+    </Setting>
+    <Setting Name="reqSousCategoriesDefautMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT sousCategorieDefaut FROM Tiers where id = @id;</Value>
+    </Setting>
+    <Setting Name="selExisteTiers" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT COUNT(*) FROM Tiers WHERE (nom = @nom AND prenom = @prenom) OR raisonSociale = @raisonSociale);</Value>
+    </Setting>
+    <Setting Name="insertTiers" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INSERT INTO Tiers (nom, prenom, raisonSociale, categorieDefaut, sousCategorieDefaut, dateCreation, dateModification) VALUES (@nom, @prenom, @raisonSociale, @categorieDefaut, @sousCategorieDefaut, @dateCreation, @dateModification);</Value>
+    </Setting>
+    <Setting Name="parametresJson" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">parametresAppli.json</Value>
+    </Setting>
+    <Setting Name="reqCategoriesMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT DISTINCT catégorie FROM Mouvements;</Value>
+    </Setting>
+    <Setting Name="reqCategoriesMouvementsOld" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT DISTINCT libelle from categorie where id in (select catégorie FROM Mouvements);</Value>
+    </Setting>
+    <Setting Name="reqLibCat" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT libelle FROM Categorie where Id = @id</Value>
+    </Setting>
+    <Setting Name="reqSommeCatMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">with sel as (SELECT distinct sousCatégorie as sousCat, SUM(montant) as mnt FROM Mouvements Mvt WHERE Mvt.catégorie = @categorie group by sousCatégorie) select sC.libelle, mnt from sel, sousCategorie sC where sC.id = sousCat;</Value>
+    </Setting>
+    <Setting Name="cleApiMistral" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">uswXFN4VPYfYmrTmNbLY16D3fxFunwjm</Value>
+    </Setting>
+    <Setting Name="modeleMistral" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">pixtral-12b-2409</Value>
+    </Setting>
+    <Setting Name="reqTypes" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">select id, libelle from Type;</Value>
+    </Setting>
+    <Setting Name="reqEvenement" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">select id, libelle from Evenement;</Value>
+    </Setting>
+    <Setting Name="niveauLog" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INFO</Value>
+    </Setting>
+    <Setting Name="sqlSelSousCategoriesTout" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, libelle FROM SousCategorie;</Value>
+    </Setting>
+    <Setting Name="dicoTypeMvt" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">"FRAIS Commission : Virement emis;FRAIS Tenue de compte professionnel : Virement emis;FRAIS saisie administrative : Virement emis;INTERETS CREDITEURS C.L.ALLEGRE : Virement recu ;PRELEVEMENT AIST : Prelevement;PRELEVEMENT GIE KLESIA COTIS : Prelevement;PRELEVEMENT HUMANIS PREVOYANCE PLEIADE : Prelevement;PRELEVEMENT KOESIO AURA : Prelevement;PRELEVEMENT Relevé de compte quinzaine : Prelevement;PRELEVEMENT URSSAF AUVERGNE : Prelevement;REMISE DE CHEQUE;SOUSCRIPTION C.L.ALLEGRE : Prelevement;VERSEMENT D'ESPECES ALLEGRE : Depot especes;VIREMENT EMIS BLOCAGE SAISIE ADMIN A TIERS DET ;VIREMENT EMIS WEB A G U M A A : Depot especes;VIREMENT EN VOTRE FAVEUR : Virement recu ;PRELEVEMENT AIST 43 : Prelevement;PRELEVEMENT URSSAF D AUVERGNE : Prelevement;RETRAIT D'ESPECES : Especes;PRELEVEMENT ;SACEMSOC AUTEUR COMPOSITEUR : Prelevement;RETRO A TITRE COMMERCIAL : Virement recu ;VIREMENT EMIS SY SERVICE IMPOTS DES ENTRE : Virement emis;VIREMENT EMIS WEB A G U M A A Alimentation : Virement emis"</Value>
+    </Setting>
+    <Setting Name="reqCategoriesDefautMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT categorieDefaut FROM Tiers where id = @id</Value>
+    </Setting>
+    <Setting Name="repRacineAgumaaa" Type="System.String" Scope="User">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA</Value>
+    </Setting>
+    <Setting Name="bddAgumaaaProd" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Users\User\Documents\Agumaaa\Trésorerie\bddAgumaaaProd2.mdf</Value>
+    </Setting>
+    <Setting Name="copieMdbGoogleDrive" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Bdd\bddAgumaaaProd2.mdf</Value>
+    </Setting>
+    <Setting Name="repFichiersDocumentsATrier" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\A_Trier</Value>
+    </Setting>
+    <Setting Name="repFichiersDocumentsChèques" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Chèques</Value>
+    </Setting>
+    <Setting Name="repFichiersGym" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Manifestations récurrentes\Activités\Gym</Value>
+    </Setting>
+    <Setting Name="repGymAdhésion" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Formulaires d'adhésion</Value>
+    </Setting>
+    <Setting Name="repGymQuestionnaire" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\QuestionnairesSanté</Value>
+    </Setting>
+    <Setting Name="repRacineDocuments" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Documents</Value>
+    </Setting>
+    <Setting Name="repRacineComptabilité" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Gestion\Trésorerie\Comptabilité\Eléments comptables</Value>
+    </Setting>
+    <Setting Name="repRacineMdN" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Manifestations récurrentes\Marché de Noël</Value>
+    </Setting>
+    <Setting Name="repAttestationsNonParticipationAutresMarches" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Administratif\attestationsNonParticipationAutresMarches</Value>
+    </Setting>
+    <Setting Name="repFichiersDocumentsFactures" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Factures</Value>
+    </Setting>
+    <Setting Name="repFichiersFacturesEmises" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Emises</Value>
+    </Setting>
+    <Setting Name="repFichiersFacturesRecues" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Recues</Value>
+    </Setting>
+    <Setting Name="sqlTypesDocuments" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT prompt, gabaritRepertoire, gabaritNomFichier, classe FROM TypeDoc;</Value>
+    </Setting>
+    <Setting Name="reqLibellesTypesDocuments" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT libellé FROM TypeDoc;</Value>
+    </Setting>
+    <Setting Name="reqDocs" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees FROM [dbo].[Documents];</Value>
+    </Setting>
+    <Setting Name="updDocs" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE [dbo].[Documents] SET dateDoc = @dateDoc, contenuDoc = @contenuDoc, cheminDoc = @cheminDoc, categorieDoc = @categorieDoc, sousCategorieDoc = @sousCategorieDoc, idMvtDoc=@idMvtDoc, metaDonnees=@metaDonnees WHERE idDoc = @idDoc;</Value>
+    </Setting>
+    <Setting Name="insertDocAgumaaa" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INSERT INTO [dbo].[Documents] (dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees) VALUES (@dateDoc, @contenuDoc, @cheminDoc, @categorieDoc, @sousCategorieDoc, @idMvtDoc, @metaDonnees);</Value>
+    </Setting>
+    <Setting Name="urlRacinedriveAgumaaa" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">https://drive.google.com/drive/folders/1yxfwBMp-bwpMHqMZZd5fHWcAhkZnH7F6?usp=drive_link</Value>
+    </Setting>
+    <Setting Name="fichierCRBatch" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Users\User\Downloads\CRBatch.json</Value>
+    </Setting>
+    <Setting Name="repChqProd" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables\Chèques\</Value>
+    </Setting>
+    <Setting Name="ficLstTiers" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\BacASable\lstTiers.csv</Value>
+    </Setting>
+    <Setting Name="sqlLibellesTypesDocuments" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT libellé FROM TypeDoc;</Value>
+    </Setting>
+    <Setting Name="reqChq" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT id, numero, date, emetteur, destinataire FROM Cheque WHERE montant = @montant;</Value>
+    </Setting>
+    <Setting Name="sqlSelectMouvementsLibelles" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">select Id , (select libelle from Categorie where id = catégorie) as Catégorie, (select libelle from sousCategorie where id = sousCatégorie) as sousCatégorie, montant , CASE sens WHEN 1 THEN 'Crédit' ELSE 'Débit' END as 'Sens', (select coalesce(nom + ' ' + prenom, raisonSociale ) from Tiers where id = tiers) as Tiers, note, dateMvt, dateCréation, dateModification, etat, événement, type, CASE modifiable WHEN 1 THEN 'modifiable' ELSE 'Non modifiable' END as 'Modifiable', numeroRemise, reference, typeReference, idDoc from Mouvements;</Value>
+    </Setting>
+    <Setting Name="procMvtsIdentiques" Description="Procécdure stockée d'identification des mouvements déjà saisis" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT Id, catégorie, sousCatégorie, montant, sens, tiers, note, dateMvt, dateCréation, dateModification, etat, événement, type, modifiable, numeroRemise, reference, typeReference, idDoc FROM [dbo].[Mouvements] WHERE dateMvt = @dateMvt AND montant = @montant AND sens = @sens;</Value>
+    </Setting>
+    <Setting Name="sqlSelectMouvements" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">select Id , catégorie, sousCatégorie, montant , sens , tiers , note , dateMvt , dateCréation , dateModification , etat , événement , type , modifiable, numeroRemise, reference, typeReference, idDoc from Mouvements;</Value>
+    </Setting>
+    <Setting Name="insertMvts" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INSERT INTO [dbo].[Mouvements] (note, catégorie, sousCatégorie, tiers, dateCréation, dateMvt, montant, sens, etat, événement, type, modifiable, numeroRemise, reference, typeReference, idDoc) VALUES (@note, @categorie, @sousCategorie, @tiers, @dateCréation, @dateMvt, @montant, @sens, @etat, @événement, @type, @modifiable, @numeroRemise, @reference, @typeReference, @idDoc);</Value>
+    </Setting>
+    <Setting Name="reqDoc" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees, dateModif  FROM Documents WHERE JSON_VALUE(metaDonnees, '$.numero_du_cheque') IS NOT NULL  AND JSON_VALUE(metaDonnees, '$.numero_du_cheque') = @numero  AND JSON_VALUE(metaDonnees, '$.montant_numerique') = @montant  AND JSON_VALUE(metaDonnees, '$.emetteur_du_cheque') like @emetteur;</Value>
+    </Setting>
+    <Setting Name="updateDocumentMetaDonnees" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE Documents SET metaDonnees = @metaDonnees, dateModif = GETDATE() WHERE IdDoc = @idDocument;</Value>
+    </Setting>
+    <Setting Name="insertUtilisateur" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INSERT INTO Utilisateurs (NomUtilisateur, MotDePasse, Role, Actif) VALUES (@nom, @pwd, @role, @actif);</Value>
+    </Setting>
+    <Setting Name="updUtilisateur" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE Utilisateurs SET NomUtilisateur = @nom, Role = @role, Actif = @actif, MotDePasse = ISNULL(@pwd, MotDePasse) WHERE Id = @id;</Value>
+    </Setting>
+    <Setting Name="updDesactiveUtilisateur" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE Utilisateurs SET Actif = @actif WHERE Id = @id;</Value>
+    </Setting>
+    <Setting Name="updMdPUtilisateur" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE Utilisateurs SET MotDePasse = @pwd WHERE Id = @id;</Value>
+    </Setting>
+    <Setting Name="reqDocMontant" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees, dateModif  FROM Documents WHERE JSON_VALUE(metaDonnees, '$.montant_numerique') = @montant;</Value>
+    </Setting>
+    <Setting Name="ficAgentMistral" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\BacASable\mistral_state.json</Value>
+    </Setting>
+<<<<<<< Updated upstream
+    <Setting Name="updCheminDoc" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE Documents SET cheminDoc = @cheminDoc WHERE idDoc = @idDoc;</Value>
+    </Setting>
+    <Setting Name="cptDocPagination" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT COUNT(*) FROM Documents  ;</Value>
+    </Setting>
+    <Setting Name="selDocPagination" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT idDoc, dateDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees, dateModif  FROM Documents ORDER BY dateDoc desc OFFSET @Offset ROWS FETCH NEXT @TaillePage ROWS ONLY;</Value>
+    </Setting>
+    <Setting Name="fichierEntreesCinemaExcel" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\Documents\Cinéma\Entrées\EntréesCinéma2025.xlsx</Value>
+    </Setting>
+    <Setting Name="insertFilm" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INSERT INTO Films(Titre, DureeMinutes, Genre, Realisateur, DateSortie, Synopsis, AgeMinimum, AfficheUrl) VALUES (@Titre, @DureeMinutes, @Genre, @Realisateur, @DateSortie, @Synopsis, @AgeMinimum, @AfficheUrl);SELECT CAST(SCOPE_IDENTITY() AS INT);</Value>
+    </Setting>
+    <Setting Name="insertSeance" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INSERT INTO Seances(IdFilm, DateHeureDebut, TarifBase, Langue, Format, NbEntreesAdultes, NbEntreesEnfants, NbEntreesGroupeEnfants) VALUES (@IdFilm, @DateHeureDebut, @TarifBase, @Langue, @Format, @NbEntreesAdultes, @NbEntreesEnfants, @NbEntreesGroupeEnfants);</Value>
+    </Setting>
+    <Setting Name="selFilmParTitre" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT * FROM Films where Titre=@titre</Value>
+    </Setting>
+    <Setting Name="delFilm" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DELETE FROM Films WHERE IdFilm=@Id</Value>
+    </Setting>
+    <Setting Name="delSeance" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DELETE FROM Seances WHERE IdSeance=@Id</Value>
+    </Setting>
+    <Setting Name="selSeanceIdFilm" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT * FROM Seances WHERE IdFilm=@IdFilm ORDER BY DateHeureDebut</Value>
+    </Setting>
+    <Setting Name="cinemaDBProd" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Users\User\OneDrive\Documents\CinemaDB.mdf</Value>
+    </Setting>
+    <Setting Name="cinemaDBTest" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Users\User\OneDrive\Documents\CinemaDBTest.mdf</Value>
+    </Setting>
+    <Setting Name="sel10Stat" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT TOP 10 * FROM vStatsParFilm ORDER BY CA_Total DESC;</Value>
+    </Setting>
+    <Setting Name="selStatsParFilm" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT * FROM vStatsParFilm;</Value>
+    </Setting>
+    <Setting Name="selStatsParMois" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT * FROM vStatsParMois;</Value>
+    </Setting>
+    <Setting Name="selSeancesAvecFilm" Type="System.String" Scope="User">
+      <Value Profile="(Default)">SELECT * FROM vStatistiquesSeances;</Value>
+    </Setting>
+    <Setting Name="selTarifsValides" Type="System.String" Scope="User">
+      <Value Profile="(Default)">select * from tarifs;</Value>
+    </Setting>
+    <Setting Name="cleApiTmdb" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">d4371f28c29f00bf2c168bd709a26059</Value>
+    </Setting>
+    <Setting Name="jetonApiTmdb" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNDM3MWYyOGMyOWYwMGJmMmMxNjhiZDcwOWEyNjA1OSIsIm5iZiI6MTY0NDA3ODkzMS41OTEsInN1YiI6IjYxZmVhNzUzMzg0NjlhMDAxY2FhOTYwOCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Sf5hUzafWHm_MlfHRFKKOATpBIBst5AOWFDqwHwk344</Value>
+    </Setting>
+    <Setting Name="selListeFilms" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT DISTINCT TitreFilm FROM Seances;</Value>
+    </Setting>
+    <Setting Name="selTitreFilm" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT COUNT(*) FROM Films WHERE Titre=@Titre</Value>
+    </Setting>
+    <Setting Name="selTitreFilmParId" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT Titre FROM Films WHERE IdFilm = @IdFilm</Value>
+    </Setting>
+    <Setting Name="logoAgumaaa" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\Resources\logoAgumaaa.png</Value>
+    </Setting>
+    <Setting Name="logoCinema" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\Resources\logoCinema.png</Value>
+    </Setting>
+    <Setting Name="cheminProgramme" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Users\User\Downloads\programme.docx</Value>
+    </Setting>
+    <Setting Name="logoCinevasion" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\Resources\logoCinevasion.png</Value>
+=======
+    <Setting Name="SMTP_SERVER" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">smtp.gmail.com</Value>
+    </Setting>
+    <Setting Name="SMTP_PORT" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">587</Value>
+    </Setting>
+    <Setting Name="SMTP_USER" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">agumaaa43@gmail.com</Value>
+    </Setting>
+    <Setting Name="SMTP_PASS" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">43GeorgeSand+</Value>
+>>>>>>> Stashed changes
+    </Setting>
+  </Settings>
+</SettingsFile>

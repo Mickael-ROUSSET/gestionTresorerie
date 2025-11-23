@@ -296,6 +296,18 @@ Public Class FrmPrincipale
         End Using
     End Sub
 
+    Private Sub ImporterExcelToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ImporterExcelToolStripMenuItem.Click
+        Dim mdn As New GenereAttestationNonParticipation
+        mdn.ImporterParticipantsDepuisExcel()
+        MsgBox("Import terminé. CR dans les logs")
+    End Sub
+
+    Private Sub GénérerAttestationsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles GénérerAttestationsToolStripMenuItem.Click
+        Dim mdn As New GenereAttestationNonParticipation
+        mdn.GenererEtEnvoyerAttestations()
+        MsgBox("Génération terminée. CR dans les logs")
+    End Sub
+
 
     'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
     '    'Call CreeBilans()

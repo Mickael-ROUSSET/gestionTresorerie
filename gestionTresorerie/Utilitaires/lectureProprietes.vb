@@ -37,13 +37,17 @@
                             Return My.Settings.DataSource & "'" & My.Settings.bddAgumaaaProd & "'" & My.Settings.ParamDb
                         Case Constantes.cinemaDB
                             Return My.Settings.DataSource & "'" & My.Settings.cinemaDBProd & "'" & My.Settings.ParamDb
-                End Select
+                        Case Constantes.MarcheDeNoelDB
+                            Return My.Settings.DataSource & "'" & My.Settings.marcheDeNoelDBProd & "'" & My.Settings.ParamDb
+                    End Select
                 Case "Test"
                     Select Case sBase
                         Case Constantes.bddAgumaaa
                             Return My.Settings.DataSource & "'" & My.Settings.bddAgumaaaTest & "'" & My.Settings.ParamDb
                         Case Constantes.cinemaDB
                             Return My.Settings.DataSource & "'" & My.Settings.cinemaDBTest & "'" & My.Settings.ParamDb
+                        Case Constantes.MarcheDeNoelDB
+                            Return My.Settings.DataSource & "'" & My.Settings.marcheDeNoelDBTest & "'" & My.Settings.ParamDb
                     End Select
             End Select
             Return String.Empty

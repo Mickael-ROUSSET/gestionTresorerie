@@ -108,6 +108,9 @@ Public Class ProgrammeCinemaCreator
     ''' Crée la première page : colonnes avec tarifs, séances et logos
     ''' </summary>
     Private Sub CreerPage1(mainPart As MainDocumentPart, body As Body, seances As List(Of FilmSeance))
+        Dim twipsParCm As Integer = 567
+        Dim hauteurPage As Integer = 11906 ' Landscape A4 height in EMU
+
         ' Table pour simuler les colonnes
         Dim table = New Table()
         table.Append(New TableProperties(New TableWidth() With {.Type = TableWidthUnitValues.Pct, .Width = "5000"}))
@@ -117,53 +120,152 @@ Public Class ProgrammeCinemaCreator
 
         ' --- Colonne gauche : tarifs et séances ---
         Dim tcGauche = New TableCell()
-        AjouterTarifsEtSeances(tcGauche, seances)
-        'Pieds de page
-        AjouterPiedDePagePage1(mainPart, tcGauche)
+        AjouterTarifsEtSeances(tcGauche, seances, twipsParCm, hauteurPage)
         tr.Append(tcGauche)
 
         ' --- Colonne droite : logos et programmation ---
         Dim tcDroite = New TableCell()
-        AjouterLogosEtProgrammation(mainPart, tcDroite, seances)
+        AjouterLogosEtProgrammation(tcDroite, mainPart, seances)
         tr.Append(tcDroite)
 
         table.Append(tr)
         body.Append(table)
     End Sub
-    Private Sub AjouterTarifsEtSeances(tc As TableCell, seances As List(Of FilmSeance))
-        ' Tarifs
-        tc.Append(New Paragraph(New Run(New Text("Tarifs : adulte 6€ / -16 ans : 5€")) With {
-            .RunProperties = New RunProperties(New RunFonts() With {.Ascii = "Arial"}, New FontSize() With {.Val = "40"})})) ' 20pt
 
-        ' Séances
-        tc.Append(New Paragraph(New Run(New Text("Séances :")) With {
-            .RunProperties = New RunProperties(New RunFonts() With {.Ascii = "Arial"}, New FontSize() With {.Val = "48"})})) ' 24pt
+    Private Sub AjouterTarifsEtSeances(tc As TableCell, seances As List(Of FilmSeance), twipsParCm As Integer, hauteurPage As Integer)
+        ' --- Tarifs ---
+        Dim paraTarifs = New Paragraph(New Run(New Text("Tarifs : adulte 6€ / -16 ans : 5€"))) With {
+        .ParagraphProperties = New ParagraphProperties(
+            New SpacingBetweenLines() With {.After = CUInt(twipsParCm)})
+    }
+        paraTarifs.Descendants(Of Run)().First().RunProperties = New RunProperties(
+        New RunFonts() With {.Ascii = "Arial"},
+        New FontSize() With {.Val = "40"}, ' 20 pt
+        New Bold(),
+        New Color() With {.Val = "1F4E79"} ' bleu foncé
+    )
+        tc.Append(paraTarifs)
 
-        ' Liste des films
+        ' --- "Séances :" 1 cm sous tarifs ---
+        Dim paraSeances = New Paragraph(New Run(New Text("Séances :"))) With {
+        .ParagraphProperties = New ParagraphProperties(
+            New SpacingBetweenLines() With {.Before = CUInt(twipsParCm), .After = CUInt(twipsParCm)})
+    }
+        paraSeances.Descendants(Of Run)().First().RunProperties = New RunProperties(
+        New RunFonts() With {.Ascii = "Arial"},
+        New FontSize() With {.Val = "48"}, ' 24 pt
+        New Bold(),
+        New Color() With {.Val = "1F4E79"} ' bleu foncé
+    )
+        tc.Append(paraSeances)
+
+        ' --- Liste des films, répartie sur la hauteur ---
+        If seances.Count = 0 Then Return
+
+        Dim nbFilms As Integer = seances.Count
+        Dim hauteurDisponibile As Double = hauteurPage - 2 * twipsParCm ' laisser 2 cm en bas
+        Dim espaceParFilm As Integer = CInt(System.Math.Min(2 * twipsParCm, hauteurDisponibile / nbFilms))
+
         For Each s In seances
-            tc.Append(New Paragraph(New Run(New Text($"{s.DateDiffusion:dd/MM} {s.HeureDiffusion:hh\:mm}")) With {
-                .RunProperties = New RunProperties(New RunFonts() With {.Ascii = "Arial"}, New FontSize() With {.Val = "28"})})) ' 14pt
-            tc.Append(New Paragraph(New Run(New Text(s.Titre)) With {
-                .RunProperties = New RunProperties(New RunFonts() With {.Ascii = "Arial"}, New FontSize() With {.Val = "28"})})) ' 14pt
+            ' Date et heure en gras et format "Vendredi 08 août 20h30"
+            Dim dateTexte = $"{s.DateDiffusion:dddd dd MMMM} {s.HeureDiffusion:hh\:mm}"
+            Dim paraDate = New Paragraph(New Run(New Text(dateTexte))) With {
+            .ParagraphProperties = New ParagraphProperties(
+                New SpacingBetweenLines() With {.After = CUInt(twipsParCm \ 2)})
+        }
+            paraDate.Descendants(Of Run)().First().RunProperties = New RunProperties(
+            New RunFonts() With {.Ascii = "Arial"},
+            New FontSize() With {.Val = "28"}, ' 14 pt
+            New Bold()
+        )
+            tc.Append(paraDate)
+
+            ' Titre en gras et en couleur
+            Dim runTitre = New Run(New Text(s.Titre))
+            runTitre.RunProperties = New RunProperties(
+            New RunFonts() With {.Ascii = "Arial"},
+            New FontSize() With {.Val = "28"}, ' 14 pt
+            New Bold(),
+            New Color() With {.Val = "1F4E79"} ' bleu foncé
+        )
+            Dim paraTitre = New Paragraph(runTitre) With {
+            .ParagraphProperties = New ParagraphProperties(
+                New SpacingBetweenLines() With {.After = CUInt(espaceParFilm)})
+        }
+            tc.Append(paraTitre)
         Next
     End Sub
-    Private Sub AjouterLogosEtProgrammation(mainPart As MainDocumentPart, tc As TableCell, seances As List(Of FilmSeance))
-        ' Logos
+
+
+    Private Sub AjouterLogosEtProgrammation(tc As TableCell, mainPart As MainDocumentPart, seances As List(Of FilmSeance))
+        Dim twipsParCm As Integer = 567
+
+        ' Logos Agumaaa et Cinema en haut
         Dim logoAgumaaaPath = LectureProprietes.GetVariable("logoAgumaaa")
+        If Not String.IsNullOrEmpty(logoAgumaaaPath) AndAlso IO.File.Exists(logoAgumaaaPath) Then
+            AjouterImageDansCellule(mainPart, tc, logoAgumaaaPath, 2400000, 1200000)
+        End If
+
         Dim logoCinemaPath = LectureProprietes.GetVariable("logoCinema")
-        AjouterImageDansCellule(mainPart, tc, logoAgumaaaPath, 1000000, 1000000)
-        AjouterImageDansCellule(mainPart, tc, logoCinemaPath, 3000000, 1600000)
+        If Not String.IsNullOrEmpty(logoCinemaPath) AndAlso IO.File.Exists(logoCinemaPath) Then
+            AjouterImageDansCellule(mainPart, tc, logoCinemaPath, 2800000, 1600000)
+        End If
 
         ' Titre "Programmation"
-        tc.Append(New Paragraph(New Run(New Text("Programmation")) With {
-            .RunProperties = New RunProperties(New RunFonts() With {.Ascii = "Arial"}, New FontSize() With {.Val = "56"})})) ' 28pt
+        Dim paraTitre = New Paragraph(New Run(New Text("Programmation"))) With {
+        .ParagraphProperties = New ParagraphProperties(
+            New SpacingBetweenLines() With {.After = CUInt(twipsParCm)})
+    }
+        paraTitre.Descendants(Of Run)().First().RunProperties = New RunProperties(
+        New RunFonts() With {.Ascii = "Arial"},
+        New FontSize() With {.Val = "56"}, ' 28 pt
+        New Bold(),
+        New Color() With {.Val = "1F4E79"} ' bleu foncé
+    )
+        tc.Append(paraTitre)
 
         ' Dates du 1er et dernier film
         If seances.Count > 0 Then
             Dim dateDebut = seances.Min(Function(f) f.DateDiffusion)
             Dim dateFin = seances.Max(Function(f) f.DateDiffusion)
-            tc.Append(New Paragraph(New Run(New Text($"Du {dateDebut:dd MMMM} au {dateFin:dd MMMM}")) With {
-                .RunProperties = New RunProperties(New RunFonts() With {.Ascii = "Arial"}, New FontSize() With {.Val = "40"})})) ' 20pt
+            Dim paraDates = New Paragraph(New Run(New Text($"Du {dateDebut:dd MMMM} au {dateFin:dd MMMM}"))) With {
+            .ParagraphProperties = New ParagraphProperties(
+                New SpacingBetweenLines() With {.After = CUInt(twipsParCm)})
+        }
+            paraDates.Descendants(Of Run)().First().RunProperties = New RunProperties(
+            New RunFonts() With {.Ascii = "Arial"},
+            New FontSize() With {.Val = "40"} ' 20 pt
+        )
+            tc.Append(paraDates)
+        End If
+
+        ' --- Pied de page : texte + logo Cinevasion ---
+        Dim paraPied = New Paragraph(New Run(New Text("Ne pas jeter sur la voie publique"))) With {
+        .ParagraphProperties = New ParagraphProperties(
+            New Justification() With {.Val = JustificationValues.Left},
+            New SpacingBetweenLines() With {.Before = CUInt(twipsParCm)})
+    }
+        paraPied.Descendants(Of Run)().First().RunProperties = New RunProperties(
+        New RunFonts() With {.Ascii = "Arial"},
+        New FontSize() With {.Val = "20"} ' 10 pt
+    )
+        tc.Append(paraPied)
+
+        Dim paraSite = New Paragraph(New Run(New Text("agumaaa.jimdofree.com cinevasion43.wix.com/site"))) With {
+        .ParagraphProperties = New ParagraphProperties(
+            New Justification() With {.Val = JustificationValues.Left},
+            New SpacingBetweenLines() With {.Before = CUInt(twipsParCm \ 2)})
+    }
+        paraSite.Descendants(Of Run)().First().RunProperties = New RunProperties(
+        New RunFonts() With {.Ascii = "Arial"},
+        New FontSize() With {.Val = "20"} ' 10 pt
+    )
+        tc.Append(paraSite)
+
+        ' Logo Cinevasion en bas
+        Dim logoCinevasionPath = LectureProprietes.GetVariable("logoCinevasion")
+        If Not String.IsNullOrEmpty(logoCinevasionPath) AndAlso IO.File.Exists(logoCinevasionPath) Then
+            AjouterImageDansCellule(mainPart, tc, logoCinevasionPath, 800000, 300000)
         End If
     End Sub
 
@@ -246,33 +348,56 @@ Public Class ProgrammeCinemaCreator
     Private Sub CreerPage2(mainPart As MainDocumentPart, body As Body, seances As List(Of FilmSeance))
         If seances.Count = 0 Then Return
 
-        ' Saut de page pour séparer de la page 1
+        ' --- Saut de page ---
         body.Append(New Paragraph(New Run(New Break() With {.Type = BreakValues.Page})))
 
-        ' Section paysage et colonnes avec espace de 2 cm (en twentieths of a point = 567 Twips par cm)
+        ' --- Section paysage ---
         Dim sectionProps = New SectionProperties(
-                New PageSize() With {.Width = 16838, .Height = 11906, .Orient = PageOrientationValues.Landscape},
-                New Columns() With {.Space = (2 * 567).ToString()} ' 2 cm
-                )
+        New PageSize() With {.Width = 16838, .Height = 11906, .Orient = PageOrientationValues.Landscape}
+    )
         body.Append(sectionProps)
 
-        ' Table à 2 colonnes pour la mise en page
-        Dim table = New Table()
-        table.Append(New TableProperties(New TableWidth() With {.Type = TableWidthUnitValues.Pct, .Width = "5000"}))
-        table.Append(New TableGrid(New GridColumn() With {.Width = "5000"}, New GridColumn() With {.Width = "5000"}))
+        ' --- Calcul largeurs colonnes ---
+        Dim largeurPage As Integer = 16838 ' largeur paysage
+        Dim espaceCm As Integer = 2
+        Dim cm2Twips As Integer = 567
+        Dim espaceTwips As Integer = espaceCm * cm2Twips
+        Dim largeurCol As Integer = (largeurPage - 2 * espaceTwips) \ 2
 
-        Dim tr = New TableRow()
-        Dim tcLeft = New TableCell()
-        Dim tcRight = New TableCell()
+        ' --- Table 2 colonnes ---
+        Dim table As New Table()
+        table.Append(New TableProperties(
+        New TableWidth() With {.Type = TableWidthUnitValues.Dxa, .Width = (largeurPage - 2 * espaceTwips).ToString()}
+    ))
+        table.Append(New TableGrid(
+        New GridColumn() With {.Width = largeurCol.ToString()},
+        New GridColumn() With {.Width = largeurCol.ToString()}
+    ))
 
-        ' Séparer la liste des films en deux moitiés
+        Dim tr As New TableRow()
+        Dim tcLeft As New TableCell()
+        Dim tcRight As New TableCell()
+
+        ' --- Ajouter 2 cm d'espace entre les colonnes via margin droite de gauche ---
+        tcLeft.
+            TableCellProperties =
+            New TableCellProperties(
+                                    New TableCellMarginDefault(
+                                        New TopMargin() With {.Width = "0", .Type = TableWidthUnitValues.Dxa},
+                                        New BottomMargin() With {.Width = "0", .Type = TableWidthUnitValues.Dxa},
+                                        New StartMargin() With {.Width = "0", .Type = TableWidthUnitValues.Dxa},
+                                        New EndMargin() With {.Width = "5000", .Type = TableWidthUnitValues.Dxa}
+                                        )
+                                     )
+
+        ' --- Séparer les films en deux colonnes ---
         Dim mid As Integer = CInt(System.Math.Ceiling(seances.Count / 2.0))
         Dim leftList = seances.Take(mid).ToList()
         Dim rightList = seances.Skip(mid).ToList()
 
-        ' Ajouter les films dans chaque colonne
-        AjouterFilmsDetailDansCellule(mainPart, tcLeft, leftList)
-        AjouterFilmsDetailDansCellule(mainPart, tcRight, rightList)
+        ' --- Ajouter films ---
+        AjouterFilmsDetailDansCellule2(mainPart, tcLeft, leftList)
+        AjouterFilmsDetailDansCellule2(mainPart, tcRight, rightList)
 
         tr.Append(tcLeft)
         tr.Append(tcRight)
@@ -280,86 +405,89 @@ Public Class ProgrammeCinemaCreator
         body.Append(table)
     End Sub
 
-
-    Private Sub AjouterFilmsDetailDansCellule(mainPart As MainDocumentPart, cellule As TableCell, films As List(Of FilmSeance))
+    Private Sub AjouterFilmsDetailDansCellule2(mainPart As MainDocumentPart, cellule As TableCell, films As List(Of FilmSeance))
         For Each s In films
             ' --- Affiche ---
             If Not String.IsNullOrEmpty(s.UrlAffiche) Then
-                AjouterImageDepuisUrl(mainPart, cellule, s.UrlAffiche, 2000000, 3000000)
-            ElseIf Not String.IsNullOrEmpty(s.UrlAffiche) AndAlso IO.File.Exists(s.UrlAffiche) Then
-                AjouterImageDansCellule(mainPart, cellule, s.UrlAffiche, 2000000, 3000000)
+                AjouterImageDepuisUrlOuFichier(mainPart, cellule, s.UrlAffiche, 2000000, 3000000)
             End If
 
-            ' --- Titre en gras ---
-            cellule.Append(New Paragraph(New Run(New Text(s.Titre)) With {
-            .RunProperties = New RunProperties(
+            ' --- Titre en gras et couleur ---
+            Dim runTitre As New Run(New Text(s.Titre))
+            runTitre.RunProperties = New RunProperties(
+            New RunFonts() With {.Ascii = "Arial"},
+            New FontSize() With {.Val = "32"},   ' 16 pt
+            New Bold(),
+            New Color() With {.Val = "2E74B5"}  ' bleu foncé
+        )
+            cellule.Append(New Paragraph(runTitre))
+
+            ' --- Détails en gras ---
+            Dim details As New Dictionary(Of String, String) From {
+            {"Genre", s.Genre},
+            {"Réalisateur", s.Realisateur},
+            {"Acteurs", If(s.Casting IsNot Nothing, String.Join(", ", s.Casting), "")},
+            {"Durée", s.DureeMinutes},
+            {"Synopsis", s.Synopsis}
+        }
+
+            For Each kvp In details
+                Dim runDetail As New Run(New Text($"{kvp.Key} : {kvp.Value}"))
+                runDetail.RunProperties = New RunProperties(
                 New RunFonts() With {.Ascii = "Arial"},
-                New FontSize() With {.Val = "32"}, ' 16pt
+                New FontSize() With {.Val = "28"},  ' 14 pt
                 New Bold()
             )
-        }))
-
-            ' --- Détails ---
-            ' Genre
-            cellule.Append(New Paragraph(New Run(New Text($"Genre : {s.Genre}")) With {
-            .RunProperties = New RunProperties(New RunFonts() With {.Ascii = "Arial"}, New FontSize() With {.Val = "28"})
-        }))
-
-            ' Réalisateur
-            cellule.Append(New Paragraph(New Run(New Text($"Réalisateur : {s.Realisateur}")) With {
-            .RunProperties = New RunProperties(New RunFonts() With {.Ascii = "Arial"}, New FontSize() With {.Val = "28"})
-        }))
-
-            ' Acteurs
-            Dim acteursTexte As String = If(s.Casting IsNot Nothing, String.Join(", ", s.Casting), "")
-            cellule.Append(New Paragraph(New Run(New Text($"Acteurs : {acteursTexte}")) With {
-            .RunProperties = New RunProperties(New RunFonts() With {.Ascii = "Arial"}, New FontSize() With {.Val = "28"})
-        }))
-
-            '    ' Pays
-            '    Dim paysTexte As String = If(s.Pays IsNot Nothing, String.Join(", ", s.Pays), "")
-            '    cellule.Append(New Paragraph(New Run(New Text($"Pays : {paysTexte}")) With {
-            '    .RunProperties = New RunProperties(New RunFonts() With {.Ascii = "Arial"}, New FontSize() With {.Val = "28"})
-            '}))
-
-            ' Durée
-            cellule.Append(New Paragraph(New Run(New Text($"Durée : {s.DureeMinutes}")) With {
-            .RunProperties = New RunProperties(New RunFonts() With {.Ascii = "Arial"}, New FontSize() With {.Val = "28"})
-        }))
-
-            ' Synopsis
-            cellule.Append(New Paragraph(New Run(New Text($"Synopsis : {s.Synopsis}")) With {
-            .RunProperties = New RunProperties(New RunFonts() With {.Ascii = "Arial"}, New FontSize() With {.Val = "28"})
-        }))
+                cellule.Append(New Paragraph(runDetail))
+            Next
 
             ' Espace après chaque film
             cellule.Append(New Paragraph(New Run(New Text(" "))))
         Next
     End Sub
 
-    Private Sub AjouterImageDepuisUrl(mainPart As MainDocumentPart, cellule As TableCell, url As String, Optional widthEmu As Long = 2000000, Optional heightEmu As Long = 3000000)
+
+    ' Ajoute marges internes pour créer un espacement entre colonnes
+    Private Sub AjouterMargesCellule(tc As TableCell)
+        tc.Append(New TableCellProperties(
+        New TableCellMarginDefault(
+            New LeftMargin() With {.Width = "567", .Type = TableWidthUnitValues.Dxa},   ' 1 cm
+            New RightMargin() With {.Width = "567", .Type = TableWidthUnitValues.Dxa}   ' 1 cm
+        )
+    ))
+    End Sub
+    ' Ajouter films avec affiche, titre en gras + couleur, détails en gras
+
+    ' Essaie de récupérer l'image depuis Internet ou fichier local
+    Private Sub AjouterImageDepuisUrlOuFichier(mainPart As MainDocumentPart, cellule As TableCell, url As String, Optional widthEmu As Long = 2000000, Optional heightEmu As Long = 3000000)
         Try
-            ' Récupérer l'image depuis Internet
-            Dim bytes() As Byte
-            Using client As New Net.Http.HttpClient()
-                bytes = client.GetByteArrayAsync(url).GetAwaiter().GetResult()
-            End Using
+            Dim bytes() As Byte = Nothing
+            If url.StartsWith("http") Then
+                Using client As New Net.Http.HttpClient()
+                    bytes = client.GetByteArrayAsync(url).GetAwaiter().GetResult()
+                End Using
+            End If
 
-            ' Ajouter l'image à mainPart
             Dim imagePart = mainPart.AddImagePart(DocumentFormat.OpenXml.Packaging.ImagePartType.Jpeg)
-            Using stream As New IO.MemoryStream(bytes)
-                imagePart.FeedData(stream)
-            End Using
+            If bytes IsNot Nothing Then
+                Using stream As New IO.MemoryStream(bytes)
+                    imagePart.FeedData(stream)
+                End Using
+            ElseIf IO.File.Exists(url) Then
+                Using stream As New IO.FileStream(url, IO.FileMode.Open)
+                    imagePart.FeedData(stream)
+                End Using
+            Else
+                Logger.ERR($"Image introuvable : {url}")
+                Return
+            End If
 
-            ' Créer le Drawing et l'ajouter
             Dim drawing = CreerDrawing(mainPart.GetIdOfPart(imagePart), widthEmu, heightEmu)
             cellule.Append(New Paragraph(New Run(drawing)))
-
         Catch ex As Exception
-            Logger.ERR($"Impossible de charger l'image depuis l'URL '{url}' : {ex.Message}")
+            Logger.ERR($"Impossible de charger l'image '{url}' : {ex.Message}")
         End Try
     End Sub
-
 
     Private Sub AddImageToBody(imagePartId As String, body As Body)
         ' Créer la Picture

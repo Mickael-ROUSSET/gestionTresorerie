@@ -72,6 +72,7 @@ Partial Class FrmPrincipale
         CinémaToolStripMenuItem = New ToolStripMenuItem()
         ChargerFichierToolStripMenuItem = New ToolStripMenuItem()
         GénérerStatsToolStripMenuItem = New ToolStripMenuItem()
+        GénérerProgrammeToolStripMenuItem = New ToolStripMenuItem()
         ParamètresTechniquesToolStripMenuItem = New ToolStripMenuItem()
         EnvironnementToolStripMenuItem = New ToolStripMenuItem()
         AgentMistralToolStripMenuItem = New ToolStripMenuItem()
@@ -109,10 +110,12 @@ Partial Class FrmPrincipale
         RechercherToolStripMenuItem = New ToolStripMenuItem()
         toolStripSeparator5 = New ToolStripSeparator()
         ÀproposdeToolStripMenuItem = New ToolStripMenuItem()
+        ToolStripMenuItem1 = New ToolStripMenuItem()
+        ImporterExcelToolStripMenuItem = New ToolStripMenuItem()
+        GénérerAttestationsToolStripMenuItem = New ToolStripMenuItem()
         btnTraiteRelevé = New Button()
         FolderBrowserDialog1 = New FolderBrowserDialog()
         pgBar = New ProgressBar()
-        GénérerProgrammeToolStripMenuItem = New ToolStripMenuItem()
         CType(dgvPrincipale, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -292,7 +295,7 @@ Partial Class FrmPrincipale
         ' MenuStrip1
         ' 
         MenuStrip1.GripStyle = ToolStripGripStyle.Visible
-        MenuStrip1.Items.AddRange(New ToolStripItem() {FichierToolStripMenuItem, AnalyseToolStripMenuItem, GestionBDDToolStripMenuItem, GestionUtilisateurToolStripMenuItem, BatchToolStripMenuItem, CinémaToolStripMenuItem, ParamètresTechniquesToolStripMenuItem, ParamètresToolStripMenuItem1, FichierToolStripMenuItem1, ModifierToolStripMenuItem, OutilsToolStripMenuItem, AideToolStripMenuItem})
+        MenuStrip1.Items.AddRange(New ToolStripItem() {FichierToolStripMenuItem, AnalyseToolStripMenuItem, GestionBDDToolStripMenuItem, GestionUtilisateurToolStripMenuItem, BatchToolStripMenuItem, CinémaToolStripMenuItem, ParamètresTechniquesToolStripMenuItem, ParamètresToolStripMenuItem1, FichierToolStripMenuItem1, ModifierToolStripMenuItem, OutilsToolStripMenuItem, AideToolStripMenuItem, ToolStripMenuItem1})
         MenuStrip1.Location = New Point(0, 0)
         MenuStrip1.Name = "MenuStrip1"
         MenuStrip1.RenderMode = ToolStripRenderMode.System
@@ -437,6 +440,12 @@ Partial Class FrmPrincipale
         GénérerStatsToolStripMenuItem.Name = "GénérerStatsToolStripMenuItem"
         GénérerStatsToolStripMenuItem.Size = New Size(181, 22)
         GénérerStatsToolStripMenuItem.Text = "Générer stats..."
+        ' 
+        ' GénérerProgrammeToolStripMenuItem
+        ' 
+        GénérerProgrammeToolStripMenuItem.Name = "GénérerProgrammeToolStripMenuItem"
+        GénérerProgrammeToolStripMenuItem.Size = New Size(181, 22)
+        GénérerProgrammeToolStripMenuItem.Text = "Générer programme"
         ' 
         ' ParamètresTechniquesToolStripMenuItem
         ' 
@@ -686,6 +695,25 @@ Partial Class FrmPrincipale
         ÀproposdeToolStripMenuItem.Size = New Size(147, 22)
         ÀproposdeToolStripMenuItem.Text = "À pr&opos de..."
         ' 
+        ' ToolStripMenuItem1
+        ' 
+        ToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {ImporterExcelToolStripMenuItem, GénérerAttestationsToolStripMenuItem})
+        ToolStripMenuItem1.Name = "ToolStripMenuItem1"
+        ToolStripMenuItem1.Size = New Size(98, 20)
+        ToolStripMenuItem1.Text = "MarchéDeNoël"
+        ' 
+        ' ImporterExcelToolStripMenuItem
+        ' 
+        ImporterExcelToolStripMenuItem.Name = "ImporterExcelToolStripMenuItem"
+        ImporterExcelToolStripMenuItem.Size = New Size(180, 22)
+        ImporterExcelToolStripMenuItem.Text = "ImporterExcel"
+        ' 
+        ' GénérerAttestationsToolStripMenuItem
+        ' 
+        GénérerAttestationsToolStripMenuItem.Name = "GénérerAttestationsToolStripMenuItem"
+        GénérerAttestationsToolStripMenuItem.Size = New Size(180, 22)
+        GénérerAttestationsToolStripMenuItem.Text = "GénérerAttestations"
+        ' 
         ' btnTraiteRelevé
         ' 
         btnTraiteRelevé.Location = New Point(29, 124)
@@ -702,12 +730,6 @@ Partial Class FrmPrincipale
         pgBar.Name = "pgBar"
         pgBar.Size = New Size(262, 23)
         pgBar.TabIndex = 10
-        ' 
-        ' GénérerProgrammeToolStripMenuItem
-        ' 
-        GénérerProgrammeToolStripMenuItem.Name = "GénérerProgrammeToolStripMenuItem"
-        GénérerProgrammeToolStripMenuItem.Size = New Size(181, 22)
-        GénérerProgrammeToolStripMenuItem.Text = "Générer programme"
         ' 
         ' FrmPrincipale
         ' 
@@ -825,4 +847,7 @@ Partial Class FrmPrincipale
     Friend WithEvents ChargerFichierToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents GénérerStatsToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents GénérerProgrammeToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ToolStripMenuItem1 As ToolStripMenuItem
+    Friend WithEvents ImporterExcelToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents GénérerAttestationsToolStripMenuItem As ToolStripMenuItem
 End Class

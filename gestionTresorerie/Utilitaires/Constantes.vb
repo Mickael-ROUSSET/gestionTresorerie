@@ -17,6 +17,8 @@ Public Class Constantes
     Public Const bddAgumaaa As String = "bddAgumaaa"
     'Base du cinéma
     Public Const cinemaDB As String = "cinemaDB"
+    'Base du cinéma
+    Public Const MarcheDeNoelDB As String = "MarcheDeNoelDB"
 
     'Requêtes SQL
     '------------

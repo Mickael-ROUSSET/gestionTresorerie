@@ -1,0 +1,125 @@
+﻿Imports System.Data.SqlClient
+
+Public MustInherit Class DocumentAgumaaa
+    'Identifiant interne
+    Public Property IdDoc As Integer
+    'Identifiant du mouvement associé
+    Public Property IdMvtDoc As Integer
+    ' Propriété pour dateDoc
+    Public Property DateDoc As Date
+    ' Propriété pour cheminDoc
+    Public Property CheminDoc As String
+    ' Propriété pour categorieDoc
+    Public Property CategorieDoc As String
+    ' Propriété pour sousCategorieDoc
+    Public Property SousCategorieDoc As String
+    ' Propriété pour les méta donnees JSON
+    Public Property metaDonnees As String
+    ' Propriété pour la date de modification
+    Public Property dateModif As String
+    ' Propriété pour le contenu du document (base64)
+    Private _contenuDoc As String
+
+    Public Sub New()
+    End Sub
+    Public Sub New(idDoc As Integer,
+                   dateDoc As Date,
+                   contenuDoc As String,
+                   cheminDoc As String,
+                   categorieDoc As String,
+                   sousCategorieDoc As String,
+                   idMvtDoc As Integer,
+                   metaDonnees As String,
+                   dateModif As String)
+        Me.IdDoc = idDoc
+        Me.IdMvtDoc = idMvtDoc
+        Me.DateDoc = dateDoc
+        Me.ContenuDoc = contenuDoc
+        Me.CheminDoc = cheminDoc
+        Me.CategorieDoc = categorieDoc
+        Me.SousCategorieDoc = sousCategorieDoc
+        Me.metaDonnees = metaDonnees
+        Me.dateModif = dateModif
+    End Sub
+
+    Public Property ContenuDoc As String
+        Get
+            Return _contenuDoc
+        End Get
+        Set(value As String)
+            If Not String.IsNullOrEmpty(value) Then
+                Try
+                    ' Vérifier si la chaîne est un Base64 valide
+                    Dim unused = Convert.FromBase64String(value)
+                Catch ex As FormatException
+                    Logger.ERR($"ContenuDoc n'est pas une chaîne Base64 valide : {ex.Message}")
+                    Throw New ArgumentException("La valeur de ContenuDoc doit être une chaîne Base64 valide.")
+                End Try
+            End If
+            _contenuDoc = value
+        End Set
+    End Property
+
+
+    Public Shared Sub InsererDocument(doc As DocumentAgumaaa)
+        Try
+            Dim unused = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertDocAgumaaa",
+                             New Dictionary(Of String, Object) From {{"@dateDoc", doc.DateDoc},
+                                                                     {"@contenuDoc", doc.ContenuDoc},
+                                                                     {"@cheminDoc", doc.CheminDoc},
+                                                                     {"@categorieDoc", doc.CategorieDoc},
+                                                                     {"@sousCategorieDoc", doc.SousCategorieDoc},
+                                                                     {"@idMvtDoc", doc.IdMvtDoc},
+                                                                     {"@metaDonnees", doc.metaDonnees}
+                             }
+                             ).ExecuteNonQuery()
+            Logger.INFO($"Document {doc.IdMvtDoc} inséré avec succès.")
+        Catch ex As Exception
+            Logger.INFO($"Erreur lors de l'insertion du document : {ex.Message}")
+        End Try
+    End Sub
+    Public Shared Function LireDocuments() As DataTable
+        Dim table As New DataTable()
+        Try
+            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqDocs")
+
+            Using adapter As New SqlDataAdapter(command)
+                Dim unused = adapter.Fill(table)
+            End Using
+            'End Using
+        Catch ex As Exception
+            Logger.INFO($"Erreur lors de la lecture des documents : {ex.Message}")
+        End Try
+
+        Return table
+    End Function
+    Public Shared Sub MettreAJourDocument(idDoc As Integer, dateDoc As Date, contenuDoc As String, cheminDoc As String, categorieDoc As String, sousCategorieDoc As String, idMvtDoc As Integer)
+        Try
+            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "updDocs",
+                             New Dictionary(Of String, Object) From {{"@idDoc", idDoc},
+                                                                     {"@dateDoc", dateDoc},
+                                                                     {"@contenuDoc", contenuDoc},
+                                                                     {"@cheminDoc", cheminDoc},
+                                                                     {"@categorieDoc", categorieDoc},
+                                                                     {"@sousCategorieDoc", sousCategorieDoc},
+                                                                     {"@idMvtDoc", idMvtDoc}}
+                             )
+            Dim unused = command.ExecuteNonQuery()
+            Logger.INFO($"Document {idDoc} mis à jour avec succès.")
+        Catch ex As Exception
+            Logger.INFO($"Erreur lors de la mise à jour du document : {ex.Message}")
+        End Try
+    End Sub
+    Public Shared Sub SupprimerDocument(idDoc As Integer)
+        Try
+            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "delDocs",
+                             New Dictionary(Of String, Object) From {{"@idDoc", idDoc}}
+                             )
+            Dim unused = command.ExecuteNonQuery()
+            Logger.INFO($"Document {idDoc} supprimé avec succès.")
+        Catch ex As Exception
+            Logger.INFO($"Erreur lors de la suppression du document : {ex.Message}")
+        End Try
+    End Sub
+    Public MustOverride Function RenommerFichier(sNomFichier As String, Optional sNouveauNom As String = "") As String
+End Class

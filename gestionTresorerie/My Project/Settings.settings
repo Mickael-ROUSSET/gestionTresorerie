@@ -1,5 +1,5 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="" GeneratedClassName="Settings" UseMySettingsClassName="true">
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="My" GeneratedClassName="MySettings" UseMySettingsClassName="true">
   <Profiles />
   <Settings>
     <Setting Name="ficRessources" Type="System.String" Scope="Application">
@@ -316,7 +316,6 @@
     <Setting Name="ficAgentMistral" Type="System.String" Scope="Application">
       <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\BacASable\mistral_state.json</Value>
     </Setting>
-<<<<<<< Updated upstream
     <Setting Name="updCheminDoc" Type="System.String" Scope="Application">
       <Value Profile="(Default)">UPDATE Documents SET cheminDoc = @cheminDoc WHERE idDoc = @idDoc;</Value>
     </Setting>
@@ -394,19 +393,54 @@
     </Setting>
     <Setting Name="logoCinevasion" Type="System.String" Scope="Application">
       <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\Resources\logoCinevasion.png</Value>
-=======
-    <Setting Name="SMTP_SERVER" Type="System.String" Scope="Application">
+    </Setting>
+    <Setting Name="insertParticipantMdN" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">INSERT INTO dbo.ParticipantMdN (Nom, Prenom, RaisonSociale, Activite, Adresse, CP, Ville, Grille, Tables, DateCourrier, Paiement, Siret, Tel, Mail, Type, Sexe, PieceIdentite, DateNaissance, LieuNaissance) VALUES (@Nom, @Prenom, @RaisonSociale, @Activite, @Adresse, @CP, @Ville, @Grille, @Tables, @DateCourrier, @Paiement, @Siret, @Tel, @Mail, @Type, @Sexe, @PieceIdentite, @DateNaissance, @LieuNaissance);</Value>
+    </Setting>
+    <Setting Name="MarcheDeNoelDB" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Users\User\Downloads\MARCHEDENOELDB.MDF</Value>
+    </Setting>
+    <Setting Name="repAttNonParticipation" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\Manifestations récurrentes\Marché de Noël\2025\Administratif\attestationsNonParticipationAutresMarches</Value>
+    </Setting>
+    <Setting Name="selParticipant" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT IdParticipant, Nom, Prenom, RaisonSociale, Activite, Adresse, CP, Ville, Grille, Tables, DateCourrier, Paiement, Siret, Tel, Mail, Type, Sexe, PieceIdentite, DateNaissance, LieuNaissance FROM dbo.ParticipantMdN ORDER BY Nom, Prenom;</Value>
+    </Setting>
+    <Setting Name="modeleAttestationNonParticipation" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\Manifestations récurrentes\Marché de Noël\2025\Administratif\attestationsNonParticipationAutresMarches\AttestationNonParticipationDeuxAutresmarchés.docx</Value>
+    </Setting>
+    <Setting Name="marcheDeNoelDBProd" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\USERS\USER\ONEDRIVE\DOCUMENTS\MARCHEDENOELDB.MDF</Value>
+    </Setting>
+    <Setting Name="marcheDeNoelDBTest" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\USERS\USER\ONEDRIVE\DOCUMENTS\MARCHEDENOELDBTest.MDF</Value>
+    </Setting>
+    <Setting Name="SMTP_Server" Type="System.String" Scope="Application">
       <Value Profile="(Default)">smtp.gmail.com</Value>
     </Setting>
-    <Setting Name="SMTP_PORT" Type="System.String" Scope="Application">
+    <Setting Name="SMTP_Port" Type="System.String" Scope="Application">
       <Value Profile="(Default)">587</Value>
     </Setting>
-    <Setting Name="SMTP_USER" Type="System.String" Scope="Application">
+    <Setting Name="SMTP_User" Type="System.String" Scope="Application">
       <Value Profile="(Default)">agumaaa43@gmail.com</Value>
     </Setting>
     <Setting Name="SMTP_PASS" Type="System.String" Scope="Application">
       <Value Profile="(Default)">43GeorgeSand+</Value>
->>>>>>> Stashed changes
+    </Setting>
+    <Setting Name="SmtpPassword" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">esvyxmvwlxphgjeg</Value>
+    </Setting>
+    <Setting Name="SmtpUsername" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">agumaaa43@gmail.com</Value>
+    </Setting>
+    <Setting Name="SmtpServer" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">smtp.gmail.com</Value>
+    </Setting>
+    <Setting Name="SmtpPort" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">587</Value>
+    </Setting>
+    <Setting Name="repModeleBodyAttHtml" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Users\User\Downloads\gestionTresorerie_20251120\gestionTresorerie\gestionTresorerie\Resources\ModeleMailAttestation.html</Value>
     </Setting>
   </Settings>
 </SettingsFile>
