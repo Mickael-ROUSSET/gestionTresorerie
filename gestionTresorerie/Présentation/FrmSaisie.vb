@@ -1,8 +1,6 @@
 ﻿Imports System.Data.SqlClient
-Imports System.Diagnostics.Eventing
 Imports System.Globalization
-Imports System.Runtime.Intrinsics
-Imports System.Text.RegularExpressions ' ← À AJOUTER EN HAUT DU FICHIER
+Imports System.Text.RegularExpressions
 
 Public Class FrmSaisie
     Inherits System.Windows.Forms.Form
@@ -27,18 +25,6 @@ Public Class FrmSaisie
             InitialiserListeTiers()
             Call initZonesSaisies()
             Dim indTiersDetecte As Integer = listeTiers.DetecteTiers(txtNote.Text)
-            If indTiersDetecte > -1 Then
-                'SelectionnerTiers(indTiersDetecte)
-                UtilitairesDgv.selectionneIndiceDvg(indTiersDetecte, dgvTiers)
-            End If
-            ChargerCategoriesEtSousCategories(indTiersDetecte)
-            'Sélectionne le type de mouvement associé à la note 
-            ' Utiliser le dictionnaire pour sélectionner les lignes du DataGridView
-            chercheType(Utilitaires.ChargerCriteresDepuisConfig(Constantes.dicoTypeMvt))
-            ' Initialiser les boutons
-            InitializeToggleButton(btnToggleEvt, pnlDgvEvt, 200, 50)
-            InitializeToggleButton(btnToggleType, pnlDgvType, 200, 50)
-            InitializeToggleButton(btnToggleTypeDocument, pnlDgvTypeDocument, 200, 50)
         Catch ex As Exception
             Logger.ERR($"Erreur lors du chargement du formulaire : {ex.Message}")
             End
@@ -46,65 +32,18 @@ Public Class FrmSaisie
     End Sub
     Private Sub initZonesSaisies()
         txtRechercheTiers.Text = String.Empty
-        dgvCategorie.ClearSelection()
-        dgvSousCategorie.ClearSelection()
-        dgvTiers.ClearSelection()
         cbEvénement.SelectedItem = Nothing
-        ' Initialiser l'état du bouton
-        btnToggleEvt.Text = "Réduire"
     End Sub
     Private Sub InitialiserListeTiers()
         If listeTiers Is Nothing Then
             listeTiers = New ListeTiers()
         End If
     End Sub
-    Private Sub ChargerCategoriesEtSousCategories(indTiersDetecte As Integer)
-        Dim parameters As Dictionary(Of String, Object)
-
-        Dim sRequete As String
-        If dgvCategorie.RowCount = 0 Then
-            parameters = New Dictionary(Of String, Object) From {{"@debit", If(rbDebit.Checked, 1, 0)}}
-            Call UtilitairesDgv.ChargeDgvGenerique(dgvCategorie, Constantes.sqlSelCategoriesTout, parameters)
-        End If
-
-        UtilitairesDgv.selectionneIndiceDvg(Tiers.getCategorieTiers(indTiersDetecte), dgvCategorie)
-        sRequete = Constantes.sqlSelSousCategories
-        parameters = New Dictionary(Of String, Object) From {{"@idCategorie", Tiers.getCategorieTiers(indTiersDetecte)}}
-
-        If dgvSousCategorie.RowCount = 0 Then
-            Call UtilitairesDgv.ChargeDgvGenerique(dgvSousCategorie, sRequete, parameters)
-        End If
-
-        UtilitairesDgv.selectionneIndiceDvg(Tiers.getSousCategorieTiers(indTiersDetecte), dgvSousCategorie)
-    End Sub
-    Public Sub chargeListes()
-        'Chargement des Tiers  
-        Call UtilitairesDgv.ChargeDgvGenerique(dgvTiers, Constantes.sqlSelIdentiteCatTiers)
-        'Chargement des événements  
-        Call UtilitairesDgv.ChargeDgvGenerique(dgvEvenement, Constantes.sqlSelEvenement)
-        'Chargement de la liste des types 
-        Call UtilitairesDgv.ChargeDgvGenerique(dgvType, Constantes.sqlSelTypes)
-        'Chargement de la liste des types de documents
-        Call UtilitairesDgv.ChargeDgvGenerique(dgvTypeDocuments, Constantes.sqlSelTypesDocuments)
-    End Sub
     Private Sub BtnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
         ' Récupérer tous les DataGridView du formulaire courant
         Dim grilles As IEnumerable(Of DataGridView) = Me.Controls.OfType(Of DataGridView)()
 
         Dim grilleSansSelection As New List(Of String)
-
-        ' Vérifier chaque DataGridView
-        For Each dgv As DataGridView In grilles
-            ' Ignorer les grilles non visibles ou désactivées (optionnel)
-            If Not dgv.Visible OrElse Not dgv.Enabled Then Continue For
-
-            ' Vérifier s'il y a au moins une ligne sélectionnée (ligne complète ou cellule)
-            If dgv.SelectedRows.Count = 0 AndAlso dgv.SelectedCells.Count = 0 Then
-                ' Extraire un nom lisible (ex: "Mouvements" au lieu de "dgvMouvements")
-                Dim nomGrille As String = NettoyerNomGrille(dgv.Name)
-                grilleSansSelection.Add(nomGrille)
-            End If
-        Next
 
         ' S'il y a des grilles sans sélection → bloquer
         If grilleSansSelection.Count > 0 Then
@@ -116,28 +55,6 @@ Public Class FrmSaisie
             Return
         End If
     End Sub
-
-    ' Fonction utilitaire : transforme "dgvMouvements" → "Mouvements"
-    Private Function NettoyerNomGrille(nom As String) As String
-        If String.IsNullOrEmpty(nom) Then Return "Grille inconnue"
-
-        Dim nomPropre As String = nom
-
-        ' Enlever le préfixe "dgv" ou "Dgv" ou "dataGridView"
-        If nomPropre.StartsWith("dgv", StringComparison.OrdinalIgnoreCase) Then
-            nomPropre = nomPropre.Substring(3)
-        ElseIf nomPropre.StartsWith("dataGridView", StringComparison.OrdinalIgnoreCase) Then
-            nomPropre = nomPropre.Substring(12)
-        End If
-
-        ' Insérer un espace avant chaque majuscule (ex: ListeClients → Liste Clients)
-        nomPropre = Regex.Replace(nomPropre, "([a-z])([A-Z])", "$1 $2")
-
-        ' Enlever les underscores et remplacer par des espaces
-        nomPropre = nomPropre.Replace("_", " ")
-
-        Return nomPropre.Trim()
-    End Function
     Private Sub TxtMontant_TextChanged(sender As Object, e As EventArgs) Handles txtMontant.Leave
 
         If Not Regex.Match(txtMontant.Text, Constantes.regExMontant, RegexOptions.IgnoreCase).Success Then
@@ -146,42 +63,8 @@ Public Class FrmSaisie
             Dim unused = txtMontant.Focus()
         End If
     End Sub
-    Private Sub dgvTiers_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvTiers.CellContentClick
-        ' Gérer les catégories et sous-catégories par défaut 
-
-        If dgvTiers.Rows.GetRowCount(DataGridViewElementStates.Selected) > 0 Then
-            ' Récupérer la valeur du 4ème champ du typeDoc sélectionné
-            Dim idCategorieDefaut As Object = dgvTiers.SelectedRows(0).Cells(4).Value
-            Dim idSousCategorieDefaut As Object = dgvTiers.SelectedRows(0).Cells(5).Value
-
-            ' Charger les catégories   
-            UtilitairesDgv.ChargeDgvGenerique(dgvCategorie, Constantes.sqlSelCategoriesTout)
-            ' Sélectionner la ligne correspondante dans dgvCategorie
-            UtilitairesDgv.SelectRowInDataGridView(dgvCategorie, idCategorieDefaut)
-
-            ' Charger les sous-catégories
-            majSousCategorie()
-            ' Sélectionner la ligne correspondante dans dgvSousCategorie
-            UtilitairesDgv.SelectRowInDataGridView(dgvSousCategorie, idSousCategorieDefaut)
-        End If
-    End Sub
     Private Sub btnInsereTiers_Click(sender As Object, e As EventArgs) Handles btnInsereTiers.Click
         FrmNouveauTiers.Show()
-    End Sub
-    Private Sub dgvCategorie_DoubleClick(sender As Object, e As EventArgs) Handles dgvCategorie.DoubleClick
-        Call majSousCategorie()
-    End Sub
-    Private Sub dgvCategorie_Click(sender As Object, e As EventArgs) Handles dgvCategorie.Click
-        Call majSousCategorie()
-    End Sub
-    Private Sub majSousCategorie()
-        If dgvCategorie.SelectedRows(0).Cells(0) IsNot Nothing Then
-            Dim parameters As New Dictionary(Of String, Object) From {{"@idCategorie", dgvCategorie.SelectedRows(0).Cells(0).Value}}
-            Call UtilitairesDgv.ChargeDgvGenerique(dgvSousCategorie, Constantes.sqlSelCategoriesTout, parameters)
-        End If
-    End Sub
-    Private Sub txtRechercheTiers_TextChanged(sender As Object, e As EventArgs) Handles txtRechercheTiers.TextChanged
-        Utilitaires.selLigneDgvParLibelle(dgvTiers, txtRechercheTiers.Text)
     End Sub
     Private Sub InsereMouvement()
         Dim mouvement As Mouvements
@@ -214,16 +97,17 @@ Public Class FrmSaisie
             Else
                 ' Utiliser des variables intermédiaires pour rendre le code plus lisible
                 Dim id As Integer = _dtMvtsIdentiques.Rows(index).ItemArray(0)
-                Dim categorie As String = dgvCategorie.SelectedRows(0).Cells(0).Value.ToString()
-                Dim sousCategorie As String = dgvSousCategorie.SelectedRows(0).Cells(0).Value.ToString()
+                Dim categorie As String = txtCategorie.Text.Split("-"c)(0).Trim()
+                Dim sousCategorie As String = txtSousCategorie.Text.Split("-"c)(0).Trim()
                 Dim montant As String = txtMontant.Text.Trim().Replace(Constantes.espace, String.Empty)
                 Dim credit As Boolean = rbCredit.Checked
-                Dim tiers As Integer = Convert.ToInt32(dgvTiers.SelectedRows(0).Cells(0).Value)
+                Dim tiers As Integer = Convert.ToInt32(txtTiers.Text.Split("-"c)(0).Trim())
                 Dim note As String = txtNote.Text
                 Dim dateMouvement As Date = dateMvt.Value
                 Dim rapproche As Boolean = rbRapproche.Checked
-                Dim evenement As String = dgvEvenement.SelectedRows(0).Cells(1).Value.ToString()
-                Dim type As String = dgvType.SelectedRows(0).Cells(1).Value.ToString()
+                Dim evenement As String = txtEvenement.Text
+                Dim typeDoc As String = txtTypeDoc.Text
+                Dim typeMvt = txtTypeMvt.Text
                 Dim modifiable As Boolean = True
                 Dim remise As Integer = GetRemiseValue(txtRemise.Text)
                 Dim reference As String = ""
@@ -231,7 +115,7 @@ Public Class FrmSaisie
                 Dim idDoc As Integer = 0
                 ' Mettre à jour le mouvement
                 Dim rowsAffected As Integer = Mouvements.MettreAJourMouvement(
-                id, categorie, sousCategorie, montant, credit, tiers, note, dateMouvement, rapproche, evenement, type, modifiable, remise, reference, typeReference, idDoc
+                id, categorie, sousCategorie, montant, credit, tiers, note, dateMouvement, rapproche, evenement, typeDoc, modifiable, remise, reference, typeReference, idDoc
             )
                 ' Trace indiquant le nombre de lignes mises à jour
                 Logger.INFO($"Nombre de mouvements mis à jour : {rowsAffected}")
@@ -257,17 +141,17 @@ Public Class FrmSaisie
     Private Function CreerMouvement() As Mouvements
         Try
             ' 🔹 Validation minimale des sélections
-            If dgvCategorie.SelectedRows.Count = 0 OrElse dgvSousCategorie.SelectedRows.Count = 0 OrElse dgvTiers.SelectedRows.Count = 0 Then
+            If txtCategorie.Text = String.Empty OrElse txtSousCategorie.Text = String.Empty OrElse txtTiers.Text = String.Empty Then
                 Throw New InvalidOperationException("Veuillez sélectionner une catégorie, une sous-catégorie et un typeDoc.")
             End If
 
-            ' 🔹 Récupération du type de document
+            ' 🔹 Récupération du typeDoc de document
             Dim sTypeDoc As String = ""
-            If dgvTypeDocuments.SelectedRows.Count > 0 Then
-                sTypeDoc = dgvTypeDocuments.SelectedRows(0).Cells(0).Value.ToString()
+            If txtTypeDoc.Text = String.Empty Then
+                sTypeDoc = txtTypeDoc.Text
             End If
 
-            ' 🔹 Extraction du numéro de chèque uniquement si le type est "Chèque"
+            ' 🔹 Extraction du numéro de chèque uniquement si le typeDoc est "Chèque"
             Dim sNumCheque As String = ""
             If sTypeDoc.Equals("Chèque", StringComparison.OrdinalIgnoreCase) Then
                 sNumCheque = Utilitaires.ExtraitNuméroChèque(txtNote.Text)
@@ -289,15 +173,15 @@ Public Class FrmSaisie
             ' 🔹 Création de l'objet Mouvements
             Dim mouvement As New Mouvements(
             note:=txtNote.Text.Trim(),
-            categorie:=dgvCategorie.SelectedRows(0).Cells(0).Value.ToString(),
-            sousCategorie:=dgvSousCategorie.SelectedRows(0).Cells(0).Value.ToString(),
-            tiers:=Convert.ToInt32(dgvTiers.SelectedRows(0).Cells(0).Value),
+            categorie:=txtCategorie.Text,
+            sousCategorie:=txtSousCategorie.Text,
+            tiers:=Convert.ToInt32(txtTiers.Text),
             dateMvt:=dateMvt.Value,
             montant:=montantDecimal,
             sens:=rbCredit.Checked,
             etat:=rbRapproche.Checked,
-            événement:=If(dgvEvenement.SelectedRows.Count > 0, dgvEvenement.SelectedRows(0).Cells(1).Value.ToString(), String.Empty),
-            type:=If(dgvType.SelectedRows.Count > 0, dgvType.SelectedRows(0).Cells(1).Value.ToString(), String.Empty),
+            événement:=txtEvenement.Text,
+            type:=txtTypeDoc.Text,
             modifiable:=False,
             numeroRemise:=txtRemise.Text.Trim(),
             reference:=sNumCheque,
@@ -319,13 +203,6 @@ Public Class FrmSaisie
 
     Private Sub btnSelDoc_Click(sender As Object, e As EventArgs) Handles btnSelDoc.Click
         Try
-            ' Vérifie qu’une ligne est bien sélectionnée dans dgvTypeDocuments
-            If dgvTypeDocuments.SelectedRows.Count = 0 Then
-                Dim unused2 = MessageBox.Show("Veuillez sélectionner un type de document.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
-            End If
-
-            ' Récupère le type de document
-            Dim typeDoc As String = dgvTypeDocuments.SelectedRows(0).Cells(0).Value.ToString().Trim().ToLower()
 
             ' Récupère et valide le montant
             Dim montant As Decimal
@@ -341,11 +218,11 @@ Public Class FrmSaisie
 
             AddHandler selectionneDocument.IdDocSelectionneChanged, AddressOf IdDocSelectionneChangedHandler
 
-            ' 🔹 Cas 1 : type "cheque" → 3 arguments
+            ' 🔹 Cas 1 : typeDoc "cheque" → 3 arguments
             'TODO : supprimer la valeur en dur "Cheque" et utiliser une constante ou une énumération
-            If typeDoc = "Chèque" Then
+            If txtTypeDoc.Text = "Chèque" Then
                 Dim numeroCheque As Decimal = CDec(Utilitaires.ExtraitNuméroChèque(txtNote.Text))
-                Dim nomTiers As String = dgvTiers.SelectedRows(0).Cells(1).Value.ToString()
+                Dim nomTiers As String = txtTiers.Text
 
                 selectionneDocument.chargeListeDoc(numeroCheque, montant, nomTiers)
 
@@ -425,26 +302,8 @@ Public Class FrmSaisie
             btnNouveauChq.Visible = False
         End If
     End Sub
-    Private Sub chercheType(dicoTypeMvt As Dictionary(Of String, String))
-        ' Vérifier si txtNote.Text est vide ou null
-        If Not String.IsNullOrEmpty(txtNote.Text) Then
-
-            ' Parcourir le dictionnaire dicoTypeMvt pour trouver la clé correspondante
-            For Each kvp As KeyValuePair(Of String, String) In dicoTypeMvt
-                If kvp.Key.Equals(Trim(txtNote.Text), StringComparison.OrdinalIgnoreCase) Then
-                    ' Retourner la valeur correspondante si la clé est trouvée
-                    UtilitairesDgv.SelectionnerLigneDgvType(dgvType, kvp.Value)
-                End If
-            Next
-        End If
-    End Sub
     Private Sub btnNouveauChq_Click(sender As Object, e As EventArgs) Handles btnNouveauChq.Click
         'On réinitialise les zones de saisie pour un nouveau mouvement
-        dgvCategorie.ClearSelection()
-        dgvSousCategorie.ClearSelection()
-        dgvTiers.ClearSelection()
-        dgvEvenement.ClearSelection()
-        dgvType.ClearSelection()
         txtMontant.Text = String.Empty
         rbRapproche.Checked = False
     End Sub
@@ -619,7 +478,7 @@ Public Class FrmSaisie
     '                            multiSelect:=False,                 ' Sélection unique
     '                            lectureSeule:=True                   ' Lecture seule
     '                        )
-    '        frmTypeDocument.Text = "Sélection du type de document"
+    '        frmTypeDocument.Text = "Sélection du typeDoc de document"
 
     '        ' --- Si une sous-catégorie est sélectionnée ---
     '        If frmTypeDocument.ShowDialog() = DialogResult.OK AndAlso
@@ -634,7 +493,7 @@ Public Class FrmSaisie
     '                End If
     '            End If
     '        Else
-    '            Logger.INFO("Aucun type de documente sélectionné.")
+    '            Logger.INFO("Aucun typeDoc de documente sélectionné.")
     '        End If
     '    Catch ex As Exception
     '        Logger.ERR($"Erreur dans btnSelTypeDoc_Click : {ex.Message}")
@@ -658,7 +517,7 @@ Public Class FrmSaisie
     '                            multiSelect:=False,                 ' Sélection unique
     '                            lectureSeule:=True                   ' Lecture seule
     '                        )
-    '        frmTypeDocument.Text = "Sélection du type de document"
+    '        frmTypeDocument.Text = "Sélection du typeDoc de document"
 
     '        ' --- Si une sous-catégorie est sélectionnée ---
     '        If frmTypeDocument.ShowDialog() = DialogResult.OK AndAlso
@@ -673,7 +532,7 @@ Public Class FrmSaisie
     '                End If
     '            End If
     '        Else
-    '            Logger.INFO("Aucun type de documente sélectionné.")
+    '            Logger.INFO("Aucun typeDoc de documente sélectionné.")
     '        End If
     '    Catch ex As Exception
     '        Logger.ERR($"Erreur dans btnSelTypeDoc_Click : {ex.Message}")
@@ -682,7 +541,7 @@ Public Class FrmSaisie
     Private Sub btnSelTypeMvt_Click(sender As Object, e As EventArgs) Handles btnSelTypeMvt.Click
         _typeMvt = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of TypeMvt)(
             nomRequete:="reqType",
-            titreFenetre:="Sélection du type de mouvement",
+            titreFenetre:="Sélection du typeDoc de mouvement",
             txtDestination:=txtTypeMvt,
             champLibelle:="Type mouvement"  ' ou autre propriété si besoin
         )
@@ -690,9 +549,14 @@ Public Class FrmSaisie
     Private Sub btnSelTypeDoc_Click(sender As Object, e As EventArgs) Handles btnSelTypeDoc.Click
         _typeDocSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of TypeDocImpl)(
             nomRequete:="reqLibellesTypesDocuments",
-            titreFenetre:="Sélection du type de document",
+            titreFenetre:="Sélection du typeDoc de document",
             txtDestination:=txtTypeDoc,
             champLibelle:="Libelle"  ' ou autre propriété si besoin
         )
+    End Sub
+
+    Private Sub btnAjouteCoord_Click(sender As Object, e As EventArgs) Handles btnAjouteCoord.Click
+        Dim frm As New frmSaisieCoordonnees(_tiersSelectionne.id)
+        frm.ShowDialog()
     End Sub
 End Class

@@ -3,14 +3,14 @@
 Public Class FrmNouveauTiers
     Private Sub btnCreerTiers_Click(sender As Object, e As EventArgs) Handles btnCreerTiers.Click
         If String.IsNullOrWhiteSpace(txtNom.Text) AndAlso String.IsNullOrWhiteSpace(txtPrenom.Text) AndAlso String.IsNullOrWhiteSpace(txtRaisonSociale.Text) Then
-            Dim unused1 = MessageBox.Show($"Veuillez remplir le nom : {txtNom.Text} et le prénom {txtPrenom.Text} ou la raison sociale {txtRaisonSociale.Text}", "Champs obligatoires", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            MessageBox.Show($"Veuillez remplir le nom : {txtNom.Text} et le prénom {txtPrenom.Text} ou la raison sociale {txtRaisonSociale.Text}", "Champs obligatoires", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
 
         Dim listeTiers As ListeTiers
         ' Vérifier que le tiers n'existe pas déjà
         If TiersExisteDeja() Then
-            Dim unused = MessageBox.Show($"Ce tiers existe déjà : nom = {txtNom.Text}, prénom = {txtPrenom.Text}, raison sociale = {txtRaisonSociale.Text}", "Tiers existant", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            MessageBox.Show($"Ce tiers existe déjà : nom = {txtNom.Text}, prénom = {txtPrenom.Text}, raison sociale = {txtRaisonSociale.Text}", "Tiers existant", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Logger.INFO($"Ce tiers existe déjà : nom = {txtNom.Text}, prénom = {txtPrenom.Text}, raison sociale = {txtRaisonSociale.Text}")
             Return
         End If
@@ -29,6 +29,7 @@ Public Class FrmNouveauTiers
                        If(sousCategorieId = -1, Nothing, sousCategorieId)
                        )
         'On réinitialise les zones de saisie pour création éventuelle d'un nouveau tiers
+
         initChamps()
     End Sub
 
@@ -63,7 +64,7 @@ Public Class FrmNouveauTiers
 
     Public Shared Sub insereNouveauTiers(sRaisonSociale As String, sPrenom As String, sNom As String, iCategorie As Integer?, iSousCategorie As Integer?)
         Try
-            Dim unused = SqlCommandBuilder.
+            SqlCommandBuilder.
             CreateSqlCommand(Constantes.bddAgumaaa, "insertTiers",
                              New Dictionary(Of String, Object) From {{"@nom", sNom.Trim()},
                                                                      {"@prenom", sPrenom.Trim()},
@@ -106,15 +107,15 @@ Public Class FrmNouveauTiers
         Dim fieldText As String = datagridview.SelectedRows(0).Cells.ToString.Trim
 
         If String.IsNullOrEmpty(fieldText) Then
-            Dim unused3 = MessageBox.Show($"Le champ {fieldName} ne peut pas être vide.", "Champ obligatoire", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-            Dim unused2 = datagridview.Focus() ' Remettre le focus sur le champ pour corriger l'erreur
+            MessageBox.Show($"Le champ {fieldName} ne peut pas être vide.", "Champ obligatoire", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            datagridview.Focus() ' Remettre le focus sur le champ pour corriger l'erreur
             Return
         End If
 
         Dim fieldValue As Integer
         If Not Integer.TryParse(fieldText, fieldValue) Then
-            Dim unused1 = MessageBox.Show($"Le champ {fieldName} doit être un nombre entier : {fieldValue}", "Valeur invalide", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-            Dim unused = datagridview.Focus() ' Remettre le focus sur le champ pour corriger l'erreur
+            MessageBox.Show($"Le champ {fieldName} doit être un nombre entier : {fieldValue}", "Valeur invalide", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            datagridview.Focus() ' Remettre le focus sur le champ pour corriger l'erreur
             Return
         End If
     End Sub
@@ -165,10 +166,24 @@ Public Class FrmNouveauTiers
             End If
         Catch ex As SqlException
             Logger.ERR($"Erreur SQL lors du chargement des données. Message: {ex.Message}")
-            Dim unused1 = MessageBox.Show($"Une erreur SQL s'est produite lors du chargement des données !{vbCrLf}{ex}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show($"Une erreur SQL s'est produite lors du chargement des données !{vbCrLf}{ex}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         Catch ex As Exception
             Logger.ERR($"Erreur inattendue lors du chargement des données. Message: {ex.Message}")
-            Dim unused = MessageBox.Show($"Une erreur inattendue s'est produite !{vbCrLf}{ex}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show($"Une erreur inattendue s'est produite !{vbCrLf}{ex}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
+    End Sub
+
+    Private Sub txtTelephone_LostFocus(sender As Object, e As EventArgs) Handles txtTelephone.LostFocus
+        'Vérifie la validité du téléphone
+        If Not Coordonnees.ValiderTelephone(txtTelephone.Text) Then
+            txtTelephone.Focus()
+        End If
+    End Sub
+
+    Private Sub txtMail_LostFocus(sender As Object, e As EventArgs) Handles txtMail.LostFocus
+        'Vérifie la validité de l'email
+        If Not Coordonnees.ValiderEmail(txtMail.Text) Then
+            txtMail.Focus()
+        End If
     End Sub
 End Class

@@ -35,8 +35,8 @@ Public Class AdresseDAO
     '-------------------------------------------------------------------------
     ' 1. CRÉER (Create)
     '-------------------------------------------------------------------------
-    Public Function CreerAdresse(ByVal adresse As Adresse) As Integer
-        Dim sql As String = "INSERT INTO [dbo].[Adresses] " &
+    Public Function CreerAdresse(ByVal adresse As Coordonnees) As Integer
+        Dim sql As String = "INSERT INTO [dbo].[Coordonnées] " &
                             "([IdTiers], [TypeAdresse], [Rue1], [Rue2], [CodePostal], [Ville], [Pays], [EstPrincipale]) " &
                             "VALUES (@IdTiers, @TypeAdresse, @Rue1, @Rue2, @CodePostal, @Ville, @Pays, @EstPrincipale); " &
                             "SELECT CAST(SCOPE_IDENTITY() AS INT);"
@@ -80,9 +80,9 @@ Public Class AdresseDAO
     '-------------------------------------------------------------------------
     ' 2. LIRE (Read)
     '-------------------------------------------------------------------------
-    Public Function LireAdressesParTiers(ByVal idTiers As Integer) As List(Of Adresse)
-        Dim adresses As New List(Of Adresse)
-        Dim sql As String = "SELECT * FROM [dbo].[Adresses] WHERE IdTiers = @IdTiers ORDER BY EstPrincipale DESC, Id ASC"
+    Public Function LireAdressesParTiers(ByVal idTiers As Integer) As List(Of Coordonnees)
+        Dim adresses As New List(Of Coordonnees)
+        Dim sql As String = "SELECT * FROM [dbo].[Coordonnées] WHERE IdTiers = @IdTiers ORDER BY EstPrincipale DESC, Id ASC"
 
         Dim parameters() As SqlParameter = {New SqlParameter("@IdTiers", idTiers)}
 
@@ -97,7 +97,7 @@ Public Class AdresseDAO
                 Using reader As SqlDataReader = command.ExecuteReader()
                     While reader.Read()
                         ' Mapping des données
-                        Dim adresse As New Adresse With {
+                        Dim adresse As New Coordonnees With {
                             .Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             .IdTiers = reader.GetInt32(reader.GetOrdinal("IdTiers")),
                             .TypeAdresse = reader.GetString(reader.GetOrdinal("TypeAdresse")),
@@ -125,8 +125,8 @@ Public Class AdresseDAO
     '-------------------------------------------------------------------------
     ' 3. METTRE À JOUR (Update)
     '-------------------------------------------------------------------------
-    Public Function MettreAJourAdresse(ByVal adresse As Adresse) As Boolean
-        Dim sql As String = "UPDATE [dbo].[Adresses] SET " &
+    Public Function MettreAJourAdresse(ByVal adresse As Coordonnees) As Boolean
+        Dim sql As String = "UPDATE [dbo].[Coordonnées] SET " &
                             "TypeAdresse = @TypeAdresse, Rue1 = @Rue1, Rue2 = @Rue2, " &
                             "CodePostal = @CodePostal, Ville = @Ville, Pays = @Pays, " &
                             "EstPrincipale = @EstPrincipale " &
@@ -151,7 +151,7 @@ Public Class AdresseDAO
     ' 4. SUPPRIMER (Delete)
     '-------------------------------------------------------------------------
     Public Function SupprimerAdresse(ByVal idAdresse As Integer) As Boolean
-        Dim sql As String = "DELETE FROM [dbo].[Adresses] WHERE Id = @Id"
+        Dim sql As String = "DELETE FROM [dbo].[Coordonnées] WHERE Id = @Id"
 
         Dim parameters() As SqlParameter = {New SqlParameter("@Id", idAdresse)}
 

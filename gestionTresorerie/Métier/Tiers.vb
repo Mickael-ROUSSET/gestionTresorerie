@@ -5,15 +5,12 @@ Public Class Tiers
 
     Public ReadOnly Property id As Integer
     Public Property RaisonSociale As String
-
     Public Property Nom As String
-
     Public Property Prenom As String
-
     Public Property CategorieDefaut As Integer
-
     Public Property SousCategorieDefaut As Integer
-    Public Property Adresses As List(Of Adresse) ' Collection des adresses associées
+    ' Liste des coordonnées associées
+    Public Property Coordonnées As Coordonnees
 
     Public Property dateCreation As Date
         Get
@@ -89,39 +86,39 @@ Public Class Tiers
         Return iSousCategorie
     End Function
 
-    Public Shared Function ExtraireTiers() As List(Of (nom As String, prenom As String, raisonSociale As String))
-        Dim ListeTiers As List(Of (nom As String, prenom As String, raisonSociale As String))
-        Try
-            Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqIdentiteTiers"
-                             ).ExecuteReader()
-                ' Parcourir les résultats et ajouter chaque enregistrement à la liste
-                While reader.Read()
-                    Dim nom As String = reader("nom").ToString()
-                    Dim prenom As String = reader("prenom").ToString()
-                    Dim raisonSociale As String = reader("raisonSociale").ToString()
+    'Public Shared Function ExtraireTiers() As List(Of (nom As String, prenom As String, raisonSociale As String))
+    '    Dim ListeTiers As List(Of (nom As String, prenom As String, raisonSociale As String))
+    '    Try
+    '        Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqIdentiteTiers"
+    '                         ).ExecuteReader()
+    '            ' Parcourir les résultats et ajouter chaque enregistrement à la liste
+    '            While reader.Read()
+    '                Dim nom As String = reader("nom").ToString()
+    '                Dim prenom As String = reader("prenom").ToString()
+    '                Dim raisonSociale As String = reader("raisonSociale").ToString()
 
-                    ' Ajouter les données à la liste
-                    ListeTiers.Add((nom, prenom, raisonSociale))
-                End While
-            End Using
-            'End Using
-        Catch ex As Exception
-            Logger.ERR("Erreur lors de l'extraction des données de la table Tiers : " & ex.Message)
-        End Try
-        Return ListeTiers
-    End Function
-    Public Shared Function ConvertirListeTiersEnChaine(listeTiers As List(Of (nom As String, prenom As String, raisonSociale As String))) As String
-        ' Utiliser un StringBuilder pour construire la chaîne de caractères efficacement
-        Dim sb As New System.Text.StringBuilder()
+    '                ' Ajouter les données à la liste
+    '                ListeTiers.Add((nom, prenom, raisonSociale))
+    '            End While
+    '        End Using
+    '        'End Using
+    '    Catch ex As Exception
+    '        Logger.ERR("Erreur lors de l'extraction des données de la table Tiers : " & ex.Message)
+    '    End Try
+    '    Return ListeTiers
+    'End Function
+    'Public Shared Function ConvertirListeTiersEnChaine(listeTiers As List(Of (nom As String, prenom As String, raisonSociale As String))) As String
+    '    ' Utiliser un StringBuilder pour construire la chaîne de caractères efficacement
+    '    Dim sb As New System.Text.StringBuilder()
 
-        ' Parcourir chaque élément de la liste et ajouter une ligne pour chaque occurrence
-        For Each tiers In listeTiers
-            Dim unused = sb.AppendLine($"Nom: {tiers.nom}, Prenom: {tiers.prenom}, Raison Sociale: {tiers.raisonSociale}")
-        Next
+    '    ' Parcourir chaque élément de la liste et ajouter une ligne pour chaque occurrence
+    '    For Each tiers In listeTiers
+    '        Dim unused = sb.AppendLine($"Nom: {tiers.nom}, Prenom: {tiers.prenom}, Raison Sociale: {tiers.raisonSociale}")
+    '    Next
 
-        ' Retourner la chaîne de caractères complète
-        Return sb.ToString()
-    End Function
+    '    ' Retourner la chaîne de caractères complète
+    '    Return sb.ToString()
+    'End Function
     ' --- Méthode Shared pour convertir un DataRow en Tiers ---
     Public Shared Function FromDataRow(dr As DataRow) As Tiers
         If dr Is Nothing Then Return Nothing
@@ -139,12 +136,51 @@ Public Class Tiers
             Return New Tiers(id, nom, prenom, categorie, sousCategorie)
         End If
     End Function
-
-    Public Overrides Function ResumeTexte() As String
-        If Not String.IsNullOrEmpty(RaisonSociale) Then
-            Return RaisonSociale
-        Else
-            Return $"{Prenom} {Nom}".Trim()
-        End If
-    End Function
 End Class
+'Public Property Id As Integer
+'Public Property RaisonSociale As String
+'Public Property Nom As String
+'Public Property Prenom As String
+'Public Property CategorieDefaut As Integer
+'Public Property SousCategorieDefaut As Integer
+
+'' Liste des coordonnées associées
+'Public Property Coordonnees As List(Of Coordonnees)
+
+'Public Property DateCreation As Date
+'Public Property DateModification As Date
+
+'Public Sub New()
+'    Coordonnees = New List(Of Coordonnees)
+'    DateCreation = Now
+'    DateModification = Now
+'End Sub
+
+'Public Sub New(id As Integer, nom As String, prenom As String,
+'           Optional categorie As Integer = 0,
+'           Optional sousCategorie As Integer = 0)
+'    Me.New()
+'    Me.Id = id
+'    Me.Nom = nom
+'    Me.Prenom = prenom
+'    Me.CategorieDefaut = categorie
+'    Me.SousCategorieDefaut = sousCategorie
+'End Sub
+
+'Public Sub New(id As Integer, raison As String,
+'           Optional categorie As Integer = 0,
+'           Optional sousCategorie As Integer = 0)
+'    Me.New()
+'    Me.Id = id
+'    Me.RaisonSociale = raison
+'    Me.CategorieDefaut = categorie
+'    Me.SousCategorieDefaut = sousCategorie
+'End Sub
+
+'Public Function ResumeTexte() As String
+'    If Not String.IsNullOrWhiteSpace(RaisonSociale) Then
+'        Return RaisonSociale
+'    Else
+'        Return $"{Prenom} {Nom}".Trim()
+'    End If
+'End Function

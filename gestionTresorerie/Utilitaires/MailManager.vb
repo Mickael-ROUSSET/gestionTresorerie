@@ -14,7 +14,7 @@ Imports System.IO ' Nécessaire pour vérifier les fichiers
 ''' <summary>
 ''' Envoie un e-mail via le serveur Gmail.
 ''' </summary>
-''' <param name="destinataire">Adresse e-mail du destinataire.</param>
+''' <param name="destinataire">Coordonnees e-mail du destinataire.</param>
 ''' <param name="sujet">Sujet de l'e-mail.</param>
 ''' <param name="corps">Contenu de l'e-mail (peut être HTML).</param>
 ''' <returns>Vrai si l'envoi a réussi, Faux sinon.</returns> 
@@ -32,7 +32,7 @@ Public Class MailManager
     ''' <summary>
     ''' Envoie un e-mail via le serveur Gmail, avec support pour les pièces jointes.
     ''' </summary>
-    ''' <param name="destinataire">Adresse e-mail du destinataire.</param>
+    ''' <param name="destinataire">Coordonnees e-mail du destinataire.</param>
     ''' <param name="sujet">Sujet de l'e-mail.</param>
     ''' <param name="corps">Contenu de l'e-mail.</param>
     ''' <param name="cheminsFichiers">Liste optionnelle des chemins complets vers les fichiers à joindre.</param>

@@ -38,6 +38,11 @@ Partial Class FrmNouveauTiers
         btnCreerTiers = New Button()
         dgvNTCategorie = New DataGridView()
         dgvNTSousCategorie = New DataGridView()
+        Label1 = New Label()
+        lblMail = New Label()
+        txtMail = New TextBox()
+        txtTelephone = New TextBox()
+        lblTelephone = New Label()
         grpPersonne.SuspendLayout()
         CType(dgvNTCategorie, ComponentModel.ISupportInitialize).BeginInit()
         CType(dgvNTSousCategorie, ComponentModel.ISupportInitialize).BeginInit()
@@ -184,11 +189,57 @@ Partial Class FrmNouveauTiers
         dgvNTSousCategorie.Size = New Size(402, 150)
         dgvNTSousCategorie.TabIndex = 14
         ' 
-        ' frmNouveauTiers
+        ' Label1
+        ' 
+        Label1.AutoSize = True
+        Label1.Location = New Point(0, 0)
+        Label1.Name = "Label1"
+        Label1.Size = New Size(41, 15)
+        Label1.TabIndex = 15
+        Label1.Text = "Label1"
+        ' 
+        ' lblMail
+        ' 
+        lblMail.AutoSize = True
+        lblMail.Location = New Point(48, 303)
+        lblMail.Name = "lblMail"
+        lblMail.Size = New Size(30, 15)
+        lblMail.TabIndex = 16
+        lblMail.Text = "Mail"
+        ' 
+        ' txtMail
+        ' 
+        txtMail.Location = New Point(227, 295)
+        txtMail.Name = "txtMail"
+        txtMail.Size = New Size(100, 23)
+        txtMail.TabIndex = 17
+        ' 
+        ' txtTelephone
+        ' 
+        txtTelephone.Location = New Point(230, 340)
+        txtTelephone.Name = "txtTelephone"
+        txtTelephone.Size = New Size(100, 23)
+        txtTelephone.TabIndex = 18
+        ' 
+        ' lblTelephone
+        ' 
+        lblTelephone.AutoSize = True
+        lblTelephone.Location = New Point(48, 348)
+        lblTelephone.Name = "lblTelephone"
+        lblTelephone.Size = New Size(62, 15)
+        lblTelephone.TabIndex = 19
+        lblTelephone.Text = "Téléphone"
+        ' 
+        ' FrmNouveauTiers
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(1001, 717)
+        Controls.Add(lblTelephone)
+        Controls.Add(txtTelephone)
+        Controls.Add(txtMail)
+        Controls.Add(lblMail)
+        Controls.Add(Label1)
         Controls.Add(dgvNTSousCategorie)
         Controls.Add(dgvNTCategorie)
         Controls.Add(btnCreerTiers)
@@ -203,7 +254,7 @@ Partial Class FrmNouveauTiers
         Controls.Add(txtNom)
         Controls.Add(grpPersonne)
         Controls.Add(lblNom)
-        Name = "frmNouveauTiers"
+        Name = "FrmNouveauTiers"
         Text = "Nouveau Tiers"
         grpPersonne.ResumeLayout(False)
         grpPersonne.PerformLayout()
@@ -229,4 +280,9 @@ Partial Class FrmNouveauTiers
     Friend WithEvents btnCreerTiers As Button
     Friend WithEvents dgvNTCategorie As DataGridView
     Friend WithEvents dgvNTSousCategorie As DataGridView
+    Friend WithEvents Label1 As Label
+    Friend WithEvents lblMail As Label
+    Friend WithEvents txtMail As TextBox
+    Friend WithEvents txtTelephone As TextBox
+    Friend WithEvents lblTelephone As Label
 End Class

@@ -30,7 +30,7 @@ Public Class Participant
         Me.Prenom = GetValue(Of String)(reader, "Prenom")
         Me.RaisonSociale = GetValue(Of String)(reader, "RaisonSociale")
         Me.Activite = GetValue(Of String)(reader, "Activite")
-        Me.Adresse = GetValue(Of String)(reader, "Adresse")
+        Me.Adresse = GetValue(Of String)(reader, "Coordonnees")
         Me.CP = GetValue(Of String)(reader, "CP")
         Me.Ville = GetValue(Of String)(reader, "Ville")
         Me.Grille = GetValue(Of String)(reader, "Grille")

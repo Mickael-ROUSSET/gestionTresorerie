@@ -1283,6 +1283,194 @@ Namespace My
                 Return CType(Me("logoCinevasion"),String)
             End Get
         End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO dbo.ParticipantMdN (Nom, Prenom, RaisonSociale, Activite, Adresse, CP"& _ 
+            ", Ville, Grille, Tables, DateCourrier, Paiement, Siret, Tel, Mail, Type, Sexe, P"& _ 
+            "ieceIdentite, DateNaissance, LieuNaissance) VALUES (@Nom, @Prenom, @RaisonSocial"& _ 
+            "e, @Activite, @Adresse, @CP, @Ville, @Grille, @Tables, @DateCourrier, @Paiement,"& _ 
+            " @Siret, @Tel, @Mail, @Type, @Sexe, @PieceIdentite, @DateNaissance, @LieuNaissan"& _ 
+            "ce);")>  _
+        Public ReadOnly Property insertParticipantMdN() As String
+            Get
+                Return CType(Me("insertParticipantMdN"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\Manifestations récurrentes\Marché de Noël\2025\Adm"& _ 
+            "inistratif\attestationsNonParticipationAutresMarches")>  _
+        Public ReadOnly Property repAttNonParticipation() As String
+            Get
+                Return CType(Me("repAttNonParticipation"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT IdParticipant, Nom, Prenom, RaisonSociale, Activite, Adresse, CP, Ville, G"& _ 
+            "rille, Tables, DateCourrier, Paiement, Siret, Tel, Mail, Type, Sexe, PieceIdenti"& _ 
+            "te, DateNaissance, LieuNaissance FROM dbo.ParticipantMdN ORDER BY Nom, Prenom;")>  _
+        Public ReadOnly Property selParticipant() As String
+            Get
+                Return CType(Me("selParticipant"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\Manifestations récurrentes\Marché de Noël\2025\Adm"& _ 
+            "inistratif\attestationsNonParticipationAutresMarches\AttestationNonParticipation"& _ 
+            "DeuxAutresmarchés.docx")>  _
+        Public ReadOnly Property modeleAttestationNonParticipation() As String
+            Get
+                Return CType(Me("modeleAttestationNonParticipation"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\USERS\USER\ONEDRIVE\DOCUMENTS\MARCHEDENOELDB.MDF")>  _
+        Public Property marcheDeNoelDBProd() As String
+            Get
+                Return CType(Me("marcheDeNoelDBProd"),String)
+            End Get
+            Set
+                Me("marcheDeNoelDBProd") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\USERS\USER\ONEDRIVE\DOCUMENTS\MARCHEDENOELDBTest.MDF")>  _
+        Public Property marcheDeNoelDBTest() As String
+            Get
+                Return CType(Me("marcheDeNoelDBTest"),String)
+            End Get
+            Set
+                Me("marcheDeNoelDBTest") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("smtp.gmail.com")>  _
+        Public ReadOnly Property SMTP_Server() As String
+            Get
+                Return CType(Me("SMTP_Server"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("587")>  _
+        Public ReadOnly Property SMTP_Port() As String
+            Get
+                Return CType(Me("SMTP_Port"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("agumaaa43@gmail.com")>  _
+        Public ReadOnly Property SMTP_User() As String
+            Get
+                Return CType(Me("SMTP_User"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("43GeorgeSand+")>  _
+        Public ReadOnly Property SMTP_PASS() As String
+            Get
+                Return CType(Me("SMTP_PASS"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("esvyxmvwlxphgjeg")>  _
+        Public ReadOnly Property SmtpPassword() As String
+            Get
+                Return CType(Me("SmtpPassword"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("agumaaa43@gmail.com")>  _
+        Public ReadOnly Property SmtpUsername() As String
+            Get
+                Return CType(Me("SmtpUsername"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("smtp.gmail.com")>  _
+        Public ReadOnly Property SmtpServer() As String
+            Get
+                Return CType(Me("SmtpServer"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("587")>  _
+        Public ReadOnly Property SmtpPort() As String
+            Get
+                Return CType(Me("SmtpPort"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\Downloads\gestionTresorerie_20251120\gestionTresorerie\gestionTreso"& _ 
+            "rerie\Resources\ModeleMailAttestation.html")>  _
+        Public Property repModeleBodyAttHtml() As String
+            Get
+                Return CType(Me("repModeleBodyAttHtml"),String)
+            End Get
+            Set
+                Me("repModeleBodyAttHtml") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT 1 FROM Coordonnees WHERE IdTiers = @IdTiers AND TypeAdresse = @TypeAdresse"& _ 
+            ";")>  _
+        Public ReadOnly Property existeCoordonnee() As String
+            Get
+                Return CType(Me("existeCoordonnee"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE Coordonnees SET Rue1 = @Rue1, Rue2 = @Rue2, CodePostal = @CodePostal, Vill"& _ 
+            "e = @Ville, Pays = @Pays, Email = @Email, Telephone = @Telephone, EstPrincipale "& _ 
+            "= @EstPrincipale WHERE IdTiers = @IdTiers AND TypeAdresse = @TypeAdresse;")>  _
+        Public ReadOnly Property updateCoordonnees() As String
+            Get
+                Return CType(Me("updateCoordonnees"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO Coordonnees"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"(IdTiers, TypeAdresse, Rue1, Rue2, CodePostal, Ville, Pa"& _ 
+            "ys, Email, Telephone, EstPrincipale)"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"VALUES"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"(@IdTiers, @TypeAdresse, @Rue1, @R"& _ 
+            "ue2, @CodePostal, @Ville, @Pays, @Email, @Telephone, @EstPrincipale);"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"SELECT SC"& _ 
+            "OPE_IDENTITY();")>  _
+        Public ReadOnly Property insertCoordonnees() As String
+            Get
+                Return CType(Me("insertCoordonnees"),String)
+            End Get
+        End Property
     End Class
 End Namespace
 

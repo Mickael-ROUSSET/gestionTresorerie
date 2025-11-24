@@ -29,28 +29,30 @@
     End Property
     Public Shared ReadOnly Property connexionString(sBase As String) As String
         Get
-            Select Case _env
-                Case "Prod"
-                    '"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=&quot;G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf&quot;;Integrated Security=True;Connect Timeout=30" /> 
-                    Select Case sBase
-                        Case Constantes.bddAgumaaa
-                            Return My.Settings.DataSource & "'" & My.Settings.bddAgumaaaProd & "'" & My.Settings.ParamDb
-                        Case Constantes.cinemaDB
-                            Return My.Settings.DataSource & "'" & My.Settings.cinemaDBProd & "'" & My.Settings.ParamDb
-                        Case Constantes.MarcheDeNoelDB
-                            Return My.Settings.DataSource & "'" & My.Settings.marcheDeNoelDBProd & "'" & My.Settings.ParamDb
-                    End Select
-                Case "Test"
-                    Select Case sBase
-                        Case Constantes.bddAgumaaa
-                            Return My.Settings.DataSource & "'" & My.Settings.bddAgumaaaTest & "'" & My.Settings.ParamDb
-                        Case Constantes.cinemaDB
-                            Return My.Settings.DataSource & "'" & My.Settings.cinemaDBTest & "'" & My.Settings.ParamDb
-                        Case Constantes.MarcheDeNoelDB
-                            Return My.Settings.DataSource & "'" & My.Settings.marcheDeNoelDBTest & "'" & My.Settings.ParamDb
-                    End Select
-            End Select
-            Return String.Empty
+            With My.Settings
+                Select Case _env
+                    Case "Prod"
+                        '"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=&quot;G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf&quot;;Integrated Security=True;Connect Timeout=30" /> 
+                        Select Case sBase
+                            Case Constantes.bddAgumaaa
+                                Return .DataSource & "'" & .bddAgumaaaProd & "'" & .ParamDb
+                            Case Constantes.cinemaDB
+                                Return .DataSource & "'" & .cinemaDBProd & "'" & .ParamDb
+                            Case Constantes.MarcheDeNoelDB
+                                Return .DataSource & "'" & .marcheDeNoelDBProd & "'" & .ParamDb
+                        End Select
+                    Case "Test"
+                        Select Case sBase
+                            Case Constantes.bddAgumaaa
+                                Return .DataSource & "'" & .bddAgumaaaTest & "'" & .ParamDb
+                            Case Constantes.cinemaDB
+                                Return .DataSource & "'" & .cinemaDBTest & "'" & .ParamDb
+                            Case Constantes.MarcheDeNoelDB
+                                Return .DataSource & "'" & .marcheDeNoelDBTest & "'" & .ParamDb
+                        End Select
+                End Select
+                Return String.Empty
+            End With
         End Get
     End Property
     Public Shared Function GetVariable(nomVariable As String) As String

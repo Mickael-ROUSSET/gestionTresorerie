@@ -44,29 +44,17 @@ Partial Class frmSaisie
         txtNote = New TextBox()
         lblNote = New Label()
         cbEvénement = New ComboBox()
-        dgvTiers = New DataGridView()
         TiersBindingSource = New BindingSource(components)
         MouvementsBindingSource1 = New BindingSource(components)
         MouvementsBindingSource = New BindingSource(components)
-        dgvCategorie = New DataGridView()
-        dgvSousCategorie = New DataGridView()
         txtRechercheTiers = New TextBox()
         btnSelDoc = New Button()
         btnCreerTiers = New Button()
-        pnlDgvEvt = New Panel()
-        dgvEvenement = New DataGridView()
-        btnToggleEvt = New Button()
-        btnToggleType = New Button()
-        pnlDgvType = New Panel()
-        dgvType = New DataGridView()
         btnListeChqRemise = New Button()
         lblChercheTiers = New Label()
         btnNouveauChq = New Button()
         lblTypeDocument = New Label()
-        dgvTypeDocuments = New DataGridView()
         TypeDocImplBindingSource = New BindingSource(components)
-        btnToggleTypeDocument = New Button()
-        pnlDgvTypeDocument = New Panel()
         btnSelTiers = New Button()
         txtTiers = New TextBox()
         btnSelCat = New Button()
@@ -79,29 +67,22 @@ Partial Class frmSaisie
         txtTypeMvt = New TextBox()
         txtEvenement = New TextBox()
         btnSelEvenement = New Button()
+        btnAjouteCoord = New Button()
         grpSens.SuspendLayout()
         GroupBox1.SuspendLayout()
-        CType(dgvTiers, ComponentModel.ISupportInitialize).BeginInit()
         CType(TiersBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource1, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
-        CType(dgvCategorie, ComponentModel.ISupportInitialize).BeginInit()
-        CType(dgvSousCategorie, ComponentModel.ISupportInitialize).BeginInit()
-        pnlDgvEvt.SuspendLayout()
-        CType(dgvEvenement, ComponentModel.ISupportInitialize).BeginInit()
-        pnlDgvType.SuspendLayout()
-        CType(dgvType, ComponentModel.ISupportInitialize).BeginInit()
-        CType(dgvTypeDocuments, ComponentModel.ISupportInitialize).BeginInit()
         CType(TypeDocImplBindingSource, ComponentModel.ISupportInitialize).BeginInit()
-        pnlDgvTypeDocument.SuspendLayout()
         SuspendLayout()
         ' 
         ' lblType
         ' 
         lblType.AutoSize = True
-        lblType.Location = New Point(698, 212)
+        lblType.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
+        lblType.Location = New Point(20, 416)
         lblType.Name = "lblType"
-        lblType.Size = New Size(32, 15)
+        lblType.Size = New Size(33, 15)
         lblType.TabIndex = 0
         lblType.Text = "Type"
         ' 
@@ -117,7 +98,7 @@ Partial Class frmSaisie
         ' 
         lblTiers.AutoSize = True
         lblTiers.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblTiers.Location = New Point(17, 134)
+        lblTiers.Location = New Point(17, 81)
         lblTiers.Name = "lblTiers"
         lblTiers.Size = New Size(34, 15)
         lblTiers.TabIndex = 4
@@ -127,7 +108,7 @@ Partial Class frmSaisie
         ' 
         lblCategorie.AutoSize = True
         lblCategorie.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblCategorie.Location = New Point(17, 302)
+        lblCategorie.Location = New Point(17, 176)
         lblCategorie.Name = "lblCategorie"
         lblCategorie.Size = New Size(61, 15)
         lblCategorie.TabIndex = 5
@@ -137,7 +118,7 @@ Partial Class frmSaisie
         ' 
         lblSousCategorie.AutoSize = True
         lblSousCategorie.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblSousCategorie.Location = New Point(698, 12)
+        lblSousCategorie.Location = New Point(20, 261)
         lblSousCategorie.Name = "lblSousCategorie"
         lblSousCategorie.Size = New Size(91, 15)
         lblSousCategorie.TabIndex = 8
@@ -170,9 +151,9 @@ Partial Class frmSaisie
         grpSens.AutoSize = True
         grpSens.Controls.Add(rbDebit)
         grpSens.Controls.Add(rbCredit)
-        grpSens.Location = New Point(45, 65)
+        grpSens.Location = New Point(374, 29)
         grpSens.Name = "grpSens"
-        grpSens.Size = New Size(176, 63)
+        grpSens.Size = New Size(154, 63)
         grpSens.TabIndex = 12
         grpSens.TabStop = False
         grpSens.Text = "Sens"
@@ -180,7 +161,7 @@ Partial Class frmSaisie
         ' btnValider
         ' 
         btnValider.AutoSize = True
-        btnValider.Location = New Point(809, 505)
+        btnValider.Location = New Point(21, 613)
         btnValider.Name = "btnValider"
         btnValider.Size = New Size(75, 25)
         btnValider.TabIndex = 13
@@ -190,7 +171,7 @@ Partial Class frmSaisie
         ' lblMontant
         ' 
         lblMontant.AutoSize = True
-        lblMontant.Location = New Point(256, 33)
+        lblMontant.Location = New Point(237, 34)
         lblMontant.Name = "lblMontant"
         lblMontant.Size = New Size(53, 15)
         lblMontant.TabIndex = 14
@@ -198,7 +179,7 @@ Partial Class frmSaisie
         ' 
         ' txtMontant
         ' 
-        txtMontant.Location = New Point(344, 26)
+        txtMontant.Location = New Point(237, 58)
         txtMontant.Name = "txtMontant"
         txtMontant.Size = New Size(128, 23)
         txtMontant.TabIndex = 15
@@ -206,9 +187,10 @@ Partial Class frmSaisie
         ' lblEvénement
         ' 
         lblEvénement.AutoSize = True
-        lblEvénement.Location = New Point(698, 297)
+        lblEvénement.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
+        lblEvénement.Location = New Point(20, 515)
         lblEvénement.Name = "lblEvénement"
-        lblEvénement.Size = New Size(66, 15)
+        lblEvénement.Size = New Size(71, 15)
         lblEvénement.TabIndex = 17
         lblEvénement.Text = "Evénement"
         ' 
@@ -217,7 +199,7 @@ Partial Class frmSaisie
         GroupBox1.AutoSize = True
         GroupBox1.Controls.Add(rbCree)
         GroupBox1.Controls.Add(rbRapproche)
-        GroupBox1.Location = New Point(285, 65)
+        GroupBox1.Location = New Point(570, 27)
         GroupBox1.Name = "GroupBox1"
         GroupBox1.Size = New Size(180, 63)
         GroupBox1.TabIndex = 13
@@ -239,7 +221,7 @@ Partial Class frmSaisie
         ' rbRapproche
         ' 
         rbRapproche.AutoSize = True
-        rbRapproche.Location = New Point(84, 22)
+        rbRapproche.Location = New Point(92, 22)
         rbRapproche.Name = "rbRapproche"
         rbRapproche.Size = New Size(82, 19)
         rbRapproche.TabIndex = 10
@@ -248,7 +230,7 @@ Partial Class frmSaisie
         ' 
         ' btnInsereTiers
         ' 
-        btnInsereTiers.Location = New Point(988, 50)
+        btnInsereTiers.Location = New Point(643, 110)
         btnInsereTiers.Name = "btnInsereTiers"
         btnInsereTiers.Size = New Size(90, 23)
         btnInsereTiers.TabIndex = 19
@@ -258,22 +240,23 @@ Partial Class frmSaisie
         ' lblRemise
         ' 
         lblRemise.AutoSize = True
-        lblRemise.Location = New Point(698, 380)
+        lblRemise.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
+        lblRemise.Location = New Point(22, 556)
         lblRemise.Name = "lblRemise"
-        lblRemise.Size = New Size(45, 15)
+        lblRemise.Size = New Size(48, 15)
         lblRemise.TabIndex = 23
         lblRemise.Text = "Remise"
         ' 
         ' txtRemise
         ' 
-        txtRemise.Location = New Point(809, 380)
+        txtRemise.Location = New Point(133, 556)
         txtRemise.Name = "txtRemise"
         txtRemise.Size = New Size(328, 23)
         txtRemise.TabIndex = 24
         ' 
         ' txtNote
         ' 
-        txtNote.Location = New Point(809, 418)
+        txtNote.Location = New Point(233, 479)
         txtNote.Name = "txtNote"
         txtNote.Size = New Size(328, 23)
         txtNote.TabIndex = 26
@@ -281,36 +264,20 @@ Partial Class frmSaisie
         ' lblNote
         ' 
         lblNote.AutoSize = True
-        lblNote.Location = New Point(698, 418)
+        lblNote.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
+        lblNote.Location = New Point(21, 479)
         lblNote.Name = "lblNote"
-        lblNote.Size = New Size(33, 15)
+        lblNote.Size = New Size(35, 15)
         lblNote.TabIndex = 25
         lblNote.Text = "Note"
         ' 
         ' cbEvénement
         ' 
         cbEvénement.FormattingEnabled = True
-        cbEvénement.Location = New Point(862, 303)
+        cbEvénement.Location = New Point(233, 515)
         cbEvénement.Name = "cbEvénement"
         cbEvénement.Size = New Size(328, 23)
         cbEvénement.TabIndex = 31
-        ' 
-        ' dgvTiers
-        ' 
-        dgvTiers.AllowDrop = True
-        dgvTiers.AllowUserToDeleteRows = False
-        dgvTiers.AllowUserToOrderColumns = True
-        dgvTiers.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
-        dgvTiers.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedHeaders
-        dgvTiers.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvTiers.GridColor = SystemColors.MenuHighlight
-        dgvTiers.Location = New Point(104, 134)
-        dgvTiers.MultiSelect = False
-        dgvTiers.Name = "dgvTiers"
-        dgvTiers.ReadOnly = True
-        dgvTiers.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvTiers.Size = New Size(547, 101)
-        dgvTiers.TabIndex = 33
         ' 
         ' TiersBindingSource
         ' 
@@ -324,44 +291,16 @@ Partial Class frmSaisie
         ' 
         MouvementsBindingSource.DataSource = GetType(Mouvements)
         ' 
-        ' dgvCategorie
-        ' 
-        dgvCategorie.AllowDrop = True
-        dgvCategorie.AllowUserToOrderColumns = True
-        dgvCategorie.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
-        dgvCategorie.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCells
-        dgvCategorie.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvCategorie.Location = New Point(104, 302)
-        dgvCategorie.MultiSelect = False
-        dgvCategorie.Name = "dgvCategorie"
-        dgvCategorie.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvCategorie.Size = New Size(547, 199)
-        dgvCategorie.TabIndex = 34
-        ' 
-        ' dgvSousCategorie
-        ' 
-        dgvSousCategorie.AllowDrop = True
-        dgvSousCategorie.AllowUserToOrderColumns = True
-        dgvSousCategorie.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells
-        dgvSousCategorie.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCells
-        dgvSousCategorie.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvSousCategorie.Location = New Point(809, 12)
-        dgvSousCategorie.MultiSelect = False
-        dgvSousCategorie.Name = "dgvSousCategorie"
-        dgvSousCategorie.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvSousCategorie.Size = New Size(476, 44)
-        dgvSousCategorie.TabIndex = 35
-        ' 
         ' txtRechercheTiers
         ' 
-        txtRechercheTiers.Location = New Point(485, 92)
+        txtRechercheTiers.Location = New Point(297, 110)
         txtRechercheTiers.Name = "txtRechercheTiers"
         txtRechercheTiers.Size = New Size(100, 23)
         txtRechercheTiers.TabIndex = 36
         ' 
         ' btnSelDoc
         ' 
-        btnSelDoc.Location = New Point(1022, 449)
+        btnSelDoc.Location = New Point(582, 365)
         btnSelDoc.Name = "btnSelDoc"
         btnSelDoc.Size = New Size(168, 23)
         btnSelDoc.TabIndex = 38
@@ -370,72 +309,16 @@ Partial Class frmSaisie
         ' 
         ' btnCreerTiers
         ' 
-        btnCreerTiers.Location = New Point(20, 163)
+        btnCreerTiers.Location = New Point(20, 110)
         btnCreerTiers.Name = "btnCreerTiers"
         btnCreerTiers.Size = New Size(75, 23)
         btnCreerTiers.TabIndex = 39
         btnCreerTiers.Text = "Créer"
         btnCreerTiers.UseVisualStyleBackColor = True
         ' 
-        ' pnlDgvEvt
-        ' 
-        pnlDgvEvt.Controls.Add(dgvEvenement)
-        pnlDgvEvt.Location = New Point(809, 297)
-        pnlDgvEvt.Name = "pnlDgvEvt"
-        pnlDgvEvt.Size = New Size(400, 50)
-        pnlDgvEvt.TabIndex = 40
-        ' 
-        ' dgvEvenement
-        ' 
-        dgvEvenement.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells
-        dgvEvenement.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvEvenement.Dock = DockStyle.Fill
-        dgvEvenement.Location = New Point(0, 0)
-        dgvEvenement.MultiSelect = False
-        dgvEvenement.Name = "dgvEvenement"
-        dgvEvenement.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvEvenement.Size = New Size(400, 50)
-        dgvEvenement.TabIndex = 0
-        ' 
-        ' btnToggleEvt
-        ' 
-        btnToggleEvt.Location = New Point(1236, 297)
-        btnToggleEvt.Name = "btnToggleEvt"
-        btnToggleEvt.Size = New Size(75, 23)
-        btnToggleEvt.TabIndex = 41
-        btnToggleEvt.Text = "Réduire"
-        btnToggleEvt.UseVisualStyleBackColor = True
-        ' 
-        ' btnToggleType
-        ' 
-        btnToggleType.Location = New Point(1178, 212)
-        btnToggleType.Name = "btnToggleType"
-        btnToggleType.Size = New Size(75, 23)
-        btnToggleType.TabIndex = 42
-        btnToggleType.Text = "Réduire"
-        btnToggleType.UseVisualStyleBackColor = True
-        ' 
-        ' pnlDgvType
-        ' 
-        pnlDgvType.Controls.Add(dgvType)
-        pnlDgvType.Location = New Point(809, 212)
-        pnlDgvType.Name = "pnlDgvType"
-        pnlDgvType.Size = New Size(328, 50)
-        pnlDgvType.TabIndex = 43
-        ' 
-        ' dgvType
-        ' 
-        dgvType.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvType.Dock = DockStyle.Fill
-        dgvType.Location = New Point(0, 0)
-        dgvType.Name = "dgvType"
-        dgvType.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvType.Size = New Size(328, 50)
-        dgvType.TabIndex = 0
-        ' 
         ' btnListeChqRemise
         ' 
-        btnListeChqRemise.Location = New Point(1169, 383)
+        btnListeChqRemise.Location = New Point(493, 559)
         btnListeChqRemise.Name = "btnListeChqRemise"
         btnListeChqRemise.Size = New Size(159, 23)
         btnListeChqRemise.TabIndex = 44
@@ -445,7 +328,7 @@ Partial Class frmSaisie
         ' lblChercheTiers
         ' 
         lblChercheTiers.AutoSize = True
-        lblChercheTiers.Location = New Point(485, 74)
+        lblChercheTiers.Location = New Point(195, 110)
         lblChercheTiers.Name = "lblChercheTiers"
         lblChercheTiers.Size = New Size(76, 15)
         lblChercheTiers.TabIndex = 45
@@ -453,7 +336,7 @@ Partial Class frmSaisie
         ' 
         ' btnNouveauChq
         ' 
-        btnNouveauChq.Location = New Point(994, 506)
+        btnNouveauChq.Location = New Point(206, 614)
         btnNouveauChq.Name = "btnNouveauChq"
         btnNouveauChq.Size = New Size(120, 23)
         btnNouveauChq.TabIndex = 46
@@ -463,53 +346,20 @@ Partial Class frmSaisie
         ' lblTypeDocument
         ' 
         lblTypeDocument.AutoSize = True
-        lblTypeDocument.Location = New Point(694, 85)
+        lblTypeDocument.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
+        lblTypeDocument.Location = New Point(20, 332)
         lblTypeDocument.Name = "lblTypeDocument"
-        lblTypeDocument.Size = New Size(88, 15)
+        lblTypeDocument.Size = New Size(92, 15)
         lblTypeDocument.TabIndex = 47
         lblTypeDocument.Text = "TypeDocument"
-        ' 
-        ' dgvTypeDocuments
-        ' 
-        dgvTypeDocuments.AllowDrop = True
-        dgvTypeDocuments.AllowUserToAddRows = False
-        dgvTypeDocuments.AllowUserToDeleteRows = False
-        dgvTypeDocuments.AllowUserToResizeColumns = False
-        dgvTypeDocuments.AllowUserToResizeRows = False
-        dgvTypeDocuments.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
-        dgvTypeDocuments.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvTypeDocuments.Location = New Point(115, 0)
-        dgvTypeDocuments.Name = "dgvTypeDocuments"
-        dgvTypeDocuments.ReadOnly = True
-        dgvTypeDocuments.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvTypeDocuments.Size = New Size(328, 60)
-        dgvTypeDocuments.TabIndex = 48
         ' 
         ' TypeDocImplBindingSource
         ' 
         TypeDocImplBindingSource.DataSource = GetType(TypeDocImpl)
         ' 
-        ' btnToggleTypeDocument
-        ' 
-        btnToggleTypeDocument.Location = New Point(493, 20)
-        btnToggleTypeDocument.Name = "btnToggleTypeDocument"
-        btnToggleTypeDocument.Size = New Size(75, 23)
-        btnToggleTypeDocument.TabIndex = 49
-        btnToggleTypeDocument.Text = "Réduire"
-        btnToggleTypeDocument.UseVisualStyleBackColor = True
-        ' 
-        ' pnlDgvTypeDocument
-        ' 
-        pnlDgvTypeDocument.Controls.Add(btnToggleTypeDocument)
-        pnlDgvTypeDocument.Controls.Add(dgvTypeDocuments)
-        pnlDgvTypeDocument.Location = New Point(694, 106)
-        pnlDgvTypeDocument.Name = "pnlDgvTypeDocument"
-        pnlDgvTypeDocument.Size = New Size(617, 65)
-        pnlDgvTypeDocument.TabIndex = 50
-        ' 
         ' btnSelTiers
         ' 
-        btnSelTiers.Location = New Point(111, 254)
+        btnSelTiers.Location = New Point(20, 139)
         btnSelTiers.Name = "btnSelTiers"
         btnSelTiers.Size = New Size(110, 23)
         btnSelTiers.TabIndex = 51
@@ -518,14 +368,14 @@ Partial Class frmSaisie
         ' 
         ' txtTiers
         ' 
-        txtTiers.Location = New Point(285, 254)
+        txtTiers.Location = New Point(195, 140)
         txtTiers.Name = "txtTiers"
         txtTiers.Size = New Size(366, 23)
         txtTiers.TabIndex = 52
         ' 
         ' btnSelCat
         ' 
-        btnSelCat.Location = New Point(107, 513)
+        btnSelCat.Location = New Point(17, 205)
         btnSelCat.Name = "btnSelCat"
         btnSelCat.Size = New Size(156, 23)
         btnSelCat.TabIndex = 53
@@ -534,14 +384,14 @@ Partial Class frmSaisie
         ' 
         ' txtCategorie
         ' 
-        txtCategorie.Location = New Point(285, 513)
+        txtCategorie.Location = New Point(195, 206)
         txtCategorie.Name = "txtCategorie"
         txtCategorie.Size = New Size(366, 23)
         txtCategorie.TabIndex = 54
         ' 
         ' btnSelSousCategorie
         ' 
-        btnSelSousCategorie.Location = New Point(809, 70)
+        btnSelSousCategorie.Location = New Point(20, 283)
         btnSelSousCategorie.Name = "btnSelSousCategorie"
         btnSelSousCategorie.Size = New Size(168, 23)
         btnSelSousCategorie.TabIndex = 55
@@ -550,21 +400,21 @@ Partial Class frmSaisie
         ' 
         ' txtSousCategorie
         ' 
-        txtSousCategorie.Location = New Point(1005, 71)
+        txtSousCategorie.Location = New Point(206, 282)
         txtSousCategorie.Name = "txtSousCategorie"
-        txtSousCategorie.Size = New Size(280, 23)
+        txtSousCategorie.Size = New Size(355, 23)
         txtSousCategorie.TabIndex = 56
         ' 
         ' txtTypeDoc
         ' 
-        txtTypeDoc.Location = New Point(1030, 179)
+        txtTypeDoc.Location = New Point(256, 365)
         txtTypeDoc.Name = "txtTypeDoc"
-        txtTypeDoc.Size = New Size(255, 23)
+        txtTypeDoc.Size = New Size(305, 23)
         txtTypeDoc.TabIndex = 57
         ' 
         ' btnSelTypeDoc
         ' 
-        btnSelTypeDoc.Location = New Point(809, 178)
+        btnSelTypeDoc.Location = New Point(20, 364)
         btnSelTypeDoc.Name = "btnSelTypeDoc"
         btnSelTypeDoc.Size = New Size(215, 23)
         btnSelTypeDoc.TabIndex = 58
@@ -573,7 +423,7 @@ Partial Class frmSaisie
         ' 
         ' btnSelTypeMvt
         ' 
-        btnSelTypeMvt.Location = New Point(815, 274)
+        btnSelTypeMvt.Location = New Point(20, 445)
         btnSelTypeMvt.Name = "btnSelTypeMvt"
         btnSelTypeMvt.Size = New Size(211, 23)
         btnSelTypeMvt.TabIndex = 59
@@ -582,32 +432,42 @@ Partial Class frmSaisie
         ' 
         ' txtTypeMvt
         ' 
-        txtTypeMvt.Location = New Point(1059, 276)
+        txtTypeMvt.Location = New Point(256, 446)
         txtTypeMvt.Name = "txtTypeMvt"
-        txtTypeMvt.Size = New Size(100, 23)
+        txtTypeMvt.Size = New Size(305, 23)
         txtTypeMvt.TabIndex = 60
         ' 
         ' txtEvenement
         ' 
-        txtEvenement.Location = New Point(976, 354)
+        txtEvenement.Location = New Point(643, 507)
         txtEvenement.Name = "txtEvenement"
         txtEvenement.Size = New Size(309, 23)
         txtEvenement.TabIndex = 61
         ' 
         ' btnSelEvenement
         ' 
-        btnSelEvenement.Location = New Point(811, 353)
+        btnSelEvenement.Location = New Point(643, 479)
         btnSelEvenement.Name = "btnSelEvenement"
         btnSelEvenement.Size = New Size(159, 23)
         btnSelEvenement.TabIndex = 62
         btnSelEvenement.Text = "Sélection de l'événement"
         btnSelEvenement.UseVisualStyleBackColor = True
         ' 
+        ' btnAjouteCoord
+        ' 
+        btnAjouteCoord.Location = New Point(645, 146)
+        btnAjouteCoord.Name = "btnAjouteCoord"
+        btnAjouteCoord.Size = New Size(105, 23)
+        btnAjouteCoord.TabIndex = 63
+        btnAjouteCoord.Text = "Coordonnées..."
+        btnAjouteCoord.UseVisualStyleBackColor = True
+        ' 
         ' FrmSaisie
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(1506, 542)
+        ClientSize = New Size(973, 660)
+        Controls.Add(btnAjouteCoord)
         Controls.Add(btnSelEvenement)
         Controls.Add(txtEvenement)
         Controls.Add(txtTypeMvt)
@@ -621,20 +481,12 @@ Partial Class frmSaisie
         Controls.Add(txtTiers)
         Controls.Add(btnSelTiers)
         Controls.Add(lblTypeDocument)
-        Controls.Add(pnlDgvTypeDocument)
         Controls.Add(btnNouveauChq)
         Controls.Add(lblChercheTiers)
         Controls.Add(btnListeChqRemise)
-        Controls.Add(pnlDgvType)
-        Controls.Add(btnToggleType)
-        Controls.Add(btnToggleEvt)
-        Controls.Add(pnlDgvEvt)
         Controls.Add(btnCreerTiers)
         Controls.Add(btnSelDoc)
         Controls.Add(txtRechercheTiers)
-        Controls.Add(dgvSousCategorie)
-        Controls.Add(dgvCategorie)
-        Controls.Add(dgvTiers)
         Controls.Add(cbEvénement)
         Controls.Add(txtNote)
         Controls.Add(lblNote)
@@ -658,19 +510,10 @@ Partial Class frmSaisie
         grpSens.PerformLayout()
         GroupBox1.ResumeLayout(False)
         GroupBox1.PerformLayout()
-        CType(dgvTiers, ComponentModel.ISupportInitialize).EndInit()
         CType(TiersBindingSource, ComponentModel.ISupportInitialize).EndInit()
         CType(MouvementsBindingSource1, ComponentModel.ISupportInitialize).EndInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).EndInit()
-        CType(dgvCategorie, ComponentModel.ISupportInitialize).EndInit()
-        CType(dgvSousCategorie, ComponentModel.ISupportInitialize).EndInit()
-        pnlDgvEvt.ResumeLayout(False)
-        CType(dgvEvenement, ComponentModel.ISupportInitialize).EndInit()
-        pnlDgvType.ResumeLayout(False)
-        CType(dgvType, ComponentModel.ISupportInitialize).EndInit()
-        CType(dgvTypeDocuments, ComponentModel.ISupportInitialize).EndInit()
         CType(TypeDocImplBindingSource, ComponentModel.ISupportInitialize).EndInit()
-        pnlDgvTypeDocument.ResumeLayout(False)
         ResumeLayout(False)
         PerformLayout()
     End Sub
@@ -696,29 +539,17 @@ Partial Class frmSaisie
     Friend WithEvents txtNote As TextBox
     Friend WithEvents lblNote As Label
     Friend WithEvents cbEvénement As ComboBox
-    Friend WithEvents dgvTiers As DataGridView
     Friend WithEvents MouvementsBindingSource1 As BindingSource
     Friend WithEvents MouvementsBindingSource As BindingSource
-    Friend WithEvents dgvCategorie As DataGridView
-    Friend WithEvents dgvSousCategorie As DataGridView
     Friend WithEvents TiersBindingSource As BindingSource
     Friend WithEvents txtRechercheTiers As TextBox
     Friend WithEvents btnSelDoc As Button
     Friend WithEvents btnCreerTiers As Button
-    Friend WithEvents pnlDgvEvt As Panel
-    Friend WithEvents btnToggleEvt As Button
-    Friend WithEvents dgvEvenement As DataGridView
-    Friend WithEvents btnToggleType As Button
-    Friend WithEvents pnlDgvType As Panel
-    Friend WithEvents dgvType As DataGridView
     Friend WithEvents btnListeChqRemise As Button
     Friend WithEvents lblChercheTiers As Label
     Friend WithEvents btnNouveauChq As Button
     Friend WithEvents lblTypeDocument As Label
-    Friend WithEvents dgvTypeDocuments As DataGridView
     Friend WithEvents TypeDocImplBindingSource As BindingSource
-    Friend WithEvents btnToggleTypeDocument As Button
-    Friend WithEvents pnlDgvTypeDocument As Panel
     Friend WithEvents ClasseTypeDocDataGridViewTextBoxColumn As DataGridViewTextBoxColumn
     Friend WithEvents btnSelTiers As Button
     Friend WithEvents txtTiers As TextBox
@@ -732,5 +563,6 @@ Partial Class frmSaisie
     Friend WithEvents txtTypeMvt As TextBox
     Friend WithEvents txtEvenement As TextBox
     Friend WithEvents btnSelEvenement As Button
+    Friend WithEvents btnAjouteCoord As Button
 
 End Class

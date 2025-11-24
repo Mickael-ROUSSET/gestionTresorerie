@@ -33,7 +33,7 @@ Public Class GenereAttestationNonParticipation
                 {"@Prenom", ws.Cell(ligne, 2).GetString()},
                 {"@RaisonSociale", ws.Cell(ligne, 3).GetString()},
                 {"@Activite", ws.Cell(ligne, 4).GetString()},
-                {"@Adresse", ws.Cell(ligne, 5).GetString()},
+                {"@Coordonnees", ws.Cell(ligne, 5).GetString()},
                 {"@CP", ws.Cell(ligne, 6).GetString()},
                 {"@Ville", ws.Cell(ligne, 7).GetString()},
                 {"@Grille", ws.Cell(ligne, 8).GetString()},
@@ -182,7 +182,7 @@ Public Class GenereAttestationNonParticipation
         Dim rplct As New Dictionary(Of String, String) From {
                                     {"«Nom»", p.Nom},
                                     {"«Prenom»", p.Prenom},
-                                    {"«Adresse»", p.Adresse},
+                                    {"«Coordonnees»", p.Adresse},
                                     {"«CP»", p.CP},
                                     {"«Ville»", p.Ville},
                                     {"«Date»", Date.Today.ToString("dd/MM/yyyy")}
