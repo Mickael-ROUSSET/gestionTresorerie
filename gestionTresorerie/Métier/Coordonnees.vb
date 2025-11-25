@@ -2,6 +2,7 @@
 Imports System.Text.RegularExpressions
 
 Public Class Coordonnees
+    Inherits BaseDataRow
 
     ' --- Propriétés ---
     Public Property Id As Integer
@@ -46,6 +47,19 @@ Public Class Coordonnees
     ''' <summary>
     ''' Valide l'email et le téléphone si fournis
     ''' </summary>
+    '''     
+    Public Overrides Sub LoadFromReader(reader As SqlDataReader)
+        Id = CInt(reader("Id"))
+        IdTiers = CInt(reader("IdTiers"))
+        TypeAdresse = reader("TypeAdresse").ToString()
+        Rue1 = reader("Rue1").ToString()
+        Rue2 = reader("Rue2").ToString()
+        CodePostal = reader("CodePostal").ToString()
+        Ville = reader("Ville").ToString()
+        Pays = reader("Pays").ToString()
+        Email = reader("Email").ToString()
+        Telephone = reader("Telephone").ToString()
+    End Sub
     Public Sub Validate()
         If Not ValiderEmail(Email) Then
             Throw New ArgumentException($"Email invalide : {Email}")

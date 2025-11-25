@@ -1,4 +1,5 @@
 ﻿Imports System.Data
+Imports System.Data.SqlClient
 Imports DocumentFormat.OpenXml.Office2010.Excel
 
 Public MustInherit Class BaseDataRow
@@ -15,6 +16,29 @@ Public MustInherit Class BaseDataRow
     End Sub
     Public Shared Function FromDataRow(Of T As {BaseDataRow, New})(dr As DataRow) As T
         Return DataRowUtils.FromDataRowGeneric(Of T)(dr)
+    End Function
+
+    ' --- Chaque entité doit implémenter ceci ---
+    Public MustOverride Sub LoadFromReader(reader As SqlDataReader)
+    Public Shared Function Chargement(Of T As {BaseDataRow, New})(
+    nomRequete As String,
+    Optional params As Dictionary(Of String, Object) = Nothing
+) As List(Of T)
+
+        Dim liste As New List(Of T)
+
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, nomRequete, params)
+            Using reader = cmd.ExecuteReader()
+                While reader.Read()
+                    Dim obj As New T()
+                    CType(obj, BaseDataRow).LoadFromReader(reader)
+                    liste.Add(obj)
+                End While
+            End Using
+        End Using
+
+        Return liste
+
     End Function
 
     ''' <summary>

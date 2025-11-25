@@ -15,6 +15,7 @@ Public MustInherit Class BaseTypeDoc
     Public Property GabaritRepertoire As String Implements ITypeDoc.GabaritRepertoire
 
     Public Property GabaritNomFichier As String Implements ITypeDoc.GabaritNomFichier
+    Public Property Libellé As String Implements ITypeDoc.Libellé
 
     Public Property jsonMetaDonnées As String Implements ITypeDoc.JsonMetaDonnées
 

@@ -172,22 +172,22 @@ Public Class FrmSaisie
 
             ' 🔹 Création de l'objet Mouvements
             Dim mouvement As New Mouvements(
-            note:=txtNote.Text.Trim(),
-            categorie:=txtCategorie.Text,
-            sousCategorie:=txtSousCategorie.Text,
-            tiers:=Convert.ToInt32(txtTiers.Text),
-            dateMvt:=dateMvt.Value,
-            montant:=montantDecimal,
-            sens:=rbCredit.Checked,
-            etat:=rbRapproche.Checked,
-            événement:=txtEvenement.Text,
-            type:=txtTypeDoc.Text,
-            modifiable:=False,
-            numeroRemise:=txtRemise.Text.Trim(),
-            reference:=sNumCheque,
-            typeReference:=sTypeDoc,
-            idDoc:=_idDocSelectionne
-        )
+                            note:=txtNote.Text.Trim(),
+                            categorie:=txtCategorie.Text,
+                            sousCategorie:=txtSousCategorie.Text,
+                            tiers:=Convert.ToInt32(txtTiers.Text),
+                            dateMvt:=dateMvt.Value,
+                            montant:=montantDecimal,
+                            sens:=rbCredit.Checked,
+                            etat:=rbRapproche.Checked,
+                            événement:=txtEvenement.Text,
+                            type:=txtTypeDoc.Text,
+                            modifiable:=False,
+                            numeroRemise:=txtRemise.Text.Trim(),
+                            reference:=sNumCheque,
+                            typeReference:=sTypeDoc,
+                            idDoc:=_idDocSelectionne
+                        )
 
             ' 🔹 Log de création
             Logger.INFO($"Mouvement créé : {mouvement.Note} | Montant {montantDecimal} | TypeDoc={sTypeDoc} | idDoc={_idDocSelectionne}")
@@ -272,28 +272,28 @@ Public Class FrmSaisie
     Private Sub btnCreerTiers_Click(sender As Object, e As EventArgs) Handles btnCreerTiers.Click
         FrmNouveauTiers.Show()
     End Sub
-    Private Sub InitializeToggleButton(btnToggle As Button, pnlDataGridView As Panel, expandedHeight As Integer, reducedHeight As Integer)
-        ' Définir l'état initial
-        Dim isExpanded As Boolean = True
+    'Private Sub InitializeToggleButton(btnToggle As Button, pnlDataGridView As Panel, expandedHeight As Integer, reducedHeight As Integer)
+    '    ' Définir l'état initial
+    '    Dim isExpanded As Boolean = True
 
-        ' Ajouter un gestionnaire d'événements pour le bouton
-        AddHandler btnToggle.Click, Sub(sender, e)
-                                        If isExpanded Then
-                                            ' Réduire le Panel
-                                            pnlDataGridView.Height = reducedHeight
-                                            btnToggle.Text = "Étendre"
-                                        Else
-                                            ' Étendre le Panel
-                                            pnlDataGridView.Height = expandedHeight
-                                            btnToggle.Text = "Réduire"
-                                        End If
-                                        isExpanded = Not isExpanded
-                                    End Sub
-        ' Déclencher l'événement "réduire" après l'ajout du handler
-        If isExpanded Then
-            btnToggle.PerformClick()
-        End If
-    End Sub
+    '    ' Ajouter un gestionnaire d'événements pour le bouton
+    '    AddHandler btnToggle.Click, Sub(sender, e)
+    '                                    If isExpanded Then
+    '                                        ' Réduire le Panel
+    '                                        pnlDataGridView.Height = reducedHeight
+    '                                        btnToggle.Text = "Étendre"
+    '                                    Else
+    '                                        ' Étendre le Panel
+    '                                        pnlDataGridView.Height = expandedHeight
+    '                                        btnToggle.Text = "Réduire"
+    '                                    End If
+    '                                    isExpanded = Not isExpanded
+    '                                End Sub
+    '    ' Déclencher l'événement "réduire" après l'ajout du handler
+    '    If isExpanded Then
+    '        btnToggle.PerformClick()
+    '    End If
+    'End Sub
     Private Sub txtRemise_TextChanged(sender As Object, e As EventArgs) Handles txtRemise.TextChanged
         'btnListeChqRemise.Visible = Trim(txtRemise.Text) <> String.Empty
         btnNouveauChq.Visible = True
@@ -341,11 +341,14 @@ Public Class FrmSaisie
     '    End Try
     'End Sub
     Private Sub btnSelTiers_Click(sender As Object, e As EventArgs) Handles btnSelTiers.Click
-        _tiersSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of Tiers)(
+        _tiersSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of gestionTresorerie.Tiers)(
         nomRequete:="reqIdentiteCatTiers",
         titreFenetre:="Sélection du tiers",
-        txtDestination:=txtTiers
+        txtDestination:=txtTiers,
+        champLibelle:="Nom"
     )
+        'Je force l'affichage du nom et du prénom car l'appel ci-dessus ne ramène que la propriété "Nom"
+        txtTiers.Text = _tiersSelectionne.Nom & " " & _tiersSelectionne.Prenom
     End Sub
     Private Sub txtTiers_TextChanged(sender As Object, e As EventArgs) Handles txtTiers.TextChanged
         Try
@@ -551,7 +554,7 @@ Public Class FrmSaisie
             nomRequete:="reqLibellesTypesDocuments",
             titreFenetre:="Sélection du typeDoc de document",
             txtDestination:=txtTypeDoc,
-            champLibelle:="Libelle"  ' ou autre propriété si besoin
+            champLibelle:="Libellé"  ' ou autre propriété si besoin
         )
     End Sub
 

@@ -35,8 +35,10 @@ Public Module AppelFrmSelectionUtils
            frm.ResultatsSelectionnes IsNot Nothing AndAlso
            frm.ResultatsSelectionnes.Count > 0 Then
 
-                Dim dr As DataRow = frm.ResultatsSelectionnes(0)
-                Dim entity As T = DataRowUtils.FromDataRowGeneric(Of T)(dr)
+                'Dim dr As DataRow = frm.ResultatsSelectionnes(0)
+                'Dim entity As T = DataRowUtils.FromDataRowGeneric(Of T)(dr)
+                Dim entity As T = CType(frm.ResultatsSelectionnes(0), T)
+
 
                 If entity IsNot Nothing Then
                     ' Met à jour la TextBox si précisée

@@ -1462,10 +1462,10 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO Coordonnees"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"(IdTiers, TypeAdresse, Rue1, Rue2, CodePostal, Ville, Pa"& _ 
-            "ys, Email, Telephone, EstPrincipale)"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"VALUES"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"(@IdTiers, @TypeAdresse, @Rue1, @R"& _ 
-            "ue2, @CodePostal, @Ville, @Pays, @Email, @Telephone, @EstPrincipale);"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"SELECT SC"& _ 
-            "OPE_IDENTITY();")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO Coordonnees (IdTiers, TypeAdresse, Rue1, Rue2, CodePostal, Ville, Pay"& _ 
+            "s, Email, Telephone, EstPrincipale) VALUES (@IdTiers, @TypeAdresse, @Rue1, @Rue2"& _ 
+            ", @CodePostal, @Ville, @Pays, @Email, @Telephone, @EstPrincipale);SELECT SCOPE_I"& _ 
+            "DENTITY();")>  _
         Public ReadOnly Property insertCoordonnees() As String
             Get
                 Return CType(Me("insertCoordonnees"),String)

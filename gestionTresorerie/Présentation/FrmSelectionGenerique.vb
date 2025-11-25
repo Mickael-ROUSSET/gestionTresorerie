@@ -1,6 +1,7 @@
-﻿Imports System.Data
+﻿Imports System.Collections
+Imports System.Data
 Imports System.Data.SqlClient
-Imports System.Collections
+Imports System.Reflection
 
 Public Class FrmSelectionGenerique
 
@@ -60,22 +61,38 @@ Public Class FrmSelectionGenerique
     ' --- Chargement des données ---
     Public Sub ChargerDonnees()
         Try
-            Dim method = GetType(SqlCommandBuilder).GetMethod("GetEntities").MakeGenericMethod(_typeEntity)
-            _listeEntites = CType(method.Invoke(Nothing, New Object() {_nomRequete, _parametres}), IList)
+            ' 🔹 Récupération de la méthode générique
+            Dim mi As Reflection.MethodInfo = GetType(SqlCommandBuilder).GetMethod("GetEntities")
 
+            If mi Is Nothing Then
+                Throw New MissingMethodException($"Méthode 'GetEntities' introuvable dans SqlCommandBuilder")
+            End If
+
+            ' 🔹 Construction dynamique de GetEntities(Of _typeEntity)
+            Dim methodGeneric = mi.MakeGenericMethod(_typeEntity)
+
+            ' 🔹 Appel et récupération de la liste
+            _listeEntites = CType(methodGeneric.Invoke(Nothing, New Object() {Constantes.bddAgumaaa, _nomRequete, _parametres}), IList)
+
+            ' 🔹 Binding sur la grille
             dgvResultats.DataSource = Nothing
             dgvResultats.AutoGenerateColumns = True
             dgvResultats.DataSource = _listeEntites
 
             Logger.INFO($"✅ {_listeEntites.Count} élément(s) chargé(s) de type {_typeEntity.Name}")
-            'For Each item In _listeEntites
-            '    Logger.INFO($"→ {item}")
-            'Next 
+
+        Catch ex As TargetInvocationException
+            Logger.ERR(
+            $"Erreur réflexion lors du chargement de {_typeEntity.Name} : {ex.InnerException?.Message}"
+        )
 
         Catch ex As Exception
-            Logger.ERR($"Erreur lors du chargement des données de type {_typeEntity.Name} : {ex.Message}")
+            Logger.ERR(
+            $"Erreur lors du chargement des données de type {_typeEntity.Name} : {ex.Message}"
+        )
         End Try
     End Sub
+
 
     ' --- Filtrage (si _dataTable est utilisé) ---
     Private Sub txtFiltre_TextChanged(sender As Object, e As EventArgs) Handles txtFiltre.TextChanged

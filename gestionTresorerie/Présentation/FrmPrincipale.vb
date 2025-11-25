@@ -33,7 +33,7 @@ Public Class FrmPrincipale
             'Charger dgvPrincipale avec le contenu de la table mouvements
             Call ChargerDgvPrincipale()
             ' Chargement des listes dans le formulaire
-            FrmSaisie.chargeListes()
+            'FrmSaisie.chargeListes()
         Catch ex As Exception
             ' Gestion des erreurs
             MessageBox.Show($"Une erreur est survenue lors de l'initialisation : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -142,7 +142,7 @@ Public Class FrmPrincipale
 
             ' Charger les valeurs dans le formulaire de saisie
             With FrmSaisie
-                .chargeListes()
+                '.chargeListes()
                 .dateMvt.Value = dateMvt
                 .txtNote.Text = note
                 .rbDebit.Checked = sens

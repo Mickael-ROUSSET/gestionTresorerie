@@ -1,4 +1,6 @@
-﻿Public Class Categorie
+﻿Imports System.Data.SqlClient
+
+Public Class Categorie
     Inherits BaseDataRow
 
     Public Property Id As Int32
@@ -19,6 +21,41 @@
         Me.DateFin = dateFin
         Me.Debit = debit
     End Sub
+    Public Overrides Sub LoadFromReader(reader As SqlDataReader)
+
+        If reader Is Nothing Then Exit Sub
+
+        ' Id (int)
+        If Not reader.IsDBNull(reader.GetOrdinal("Id")) Then
+            Id = reader.GetInt32(reader.GetOrdinal("Id"))
+        End If
+
+        ' Libelle (nvarchar)
+        If Not reader.IsDBNull(reader.GetOrdinal("Libelle")) Then
+            Libelle = reader.GetString(reader.GetOrdinal("Libelle"))
+        End If
+
+        ' DateDebut (nullable)
+        If Not reader.IsDBNull(reader.GetOrdinal("DateDebut")) Then
+            DateDebut = reader.GetDateTime(reader.GetOrdinal("DateDebut"))
+        Else
+            DateDebut = Nothing
+        End If
+
+        ' DateFin (nullable)
+        If Not reader.IsDBNull(reader.GetOrdinal("DateFin")) Then
+            DateFin = reader.GetDateTime(reader.GetOrdinal("DateFin"))
+        Else
+            DateFin = Nothing
+        End If
+
+        ' Debit (bit)
+        If Not reader.IsDBNull(reader.GetOrdinal("Debit")) Then
+            Debit = reader.GetBoolean(reader.GetOrdinal("Debit"))
+        End If
+
+    End Sub
+
 
     ' --- Redéfinition utile pour affichage ---
     Public Overrides Function ToString() As String

@@ -51,6 +51,7 @@ Public Class AdhesionGym
     Public Property GabaritNomFichier As String Implements ITypeDoc.GabaritNomFichier
 
     Public Property ClasseTypeDoc As String Implements ITypeDoc.ClasseTypeDoc
+    Public Property Libellé As String Implements ITypeDoc.Libellé
 
     Public Property JsonMetaDonnées As String Implements ITypeDoc.jsonMetaDonnées
 

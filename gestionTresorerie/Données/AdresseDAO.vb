@@ -48,8 +48,7 @@ Public Class AdresseDAO
             New SqlParameter("@Rue2", If(String.IsNullOrEmpty(adresse.Rue2), CObj(DBNull.Value), adresse.Rue2)),
             New SqlParameter("@CodePostal", If(String.IsNullOrEmpty(adresse.CodePostal), CObj(DBNull.Value), adresse.CodePostal)),
             New SqlParameter("@Ville", If(String.IsNullOrEmpty(adresse.Ville), CObj(DBNull.Value), adresse.Ville)),
-            New SqlParameter("@Pays", If(String.IsNullOrEmpty(adresse.Pays), CObj(DBNull.Value), adresse.Pays)),
-            New SqlParameter("@EstPrincipale", adresse.EstPrincipale)
+            New SqlParameter("@Pays", If(String.IsNullOrEmpty(adresse.Pays), CObj(DBNull.Value), adresse.Pays))
         }
 
         Dim newId As Integer = 0
@@ -105,8 +104,7 @@ Public Class AdresseDAO
                             .Rue2 = If(reader.IsDBNull(reader.GetOrdinal("Rue2")), Nothing, reader.GetString(reader.GetOrdinal("Rue2"))),
                             .CodePostal = If(reader.IsDBNull(reader.GetOrdinal("CodePostal")), Nothing, reader.GetString(reader.GetOrdinal("CodePostal"))),
                             .Ville = If(reader.IsDBNull(reader.GetOrdinal("Ville")), Nothing, reader.GetString(reader.GetOrdinal("Ville"))),
-                            .Pays = If(reader.IsDBNull(reader.GetOrdinal("Pays")), Nothing, reader.GetString(reader.GetOrdinal("Pays"))),
-                            .EstPrincipale = reader.GetBoolean(reader.GetOrdinal("EstPrincipale"))
+                            .Pays = If(reader.IsDBNull(reader.GetOrdinal("Pays")), Nothing, reader.GetString(reader.GetOrdinal("Pays")))
                         }
                         adresses.Add(adresse)
                     End While
@@ -140,8 +138,7 @@ Public Class AdresseDAO
             New SqlParameter("@Rue2", If(String.IsNullOrEmpty(adresse.Rue2), CObj(DBNull.Value), adresse.Rue2)),
             New SqlParameter("@CodePostal", If(String.IsNullOrEmpty(adresse.CodePostal), CObj(DBNull.Value), adresse.CodePostal)),
             New SqlParameter("@Ville", If(String.IsNullOrEmpty(adresse.Ville), CObj(DBNull.Value), adresse.Ville)),
-            New SqlParameter("@Pays", If(String.IsNullOrEmpty(adresse.Pays), CObj(DBNull.Value), adresse.Pays)),
-            New SqlParameter("@EstPrincipale", adresse.EstPrincipale)
+            New SqlParameter("@Pays", If(String.IsNullOrEmpty(adresse.Pays), CObj(DBNull.Value), adresse.Pays))
         }
 
         Return ExecuterCommande(sql, parameters) > 0

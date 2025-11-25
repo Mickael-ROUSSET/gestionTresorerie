@@ -51,6 +51,15 @@ Public Class Tiers
             SousCategorieDefaut = sSousCategorie
         End If
     End Sub
+
+    Public Overrides Sub LoadFromReader(reader As SqlDataReader)
+        'id = If(reader("Id") Is DBNull.Value, 0, CInt(reader("Id")))
+        Nom = reader("Nom").ToString()
+        Prenom = reader("Prenom").ToString()
+        RaisonSociale = reader("RaisonSociale").ToString()
+        CategorieDefaut = If(reader("categorieDefaut") Is DBNull.Value, 0, CInt(reader("categorieDefaut")))
+        SousCategorieDefaut = If(reader("sousCategorieDefaut") Is DBNull.Value, 0, CInt(reader("sousCategorieDefaut")))
+    End Sub
     Public Shared Function getCategorieTiers(idTiers As Double) As Integer
         ' Renvoie la catégorie et la sous catégorie d'un tiers  
         Dim iCategorie As Integer

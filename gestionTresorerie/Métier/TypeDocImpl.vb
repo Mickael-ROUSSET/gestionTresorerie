@@ -1,4 +1,6 @@
-﻿Imports System.IO
+﻿Imports System.Data.SqlClient
+Imports System.IO
+Imports DocumentFormat.OpenXml.Office2010.Excel
 ' Classe concrète implémentant ITypeDoc pour pouvoir instancier des objets
 Public Class TypeDocImpl
     Inherits BaseDataRow ' Héritage de BaseDataRow pour compatibilité avec les utilitaires de sélection
@@ -9,7 +11,8 @@ Public Class TypeDocImpl
 
     ' Implémentation des propriétés de l'interface
     Public Property Prompt As String Implements ITypeDoc.Prompt
-
+    ' Implémentation des propriétés de l'interface
+    Public Property Libellé As String Implements ITypeDoc.Libellé
     Public Property GabaritRepertoire As String Implements ITypeDoc.GabaritRepertoire
 
     Public Property GabaritNomFichier As String Implements ITypeDoc.GabaritNomFichier
@@ -18,6 +21,10 @@ Public Class TypeDocImpl
     Public Sub New()
 
     End Sub
+    Public Overrides Sub LoadFromReader(reader As SqlDataReader)
+
+    End Sub
+
     Public Shared Function EncodeImageToBase64(filePath As String) As String
         ' Lire le fichier image en tant que tableau d'octets
         Dim imageBytes As Byte() = File.ReadAllBytes(filePath)
