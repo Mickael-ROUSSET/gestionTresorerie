@@ -74,13 +74,13 @@ Public Class ListeTiers
         ' Rechercher d'abord par nom
         Dim tiers As Tiers = _listeTiers.FirstOrDefault(Function(t) Trim(t.Nom) = sIdentite)
         If tiers IsNot Nothing Then
-            Return tiers.id
+            Return tiers.Id
         End If
 
         ' Si non trouvé par nom, rechercher par raison sociale
         tiers = _listeTiers.FirstOrDefault(Function(t) Trim(Strings.UCase(t.RaisonSociale)) = sIdentite)
         If tiers IsNot Nothing Then
-            Return tiers.id
+            Return tiers.Id
         End If
 
         ' Retourner -1 si non trouvé
@@ -89,14 +89,14 @@ Public Class ListeTiers
 
     Public Function Add(sNom As String, sPrenom As String, Optional iCategorie As Integer = 0, Optional iSousCategorie As Integer = 0) As Tiers
         Dim monTiers As Tiers
-        'Renvoie l'id du Tiers créé 
+        'Renvoie l'Id du Tiers créé 
         monTiers = New Tiers(CompteTiers() + 1, sNom, sPrenom, iCategorie, iSousCategorie)
         _listeTiers.Add(monTiers)
         Return monTiers
     End Function
     Public Function Add(sRaisonSociale As String, Optional iCategorie As Integer = 0, Optional iSousCategorie As Integer = 0) As Tiers
         Dim monTiers As Tiers
-        'Renvoie l'id du Tiers créé 
+        'Renvoie l'Id du Tiers créé 
         monTiers = New Tiers(CompteTiers() + 1, sRaisonSociale, iCategorie, iSousCategorie)
         _listeTiers.Add(monTiers)
         Return monTiers

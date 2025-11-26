@@ -44,13 +44,13 @@ Public Class FrmGestionUtilisateurs
         Throw New NotImplementedException()
         'If dgvUtilisateurs.SelectedRows.Count = 0 Then Return
 
-        'Dim id = CInt(dgvUtilisateurs.SelectedRows(0).Cells("Id").Value)
+        'Dim Id = CInt(dgvUtilisateurs.SelectedRows(0).Cells("Id").Value)
         'Dim nom = dgvUtilisateurs.SelectedRows(0).Cells("NomUtilisateur").Value.ToString()
         'Dim role = dgvUtilisateurs.SelectedRows(0).Cells("Role").Value.ToString()
         'Dim actif = CBool(dgvUtilisateurs.SelectedRows(0).Cells("Actif").Value)
 
         'TODO : ne compile pas car FrmGestionUtilisateurs n'a pas de constructeur avec paramètres   
-        'Dim frm As New FrmGestionUtilisateurs(id, nom, role, actif)
+        'Dim frm As New FrmGestionUtilisateurs(Id, nom, role, actif)
         'If frm.ShowDialog() = DialogResult.OK Then
         '    ChargerUtilisateurs()
         'End If
@@ -68,7 +68,7 @@ Public Class FrmGestionUtilisateurs
             Try
                 Dim unused1 = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "updateUtilisateurActif",
                                  New Dictionary(Of String, Object) From {
-                                     {"@id", id},
+                                     {"@Id", id},
                                      {"@actif", 0}
                                  }).ExecuteNonQuery()
                 ChargerUtilisateurs()

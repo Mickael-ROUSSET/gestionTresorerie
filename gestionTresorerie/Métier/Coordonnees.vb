@@ -7,11 +7,10 @@ Public Class Coordonnees
     ' --- Propriétés ---
     Public Property Id As Integer
     Public Property IdTiers As Integer
-    Public Property TypeAdresse As String
     Public Property Rue1 As String
     Public Property Rue2 As String
     Public Property CodePostal As String
-    Public Property Ville As String
+    Public Property NomCommune As String
     Public Property Pays As String
     Public Property Email As String
     Public Property Telephone As String
@@ -22,21 +21,19 @@ Public Class Coordonnees
 
     Public Sub New(
         idTiers As Integer,
-        typeAdresse As String,
         Optional rue1 As String = Nothing,
         Optional rue2 As String = Nothing,
         Optional cp As String = Nothing,
-        Optional ville As String = Nothing,
+        Optional nomCommune As String = Nothing,
         Optional pays As String = Nothing,
         Optional email As String = Nothing,
         Optional telephone As String = Nothing)
 
         Me.IdTiers = idTiers
-        Me.TypeAdresse = typeAdresse
         Me.Rue1 = rue1?.Trim()
         Me.Rue2 = rue2?.Trim()
         Me.CodePostal = cp?.Trim()
-        Me.Ville = ville?.Trim()
+        Me.NomCommune = nomCommune?.Trim()
         Me.Pays = pays?.Trim()
         Me.Email = email?.Trim()
         Me.Telephone = telephone?.Trim()
@@ -51,11 +48,10 @@ Public Class Coordonnees
     Public Overrides Sub LoadFromReader(reader As SqlDataReader)
         Id = CInt(reader("Id"))
         IdTiers = CInt(reader("IdTiers"))
-        TypeAdresse = reader("TypeAdresse").ToString()
         Rue1 = reader("Rue1").ToString()
         Rue2 = reader("Rue2").ToString()
         CodePostal = reader("CodePostal").ToString()
-        Ville = reader("Ville").ToString()
+        NomCommune = reader("NomCommune").ToString()
         Pays = reader("Pays").ToString()
         Email = reader("Email").ToString()
         Telephone = reader("Telephone").ToString()
@@ -68,7 +64,18 @@ Public Class Coordonnees
         If Not ValiderTelephone(Telephone) Then
             Throw New ArgumentException($"Téléphone invalide : {Telephone}")
         End If
+
+        If Not ValiderCP(CodePostal) Then
+            Throw New ArgumentException($"Code postal invalide : {CodePostal}")
+        End If
     End Sub
+    Public Shared Function ValiderCP(cp As String) As Boolean
+        If String.IsNullOrWhiteSpace(cp) Then Return True   ' champ non obligatoire
+
+        Dim regex As New Regex("^\d{5}$")   ' Format : 5 chiffres
+        Return regex.IsMatch(cp)
+    End Function
+
     Public Shared Function ValiderEmail(email As String) As Boolean
         If String.IsNullOrWhiteSpace(email) Then Return True
         Dim regex As New Regex("^[\w\.-]+@[\w\.-]+\.\w+$")
@@ -92,8 +99,7 @@ Public Class Coordonnees
         Dim existe As Boolean
         Using cmdCheck As SqlCommand = SqlCommandBuilder.CreateSqlCommand(
             Constantes.bddAgumaaa, "existeCoordonnee", New Dictionary(Of String, Object) From {
-            {"@IdTiers", Me.IdTiers},
-            {"@TypeAdresse", Me.TypeAdresse}
+            {"@IdTiers", Me.IdTiers}
             })
             Using rdr = cmdCheck.ExecuteReader()
                 existe = rdr.HasRows
@@ -102,11 +108,10 @@ Public Class Coordonnees
 
         Dim param As New Dictionary(Of String, Object) From {
             {"@IdTiers", Me.IdTiers},
-            {"@TypeAdresse", Me.TypeAdresse},
             {"@Rue1", If(String.IsNullOrWhiteSpace(Me.Rue1), DBNull.Value, Me.Rue1)},
             {"@Rue2", If(String.IsNullOrWhiteSpace(Me.Rue2), DBNull.Value, Me.Rue2)},
             {"@CodePostal", If(String.IsNullOrWhiteSpace(Me.CodePostal), DBNull.Value, Me.CodePostal)},
-            {"@Ville", If(String.IsNullOrWhiteSpace(Me.Ville), DBNull.Value, Me.Ville)},
+            {"@NomCommune", If(String.IsNullOrWhiteSpace(Me.NomCommune), DBNull.Value, Me.NomCommune)},
             {"@Pays", If(String.IsNullOrWhiteSpace(Me.Pays), DBNull.Value, Me.Pays)},
             {"@Email", If(String.IsNullOrWhiteSpace(Me.Email), DBNull.Value, Me.Email)},
             {"@Telephone", If(String.IsNullOrWhiteSpace(Me.Telephone), DBNull.Value, Me.Telephone)}
@@ -129,7 +134,7 @@ Public Class Coordonnees
 
     ' --- Retourne une chaîne descriptive ---
     Public Overrides Function ToString() As String
-        Return $"[{TypeAdresse}] {Rue1} {Rue2}, {CodePostal} {Ville}, {Pays} | Email: {Email}, Tel: {Telephone}"
+        Return $"[{Rue1} {Rue2}, {CodePostal} {NomCommune}, {Pays} | Email: {Email}, Tel: {Telephone}"
     End Function
 
 End Class

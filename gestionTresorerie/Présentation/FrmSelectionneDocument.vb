@@ -590,12 +590,12 @@ Public Class FrmSelectionneDocument
         lstDocuments.FullRowSelect = True
         lstDocuments.Columns.Clear()
 
-        lstDocuments.Columns.Add("idDoc", "id", 250)
+        lstDocuments.Columns.Add("idDoc", "Id", 250)
         lstDocuments.Columns.Add("dateDoc", "Date", 300)
         lstDocuments.Columns.Add("cheminDoc", "Chemin", 150)
         lstDocuments.Columns.Add("categorieDoc", "Catégorie", 150)
         lstDocuments.Columns.Add("sousCategorieDoc", "sous-catégorie", 150)
-        lstDocuments.Columns.Add("idMvtDoc", "id Mvt", 150)
+        lstDocuments.Columns.Add("idMvtDoc", "Id Mvt", 150)
         lstDocuments.Columns.Add("metaDonnees", "meta-données", 150)
         lstDocuments.Columns.Add("dateModif", "Date modif", 150)
     End Sub

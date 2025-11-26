@@ -19,7 +19,7 @@ Public Module DataRowUtils
                     Dim targetValue = Convert.ChangeType(dr(prop.Name), targetType)
                     prop.SetValue(obj, targetValue)
                 Catch ex As Exception
-                    Logger.DBG($"⚠️ Impossible d’affecter la colonne {prop.Name} à la propriété {prop.PropertyType.Name} : {ex.Message}")
+                    Logger.WARN($"⚠️ Impossible d’affecter la colonne {prop.Name} à la propriété {prop.PropertyType.Name} : {ex.Message}")
                 End Try
             End If
         Next

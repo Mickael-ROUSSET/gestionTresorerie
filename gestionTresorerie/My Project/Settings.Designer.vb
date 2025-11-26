@@ -286,34 +286,6 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, nom, prenom, raisonSociale, categorieDefaut, sousCategorieDefaut FROM "& _ 
-            "Tiers;")>  _
-        Public ReadOnly Property reqIdentiteCatTiers() As String
-            Get
-                Return CType(Me("reqIdentiteCatTiers"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id,nom, prenom FROM Tiers where nom is not null;")>  _
-        Public ReadOnly Property reqIdentitePPTiers() As String
-            Get
-                Return CType(Me("reqIdentitePPTiers"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id,raisonSociale FROM Tiers where raisonSociale is not null;")>  _
-        Public ReadOnly Property reqIdentitePMTiers() As String
-            Get
-                Return CType(Me("reqIdentitePMTiers"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("SELECT libelle FROM SousCategorie where idCategorie =")>  _
         Public ReadOnly Property reqLibelleSousCategorie() As String
             Get
@@ -455,39 +427,12 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, nom, prenom FROM Tiers WHERE nom IS NOT NULL;")>  _
-        Public ReadOnly Property selTiersPhysique() As String
-            Get
-                Return CType(Me("selTiersPhysique"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, raisonSociale FROM Tiers WHERE raisonSociale IS NOT NULL;")>  _
-        Public ReadOnly Property selTiersMorale() As String
-            Get
-                Return CType(Me("selTiersMorale"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("SELECT COUNT(*) FROM Tiers WHERE (nom = @nom AND prenom = @prenom and raisonSocia"& _ 
             "le is null) OR raisonSociale = @raisonSociale and nom is null AND prenom is null"& _ 
             ";")>  _
         Public ReadOnly Property cptTiers() As String
             Get
                 Return CType(Me("cptTiers"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT sousCategorieDefaut FROM Tiers where id = @id;")>  _
-        Public ReadOnly Property reqSousCategoriesDefautMouvements() As String
-            Get
-                Return CType(Me("reqSousCategoriesDefautMouvements"),String)
             End Get
         End Property
         
@@ -632,15 +577,6 @@ Namespace My
         Public ReadOnly Property dicoTypeMvt() As String
             Get
                 Return CType(Me("dicoTypeMvt"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT categorieDefaut FROM Tiers where id = @id")>  _
-        Public ReadOnly Property reqCategoriesDefautMouvements() As String
-            Get
-                Return CType(Me("reqCategoriesDefautMouvements"),String)
             End Get
         End Property
         
@@ -886,21 +822,6 @@ Namespace My
         Public ReadOnly Property reqChq() As String
             Get
                 Return CType(Me("reqChq"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("select Id , (select libelle from Categorie where id = catégorie) as Catégorie, (s"& _ 
-            "elect libelle from sousCategorie where id = sousCatégorie) as sousCatégorie, mon"& _ 
-            "tant , CASE sens WHEN 1 THEN 'Crédit' ELSE 'Débit' END as 'Sens', (select coales"& _ 
-            "ce(nom + ' ' + prenom, raisonSociale ) from Tiers where id = tiers) as Tiers, no"& _ 
-            "te, dateMvt, dateCréation, dateModification, etat, événement, type, CASE modifia"& _ 
-            "ble WHEN 1 THEN 'modifiable' ELSE 'Non modifiable' END as 'Modifiable', numeroRe"& _ 
-            "mise, reference, typeReference, idDoc from Mouvements;")>  _
-        Public ReadOnly Property sqlSelectMouvementsLibelles() As String
-            Get
-                Return CType(Me("sqlSelectMouvementsLibelles"),String)
             End Get
         End Property
         
@@ -1441,8 +1362,7 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT 1 FROM Coordonnees WHERE IdTiers = @IdTiers AND TypeAdresse = @TypeAdresse"& _ 
-            ";")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT 1 FROM Coordonnees WHERE IdTiers = @IdTiers;")>  _
         Public ReadOnly Property existeCoordonnee() As String
             Get
                 Return CType(Me("existeCoordonnee"),String)
@@ -1451,9 +1371,98 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, nom, prenom, raisonSociale, categorieDefaut, sousCategorieDefaut FROM "& _ 
+            "Tiers;")>  _
+        Public ReadOnly Property reqIdentiteCatTiers() As String
+            Get
+                Return CType(Me("reqIdentiteCatTiers"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id,nom, prenom FROM Tiers where nom is not null;")>  _
+        Public ReadOnly Property reqIdentitePPTiers() As String
+            Get
+                Return CType(Me("reqIdentitePPTiers"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id,raisonSociale FROM Tiers where raisonSociale is not null;")>  _
+        Public ReadOnly Property reqIdentitePMTiers() As String
+            Get
+                Return CType(Me("reqIdentitePMTiers"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, nom, prenom FROM Tiers WHERE nom IS NOT NULL;")>  _
+        Public ReadOnly Property selTiersPhysique() As String
+            Get
+                Return CType(Me("selTiersPhysique"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT id, raisonSociale FROM Tiers WHERE raisonSociale IS NOT NULL;")>  _
+        Public ReadOnly Property selTiersMorale() As String
+            Get
+                Return CType(Me("selTiersMorale"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT sousCategorieDefaut FROM Tiers where id = @id;")>  _
+        Public ReadOnly Property reqSousCategoriesDefautMouvements() As String
+            Get
+                Return CType(Me("reqSousCategoriesDefautMouvements"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT categorieDefaut FROM Tiers where id = @id")>  _
+        Public ReadOnly Property reqCategoriesDefautMouvements() As String
+            Get
+                Return CType(Me("reqCategoriesDefautMouvements"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("select Id , (select libelle from Categorie where id = catégorie) as Catégorie, (s"& _ 
+            "elect libelle from sousCategorie where id = sousCatégorie) as sousCatégorie, mon"& _ 
+            "tant , CASE sens WHEN 1 THEN 'Crédit' ELSE 'Débit' END as 'Sens', (select coales"& _ 
+            "ce(nom + ' ' + prenom, raisonSociale ) from Tiers where id = tiers) as Tiers, no"& _ 
+            "te, dateMvt, dateCréation, dateModification, etat, événement, type, CASE modifia"& _ 
+            "ble WHEN 1 THEN 'modifiable' ELSE 'Non modifiable' END as 'Modifiable', numeroRe"& _ 
+            "mise, reference, typeReference, idDoc from Mouvements;")>  _
+        Public ReadOnly Property sqlSelectMouvementsLibelles() As String
+            Get
+                Return CType(Me("sqlSelectMouvementsLibelles"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT DISTINCT NomCommune FROM Communes WHERE CodePostal = @CodePostal ORDER BY "& _ 
+            "NomCommune;")>  _
+        Public ReadOnly Property selVillesParCP() As String
+            Get
+                Return CType(Me("selVillesParCP"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("UPDATE Coordonnees SET Rue1 = @Rue1, Rue2 = @Rue2, CodePostal = @CodePostal, Vill"& _ 
-            "e = @Ville, Pays = @Pays, Email = @Email, Telephone = @Telephone, EstPrincipale "& _ 
-            "= @EstPrincipale WHERE IdTiers = @IdTiers AND TypeAdresse = @TypeAdresse;")>  _
+            "e = @Ville, Pays = @Pays, Email = @Email, Telephone = @Telephone WHERE IdTiers ="& _ 
+            " @IdTiers;")>  _
         Public ReadOnly Property updateCoordonnees() As String
             Get
                 Return CType(Me("updateCoordonnees"),String)
@@ -1462,13 +1471,22 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO Coordonnees (IdTiers, TypeAdresse, Rue1, Rue2, CodePostal, Ville, Pay"& _ 
-            "s, Email, Telephone, EstPrincipale) VALUES (@IdTiers, @TypeAdresse, @Rue1, @Rue2"& _ 
-            ", @CodePostal, @Ville, @Pays, @Email, @Telephone, @EstPrincipale);SELECT SCOPE_I"& _ 
-            "DENTITY();")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO Coordonnees (IdTiers, Rue1, Rue2, CodePostal, Ville, Pays, Email, Tel"& _ 
+            "ephone) VALUES (@IdTiers, @Rue1, @Rue2, @CodePostal, @Ville, @Pays, @Email, @Tel"& _ 
+            "ephone);"&Global.Microsoft.VisualBasic.ChrW(13)&Global.Microsoft.VisualBasic.ChrW(10)&"SELECT SCOPE_IDENTITY();")>  _
         Public ReadOnly Property insertCoordonnees() As String
             Get
                 Return CType(Me("insertCoordonnees"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT Id, IdTiers, Rue1, Rue2, CodePostal, Ville, Pays, Email, Telephone FROM Co"& _ 
+            "ordonnees WHERE IdTiers = @IdTiers ORDER BY CodePostal DESC, Id ASC;")>  _
+        Public ReadOnly Property selCoordonneesByIdTiers() As String
+            Get
+                Return CType(Me("selCoordonneesByIdTiers"),String)
             End Get
         End Property
     End Class

@@ -9,7 +9,7 @@
             Dim rowIndex As Integer = dgvRemiseChq.Rows.Add()
 
             ' Définir les valeurs des cellules de la nouvelle ligne
-            dgvRemiseChq.Rows(rowIndex).Cells("id").Value = tiers.id
+            dgvRemiseChq.Rows(rowIndex).Cells("Id").Value = tiers.Id
             dgvRemiseChq.Rows(rowIndex).Cells("nom").Value = tiers.Nom
             dgvRemiseChq.Rows(rowIndex).Cells("prenom").Value = tiers.Prenom
             dgvRemiseChq.Rows(rowIndex).Cells("raisonSociale").Value = tiers.RaisonSociale
@@ -23,13 +23,13 @@
         Dim nomColumn As DataGridViewComboBoxColumn = DirectCast(dgvRemiseChq.Columns("nom"), DataGridViewComboBoxColumn)
         nomColumn.DataSource = listeTiers
         nomColumn.DisplayMember = "Nom" ' Afficher le nom du Tiers
-        nomColumn.ValueMember = "id" ' Utiliser l'ID du Tiers comme valeur
+        nomColumn.ValueMember = "Id" ' Utiliser l'ID du Tiers comme valeur
 
         ' Ajouter une ligne vide au DataGridView pour permettre la sélection
         Dim rowIndex As Integer = dgvRemiseChq.Rows.Add()
 
         ' Définir les valeurs des cellules de la nouvelle ligne
-        dgvRemiseChq.Rows(rowIndex).Cells("id").Value = DBNull.Value
+        dgvRemiseChq.Rows(rowIndex).Cells("Id").Value = DBNull.Value
         dgvRemiseChq.Rows(rowIndex).Cells("nom").Value = DBNull.Value
         dgvRemiseChq.Rows(rowIndex).Cells("prenom").Value = DBNull.Value
         dgvRemiseChq.Rows(rowIndex).Cells("raisonSociale").Value = DBNull.Value

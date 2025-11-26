@@ -34,7 +34,7 @@ Public Class FrmChangePassword
             Dim hash = HacherMotDePasse(txtNouveau.Text)
             Dim unused2 = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "updateMotDePasse",
                              New Dictionary(Of String, Object) From {
-                                 {"@id", UtilisateurActif.Id},
+                                 {"@Id", UtilisateurActif.Id},
                                  {"@pwd", hash}
                              }).ExecuteNonQuery()
 

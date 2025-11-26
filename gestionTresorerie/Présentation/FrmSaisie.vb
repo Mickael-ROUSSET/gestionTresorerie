@@ -374,7 +374,6 @@ Public Class FrmSaisie
 
             ' --- Exécuter la requête selIdLibCat --- 
             Using Reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "selIdLibCat", parametres).ExecuteReader
-
                 If Reader.HasRows Then
                     While Reader.Read()
                         ' Créer une instance concrète implémentant ITypeDoc
@@ -432,6 +431,7 @@ Public Class FrmSaisie
         titreFenetre:="Sélection de la catégorie",
         txtDestination:=txtCategorie
     )
+        txtCategorie.Text = _categorieSelectionne.Libelle
     End Sub
     'Private Sub btnSelSousCategorie_Click(sender As Object, e As EventArgs) Handles btnSelCat.Click
     '    Try
@@ -470,6 +470,7 @@ Public Class FrmSaisie
         titreFenetre:="Sélection de la sous-catégorie",
         txtDestination:=txtSousCategorie
     )
+        txtSousCategorie.Text = _sousCategorieSelectionne.Libelle
     End Sub
     'Private Sub btnSelTypeDoc_Click(sender As Object, e As EventArgs) Handles btnSelCat.Click
     '    Try
@@ -509,6 +510,7 @@ Public Class FrmSaisie
             txtDestination:=txtEvenement,
             champLibelle:="Evénement"  ' ou autre propriété si besoin
         )
+        txtEvenement.Text = _typeEvenement.libelle
     End Sub
     'Private Sub btnSelTypeDoc_Click(sender As Object, e As EventArgs) Handles btnSelCat.Click
     '    Try
@@ -548,6 +550,7 @@ Public Class FrmSaisie
             txtDestination:=txtTypeMvt,
             champLibelle:="Type mouvement"  ' ou autre propriété si besoin
         )
+        txtTypeMvt.Text = _typeMvt.libelle
     End Sub
     Private Sub btnSelTypeDoc_Click(sender As Object, e As EventArgs) Handles btnSelTypeDoc.Click
         _typeDocSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of TypeDocImpl)(
@@ -556,6 +559,7 @@ Public Class FrmSaisie
             txtDestination:=txtTypeDoc,
             champLibelle:="Libellé"  ' ou autre propriété si besoin
         )
+        txtTypeDoc.Text = _typeDocSelectionne.Libellé
     End Sub
 
     Private Sub btnAjouteCoord_Click(sender As Object, e As EventArgs) Handles btnAjouteCoord.Click

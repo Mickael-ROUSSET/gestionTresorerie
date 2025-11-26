@@ -6,8 +6,8 @@
 '        _repo = New TiersRepository(conn)
 '    End Sub
 
-'    Public Function GetTiersComplet(id As Integer) As Tiers
-'        Dim t = _repo.GetById(id)
+'    Public Function GetTiersComplet(Id As Integer) As Tiers
+'        Dim t = _repo.GetById(Id)
 
 '        ' Exemple de règle métier
 '        If t IsNot Nothing AndAlso t.Coordonnees.Count = 0 Then

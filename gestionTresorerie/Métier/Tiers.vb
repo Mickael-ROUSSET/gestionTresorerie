@@ -3,7 +3,7 @@
 Public Class Tiers
     Inherits BaseDataRow
 
-    Public ReadOnly Property id As Integer
+    Public Property Id As Integer
     Public Property RaisonSociale As String
     Public Property Nom As String
     Public Property Prenom As String
@@ -36,7 +36,7 @@ Public Class Tiers
     End Sub
     Public Sub New(id As Integer, sNom As String, sPrenom As String, Optional sCategorie As Integer = 0, Optional sSousCategorie As Integer = 0)
         If sNom IsNot Nothing Then
-            Me.id = id
+            Me.Id = id
             Nom = sNom
             Prenom = sPrenom
             CategorieDefaut = sCategorie
@@ -45,7 +45,7 @@ Public Class Tiers
     End Sub
     Public Sub New(id As Integer, sRaisonSociale As String, Optional sCategorie As Integer = 0, Optional sSousCategorie As Integer = 0)
         If sRaisonSociale IsNot Nothing Then
-            Me.id = id
+            Me.Id = id
             RaisonSociale = sRaisonSociale
             CategorieDefaut = sCategorie
             SousCategorieDefaut = sSousCategorie
@@ -53,7 +53,7 @@ Public Class Tiers
     End Sub
 
     Public Overrides Sub LoadFromReader(reader As SqlDataReader)
-        'id = If(reader("Id") Is DBNull.Value, 0, CInt(reader("Id")))
+        'Id = If(reader("Id") Is DBNull.Value, 0, CInt(reader("Id")))
         Nom = reader("Nom").ToString()
         Prenom = reader("Prenom").ToString()
         RaisonSociale = reader("RaisonSociale").ToString()
@@ -64,7 +64,7 @@ Public Class Tiers
         ' Renvoie la catégorie et la sous catégorie d'un tiers  
         Dim iCategorie As Integer
         Dim monReader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqCategoriesDefautMouvements",
-                             New Dictionary(Of String, Object) From {{"@id", idTiers}}
+                             New Dictionary(Of String, Object) From {{"@Id", idTiers}}
                              ).ExecuteReader()
         Do While monReader.Read()
             Try
@@ -81,7 +81,7 @@ Public Class Tiers
         ' Renvoie la sous catégorie d'un tiers  
         Dim iSousCategorie As Integer
         Dim monReader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqSousCategoriesDefautMouvements",
-                             New Dictionary(Of String, Object) From {{"@id", idTiers}}
+                             New Dictionary(Of String, Object) From {{"@Id", idTiers}}
                              ).ExecuteReader()
         Do While monReader.Read()
             Try
@@ -132,7 +132,7 @@ Public Class Tiers
     Public Shared Function FromDataRow(dr As DataRow) As Tiers
         If dr Is Nothing Then Return Nothing
 
-        Dim id As Integer = If(dr.Table.Columns.Contains("id") AndAlso dr("id") IsNot DBNull.Value, Convert.ToInt32(dr("id")), 0)
+        Dim id As Integer = If(dr.Table.Columns.Contains("Id") AndAlso dr("Id") IsNot DBNull.Value, Convert.ToInt32(dr("Id")), 0)
         Dim categorie As Integer = If(dr.Table.Columns.Contains("categorie") AndAlso dr("categorie") IsNot DBNull.Value, Convert.ToInt32(dr("categorie")), 0)
         Dim sousCategorie As Integer = If(dr.Table.Columns.Contains("sousCategorie") AndAlso dr("sousCategorie") IsNot DBNull.Value, Convert.ToInt32(dr("sousCategorie")), 0)
 
@@ -165,22 +165,22 @@ End Class
 '    DateModification = Now
 'End Sub
 
-'Public Sub New(id As Integer, nom As String, prenom As String,
+'Public Sub New(Id As Integer, nom As String, prenom As String,
 '           Optional categorie As Integer = 0,
 '           Optional sousCategorie As Integer = 0)
 '    Me.New()
-'    Me.Id = id
+'    Me.Id = Id
 '    Me.Nom = nom
 '    Me.Prenom = prenom
 '    Me.CategorieDefaut = categorie
 '    Me.SousCategorieDefaut = sousCategorie
 'End Sub
 
-'Public Sub New(id As Integer, raison As String,
+'Public Sub New(Id As Integer, raison As String,
 '           Optional categorie As Integer = 0,
 '           Optional sousCategorie As Integer = 0)
 '    Me.New()
-'    Me.Id = id
+'    Me.Id = Id
 '    Me.RaisonSociale = raison
 '    Me.CategorieDefaut = categorie
 '    Me.SousCategorieDefaut = sousCategorie

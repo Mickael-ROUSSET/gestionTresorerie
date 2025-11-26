@@ -80,7 +80,7 @@ Partial Class frmSaisie
         ' 
         lblType.AutoSize = True
         lblType.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblType.Location = New Point(20, 416)
+        lblType.Location = New Point(20, 395)
         lblType.Name = "lblType"
         lblType.Size = New Size(33, 15)
         lblType.TabIndex = 0
@@ -118,7 +118,7 @@ Partial Class frmSaisie
         ' 
         lblSousCategorie.AutoSize = True
         lblSousCategorie.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblSousCategorie.Location = New Point(20, 261)
+        lblSousCategorie.Location = New Point(20, 250)
         lblSousCategorie.Name = "lblSousCategorie"
         lblSousCategorie.Size = New Size(91, 15)
         lblSousCategorie.TabIndex = 8
@@ -230,9 +230,9 @@ Partial Class frmSaisie
         ' 
         ' btnInsereTiers
         ' 
-        btnInsereTiers.Location = New Point(643, 110)
+        btnInsereTiers.Location = New Point(582, 111)
         btnInsereTiers.Name = "btnInsereTiers"
-        btnInsereTiers.Size = New Size(90, 23)
+        btnInsereTiers.Size = New Size(105, 23)
         btnInsereTiers.TabIndex = 19
         btnInsereTiers.Text = "Insère un tiers"
         btnInsereTiers.UseVisualStyleBackColor = True
@@ -256,9 +256,9 @@ Partial Class frmSaisie
         ' 
         ' txtNote
         ' 
-        txtNote.Location = New Point(233, 479)
+        txtNote.Location = New Point(137, 471)
         txtNote.Name = "txtNote"
-        txtNote.Size = New Size(328, 23)
+        txtNote.Size = New Size(424, 23)
         txtNote.TabIndex = 26
         ' 
         ' lblNote
@@ -274,9 +274,9 @@ Partial Class frmSaisie
         ' cbEvénement
         ' 
         cbEvénement.FormattingEnabled = True
-        cbEvénement.Location = New Point(233, 515)
+        cbEvénement.Location = New Point(828, 515)
         cbEvénement.Name = "cbEvénement"
-        cbEvénement.Size = New Size(328, 23)
+        cbEvénement.Size = New Size(114, 23)
         cbEvénement.TabIndex = 31
         ' 
         ' TiersBindingSource
@@ -300,7 +300,7 @@ Partial Class frmSaisie
         ' 
         ' btnSelDoc
         ' 
-        btnSelDoc.Location = New Point(582, 365)
+        btnSelDoc.Location = New Point(582, 345)
         btnSelDoc.Name = "btnSelDoc"
         btnSelDoc.Size = New Size(168, 23)
         btnSelDoc.TabIndex = 38
@@ -318,7 +318,7 @@ Partial Class frmSaisie
         ' 
         ' btnListeChqRemise
         ' 
-        btnListeChqRemise.Location = New Point(493, 559)
+        btnListeChqRemise.Location = New Point(582, 552)
         btnListeChqRemise.Name = "btnListeChqRemise"
         btnListeChqRemise.Size = New Size(159, 23)
         btnListeChqRemise.TabIndex = 44
@@ -347,7 +347,7 @@ Partial Class frmSaisie
         ' 
         lblTypeDocument.AutoSize = True
         lblTypeDocument.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblTypeDocument.Location = New Point(20, 332)
+        lblTypeDocument.Location = New Point(20, 316)
         lblTypeDocument.Name = "lblTypeDocument"
         lblTypeDocument.Size = New Size(92, 15)
         lblTypeDocument.TabIndex = 47
@@ -391,7 +391,7 @@ Partial Class frmSaisie
         ' 
         ' btnSelSousCategorie
         ' 
-        btnSelSousCategorie.Location = New Point(20, 283)
+        btnSelSousCategorie.Location = New Point(20, 272)
         btnSelSousCategorie.Name = "btnSelSousCategorie"
         btnSelSousCategorie.Size = New Size(168, 23)
         btnSelSousCategorie.TabIndex = 55
@@ -400,21 +400,21 @@ Partial Class frmSaisie
         ' 
         ' txtSousCategorie
         ' 
-        txtSousCategorie.Location = New Point(206, 282)
+        txtSousCategorie.Location = New Point(206, 271)
         txtSousCategorie.Name = "txtSousCategorie"
         txtSousCategorie.Size = New Size(355, 23)
         txtSousCategorie.TabIndex = 56
         ' 
         ' txtTypeDoc
         ' 
-        txtTypeDoc.Location = New Point(256, 365)
+        txtTypeDoc.Location = New Point(256, 345)
         txtTypeDoc.Name = "txtTypeDoc"
         txtTypeDoc.Size = New Size(305, 23)
         txtTypeDoc.TabIndex = 57
         ' 
         ' btnSelTypeDoc
         ' 
-        btnSelTypeDoc.Location = New Point(20, 364)
+        btnSelTypeDoc.Location = New Point(20, 344)
         btnSelTypeDoc.Name = "btnSelTypeDoc"
         btnSelTypeDoc.Size = New Size(215, 23)
         btnSelTypeDoc.TabIndex = 58
@@ -423,7 +423,7 @@ Partial Class frmSaisie
         ' 
         ' btnSelTypeMvt
         ' 
-        btnSelTypeMvt.Location = New Point(20, 445)
+        btnSelTypeMvt.Location = New Point(20, 417)
         btnSelTypeMvt.Name = "btnSelTypeMvt"
         btnSelTypeMvt.Size = New Size(211, 23)
         btnSelTypeMvt.TabIndex = 59
@@ -432,21 +432,21 @@ Partial Class frmSaisie
         ' 
         ' txtTypeMvt
         ' 
-        txtTypeMvt.Location = New Point(256, 446)
+        txtTypeMvt.Location = New Point(256, 418)
         txtTypeMvt.Name = "txtTypeMvt"
         txtTypeMvt.Size = New Size(305, 23)
         txtTypeMvt.TabIndex = 60
         ' 
         ' txtEvenement
         ' 
-        txtEvenement.Location = New Point(643, 507)
+        txtEvenement.Location = New Point(137, 507)
         txtEvenement.Name = "txtEvenement"
-        txtEvenement.Size = New Size(309, 23)
+        txtEvenement.Size = New Size(424, 23)
         txtEvenement.TabIndex = 61
         ' 
         ' btnSelEvenement
         ' 
-        btnSelEvenement.Location = New Point(643, 479)
+        btnSelEvenement.Location = New Point(582, 507)
         btnSelEvenement.Name = "btnSelEvenement"
         btnSelEvenement.Size = New Size(159, 23)
         btnSelEvenement.TabIndex = 62
@@ -455,7 +455,7 @@ Partial Class frmSaisie
         ' 
         ' btnAjouteCoord
         ' 
-        btnAjouteCoord.Location = New Point(645, 146)
+        btnAjouteCoord.Location = New Point(582, 140)
         btnAjouteCoord.Name = "btnAjouteCoord"
         btnAjouteCoord.Size = New Size(105, 23)
         btnAjouteCoord.TabIndex = 63

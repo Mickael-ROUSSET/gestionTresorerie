@@ -37,17 +37,16 @@ Public Class AdresseDAO
     '-------------------------------------------------------------------------
     Public Function CreerAdresse(ByVal adresse As Coordonnees) As Integer
         Dim sql As String = "INSERT INTO [dbo].[Coordonnées] " &
-                            "([IdTiers], [TypeAdresse], [Rue1], [Rue2], [CodePostal], [Ville], [Pays], [EstPrincipale]) " &
-                            "VALUES (@IdTiers, @TypeAdresse, @Rue1, @Rue2, @CodePostal, @Ville, @Pays, @EstPrincipale); " &
+                            "([IdTiers], [Rue1], [Rue2], [CodePostal], [NomCommune], [Pays], [EstPrincipale]) " &
+                            "VALUES (@IdTiers, @Rue1, @Rue2, @CodePostal, @NomCommune, @Pays, @EstPrincipale); " &
                             "SELECT CAST(SCOPE_IDENTITY() AS INT);"
 
         Dim parameters() As SqlParameter = {
             New SqlParameter("@IdTiers", adresse.IdTiers),
-            New SqlParameter("@TypeAdresse", adresse.TypeAdresse),
             New SqlParameter("@Rue1", If(String.IsNullOrEmpty(adresse.Rue1), CObj(DBNull.Value), adresse.Rue1)),
             New SqlParameter("@Rue2", If(String.IsNullOrEmpty(adresse.Rue2), CObj(DBNull.Value), adresse.Rue2)),
             New SqlParameter("@CodePostal", If(String.IsNullOrEmpty(adresse.CodePostal), CObj(DBNull.Value), adresse.CodePostal)),
-            New SqlParameter("@Ville", If(String.IsNullOrEmpty(adresse.Ville), CObj(DBNull.Value), adresse.Ville)),
+            New SqlParameter("@NomCommune", If(String.IsNullOrEmpty(adresse.NomCommune), CObj(DBNull.Value), adresse.NomCommune)),
             New SqlParameter("@Pays", If(String.IsNullOrEmpty(adresse.Pays), CObj(DBNull.Value), adresse.Pays))
         }
 
@@ -99,11 +98,10 @@ Public Class AdresseDAO
                         Dim adresse As New Coordonnees With {
                             .Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             .IdTiers = reader.GetInt32(reader.GetOrdinal("IdTiers")),
-                            .TypeAdresse = reader.GetString(reader.GetOrdinal("TypeAdresse")),
                             .Rue1 = If(reader.IsDBNull(reader.GetOrdinal("Rue1")), Nothing, reader.GetString(reader.GetOrdinal("Rue1"))),
                             .Rue2 = If(reader.IsDBNull(reader.GetOrdinal("Rue2")), Nothing, reader.GetString(reader.GetOrdinal("Rue2"))),
                             .CodePostal = If(reader.IsDBNull(reader.GetOrdinal("CodePostal")), Nothing, reader.GetString(reader.GetOrdinal("CodePostal"))),
-                            .Ville = If(reader.IsDBNull(reader.GetOrdinal("Ville")), Nothing, reader.GetString(reader.GetOrdinal("Ville"))),
+                            .NomCommune = If(reader.IsDBNull(reader.GetOrdinal("NomCommune")), Nothing, reader.GetString(reader.GetOrdinal("NomCommune"))),
                             .Pays = If(reader.IsDBNull(reader.GetOrdinal("Pays")), Nothing, reader.GetString(reader.GetOrdinal("Pays")))
                         }
                         adresses.Add(adresse)
@@ -125,19 +123,18 @@ Public Class AdresseDAO
     '-------------------------------------------------------------------------
     Public Function MettreAJourAdresse(ByVal adresse As Coordonnees) As Boolean
         Dim sql As String = "UPDATE [dbo].[Coordonnées] SET " &
-                            "TypeAdresse = @TypeAdresse, Rue1 = @Rue1, Rue2 = @Rue2, " &
-                            "CodePostal = @CodePostal, Ville = @Ville, Pays = @Pays, " &
+                            "Rue1 = @Rue1, Rue2 = @Rue2, " &
+                            "CodePostal = @CodePostal, NomCommune = @NomCommune, Pays = @Pays, " &
                             "EstPrincipale = @EstPrincipale " &
                             "WHERE Id = @Id AND IdTiers = @IdTiers"
 
         Dim parameters() As SqlParameter = {
             New SqlParameter("@Id", adresse.Id),
             New SqlParameter("@IdTiers", adresse.IdTiers),
-            New SqlParameter("@TypeAdresse", adresse.TypeAdresse),
             New SqlParameter("@Rue1", If(String.IsNullOrEmpty(adresse.Rue1), CObj(DBNull.Value), adresse.Rue1)),
             New SqlParameter("@Rue2", If(String.IsNullOrEmpty(adresse.Rue2), CObj(DBNull.Value), adresse.Rue2)),
             New SqlParameter("@CodePostal", If(String.IsNullOrEmpty(adresse.CodePostal), CObj(DBNull.Value), adresse.CodePostal)),
-            New SqlParameter("@Ville", If(String.IsNullOrEmpty(adresse.Ville), CObj(DBNull.Value), adresse.Ville)),
+            New SqlParameter("@NomCommune", If(String.IsNullOrEmpty(adresse.NomCommune), CObj(DBNull.Value), adresse.NomCommune)),
             New SqlParameter("@Pays", If(String.IsNullOrEmpty(adresse.Pays), CObj(DBNull.Value), adresse.Pays))
         }
 

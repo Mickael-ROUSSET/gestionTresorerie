@@ -96,7 +96,7 @@ Public Class Cheque
             ' Effacer l'image précédemment affichée
             pbBox.Image = Nothing
             Dim imageData As Object = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqImagesChq",
-                                           New Dictionary(Of String, Object) From {{"@id", idDoc}
+                                           New Dictionary(Of String, Object) From {{"@Id", idDoc}
                                             }).
                                             ExecuteScalar()
             If imageData IsNot Nothing AndAlso TypeOf imageData Is Byte() Then

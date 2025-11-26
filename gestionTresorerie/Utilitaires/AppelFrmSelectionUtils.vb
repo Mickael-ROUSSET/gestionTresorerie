@@ -21,25 +21,14 @@ Public Module AppelFrmSelectionUtils
 ) As T
 
         Try
-            Dim frm As New FrmSelectionGenerique(
-            GetType(T),
-            nomRequete,
-            parametres,
-            multiSelect:=False,
-            lectureSeule:=True
-        )
+            Dim frm As New FrmSelectionGenerique(GetType(T), nomRequete, parametres, multiSelect:=False, lectureSeule:=True)
 
             frm.Text = titreFenetre
 
             If frm.ShowDialog() = DialogResult.OK AndAlso
            frm.ResultatsSelectionnes IsNot Nothing AndAlso
            frm.ResultatsSelectionnes.Count > 0 Then
-
-                'Dim dr As DataRow = frm.ResultatsSelectionnes(0)
-                'Dim entity As T = DataRowUtils.FromDataRowGeneric(Of T)(dr)
                 Dim entity As T = CType(frm.ResultatsSelectionnes(0), T)
-
-
                 If entity IsNot Nothing Then
                     ' Met à jour la TextBox si précisée
                     If txtDestination IsNot Nothing Then

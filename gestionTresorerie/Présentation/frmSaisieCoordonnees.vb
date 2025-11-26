@@ -1,10 +1,12 @@
-﻿Imports System.Text.RegularExpressions
+﻿Imports System.Data.SqlClient
 Imports System.Drawing
+Imports System.Text.RegularExpressions
 
 Public Class FrmSaisieCoordonnees
 
     Public Property Result As Coordonnees
-    Private _idTiers As Integer
+    Public Property _idTiers As Integer      ' transmis par frmSaisie
+    Private _coord As Coordonnees           ' l’objet chargé en base
 
     Public Sub New()
         InitializeComponent()
@@ -14,17 +16,49 @@ Public Class FrmSaisieCoordonnees
         InitializeComponent()
         _idTiers = idTiers
     End Sub
+    Private Sub frmSaisieCoordonnees_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ChargerCoordonnees()
+    End Sub
+    Private Sub ChargerCoordonnees()
+        Try
+            ' --- Préparer le paramètre pour la requête ---
+            Dim parametres As New Dictionary(Of String, Object) From {
+                {"@IdTiers", _idTiers}
+            }
+            ' Récupérer les coordonnées du tiers (renvoie Nothing si aucune)
+            Dim lstCoord As List(Of Coordonnees) = SqlCommandBuilder.GetEntities(Of Coordonnees)(Constantes.bddAgumaaa, "selCoordonneesByIdTiers", parametres)
+            'Une seule coordonnées est présente
+            _coord = lstCoord(0)
+            If _coord Is Nothing Then
+                ' Le tiers n'a pas de coordonnées → créer un objet vide
+                _coord = New Coordonnees() With {.IdTiers = _idTiers}
+            End If
+
+            ' Remplir les champs du formulaire
+            txtRue1.Text = _coord.Rue1
+            txtRue2.Text = _coord.Rue2
+            txtCodePostal.Text = _coord.CodePostal
+            txtPays.Text = _coord.Pays
+            cbVilles.Items.Add(_coord.NomCommune)
+            cbVilles.SelectedItem = _coord.NomCommune
+            txtTelephone.Text = _coord.Telephone
+            txtEmail.Text = _coord.Email
+
+        Catch ex As Exception
+            Logger.ERR("Erreur lors du chargement des coordonnées : " & ex.Message)
+        End Try
+    End Sub
+
     Private Sub btnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
 
         ' Effacement des surbrillances précédentes
         ClearInvalid()
 
         Dim coordonnee As New Coordonnees With {
-            .TypeAdresse = txtTypeAdresse.Text,
             .Rue1 = txtRue1.Text,
             .Rue2 = txtRue2.Text,
             .CodePostal = txtCodePostal.Text,
-            .Ville = txtVille.Text,
+            .NomCommune = cbVilles.SelectedItem,
             .Pays = txtPays.Text,
             .Email = txtEmail.Text,
             .Telephone = txtTelephone.Text
@@ -34,7 +68,8 @@ Public Class FrmSaisieCoordonnees
             ' Validation des emails et téléphones
             coordonnee.Validate()
 
-            ' Si valide, on renvoie l'objet
+            ' Si valide, on sauve et on renvoie l'objet
+            Save(coordonnee)
             Result = coordonnee
             DialogResult = DialogResult.OK
             Close()
@@ -46,6 +81,7 @@ Public Class FrmSaisieCoordonnees
 
         Catch ex As Exception
             MessageBox.Show("Erreur : " & ex.Message, "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Logger.ERR($"Erreur : {ex.Message}")
         End Try
 
     End Sub
@@ -77,24 +113,76 @@ Public Class FrmSaisieCoordonnees
     Public Sub Save(coordonnee As Coordonnees)
 
         Validate()
-        Dim id As Integer
 
         Dim parametres As New Dictionary(Of String, Object)
+
         With coordonnee
-            parametres.Add("@IdTiers", .IdTiers)
-            parametres.Add("@TypeAdresse", .TypeAdresse)
+            parametres.Add("@Id", _coord.Id)
+            parametres.Add("@IdTiers", _coord.IdTiers)
             parametres.Add("@Rue1", .Rue1)
             parametres.Add("@Rue2", .Rue2)
             parametres.Add("@CodePostal", .CodePostal)
-            parametres.Add("@Ville", .Ville)
+            parametres.Add("@Ville", .NomCommune)
             parametres.Add("@Pays", .Pays)
-            parametres.Add("@Email", If(.Email, DBNull.Value))
-            parametres.Add("@Telephone", If(.Telephone, DBNull.Value))
+            parametres.Add("@Email", If(String.IsNullOrWhiteSpace(.Email), DBNull.Value, .Email))
+            parametres.Add("@Telephone", If(String.IsNullOrWhiteSpace(.Telephone), DBNull.Value, .Telephone))
         End With
 
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertCoordonnees", parametres)
-            'Récupération SCOPE_IDENTITY() 
-            id = Convert.ToInt32(cmd.ExecuteScalar())
+        Dim reqSqlCoord As String = If(_coord.Id = 0, "insertCoordonnees", "updateCoordonnees")
+
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, reqSqlCoord, parametres)
+
+            ' INSERT uniquement → récupère SCOPE_IDENTITY()
+            If coordonnee.Id = 0 Then
+                coordonnee.Id = Convert.ToInt32(cmd.ExecuteScalar())
+            Else
+                cmd.ExecuteNonQuery()
+            End If
         End Using
+    End Sub
+
+
+    Public Function GetVillesByCodePostal(cp As String) As List(Of String)
+        Dim result As New List(Of String)
+
+        If String.IsNullOrWhiteSpace(cp) OrElse cp.Length < 4 Then
+            Return result
+        End If
+
+        Try
+            Using reader = SqlCommandBuilder.
+                CreateSqlCommand(Constantes.bddAgumaaa, "selVillesParCP",
+                New Dictionary(Of String, Object) From {{"@CodePostal", cp}}
+            ).ExecuteReader()
+                While reader.Read()
+                    result.Add(reader.GetString(0))
+                End While
+            End Using
+        Catch ex As Exception
+            Logger.ERR($"Erreur GetVillesByCodePostal {ex.Message}")
+        End Try
+
+        Return result
+    End Function
+    Private Sub ChargeNomsCommunes(codePostal As String)
+        Dim villes = GetVillesByCodePostal(codePostal)
+        Dim cp As String = txtCodePostal.Text.Trim()
+
+        ' --- Validation rapide du CP ---
+        If cp.Length < 4 OrElse Not Regex.IsMatch(cp, "^\d{4,5}$") Then
+            cbVilles.DataSource = Nothing
+            Return
+        End If
+        cbVilles.DataSource = Nothing
+        If villes IsNot Nothing AndAlso villes.Count > 0 Then
+            cbVilles.DataSource = villes
+        Else
+            ' Si aucune ville trouvée, on garde la saisie libre
+            cbVilles.Text = ""
+        End If
+    End Sub
+
+    Private Sub txtCodePostal_LostFocus(sender As Object, e As EventArgs) Handles txtCodePostal.LostFocus
+        ChargeNomsCommunes(txtCodePostal.Text)
     End Sub
 End Class

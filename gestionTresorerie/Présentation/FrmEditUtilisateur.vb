@@ -51,7 +51,7 @@ Public Class FrmEditUtilisateur
                 ' Mise à jour
                 Dim unused1 = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "updateUtilisateur",
                                  New Dictionary(Of String, Object) From {
-                                     {"@id", _id},
+                                     {"@Id", _id},
                                      {"@nom", txtNom.Text.Trim()},
                                      {"@pwd", hashMdp},
                                      {"@role", cboRole.Text},

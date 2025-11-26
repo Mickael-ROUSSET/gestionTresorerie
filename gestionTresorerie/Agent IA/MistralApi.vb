@@ -34,7 +34,7 @@ Public Class MistralApi
                 End If
 
                 Dim json = JsonConvert.DeserializeObject(Of Dictionary(Of String, Object))(result)
-                Return json("id").ToString()
+                Return json("Id").ToString()
             End Using
         End Using
     End Function
@@ -64,7 +64,7 @@ Public Class MistralApi
             End If
 
             Dim data = JsonConvert.DeserializeObject(Of Dictionary(Of String, Object))(result)
-            Return data("id").ToString()
+            Return data("Id").ToString()
         End Using
     End Function
 

@@ -134,14 +134,14 @@ Public Class FrmNouveauTiers
     End Sub
     Private Sub ChargeDgvCategorie()
         Dim categorie As New Categorie()
-        Dim query As String = "SELECT id, libelle FROM Categorie"
+        Dim query As String = "SELECT Id, libelle FROM Categorie"
 
         ChargerDonneesNouveauTiers(categorie, query, dgvNTCategorie)
     End Sub
 
     Private Sub ChargeDgvSousCategorie()
         Dim sousCategorie As New SousCategorie()
-        Dim query As String = "SELECT id, libelle FROM SousCategorie"
+        Dim query As String = "SELECT Id, libelle FROM SousCategorie"
 
         ChargerDonneesNouveauTiers(sousCategorie, query, dgvNTSousCategorie)
     End Sub
@@ -151,7 +151,7 @@ Public Class FrmNouveauTiers
             Dim dt As DataTable = dataService.ExecuterRequete(query)
 
             dataGridView.DataSource = dt
-            dataGridView.Columns("id").Visible = False
+            dataGridView.Columns("Id").Visible = False
             dataGridView.Columns("libelle").Visible = True
 
             ' Effacer toute sélection initiale

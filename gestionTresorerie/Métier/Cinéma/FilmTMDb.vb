@@ -20,7 +20,7 @@ Public Class FilmTMDb
                 }
 
                 ' Pour obtenir durée, genre, réalisateur, on doit appeler le détail
-                Dim movieId = result("id").ToString()
+                Dim movieId = result("Id").ToString()
                 Dim urlDetail = $"https://api.themoviedb.org/3/movie/{movieId}?api_key={apiKey}&language=fr-FR&append_to_response=credits"
                 Dim detailResponse = client.GetStringAsync(urlDetail).Result
                 Dim detailJson = JObject.Parse(detailResponse)

@@ -138,7 +138,7 @@ Friend Module CreeOpenXml
             doc.Save()
         End Using
     End Sub
-    ' Create a new character style with the specified style id, style name and aliases and add 
+    ' Create a new character style with the specified style Id, style name and aliases and add 
     ' it to the specified style definitions part.
     Public Sub CreateAndAddCharacterStyle(ByVal styleDefinitionsPart As StyleDefinitionsPart,
         ByVal styleid As String, ByVal stylename As String, Optional ByVal aliases As String = "")
@@ -438,7 +438,7 @@ Friend Module CreeOpenXml
         pPr.ParagraphStyleId = New ParagraphStyleId With {.Val = styleid}
     End Sub
 
-    ' Return true if the style id is in the document, false otherwise.
+    ' Return true if the style Id is in the document, false otherwise.
     Public Function IsStyleIdInDocument(ByVal doc As WordprocessingDocument, ByVal styleid As String) As Boolean
         ' Get access to the Styles element for this document.
         Dim s As Styles = doc.MainDocumentPart.StyleDefinitionsPart.Styles

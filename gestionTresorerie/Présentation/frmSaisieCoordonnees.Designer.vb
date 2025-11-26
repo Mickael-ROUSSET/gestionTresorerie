@@ -25,7 +25,6 @@ Partial Class frmSaisieCoordonnees
         txtRue1 = New TextBox()
         txtRue2 = New TextBox()
         txtCodePostal = New TextBox()
-        txtVille = New TextBox()
         txtPays = New TextBox()
         txtEmail = New TextBox()
         txtTelephone = New TextBox()
@@ -40,6 +39,7 @@ Partial Class frmSaisieCoordonnees
         lblPays = New Label()
         lblEmail = New Label()
         lblTelephone = New Label()
+        cbVilles = New ComboBox()
         SuspendLayout()
         ' 
         ' txtRue1
@@ -63,16 +63,9 @@ Partial Class frmSaisieCoordonnees
         txtCodePostal.Size = New Size(248, 23)
         txtCodePostal.TabIndex = 2
         ' 
-        ' txtVille
-        ' 
-        txtVille.Location = New Point(208, 199)
-        txtVille.Name = "txtVille"
-        txtVille.Size = New Size(248, 23)
-        txtVille.TabIndex = 3
-        ' 
         ' txtPays
         ' 
-        txtPays.Location = New Point(208, 245)
+        txtPays.Location = New Point(208, 270)
         txtPays.Name = "txtPays"
         txtPays.Size = New Size(248, 23)
         txtPays.TabIndex = 4
@@ -155,16 +148,16 @@ Partial Class frmSaisieCoordonnees
         ' lblVille
         ' 
         lblVille.AutoSize = True
-        lblVille.Location = New Point(68, 199)
+        lblVille.Location = New Point(68, 216)
         lblVille.Name = "lblVille"
         lblVille.Size = New Size(29, 15)
         lblVille.TabIndex = 14
-        lblVille.Text = "Ville"
+        lblVille.Text = "NomCommune"
         ' 
         ' lblPays
         ' 
         lblPays.AutoSize = True
-        lblPays.Location = New Point(68, 245)
+        lblPays.Location = New Point(68, 270)
         lblPays.Name = "lblPays"
         lblPays.Size = New Size(31, 15)
         lblPays.TabIndex = 15
@@ -188,11 +181,20 @@ Partial Class frmSaisieCoordonnees
         lblTelephone.TabIndex = 17
         lblTelephone.Text = "Téléphone"
         ' 
+        ' cbVilles
+        ' 
+        cbVilles.FormattingEnabled = True
+        cbVilles.Location = New Point(208, 208)
+        cbVilles.Name = "cbVilles"
+        cbVilles.Size = New Size(248, 23)
+        cbVilles.TabIndex = 18
+        ' 
         ' frmSaisieCoordonnees
         ' 
         AutoScaleDimensions = New SizeF(7.0F, 15.0F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(505, 450)
+        Controls.Add(cbVilles)
         Controls.Add(lblTelephone)
         Controls.Add(lblEmail)
         Controls.Add(lblPays)
@@ -207,7 +209,6 @@ Partial Class frmSaisieCoordonnees
         Controls.Add(txtTelephone)
         Controls.Add(txtEmail)
         Controls.Add(txtPays)
-        Controls.Add(txtVille)
         Controls.Add(txtCodePostal)
         Controls.Add(txtRue2)
         Controls.Add(txtRue1)
@@ -220,7 +221,6 @@ Partial Class frmSaisieCoordonnees
     Friend WithEvents txtRue1 As TextBox
     Friend WithEvents txtRue2 As TextBox
     Friend WithEvents txtCodePostal As TextBox
-    Friend WithEvents txtVille As TextBox
     Friend WithEvents txtPays As TextBox
     Friend WithEvents txtEmail As TextBox
     Friend WithEvents txtTelephone As TextBox
@@ -235,4 +235,5 @@ Partial Class frmSaisieCoordonnees
     Friend WithEvents lblPays As Label
     Friend WithEvents lblEmail As Label
     Friend WithEvents lblTelephone As Label
+    Friend WithEvents cbVilles As ComboBox
 End Class

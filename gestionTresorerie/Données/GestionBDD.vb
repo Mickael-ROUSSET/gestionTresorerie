@@ -153,7 +153,7 @@ Public Class GestionBDD
 
             Using stream = New FileStream(cheminSauvegarde, FileMode.Open)
                 Dim requete = service.Files.Create(fichierMetadata, stream, "application/octet-stream")
-                requete.Fields = "id"
+                requete.Fields = "Id"
                 requete.Upload()
             End Using
 
