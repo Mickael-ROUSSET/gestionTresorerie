@@ -18,7 +18,7 @@ Public Class TMDbService
             Dim obj = JObject.Parse(json)
             Dim first = obj("results")?.FirstOrDefault()
             If first Is Nothing Then Return Nothing
-            Return CInt(first("Id"))
+            Return CInt(first("id"))
         Catch ex As Exception
             Logger.ERR($"TMDb SearchMovieIdByTitleAsync('{titre}') : {ex.Message}")
             Return Nothing

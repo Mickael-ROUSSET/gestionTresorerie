@@ -35,7 +35,7 @@ Public Class GenereAttestationNonParticipation
                 {"@Activite", ws.Cell(ligne, 4).GetString()},
                 {"@Coordonnees", ws.Cell(ligne, 5).GetString()},
                 {"@CP", ws.Cell(ligne, 6).GetString()},
-                {"@NomCommune", ws.Cell(ligne, 7).GetString()},
+                {"@Ville", ws.Cell(ligne, 7).GetString()},
                 {"@Grille", ws.Cell(ligne, 8).GetString()},
                 {"@Tables", ws.Cell(ligne, 9).GetString()},
                 {"@DateCourrier", If(ws.Cell(ligne, 10).DataType = XLDataType.DateTime,
@@ -184,7 +184,7 @@ Public Class GenereAttestationNonParticipation
                                     {"«Prenom»", p.Prenom},
                                     {"«Coordonnees»", p.Adresse},
                                     {"«CP»", p.CP},
-                                    {"«NomCommune»", p.Ville},
+                                    {"«Ville»", p.Ville},
                                     {"«Date»", Date.Today.ToString("dd/MM/yyyy")}
                                     }
         ' Remplacements des champs

@@ -22,7 +22,7 @@ Public Class TypeDocImpl
 
     End Sub
     Public Overrides Sub LoadFromReader(reader As SqlDataReader)
-
+        'A garder pour héritage de BaseDataRow
     End Sub
 
     Public Shared Function EncodeImageToBase64(filePath As String) As String

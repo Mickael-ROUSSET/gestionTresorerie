@@ -1,5 +1,4 @@
 ﻿Imports System.Data.SqlClient
-Imports System.Reflection.Metadata
 
 Public Class FrmPrincipale
     Inherits System.Windows.Forms.Form
@@ -19,10 +18,12 @@ Public Class FrmPrincipale
     Private _icolModifiable As Integer
     Private _icolNumeroRemise As Integer
 
-    ''Public Property Properties As Object
-
     Private Sub FrmPrincipale_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Try
+            EnvironmentManager.LoadEnvironment()
+            Logger.INFO("Environnement actif : " & EnvironmentManager.GetEnvironmentLabel())
+            StatusLabelEnv.Text = "Environnement : " & EnvironmentManager.GetEnvironmentLabel
+
             'Initialisation de la lecture des propriétés
             Dim lectureProprietes As New LectureProprietes()
             'Lecture du niveau de log demandé
@@ -32,8 +33,6 @@ Public Class FrmPrincipale
             initIndiceColDgv()
             'Charger dgvPrincipale avec le contenu de la table mouvements
             Call ChargerDgvPrincipale()
-            ' Chargement des listes dans le formulaire
-            'FrmSaisie.chargeListes()
         Catch ex As Exception
             ' Gestion des erreurs
             MessageBox.Show($"Une erreur est survenue lors de l'initialisation : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -112,14 +111,8 @@ Public Class FrmPrincipale
     Private Sub FrmMain_Closing(sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
         ConnexionDB.GetInstance(Constantes.bddAgumaaa).Dispose()
     End Sub
-    Private Sub BtnSaisie_Click(sender As Object, e As EventArgs) Handles btnSaisie.Click
-        FrmSaisie.Show()
-    End Sub
-    Private Sub BtnChargeRelevé_Click(sender As Object, e As EventArgs) Handles btnChargeRelevé.Click
-        FrmChargeRelevé.Show()
-    End Sub
-    Private Sub BtnConsultation_Click(sender As Object, e As EventArgs) Handles btnConsultation.Click
-        Call ChargerDgvPrincipale()
+    Private Sub BtnConsultation_Click(sender As Object, e As EventArgs)
+        ChargerDgvPrincipale()
     End Sub
     Private Sub FermerToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles FermerToolStripMenuItem.Click
         Close()
@@ -142,7 +135,6 @@ Public Class FrmPrincipale
 
             ' Charger les valeurs dans le formulaire de saisie
             With FrmSaisie
-                '.chargeListes()
                 .dateMvt.Value = dateMvt
                 .txtNote.Text = note
                 .rbDebit.Checked = sens
@@ -156,12 +148,6 @@ Public Class FrmPrincipale
             Logger.ERR($"Une erreur est survenue : {ex.Message}")
         End Try
     End Sub
-    Private Sub btnTraiteRelevé_Click(sender As Object, e As EventArgs) Handles btnTraiteRelevé.Click
-        Call FrmChargeRelevé.AlimenteLstMvtCA(LectureProprietes.GetCheminEtVariable("ficRelevéTraité"))
-        FrmChargeRelevé.Show()
-    End Sub
-
-
     Private Sub SauvegarderToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SauvegarderToolStripMenuItem.Click
         GestionBDD.SauvegarderBase()
     End Sub
@@ -248,18 +234,6 @@ Public Class FrmPrincipale
         Call Utilitaires.SauvegarderBaseVersDrive("Drive2C")
     End Sub
 
-    Private Async Sub CréerToolStripMenuItem_Click_1(sender As Object, e As EventArgs) Handles CréerToolStripMenuItem.Click
-        Dim menu = DirectCast(sender, ToolStripMenuItem)
-        Dim force = menu.Name = "RecréerToolStripMenuItem" ' ou menu.Tag=True
-        Await ExecuterCreationAgentMistral(False)
-    End Sub
-
-    Private Async Sub RecréerToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RecréerToolStripMenuItem.Click
-        Dim menu = DirectCast(sender, ToolStripMenuItem)
-        Dim force = menu.Name = "RecréerToolStripMenuItem" ' ou menu.Tag=True
-        Await ExecuterCreationAgentMistral(True)
-    End Sub
-
     Private Sub ChargerFichierToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ChargerFichierToolStripMenuItem.Click
         'Chargement de la base à partir du fichier Excel des entrées cinéma
         'Les fichiers annuels se trouvent dans G:\Mon Drive\AGUMAAA\Documents\Cinéma\Entrées
@@ -308,6 +282,74 @@ Public Class FrmPrincipale
         MsgBox("Génération terminée. CR dans les logs")
     End Sub
 
+    Private Sub EnvironnementToolStripMenuItem_Click(sender As Object, e As EventArgs) _
+    Handles EnvironnementToolStripMenuItem.Click
+
+        Dim choix = InputBox(
+                            "Entrez l'environnement (DEV / TEST / PROD)." & vbCrLf &
+                            "Environnement actuel : " & EnvironmentManager.GetEnvironmentLabel(),
+                            "Changer d'environnement"
+                            )
+
+        If String.IsNullOrWhiteSpace(choix) Then Exit Sub
+
+        Select Case choix.ToUpper()
+            Case "DEV"
+                EnvironmentManager.SetEnvironment(EnvironmentManager.EnvironnementType.DEV)
+            Case "TEST"
+                EnvironmentManager.SetEnvironment(EnvironmentManager.EnvironnementType.TEST)
+            Case "PROD"
+                EnvironmentManager.SetEnvironment(EnvironmentManager.EnvironnementType.PROD)
+            Case Else
+                MessageBox.Show("Valeur non reconnue. Utilisez DEV, TEST ou PROD.")
+                Exit Sub
+        End Select
+
+        MessageBox.Show("Nouvel environnement actif : " & EnvironmentManager.GetEnvironmentLabel() &
+                    vbCrLf &
+                    "Redémarrez l'application pour appliquer pleinement les changements.",
+                    "Environnement modifié",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information)
+    End Sub
+
+    Private Async Sub CréerToolStripMenuItem1_Click(sender As Object, e As EventArgs) Handles CréerToolStripMenuItem1.Click
+        Dim menu = DirectCast(sender, ToolStripMenuItem)
+        Dim force = menu.Name = "RecréerToolStripMenuItem" ' ou menu.Tag=True
+        Await ExecuterCreationAgentMistral(False)
+    End Sub
+
+    Private Async Sub RecréerforçageToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RecréerforçageToolStripMenuItem.Click
+        Dim menu = DirectCast(sender, ToolStripMenuItem)
+        Dim force = menu.Name = "RecréerToolStripMenuItem" ' ou menu.Tag=True
+        Await ExecuterCreationAgentMistral(True)
+    End Sub
+
+    Private Sub ChargerRelevéToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ChargerRelevéToolStripMenuItem.Click
+        FrmChargeRelevé.Show()
+    End Sub
+
+    Private Sub TraiteRelevéToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles TraiteRelevéToolStripMenuItem.Click
+        Call FrmChargeRelevé.AlimenteLstMvtCA(LectureProprietes.GetCheminEtVariable("ficRelevéTraité"))
+        FrmChargeRelevé.Show()
+    End Sub
+
+    Private Sub ConsultationToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ConsultationToolStripMenuItem.Click
+        Call ChargerDgvPrincipale()
+    End Sub
+
+    Private Sub SaisieToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SaisieToolStripMenuItem.Click
+        FrmSaisie.Show()
+    End Sub
+
+    Private Sub BatchGénériqueToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles BatchGénériqueToolStripMenuItem.Click
+        Dim config = BatchMailConfig.Load(LectureProprietes.GetVariable("ConfigBatch"))
+
+        Dim batch As New BatchMailSender()
+        Dim rapport = batch.RunBatch(config)
+
+        Logger.INFO(rapport.ToText())
+    End Sub
 
     'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
     '    'Call CreeBilans()

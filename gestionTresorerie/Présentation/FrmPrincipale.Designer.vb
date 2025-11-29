@@ -24,10 +24,6 @@ Partial Class FrmPrincipale
     Private Sub InitializeComponent()
         components = New ComponentModel.Container()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(FrmPrincipale))
-        btnSaisie = New Button()
-        btnChargeRelevé = New Button()
-        btnHistogramme = New Button()
-        btnConsultation = New Button()
         dgvPrincipale = New DataGridView()
         colEtat = New DataGridViewImageColumn()
         etatImage = New DataGridViewTextBoxColumn()
@@ -50,10 +46,34 @@ Partial Class FrmPrincipale
         MouvementsBindingSource = New BindingSource(components)
         BindingSource1 = New BindingSource(components)
         MenuStrip1 = New MenuStrip()
+        FichierToolStripMenuItem1 = New ToolStripMenuItem()
+        NouvelleToolStripMenuItem = New ToolStripMenuItem()
+        OuvrirToolStripMenuItem = New ToolStripMenuItem()
+        toolStripSeparator = New ToolStripSeparator()
+        EnregistrerToolStripMenuItem = New ToolStripMenuItem()
+        EnregistrersousToolStripMenuItem = New ToolStripMenuItem()
+        toolStripSeparator1 = New ToolStripSeparator()
+        ImprimerToolStripMenuItem = New ToolStripMenuItem()
+        AperçuavantimpressionToolStripMenuItem = New ToolStripMenuItem()
+        toolStripSeparator2 = New ToolStripSeparator()
+        QuitterToolStripMenuItem = New ToolStripMenuItem()
         FichierToolStripMenuItem = New ToolStripMenuItem()
         ChargerRelevéToolStripMenuItem = New ToolStripMenuItem()
         GénérerBilanToolStripMenuItem = New ToolStripMenuItem()
         FermerToolStripMenuItem = New ToolStripMenuItem()
+        TraiteRelevéToolStripMenuItem = New ToolStripMenuItem()
+        HistogrammeToolStripMenuItem = New ToolStripMenuItem()
+        ConsultationToolStripMenuItem = New ToolStripMenuItem()
+        SaisieToolStripMenuItem = New ToolStripMenuItem()
+        ModifierToolStripMenuItem = New ToolStripMenuItem()
+        AnnulerToolStripMenuItem = New ToolStripMenuItem()
+        RétablirToolStripMenuItem = New ToolStripMenuItem()
+        toolStripSeparator3 = New ToolStripSeparator()
+        CouperToolStripMenuItem = New ToolStripMenuItem()
+        CopierToolStripMenuItem = New ToolStripMenuItem()
+        CollerToolStripMenuItem = New ToolStripMenuItem()
+        toolStripSeparator4 = New ToolStripSeparator()
+        SélectionnertoutToolStripMenuItem = New ToolStripMenuItem()
         AnalyseToolStripMenuItem = New ToolStripMenuItem()
         ConsulterTrésorerieToolStripMenuItem = New ToolStripMenuItem()
         GénérerBilanToolStripMenuItem1 = New ToolStripMenuItem()
@@ -69,38 +89,20 @@ Partial Class FrmPrincipale
         ChangeMdPToolStripMenuItem = New ToolStripMenuItem()
         BatchToolStripMenuItem = New ToolStripMenuItem()
         AnalyseDocumentsToolStripMenuItem = New ToolStripMenuItem()
+        ToolStripMenuItem1 = New ToolStripMenuItem()
+        ImporterExcelToolStripMenuItem = New ToolStripMenuItem()
+        GénérerAttestationsToolStripMenuItem = New ToolStripMenuItem()
         CinémaToolStripMenuItem = New ToolStripMenuItem()
         ChargerFichierToolStripMenuItem = New ToolStripMenuItem()
         GénérerStatsToolStripMenuItem = New ToolStripMenuItem()
         GénérerProgrammeToolStripMenuItem = New ToolStripMenuItem()
-        ParamètresTechniquesToolStripMenuItem = New ToolStripMenuItem()
-        EnvironnementToolStripMenuItem = New ToolStripMenuItem()
-        AgentMistralToolStripMenuItem = New ToolStripMenuItem()
-        RecréerToolStripMenuItem = New ToolStripMenuItem()
-        CréerToolStripMenuItem = New ToolStripMenuItem()
         ParamètresToolStripMenuItem1 = New ToolStripMenuItem()
         FichiersParamètresToolStripMenuItem = New ToolStripMenuItem()
         ParamètresTechniquesToolStripMenuItem1 = New ToolStripMenuItem()
-        FichierToolStripMenuItem1 = New ToolStripMenuItem()
-        NouvelleToolStripMenuItem = New ToolStripMenuItem()
-        OuvrirToolStripMenuItem = New ToolStripMenuItem()
-        toolStripSeparator = New ToolStripSeparator()
-        EnregistrerToolStripMenuItem = New ToolStripMenuItem()
-        EnregistrersousToolStripMenuItem = New ToolStripMenuItem()
-        toolStripSeparator1 = New ToolStripSeparator()
-        ImprimerToolStripMenuItem = New ToolStripMenuItem()
-        AperçuavantimpressionToolStripMenuItem = New ToolStripMenuItem()
-        toolStripSeparator2 = New ToolStripSeparator()
-        QuitterToolStripMenuItem = New ToolStripMenuItem()
-        ModifierToolStripMenuItem = New ToolStripMenuItem()
-        AnnulerToolStripMenuItem = New ToolStripMenuItem()
-        RétablirToolStripMenuItem = New ToolStripMenuItem()
-        toolStripSeparator3 = New ToolStripSeparator()
-        CouperToolStripMenuItem = New ToolStripMenuItem()
-        CopierToolStripMenuItem = New ToolStripMenuItem()
-        CollerToolStripMenuItem = New ToolStripMenuItem()
-        toolStripSeparator4 = New ToolStripSeparator()
-        SélectionnertoutToolStripMenuItem = New ToolStripMenuItem()
+        EnvironnementToolStripMenuItem = New ToolStripMenuItem()
+        AgentMistralToolStripMenuItem1 = New ToolStripMenuItem()
+        RecréerforçageToolStripMenuItem = New ToolStripMenuItem()
+        CréerToolStripMenuItem1 = New ToolStripMenuItem()
         OutilsToolStripMenuItem = New ToolStripMenuItem()
         PersonnaliserToolStripMenuItem = New ToolStripMenuItem()
         OptionsToolStripMenuItem = New ToolStripMenuItem()
@@ -110,56 +112,15 @@ Partial Class FrmPrincipale
         RechercherToolStripMenuItem = New ToolStripMenuItem()
         toolStripSeparator5 = New ToolStripSeparator()
         ÀproposdeToolStripMenuItem = New ToolStripMenuItem()
-        ToolStripMenuItem1 = New ToolStripMenuItem()
-        ImporterExcelToolStripMenuItem = New ToolStripMenuItem()
-        GénérerAttestationsToolStripMenuItem = New ToolStripMenuItem()
-        btnTraiteRelevé = New Button()
         FolderBrowserDialog1 = New FolderBrowserDialog()
         pgBar = New ProgressBar()
+        StatusLabelEnv = New StatusStrip()
+        BatchGénériqueToolStripMenuItem = New ToolStripMenuItem()
         CType(dgvPrincipale, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
         MenuStrip1.SuspendLayout()
         SuspendLayout()
-        ' 
-        ' btnSaisie
-        ' 
-        btnSaisie.Location = New Point(29, 295)
-        btnSaisie.Name = "btnSaisie"
-        btnSaisie.Size = New Size(94, 23)
-        btnSaisie.TabIndex = 0
-        btnSaisie.Text = "Saisie mouvement"
-        btnSaisie.UseVisualStyleBackColor = True
-        ' 
-        ' btnChargeRelevé
-        ' 
-        btnChargeRelevé.AccessibleDescription = resources.GetString("btnChargeRelevé.AccessibleDescription")
-        btnChargeRelevé.Location = New Point(29, 67)
-        btnChargeRelevé.Name = "btnChargeRelevé"
-        btnChargeRelevé.Size = New Size(94, 23)
-        btnChargeRelevé.TabIndex = 1
-        btnChargeRelevé.Text = "Charge relevé"
-        btnChargeRelevé.UseVisualStyleBackColor = True
-        ' 
-        ' btnHistogramme
-        ' 
-        btnHistogramme.AccessibleDescription = resources.GetString("btnHistogramme.AccessibleDescription")
-        btnHistogramme.Location = New Point(29, 181)
-        btnHistogramme.Name = "btnHistogramme"
-        btnHistogramme.Size = New Size(94, 23)
-        btnHistogramme.TabIndex = 2
-        btnHistogramme.Text = "Histogramme"
-        btnHistogramme.UseVisualStyleBackColor = True
-        ' 
-        ' btnConsultation
-        ' 
-        btnConsultation.AccessibleDescription = resources.GetString("btnConsultation.AccessibleDescription")
-        btnConsultation.Location = New Point(29, 238)
-        btnConsultation.Name = "btnConsultation"
-        btnConsultation.Size = New Size(94, 23)
-        btnConsultation.TabIndex = 3
-        btnConsultation.Text = "Consultation"
-        btnConsultation.UseVisualStyleBackColor = True
         ' 
         ' dgvPrincipale
         ' 
@@ -168,9 +129,9 @@ Partial Class FrmPrincipale
         dgvPrincipale.Columns.AddRange(New DataGridViewColumn() {colEtat, etatImage, EtatMasque, colDateCréation, colTiers, colCategorie, colSousCategorie, colDateMvt, colMontant, colSens, colEvenement, colNote, colType, colModifiable, colNumeroRemise, reference, typeReference, idDoc})
         dgvPrincipale.DataBindings.Add(New Binding("DataContext", MouvementsBindingSource, "DateCréation", True))
         dgvPrincipale.DataSource = MouvementsBindingSource
-        dgvPrincipale.Location = New Point(145, 67)
+        dgvPrincipale.Location = New Point(10, 37)
         dgvPrincipale.Name = "dgvPrincipale"
-        dgvPrincipale.Size = New Size(798, 370)
+        dgvPrincipale.Size = New Size(1157, 450)
         dgvPrincipale.TabIndex = 4
         ' 
         ' colEtat
@@ -295,20 +256,98 @@ Partial Class FrmPrincipale
         ' MenuStrip1
         ' 
         MenuStrip1.GripStyle = ToolStripGripStyle.Visible
-        MenuStrip1.Items.AddRange(New ToolStripItem() {FichierToolStripMenuItem, AnalyseToolStripMenuItem, GestionBDDToolStripMenuItem, GestionUtilisateurToolStripMenuItem, BatchToolStripMenuItem, CinémaToolStripMenuItem, ParamètresTechniquesToolStripMenuItem, ParamètresToolStripMenuItem1, FichierToolStripMenuItem1, ModifierToolStripMenuItem, OutilsToolStripMenuItem, AideToolStripMenuItem, ToolStripMenuItem1})
+        MenuStrip1.Items.AddRange(New ToolStripItem() {FichierToolStripMenuItem1, FichierToolStripMenuItem, ModifierToolStripMenuItem, AnalyseToolStripMenuItem, GestionBDDToolStripMenuItem, GestionUtilisateurToolStripMenuItem, BatchToolStripMenuItem, ToolStripMenuItem1, CinémaToolStripMenuItem, ParamètresToolStripMenuItem1, OutilsToolStripMenuItem, AideToolStripMenuItem})
         MenuStrip1.Location = New Point(0, 0)
         MenuStrip1.Name = "MenuStrip1"
         MenuStrip1.RenderMode = ToolStripRenderMode.System
-        MenuStrip1.Size = New Size(966, 24)
+        MenuStrip1.Size = New Size(1197, 24)
         MenuStrip1.TabIndex = 6
         MenuStrip1.Text = "MenuStrip1"
         ' 
+        ' FichierToolStripMenuItem1
+        ' 
+        FichierToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {NouvelleToolStripMenuItem, OuvrirToolStripMenuItem, toolStripSeparator, EnregistrerToolStripMenuItem, EnregistrersousToolStripMenuItem, toolStripSeparator1, ImprimerToolStripMenuItem, AperçuavantimpressionToolStripMenuItem, toolStripSeparator2, QuitterToolStripMenuItem})
+        FichierToolStripMenuItem1.Name = "FichierToolStripMenuItem1"
+        FichierToolStripMenuItem1.Size = New Size(54, 20)
+        FichierToolStripMenuItem1.Text = "&Fichier"
+        ' 
+        ' NouvelleToolStripMenuItem
+        ' 
+        NouvelleToolStripMenuItem.Image = CType(resources.GetObject("NouvelleToolStripMenuItem.Image"), Image)
+        NouvelleToolStripMenuItem.ImageTransparentColor = Color.Magenta
+        NouvelleToolStripMenuItem.Name = "NouvelleToolStripMenuItem"
+        NouvelleToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.N
+        NouvelleToolStripMenuItem.Size = New Size(205, 22)
+        NouvelleToolStripMenuItem.Text = "&Nouvelle"
+        ' 
+        ' OuvrirToolStripMenuItem
+        ' 
+        OuvrirToolStripMenuItem.Image = CType(resources.GetObject("OuvrirToolStripMenuItem.Image"), Image)
+        OuvrirToolStripMenuItem.ImageTransparentColor = Color.Magenta
+        OuvrirToolStripMenuItem.Name = "OuvrirToolStripMenuItem"
+        OuvrirToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.O
+        OuvrirToolStripMenuItem.Size = New Size(205, 22)
+        OuvrirToolStripMenuItem.Text = "&Ouvrir"
+        ' 
+        ' toolStripSeparator
+        ' 
+        toolStripSeparator.Name = "toolStripSeparator"
+        toolStripSeparator.Size = New Size(202, 6)
+        ' 
+        ' EnregistrerToolStripMenuItem
+        ' 
+        EnregistrerToolStripMenuItem.Image = CType(resources.GetObject("EnregistrerToolStripMenuItem.Image"), Image)
+        EnregistrerToolStripMenuItem.ImageTransparentColor = Color.Magenta
+        EnregistrerToolStripMenuItem.Name = "EnregistrerToolStripMenuItem"
+        EnregistrerToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.S
+        EnregistrerToolStripMenuItem.Size = New Size(205, 22)
+        EnregistrerToolStripMenuItem.Text = "Enre&gistrer"
+        ' 
+        ' EnregistrersousToolStripMenuItem
+        ' 
+        EnregistrersousToolStripMenuItem.Name = "EnregistrersousToolStripMenuItem"
+        EnregistrersousToolStripMenuItem.Size = New Size(205, 22)
+        EnregistrersousToolStripMenuItem.Text = "&Enregistrer sous"
+        ' 
+        ' toolStripSeparator1
+        ' 
+        toolStripSeparator1.Name = "toolStripSeparator1"
+        toolStripSeparator1.Size = New Size(202, 6)
+        ' 
+        ' ImprimerToolStripMenuItem
+        ' 
+        ImprimerToolStripMenuItem.Image = CType(resources.GetObject("ImprimerToolStripMenuItem.Image"), Image)
+        ImprimerToolStripMenuItem.ImageTransparentColor = Color.Magenta
+        ImprimerToolStripMenuItem.Name = "ImprimerToolStripMenuItem"
+        ImprimerToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.P
+        ImprimerToolStripMenuItem.Size = New Size(205, 22)
+        ImprimerToolStripMenuItem.Text = "&Imprimer"
+        ' 
+        ' AperçuavantimpressionToolStripMenuItem
+        ' 
+        AperçuavantimpressionToolStripMenuItem.Image = CType(resources.GetObject("AperçuavantimpressionToolStripMenuItem.Image"), Image)
+        AperçuavantimpressionToolStripMenuItem.ImageTransparentColor = Color.Magenta
+        AperçuavantimpressionToolStripMenuItem.Name = "AperçuavantimpressionToolStripMenuItem"
+        AperçuavantimpressionToolStripMenuItem.Size = New Size(205, 22)
+        AperçuavantimpressionToolStripMenuItem.Text = "Aperçu a&vant impression"
+        ' 
+        ' toolStripSeparator2
+        ' 
+        toolStripSeparator2.Name = "toolStripSeparator2"
+        toolStripSeparator2.Size = New Size(202, 6)
+        ' 
+        ' QuitterToolStripMenuItem
+        ' 
+        QuitterToolStripMenuItem.Name = "QuitterToolStripMenuItem"
+        QuitterToolStripMenuItem.Size = New Size(205, 22)
+        QuitterToolStripMenuItem.Text = "&Quitter"
+        ' 
         ' FichierToolStripMenuItem
         ' 
-        FichierToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ChargerRelevéToolStripMenuItem, GénérerBilanToolStripMenuItem, FermerToolStripMenuItem})
+        FichierToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ChargerRelevéToolStripMenuItem, GénérerBilanToolStripMenuItem, FermerToolStripMenuItem, TraiteRelevéToolStripMenuItem, HistogrammeToolStripMenuItem, ConsultationToolStripMenuItem, SaisieToolStripMenuItem})
         FichierToolStripMenuItem.Name = "FichierToolStripMenuItem"
-        FichierToolStripMenuItem.Size = New Size(54, 20)
-        FichierToolStripMenuItem.Text = "&Fichier"
+        FichierToolStripMenuItem.Size = New Size(82, 20)
+        FichierToolStripMenuItem.Text = "Traite relevé"
         ' 
         ' ChargerRelevéToolStripMenuItem
         ' 
@@ -327,6 +366,94 @@ Partial Class FrmPrincipale
         FermerToolStripMenuItem.Name = "FermerToolStripMenuItem"
         FermerToolStripMenuItem.Size = New Size(153, 22)
         FermerToolStripMenuItem.Text = "&Fermer"
+        ' 
+        ' TraiteRelevéToolStripMenuItem
+        ' 
+        TraiteRelevéToolStripMenuItem.Name = "TraiteRelevéToolStripMenuItem"
+        TraiteRelevéToolStripMenuItem.Size = New Size(153, 22)
+        TraiteRelevéToolStripMenuItem.Text = "Traite relevé"
+        ' 
+        ' HistogrammeToolStripMenuItem
+        ' 
+        HistogrammeToolStripMenuItem.Name = "HistogrammeToolStripMenuItem"
+        HistogrammeToolStripMenuItem.Size = New Size(153, 22)
+        HistogrammeToolStripMenuItem.Text = "Histogramme"
+        ' 
+        ' ConsultationToolStripMenuItem
+        ' 
+        ConsultationToolStripMenuItem.Name = "ConsultationToolStripMenuItem"
+        ConsultationToolStripMenuItem.Size = New Size(153, 22)
+        ConsultationToolStripMenuItem.Text = "Consultation"
+        ' 
+        ' SaisieToolStripMenuItem
+        ' 
+        SaisieToolStripMenuItem.Name = "SaisieToolStripMenuItem"
+        SaisieToolStripMenuItem.Size = New Size(153, 22)
+        SaisieToolStripMenuItem.Text = "Saisie"
+        ' 
+        ' ModifierToolStripMenuItem
+        ' 
+        ModifierToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {AnnulerToolStripMenuItem, RétablirToolStripMenuItem, toolStripSeparator3, CouperToolStripMenuItem, CopierToolStripMenuItem, CollerToolStripMenuItem, toolStripSeparator4, SélectionnertoutToolStripMenuItem})
+        ModifierToolStripMenuItem.Name = "ModifierToolStripMenuItem"
+        ModifierToolStripMenuItem.Size = New Size(64, 20)
+        ModifierToolStripMenuItem.Text = "&Modifier"
+        ' 
+        ' AnnulerToolStripMenuItem
+        ' 
+        AnnulerToolStripMenuItem.Name = "AnnulerToolStripMenuItem"
+        AnnulerToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.Z
+        AnnulerToolStripMenuItem.Size = New Size(164, 22)
+        AnnulerToolStripMenuItem.Text = "&Annuler"
+        ' 
+        ' RétablirToolStripMenuItem
+        ' 
+        RétablirToolStripMenuItem.Name = "RétablirToolStripMenuItem"
+        RétablirToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.Y
+        RétablirToolStripMenuItem.Size = New Size(164, 22)
+        RétablirToolStripMenuItem.Text = "&Rétablir"
+        ' 
+        ' toolStripSeparator3
+        ' 
+        toolStripSeparator3.Name = "toolStripSeparator3"
+        toolStripSeparator3.Size = New Size(161, 6)
+        ' 
+        ' CouperToolStripMenuItem
+        ' 
+        CouperToolStripMenuItem.Image = CType(resources.GetObject("CouperToolStripMenuItem.Image"), Image)
+        CouperToolStripMenuItem.ImageTransparentColor = Color.Magenta
+        CouperToolStripMenuItem.Name = "CouperToolStripMenuItem"
+        CouperToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.X
+        CouperToolStripMenuItem.Size = New Size(164, 22)
+        CouperToolStripMenuItem.Text = "&Couper"
+        ' 
+        ' CopierToolStripMenuItem
+        ' 
+        CopierToolStripMenuItem.Image = CType(resources.GetObject("CopierToolStripMenuItem.Image"), Image)
+        CopierToolStripMenuItem.ImageTransparentColor = Color.Magenta
+        CopierToolStripMenuItem.Name = "CopierToolStripMenuItem"
+        CopierToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.C
+        CopierToolStripMenuItem.Size = New Size(164, 22)
+        CopierToolStripMenuItem.Text = "&Copier"
+        ' 
+        ' CollerToolStripMenuItem
+        ' 
+        CollerToolStripMenuItem.Image = CType(resources.GetObject("CollerToolStripMenuItem.Image"), Image)
+        CollerToolStripMenuItem.ImageTransparentColor = Color.Magenta
+        CollerToolStripMenuItem.Name = "CollerToolStripMenuItem"
+        CollerToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.V
+        CollerToolStripMenuItem.Size = New Size(164, 22)
+        CollerToolStripMenuItem.Text = "&Coller"
+        ' 
+        ' toolStripSeparator4
+        ' 
+        toolStripSeparator4.Name = "toolStripSeparator4"
+        toolStripSeparator4.Size = New Size(161, 6)
+        ' 
+        ' SélectionnertoutToolStripMenuItem
+        ' 
+        SélectionnertoutToolStripMenuItem.Name = "SélectionnertoutToolStripMenuItem"
+        SélectionnertoutToolStripMenuItem.Size = New Size(164, 22)
+        SélectionnertoutToolStripMenuItem.Text = "&Sélectionner tout"
         ' 
         ' AnalyseToolStripMenuItem
         ' 
@@ -411,7 +538,7 @@ Partial Class FrmPrincipale
         ' 
         ' BatchToolStripMenuItem
         ' 
-        BatchToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {AnalyseDocumentsToolStripMenuItem})
+        BatchToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {AnalyseDocumentsToolStripMenuItem, BatchGénériqueToolStripMenuItem})
         BatchToolStripMenuItem.Name = "BatchToolStripMenuItem"
         BatchToolStripMenuItem.Size = New Size(49, 20)
         BatchToolStripMenuItem.Text = "Batch"
@@ -419,8 +546,27 @@ Partial Class FrmPrincipale
         ' AnalyseDocumentsToolStripMenuItem
         ' 
         AnalyseDocumentsToolStripMenuItem.Name = "AnalyseDocumentsToolStripMenuItem"
-        AnalyseDocumentsToolStripMenuItem.Size = New Size(178, 22)
+        AnalyseDocumentsToolStripMenuItem.Size = New Size(180, 22)
         AnalyseDocumentsToolStripMenuItem.Text = "Analyse documents"
+        ' 
+        ' ToolStripMenuItem1
+        ' 
+        ToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {ImporterExcelToolStripMenuItem, GénérerAttestationsToolStripMenuItem})
+        ToolStripMenuItem1.Name = "ToolStripMenuItem1"
+        ToolStripMenuItem1.Size = New Size(98, 20)
+        ToolStripMenuItem1.Text = "MarchéDeNoël"
+        ' 
+        ' ImporterExcelToolStripMenuItem
+        ' 
+        ImporterExcelToolStripMenuItem.Name = "ImporterExcelToolStripMenuItem"
+        ImporterExcelToolStripMenuItem.Size = New Size(178, 22)
+        ImporterExcelToolStripMenuItem.Text = "ImporterExcel"
+        ' 
+        ' GénérerAttestationsToolStripMenuItem
+        ' 
+        GénérerAttestationsToolStripMenuItem.Name = "GénérerAttestationsToolStripMenuItem"
+        GénérerAttestationsToolStripMenuItem.Size = New Size(178, 22)
+        GénérerAttestationsToolStripMenuItem.Text = "GénérerAttestations"
         ' 
         ' CinémaToolStripMenuItem
         ' 
@@ -447,41 +593,9 @@ Partial Class FrmPrincipale
         GénérerProgrammeToolStripMenuItem.Size = New Size(181, 22)
         GénérerProgrammeToolStripMenuItem.Text = "Générer programme"
         ' 
-        ' ParamètresTechniquesToolStripMenuItem
-        ' 
-        ParamètresTechniquesToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {EnvironnementToolStripMenuItem, AgentMistralToolStripMenuItem})
-        ParamètresTechniquesToolStripMenuItem.Name = "ParamètresTechniquesToolStripMenuItem"
-        ParamètresTechniquesToolStripMenuItem.Size = New Size(139, 20)
-        ParamètresTechniquesToolStripMenuItem.Text = "Paramètres techniques"
-        ' 
-        ' EnvironnementToolStripMenuItem
-        ' 
-        EnvironnementToolStripMenuItem.Name = "EnvironnementToolStripMenuItem"
-        EnvironnementToolStripMenuItem.Size = New Size(155, 22)
-        EnvironnementToolStripMenuItem.Text = "Environnement"
-        ' 
-        ' AgentMistralToolStripMenuItem
-        ' 
-        AgentMistralToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {RecréerToolStripMenuItem, CréerToolStripMenuItem})
-        AgentMistralToolStripMenuItem.Name = "AgentMistralToolStripMenuItem"
-        AgentMistralToolStripMenuItem.Size = New Size(155, 22)
-        AgentMistralToolStripMenuItem.Text = "Agent Mistral"
-        ' 
-        ' RecréerToolStripMenuItem
-        ' 
-        RecréerToolStripMenuItem.Name = "RecréerToolStripMenuItem"
-        RecréerToolStripMenuItem.Size = New Size(164, 22)
-        RecréerToolStripMenuItem.Text = "Recréer (forçage)"
-        ' 
-        ' CréerToolStripMenuItem
-        ' 
-        CréerToolStripMenuItem.Name = "CréerToolStripMenuItem"
-        CréerToolStripMenuItem.Size = New Size(164, 22)
-        CréerToolStripMenuItem.Text = "Créer"
-        ' 
         ' ParamètresToolStripMenuItem1
         ' 
-        ParamètresToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {FichiersParamètresToolStripMenuItem, ParamètresTechniquesToolStripMenuItem1})
+        ParamètresToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {FichiersParamètresToolStripMenuItem, ParamètresTechniquesToolStripMenuItem1, EnvironnementToolStripMenuItem, AgentMistralToolStripMenuItem1})
         ParamètresToolStripMenuItem1.Name = "ParamètresToolStripMenuItem1"
         ParamètresToolStripMenuItem1.Size = New Size(78, 20)
         ParamètresToolStripMenuItem1.Text = "Paramètres"
@@ -498,147 +612,30 @@ Partial Class FrmPrincipale
         ParamètresTechniquesToolStripMenuItem1.Size = New Size(194, 22)
         ParamètresTechniquesToolStripMenuItem1.Text = "Paramètres techniques"
         ' 
-        ' FichierToolStripMenuItem1
+        ' EnvironnementToolStripMenuItem
         ' 
-        FichierToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {NouvelleToolStripMenuItem, OuvrirToolStripMenuItem, toolStripSeparator, EnregistrerToolStripMenuItem, EnregistrersousToolStripMenuItem, toolStripSeparator1, ImprimerToolStripMenuItem, AperçuavantimpressionToolStripMenuItem, toolStripSeparator2, QuitterToolStripMenuItem})
-        FichierToolStripMenuItem1.Name = "FichierToolStripMenuItem1"
-        FichierToolStripMenuItem1.Size = New Size(54, 20)
-        FichierToolStripMenuItem1.Text = "&Fichier"
+        EnvironnementToolStripMenuItem.Name = "EnvironnementToolStripMenuItem"
+        EnvironnementToolStripMenuItem.Size = New Size(194, 22)
+        EnvironnementToolStripMenuItem.Text = "Environnement"
         ' 
-        ' NouvelleToolStripMenuItem
+        ' AgentMistralToolStripMenuItem1
         ' 
-        NouvelleToolStripMenuItem.Image = CType(resources.GetObject("NouvelleToolStripMenuItem.Image"), Image)
-        NouvelleToolStripMenuItem.ImageTransparentColor = Color.Magenta
-        NouvelleToolStripMenuItem.Name = "NouvelleToolStripMenuItem"
-        NouvelleToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.N
-        NouvelleToolStripMenuItem.Size = New Size(205, 22)
-        NouvelleToolStripMenuItem.Text = "&Nouvelle"
+        AgentMistralToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {RecréerforçageToolStripMenuItem, CréerToolStripMenuItem1})
+        AgentMistralToolStripMenuItem1.Name = "AgentMistralToolStripMenuItem1"
+        AgentMistralToolStripMenuItem1.Size = New Size(194, 22)
+        AgentMistralToolStripMenuItem1.Text = "AgentMistral"
         ' 
-        ' OuvrirToolStripMenuItem
+        ' RecréerforçageToolStripMenuItem
         ' 
-        OuvrirToolStripMenuItem.Image = CType(resources.GetObject("OuvrirToolStripMenuItem.Image"), Image)
-        OuvrirToolStripMenuItem.ImageTransparentColor = Color.Magenta
-        OuvrirToolStripMenuItem.Name = "OuvrirToolStripMenuItem"
-        OuvrirToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.O
-        OuvrirToolStripMenuItem.Size = New Size(205, 22)
-        OuvrirToolStripMenuItem.Text = "&Ouvrir"
+        RecréerforçageToolStripMenuItem.Name = "RecréerforçageToolStripMenuItem"
+        RecréerforçageToolStripMenuItem.Size = New Size(164, 22)
+        RecréerforçageToolStripMenuItem.Text = "Recréer (forçage)"
         ' 
-        ' toolStripSeparator
+        ' CréerToolStripMenuItem1
         ' 
-        toolStripSeparator.Name = "toolStripSeparator"
-        toolStripSeparator.Size = New Size(202, 6)
-        ' 
-        ' EnregistrerToolStripMenuItem
-        ' 
-        EnregistrerToolStripMenuItem.Image = CType(resources.GetObject("EnregistrerToolStripMenuItem.Image"), Image)
-        EnregistrerToolStripMenuItem.ImageTransparentColor = Color.Magenta
-        EnregistrerToolStripMenuItem.Name = "EnregistrerToolStripMenuItem"
-        EnregistrerToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.S
-        EnregistrerToolStripMenuItem.Size = New Size(205, 22)
-        EnregistrerToolStripMenuItem.Text = "Enre&gistrer"
-        ' 
-        ' EnregistrersousToolStripMenuItem
-        ' 
-        EnregistrersousToolStripMenuItem.Name = "EnregistrersousToolStripMenuItem"
-        EnregistrersousToolStripMenuItem.Size = New Size(205, 22)
-        EnregistrersousToolStripMenuItem.Text = "&Enregistrer sous"
-        ' 
-        ' toolStripSeparator1
-        ' 
-        toolStripSeparator1.Name = "toolStripSeparator1"
-        toolStripSeparator1.Size = New Size(202, 6)
-        ' 
-        ' ImprimerToolStripMenuItem
-        ' 
-        ImprimerToolStripMenuItem.Image = CType(resources.GetObject("ImprimerToolStripMenuItem.Image"), Image)
-        ImprimerToolStripMenuItem.ImageTransparentColor = Color.Magenta
-        ImprimerToolStripMenuItem.Name = "ImprimerToolStripMenuItem"
-        ImprimerToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.P
-        ImprimerToolStripMenuItem.Size = New Size(205, 22)
-        ImprimerToolStripMenuItem.Text = "&Imprimer"
-        ' 
-        ' AperçuavantimpressionToolStripMenuItem
-        ' 
-        AperçuavantimpressionToolStripMenuItem.Image = CType(resources.GetObject("AperçuavantimpressionToolStripMenuItem.Image"), Image)
-        AperçuavantimpressionToolStripMenuItem.ImageTransparentColor = Color.Magenta
-        AperçuavantimpressionToolStripMenuItem.Name = "AperçuavantimpressionToolStripMenuItem"
-        AperçuavantimpressionToolStripMenuItem.Size = New Size(205, 22)
-        AperçuavantimpressionToolStripMenuItem.Text = "Aperçu a&vant impression"
-        ' 
-        ' toolStripSeparator2
-        ' 
-        toolStripSeparator2.Name = "toolStripSeparator2"
-        toolStripSeparator2.Size = New Size(202, 6)
-        ' 
-        ' QuitterToolStripMenuItem
-        ' 
-        QuitterToolStripMenuItem.Name = "QuitterToolStripMenuItem"
-        QuitterToolStripMenuItem.Size = New Size(205, 22)
-        QuitterToolStripMenuItem.Text = "&Quitter"
-        ' 
-        ' ModifierToolStripMenuItem
-        ' 
-        ModifierToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {AnnulerToolStripMenuItem, RétablirToolStripMenuItem, toolStripSeparator3, CouperToolStripMenuItem, CopierToolStripMenuItem, CollerToolStripMenuItem, toolStripSeparator4, SélectionnertoutToolStripMenuItem})
-        ModifierToolStripMenuItem.Name = "ModifierToolStripMenuItem"
-        ModifierToolStripMenuItem.Size = New Size(64, 20)
-        ModifierToolStripMenuItem.Text = "&Modifier"
-        ' 
-        ' AnnulerToolStripMenuItem
-        ' 
-        AnnulerToolStripMenuItem.Name = "AnnulerToolStripMenuItem"
-        AnnulerToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.Z
-        AnnulerToolStripMenuItem.Size = New Size(164, 22)
-        AnnulerToolStripMenuItem.Text = "&Annuler"
-        ' 
-        ' RétablirToolStripMenuItem
-        ' 
-        RétablirToolStripMenuItem.Name = "RétablirToolStripMenuItem"
-        RétablirToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.Y
-        RétablirToolStripMenuItem.Size = New Size(164, 22)
-        RétablirToolStripMenuItem.Text = "&Rétablir"
-        ' 
-        ' toolStripSeparator3
-        ' 
-        toolStripSeparator3.Name = "toolStripSeparator3"
-        toolStripSeparator3.Size = New Size(161, 6)
-        ' 
-        ' CouperToolStripMenuItem
-        ' 
-        CouperToolStripMenuItem.Image = CType(resources.GetObject("CouperToolStripMenuItem.Image"), Image)
-        CouperToolStripMenuItem.ImageTransparentColor = Color.Magenta
-        CouperToolStripMenuItem.Name = "CouperToolStripMenuItem"
-        CouperToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.X
-        CouperToolStripMenuItem.Size = New Size(164, 22)
-        CouperToolStripMenuItem.Text = "&Couper"
-        ' 
-        ' CopierToolStripMenuItem
-        ' 
-        CopierToolStripMenuItem.Image = CType(resources.GetObject("CopierToolStripMenuItem.Image"), Image)
-        CopierToolStripMenuItem.ImageTransparentColor = Color.Magenta
-        CopierToolStripMenuItem.Name = "CopierToolStripMenuItem"
-        CopierToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.C
-        CopierToolStripMenuItem.Size = New Size(164, 22)
-        CopierToolStripMenuItem.Text = "&Copier"
-        ' 
-        ' CollerToolStripMenuItem
-        ' 
-        CollerToolStripMenuItem.Image = CType(resources.GetObject("CollerToolStripMenuItem.Image"), Image)
-        CollerToolStripMenuItem.ImageTransparentColor = Color.Magenta
-        CollerToolStripMenuItem.Name = "CollerToolStripMenuItem"
-        CollerToolStripMenuItem.ShortcutKeys = Keys.Control Or Keys.V
-        CollerToolStripMenuItem.Size = New Size(164, 22)
-        CollerToolStripMenuItem.Text = "&Coller"
-        ' 
-        ' toolStripSeparator4
-        ' 
-        toolStripSeparator4.Name = "toolStripSeparator4"
-        toolStripSeparator4.Size = New Size(161, 6)
-        ' 
-        ' SélectionnertoutToolStripMenuItem
-        ' 
-        SélectionnertoutToolStripMenuItem.Name = "SélectionnertoutToolStripMenuItem"
-        SélectionnertoutToolStripMenuItem.Size = New Size(164, 22)
-        SélectionnertoutToolStripMenuItem.Text = "&Sélectionner tout"
+        CréerToolStripMenuItem1.Name = "CréerToolStripMenuItem1"
+        CréerToolStripMenuItem1.Size = New Size(164, 22)
+        CréerToolStripMenuItem1.Text = "Créer"
         ' 
         ' OutilsToolStripMenuItem
         ' 
@@ -695,54 +692,35 @@ Partial Class FrmPrincipale
         ÀproposdeToolStripMenuItem.Size = New Size(147, 22)
         ÀproposdeToolStripMenuItem.Text = "À pr&opos de..."
         ' 
-        ' ToolStripMenuItem1
-        ' 
-        ToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {ImporterExcelToolStripMenuItem, GénérerAttestationsToolStripMenuItem})
-        ToolStripMenuItem1.Name = "ToolStripMenuItem1"
-        ToolStripMenuItem1.Size = New Size(98, 20)
-        ToolStripMenuItem1.Text = "MarchéDeNoël"
-        ' 
-        ' ImporterExcelToolStripMenuItem
-        ' 
-        ImporterExcelToolStripMenuItem.Name = "ImporterExcelToolStripMenuItem"
-        ImporterExcelToolStripMenuItem.Size = New Size(180, 22)
-        ImporterExcelToolStripMenuItem.Text = "ImporterExcel"
-        ' 
-        ' GénérerAttestationsToolStripMenuItem
-        ' 
-        GénérerAttestationsToolStripMenuItem.Name = "GénérerAttestationsToolStripMenuItem"
-        GénérerAttestationsToolStripMenuItem.Size = New Size(180, 22)
-        GénérerAttestationsToolStripMenuItem.Text = "GénérerAttestations"
-        ' 
-        ' btnTraiteRelevé
-        ' 
-        btnTraiteRelevé.Location = New Point(29, 124)
-        btnTraiteRelevé.Name = "btnTraiteRelevé"
-        btnTraiteRelevé.Size = New Size(94, 23)
-        btnTraiteRelevé.TabIndex = 9
-        btnTraiteRelevé.Text = "Traite relevé"
-        btnTraiteRelevé.TextAlign = ContentAlignment.BottomCenter
-        btnTraiteRelevé.UseVisualStyleBackColor = True
-        ' 
         ' pgBar
         ' 
-        pgBar.Location = New Point(144, 473)
+        pgBar.Location = New Point(25, 493)
         pgBar.Name = "pgBar"
-        pgBar.Size = New Size(262, 23)
+        pgBar.Size = New Size(918, 23)
         pgBar.TabIndex = 10
+        ' 
+        ' StatusLabelEnv
+        ' 
+        StatusLabelEnv.Location = New Point(0, 519)
+        StatusLabelEnv.Name = "StatusLabelEnv"
+        StatusLabelEnv.Size = New Size(1197, 22)
+        StatusLabelEnv.TabIndex = 11
+        StatusLabelEnv.Text = "StatusStrip1"
+        ' 
+        ' BatchGénériqueToolStripMenuItem
+        ' 
+        BatchGénériqueToolStripMenuItem.Name = "BatchGénériqueToolStripMenuItem"
+        BatchGénériqueToolStripMenuItem.Size = New Size(180, 22)
+        BatchGénériqueToolStripMenuItem.Text = "Batch générique"
         ' 
         ' FrmPrincipale
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(966, 541)
+        ClientSize = New Size(1197, 541)
+        Controls.Add(StatusLabelEnv)
         Controls.Add(pgBar)
-        Controls.Add(btnTraiteRelevé)
         Controls.Add(dgvPrincipale)
-        Controls.Add(btnConsultation)
-        Controls.Add(btnHistogramme)
-        Controls.Add(btnChargeRelevé)
-        Controls.Add(btnSaisie)
         Controls.Add(MenuStrip1)
         MainMenuStrip = MenuStrip1
         Name = "FrmPrincipale"
@@ -755,11 +733,6 @@ Partial Class FrmPrincipale
         ResumeLayout(False)
         PerformLayout()
     End Sub
-
-    Friend WithEvents btnSaisie As Button
-    Friend WithEvents btnChargeRelevé As Button
-    Friend WithEvents btnHistogramme As Button
-    Friend WithEvents btnConsultation As Button
     Friend WithEvents dgvPrincipale As DataGridView
     Friend WithEvents MouvementsBindingSource As BindingSource
     Friend WithEvents BindingSource1 As BindingSource
@@ -772,7 +745,6 @@ Partial Class FrmPrincipale
     Friend WithEvents GénérerBilanToolStripMenuItem1 As ToolStripMenuItem
     Friend WithEvents GérerUnMouvementToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents FermerToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents btnTraiteRelevé As Button
     Friend WithEvents CategorieDataGridViewTextBoxColumn As DataGridViewTextBoxColumn
     Friend WithEvents SousCategorieDataGridViewTextBoxColumn As DataGridViewTextBoxColumn
     Friend WithEvents colEtat As DataGridViewImageColumn
@@ -805,11 +777,6 @@ Partial Class FrmPrincipale
     Friend WithEvents FolderBrowserDialog1 As FolderBrowserDialog
     Friend WithEvents DocumentsToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ParamètresTechniquesToolStripMenuItem1 As ToolStripMenuItem
-    Friend WithEvents ParamètresTechniquesToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents EnvironnementToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents AgentMistralToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents RecréerToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents CréerToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents FichiersParamètresToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents CopierVersLeDriveToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents RécupérerDuDriveToolStripMenuItem As ToolStripMenuItem
@@ -850,4 +817,14 @@ Partial Class FrmPrincipale
     Friend WithEvents ToolStripMenuItem1 As ToolStripMenuItem
     Friend WithEvents ImporterExcelToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents GénérerAttestationsToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents EnvironnementToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents StatusLabelEnv As StatusStrip
+    Friend WithEvents AgentMistralToolStripMenuItem1 As ToolStripMenuItem
+    Friend WithEvents RecréerforçageToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents CréerToolStripMenuItem1 As ToolStripMenuItem
+    Friend WithEvents TraiteRelevéToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents HistogrammeToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ConsultationToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents SaisieToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents BatchGénériqueToolStripMenuItem As ToolStripMenuItem
 End Class

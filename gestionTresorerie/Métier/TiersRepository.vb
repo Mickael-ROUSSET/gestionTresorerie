@@ -75,7 +75,7 @@
 '                        .Rue1 = reader("Rue1").ToString(),
 '                        .Rue2 = reader("Rue2").ToString(),
 '                        .CodePostal = reader("CodePostal").ToString(),
-'                        .NomCommune = reader("NomCommune").ToString(),
+'                        .Ville = reader("Ville").ToString(),
 '                        .Pays = reader("Pays").ToString(),
 '                        .EstPrincipale = CBool(reader("EstPrincipale")),
 '                        .Email = If(reader("Email") Is DBNull.Value, Nothing, reader("Email").ToString()),

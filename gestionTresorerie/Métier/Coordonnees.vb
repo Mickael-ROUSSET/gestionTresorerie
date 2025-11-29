@@ -10,7 +10,7 @@ Public Class Coordonnees
     Public Property Rue1 As String
     Public Property Rue2 As String
     Public Property CodePostal As String
-    Public Property NomCommune As String
+    Public Property Ville As String
     Public Property Pays As String
     Public Property Email As String
     Public Property Telephone As String
@@ -33,7 +33,7 @@ Public Class Coordonnees
         Me.Rue1 = rue1?.Trim()
         Me.Rue2 = rue2?.Trim()
         Me.CodePostal = cp?.Trim()
-        Me.NomCommune = nomCommune?.Trim()
+        Me.Ville = nomCommune?.Trim()
         Me.Pays = pays?.Trim()
         Me.Email = email?.Trim()
         Me.Telephone = telephone?.Trim()
@@ -51,7 +51,7 @@ Public Class Coordonnees
         Rue1 = reader("Rue1").ToString()
         Rue2 = reader("Rue2").ToString()
         CodePostal = reader("CodePostal").ToString()
-        NomCommune = reader("NomCommune").ToString()
+        Ville = reader("Ville").ToString()
         Pays = reader("Pays").ToString()
         Email = reader("Email").ToString()
         Telephone = reader("Telephone").ToString()
@@ -111,7 +111,7 @@ Public Class Coordonnees
             {"@Rue1", If(String.IsNullOrWhiteSpace(Me.Rue1), DBNull.Value, Me.Rue1)},
             {"@Rue2", If(String.IsNullOrWhiteSpace(Me.Rue2), DBNull.Value, Me.Rue2)},
             {"@CodePostal", If(String.IsNullOrWhiteSpace(Me.CodePostal), DBNull.Value, Me.CodePostal)},
-            {"@NomCommune", If(String.IsNullOrWhiteSpace(Me.NomCommune), DBNull.Value, Me.NomCommune)},
+            {"@Ville", If(String.IsNullOrWhiteSpace(Me.Ville), DBNull.Value, Me.Ville)},
             {"@Pays", If(String.IsNullOrWhiteSpace(Me.Pays), DBNull.Value, Me.Pays)},
             {"@Email", If(String.IsNullOrWhiteSpace(Me.Email), DBNull.Value, Me.Email)},
             {"@Telephone", If(String.IsNullOrWhiteSpace(Me.Telephone), DBNull.Value, Me.Telephone)}
@@ -134,7 +134,7 @@ Public Class Coordonnees
 
     ' --- Retourne une chaîne descriptive ---
     Public Overrides Function ToString() As String
-        Return $"[{Rue1} {Rue2}, {CodePostal} {NomCommune}, {Pays} | Email: {Email}, Tel: {Telephone}"
+        Return $"[{Rue1} {Rue2}, {CodePostal} {Ville}, {Pays} | Email: {Email}, Tel: {Telephone}"
     End Function
 
 End Class

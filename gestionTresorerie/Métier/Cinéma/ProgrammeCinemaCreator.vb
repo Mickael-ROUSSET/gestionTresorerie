@@ -63,23 +63,39 @@ Public Class ProgrammeCinemaCreator
         Dim sem As New Threading.SemaphoreSlim(4)
         Dim tasks As New List(Of Task)()
 
+        'For Each s In seances
+        '    Await sem.WaitAsync()
+        '    Dim t = Task.Run(Async Function()
+        '                         Try
+        '                             Dim f = Await _tmdb.GetMovieDetailsAsync((Await _tmdb.SearchMovieIdByTitleAsync(s.Titre)).Value)
+        '                             If f Is Nothing Then Return
+        '                             s.Synopsis = f.Synopsis
+        '                             s.DureeMinutes = f.DureeMinutes
+        '                             s.Genre = f.Genre
+        '                             s.Realisateur = f.Realisateur
+        '                             s.Casting = f.Casting
+        '                             s.UrlAffiche = f.UrlAffiche
+        '                         Finally
+        '                             sem.Release()
+        '                         End Try
+        '                     End Function)
+        '    tasks.Add(t)
+        'Next
         For Each s In seances
-            Await sem.WaitAsync()
-            Dim t = Task.Run(Async Function()
-                                 Try
-                                     Dim f = Await _tmdb.GetMovieDetailsAsync((Await _tmdb.SearchMovieIdByTitleAsync(s.Titre)).Value)
-                                     If f Is Nothing Then Return
-                                     s.Synopsis = f.Synopsis
-                                     s.DureeMinutes = f.DureeMinutes
-                                     s.Genre = f.Genre
-                                     s.Realisateur = f.Realisateur
-                                     s.Casting = f.Casting
-                                     s.UrlAffiche = f.UrlAffiche
-                                 Finally
-                                     sem.Release()
-                                 End Try
-                             End Function)
-            tasks.Add(t)
+            Dim movieId = Await _tmdb.SearchMovieIdByTitleAsync(s.Titre)
+
+            If movieId Is Nothing Then
+                Logger.WARN($"Aucun résultat TMDb pour : {s.Titre}")
+                Continue For
+            End If
+
+            Dim details = Await _tmdb.GetMovieDetailsAsync(movieId.Value)
+            s.Synopsis = details.Synopsis
+            s.DureeMinutes = details.DureeMinutes
+            s.Genre = details.Genre
+            s.Realisateur = details.Realisateur
+            s.Casting = details.Casting
+            s.UrlAffiche = details.UrlAffiche
         Next
 
         Await Task.WhenAll(tasks)
@@ -358,37 +374,50 @@ Public Class ProgrammeCinemaCreator
         body.Append(sectionProps)
 
         ' --- Calcul largeurs colonnes ---
-        Dim largeurPage As Integer = 16838 ' largeur paysage
+        Dim largeurPage As Integer = 16838 ' largeur paysage (A4 en Twips)
         Dim espaceCm As Integer = 2
-        Dim cm2Twips As Integer = 567
-        Dim espaceTwips As Integer = espaceCm * cm2Twips
-        Dim largeurCol As Integer = (largeurPage - 2 * espaceTwips) \ 2
+        Dim cm2Twips As Integer = 567 ' Conversion cm vers Twips (1/20ème de point)
+        Dim cm2Dxa As Integer = cm2Twips * 2 ' Conversion cm vers Dxa (1/20ème de point / 2)
+        Dim espaceTwips As Integer = espaceCm * cm2Twips ' 1134 Twips
+        Dim espaceDxa As Integer = espaceCm * cm2Dxa ' 2268 Dxa (pour 2 cm)
+        ' La largeur totale de la table ne devrait pas inclure l'espace entre les colonnes si on utilise les marges
+        Dim largeurCol As Integer = (largeurPage - 2 * espaceTwips) \ 2 ' Largeur de chaque colonne (en Twips)
 
         ' --- Table 2 colonnes ---
         Dim table As New Table()
+        ' Utiliser la largeur totale pour la table, sans l'espace entre les colonnes pour ne pas la déborder
         table.Append(New TableProperties(
         New TableWidth() With {.Type = TableWidthUnitValues.Dxa, .Width = (largeurPage - 2 * espaceTwips).ToString()}
     ))
+        ' Les largeurs de grille doivent être en Twips (ou Dxa, Open XML utilise souvent Dxa pour les largeurs)
+        ' En Twips (16838), la largeur de la page est déjà très grande.
+        ' Utilisons les Twips pour la largeur des colonnes dans la TableGrid.
         table.Append(New TableGrid(
-        New GridColumn() With {.Width = largeurCol.ToString()},
-        New GridColumn() With {.Width = largeurCol.ToString()}
+        New GridColumn() With {.Width = largeurCol.ToString()}, ' Largeur de la colonne gauche
+        New GridColumn() With {.Width = largeurCol.ToString()}  ' Largeur de la colonne droite
     ))
 
         Dim tr As New TableRow()
         Dim tcLeft As New TableCell()
         Dim tcRight As New TableCell()
 
-        ' --- Ajouter 2 cm d'espace entre les colonnes via margin droite de gauche ---
-        tcLeft.
-            TableCellProperties =
-            New TableCellProperties(
-                                    New TableCellMarginDefault(
-                                        New TopMargin() With {.Width = "0", .Type = TableWidthUnitValues.Dxa},
-                                        New BottomMargin() With {.Width = "0", .Type = TableWidthUnitValues.Dxa},
-                                        New StartMargin() With {.Width = "0", .Type = TableWidthUnitValues.Dxa},
-                                        New EndMargin() With {.Width = "5000", .Type = TableWidthUnitValues.Dxa}
-                                        )
-                                     )
+        ' --- Ajouter 2 cm d'espace (2268 Dxa) entre les colonnes via marge droite de gauche ---
+        tcLeft.TableCellProperties = New TableCellProperties(
+        New TableCellWidth() With {.Type = TableWidthUnitValues.Dxa, .Width = largeurCol.ToString()},
+        New TableCellMargin( ' Utilisé pour les marges spécifiques à cette cellule
+            New TopMargin() With {.Width = "0", .Type = TableWidthUnitValues.Dxa},
+            New BottomMargin() With {.Width = "0", .Type = TableWidthUnitValues.Dxa},
+            New LeftMargin() With {.Width = "0", .Type = TableWidthUnitValues.Dxa},
+            New RightMargin() With {.Width = espaceDxa.ToString(), .Type = TableWidthUnitValues.Dxa} ' 2268 Dxa = 2 cm
+        )
+    )
+
+        ' Optionnellement, pour tcRight, on pourrait ajuster sa marge gauche si on voulait un espace symétrique, 
+        ' mais RightMargin sur tcLeft est suffisant pour créer l'espace.
+        tcRight.TableCellProperties = New TableCellProperties(
+        New TableCellWidth() With {.Type = TableWidthUnitValues.Dxa, .Width = largeurCol.ToString()}
+    )
+
 
         ' --- Séparer les films en deux colonnes ---
         Dim mid As Integer = CInt(System.Math.Ceiling(seances.Count / 2.0))
@@ -403,33 +432,38 @@ Public Class ProgrammeCinemaCreator
         tr.Append(tcRight)
         table.Append(tr)
         body.Append(table)
+
+        ' Ajoutez ici la sectionProperties de fin pour terminer la page Paysage
+        ' Note : Il est souvent nécessaire d'ajouter un nouveau SectionProperties à la fin du document ou avant le prochain saut de page pour que la mise en page paysage soit appliquée correctement à cette seule section.
+        body.Append(New Paragraph(New Run(New Break()))) ' Saut de ligne pour assurer la sectionProps
+        body.Append(New SectionProperties()) ' Pour revenir au mode portrait standard par défaut si vous continuez le document.
     End Sub
 
     Private Sub AjouterFilmsDetailDansCellule2(mainPart As MainDocumentPart, cellule As TableCell, films As List(Of FilmSeance))
         For Each s In films
             ' --- Affiche ---
             If Not String.IsNullOrEmpty(s.UrlAffiche) Then
-                AjouterImageDepuisUrlOuFichier(mainPart, cellule, s.UrlAffiche, 2000000, 3000000)
+                AjouterImageDepuisUrlOuFichier(mainPart, cellule, s.UrlAffiche, 1000000, 1500000)
             End If
 
             ' --- Titre en gras et couleur ---
             Dim runTitre As New Run(New Text(s.Titre))
             runTitre.RunProperties = New RunProperties(
-            New RunFonts() With {.Ascii = "Arial"},
-            New FontSize() With {.Val = "32"},   ' 16 pt
-            New Bold(),
-            New Color() With {.Val = "2E74B5"}  ' bleu foncé
-        )
+                    New RunFonts() With {.Ascii = "Arial"},
+                    New FontSize() With {.Val = "32"},   ' 16 pt
+                    New Bold(),
+                    New Color() With {.Val = "2E74B5"}  ' bleu foncé
+                )
             cellule.Append(New Paragraph(runTitre))
 
             ' --- Détails en gras ---
             Dim details As New Dictionary(Of String, String) From {
-            {"Genre", s.Genre},
-            {"Réalisateur", s.Realisateur},
-            {"Acteurs", If(s.Casting IsNot Nothing, String.Join(", ", s.Casting), "")},
-            {"Durée", s.DureeMinutes},
-            {"Synopsis", s.Synopsis}
-        }
+                    {"Genre", s.Genre},
+                    {"Réalisateur", s.Realisateur},
+                    {"Acteurs", If(s.Casting IsNot Nothing, String.Join(", ", s.Casting), "")},
+                    {"Durée", s.DureeMinutes},
+                    {"Synopsis", s.Synopsis}
+                }
 
             For Each kvp In details
                 Dim runDetail As New Run(New Text($"{kvp.Key} : {kvp.Value}"))
@@ -482,8 +516,11 @@ Public Class ProgrammeCinemaCreator
                 Return
             End If
 
-            Dim drawing = CreerDrawing(mainPart.GetIdOfPart(imagePart), widthEmu, heightEmu)
-            cellule.Append(New Paragraph(New Run(drawing)))
+            Dim drawing = CreerDrawing(mainPart.GetIdOfPart(imagePart), widthEmu, heightEmu) ' --- CENTRAGE ---
+            Dim p As New Paragraph(
+                                New ParagraphProperties(New Justification() With {.Val = JustificationValues.Center}), New Run(drawing)
+                                )
+            cellule.Append(p)
         Catch ex As Exception
             Logger.ERR($"Impossible de charger l'image '{url}' : {ex.Message}")
         End Try
@@ -512,14 +549,14 @@ Public Class ProgrammeCinemaCreator
 
         ' Créer Inline
         Dim inline = New Drawing.Wordprocessing.Inline(
-        New Drawing.Wordprocessing.Extent() With {.Cx = 3500000L, .Cy = 2000000L},
-        New Drawing.Wordprocessing.EffectExtent() With {.LeftEdge = 0L, .TopEdge = 0L, .RightEdge = 0L, .BottomEdge = 0L},
-        New Drawing.Wordprocessing.DocProperties() With {.Id = CType(1UI, UInt32), .Name = "Picture"},
-        New Drawing.Wordprocessing.NonVisualGraphicFrameDrawingProperties(
-            New Drawing.GraphicFrameLocks() With {.NoChangeAspect = True}
-        ),
-        graphic
-    )
+                New Drawing.Wordprocessing.Extent() With {.Cx = 3500000L, .Cy = 2000000L},
+                New Drawing.Wordprocessing.EffectExtent() With {.LeftEdge = 0L, .TopEdge = 0L, .RightEdge = 0L, .BottomEdge = 0L},
+                New Drawing.Wordprocessing.DocProperties() With {.Id = CType(1UI, UInt32), .Name = "Picture"},
+                New Drawing.Wordprocessing.NonVisualGraphicFrameDrawingProperties(
+                    New Drawing.GraphicFrameLocks() With {.NoChangeAspect = True}
+                ),
+                graphic
+            )
 
         ' ⚠️ Ici utiliser DocumentFormat.OpenXml.Wordprocessing.Drawing
         Dim element = New DocumentFormat.OpenXml.Wordprocessing.Drawing(inline)
@@ -539,29 +576,22 @@ Public Class ProgrammeCinemaCreator
         ' =============================
         ' 1) Ligne : Ne pas jeter...
         ' =============================
-        Dim p1 As New Paragraph(
-        New Run(
-            New Text("Ne pas jeter sur la voie publique")
-        )
-    )
+        Dim p1 As New Paragraph(New Run(New Text("Ne pas jeter sur la voie publique")))
         p1.ParagraphProperties = New ParagraphProperties(
-        New Justification() With {.Val = JustificationValues.Left},
-        New SpacingBetweenLines() With {.Before = "200", .After = "100"}
-    )
+                New Justification() With {.Val = JustificationValues.Left}, New SpacingBetweenLines() With {.Before = "200", .After = "100"}
+                )
         tc.Append(p1)
 
         ' =============================
         ' 2) Lignes des sites
         ' =============================
         Dim p2 As New Paragraph(
-        New Run(
-            New Text("agumaaa.jimdofree.com    cinevasion43.wix.com/site")
-        )
-    )
-        p2.ParagraphProperties = New ParagraphProperties(
-        New Justification() With {.Val = JustificationValues.Left},
-        New SpacingBetweenLines() With {.Before = "0", .After = "200"}
-    )
+        New Run(New Text("agumaaa.jimdofree.com    cinevasion43.wix.com/site")))
+        p2.ParagraphProperties =
+            New ParagraphProperties(
+                                    New Justification() With {.Val = JustificationValues.Left},
+                                    New SpacingBetweenLines() With {.Before = "0", .After = "200"}
+                                    )
         tc.Append(p2)
 
         ' =============================
@@ -591,7 +621,5 @@ Public Class ProgrammeCinemaCreator
         Catch ex As Exception
             Logger.ERR($"Erreur chargement logoCinevasion : {ex.Message}")
         End Try
-
     End Sub
-
 End Class

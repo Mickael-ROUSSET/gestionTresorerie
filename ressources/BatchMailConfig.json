@@ -1,0 +1,26 @@
+{
+  "NomRequeteSQL": "reqIdentiteCoordonnees",
+  "ParametresRequete": {
+    "@IdSeance": 12
+  },
+  "ColonneEmail": "Email",
+  "CheminTemplateCorpsEmail": "G:/Mon Drive/AGUMAAA/Documents/Manifestations récurrentes/Marché de Noël/2025/Administratif/ModeleMailAttestation.html",
+  "RplctCorpsMail": {
+    "{Nom}": "Nom",
+    "{Prenom}": "Prenom"
+  },
+  "SujetMail": "Information importante pour {Prenom} {Nom}",
+  "RplctSujetMail": {
+    "{Nom}": "Nom",
+    "{Prenom}": "Prenom"
+  },
+  "CheminsPjRessource": [
+    "G:/Mon Drive/AGUMAAA/Documents/Manifestations récurrentes/Marché de Noël/2025/Administratif/attestationsNonParticipationAutresMarches/AttestationNonParticipationDeuxAutresmarchés.docx",
+    "C:/Modeles/modele_info.txt"
+  ],
+  "RplctPJ": {
+    "{Nom}": "Nom",
+    "{Prenom}": "Prenom"
+  },
+  "CheminRapportTrt": "C:/Users/User/source/repos/gestionTresorerie/TestResults/Batch_Mail",  
+}

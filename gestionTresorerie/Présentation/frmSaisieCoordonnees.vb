@@ -1,9 +1,6 @@
-﻿Imports System.Data.SqlClient
-Imports System.Drawing
-Imports System.Text.RegularExpressions
+﻿Imports System.Text.RegularExpressions
 
 Public Class FrmSaisieCoordonnees
-
     Public Property Result As Coordonnees
     Public Property _idTiers As Integer      ' transmis par frmSaisie
     Private _coord As Coordonnees           ' l’objet chargé en base
@@ -35,20 +32,26 @@ Public Class FrmSaisieCoordonnees
             End If
 
             ' Remplir les champs du formulaire
-            txtRue1.Text = _coord.Rue1
-            txtRue2.Text = _coord.Rue2
-            txtCodePostal.Text = _coord.CodePostal
-            txtPays.Text = _coord.Pays
-            cbVilles.Items.Add(_coord.NomCommune)
-            cbVilles.SelectedItem = _coord.NomCommune
-            txtTelephone.Text = _coord.Telephone
-            txtEmail.Text = _coord.Email
+            txtRue1.Text = If(_coord.Rue1, "")
+            txtRue2.Text = If(_coord.Rue2, "")
+            txtCodePostal.Text = If(_coord.CodePostal, "")
+            txtPays.Text = If(_coord.Pays, "")
+            txtTelephone.Text = If(_coord.Telephone, "")
+            txtEmail.Text = If(_coord.Email, "")
+            'Alimentation de la commune
+            cbVilles.Items.Clear()
+            Dim ville As String = If(_coord.Ville, "")
+            If ville <> "" Then
+                cbVilles.Items.Add(ville)
+                cbVilles.SelectedItem = ville
+            Else
+                cbVilles.SelectedIndex = -1
+            End If
 
         Catch ex As Exception
-            Logger.ERR("Erreur lors du chargement des coordonnées : " & ex.Message)
+            Logger.ERR($"Erreur lors du chargement des coordonnées : {ex.Message}")
         End Try
     End Sub
-
     Private Sub btnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
 
         ' Effacement des surbrillances précédentes
@@ -58,7 +61,7 @@ Public Class FrmSaisieCoordonnees
             .Rue1 = txtRue1.Text,
             .Rue2 = txtRue2.Text,
             .CodePostal = txtCodePostal.Text,
-            .NomCommune = cbVilles.SelectedItem,
+            .Ville = cbVilles.SelectedItem,
             .Pays = txtPays.Text,
             .Email = txtEmail.Text,
             .Telephone = txtTelephone.Text
@@ -83,14 +86,11 @@ Public Class FrmSaisieCoordonnees
             MessageBox.Show("Erreur : " & ex.Message, "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Logger.ERR($"Erreur : {ex.Message}")
         End Try
-
     End Sub
-
     Private Sub btnAnnuler_Click(sender As Object, e As EventArgs) Handles btnAnnuler.Click
         DialogResult = DialogResult.Cancel
         Close()
     End Sub
-
     ' --- Mise en surbrillance d’un champ invalide ---
     Private Sub HighlightInvalidField(message As String)
 
@@ -101,7 +101,6 @@ Public Class FrmSaisieCoordonnees
         If message.Contains("Téléphone") Then
             txtTelephone.BackColor = Color.LightCoral
         End If
-
     End Sub
 
     ' Réinitialiser les couleurs
@@ -122,7 +121,7 @@ Public Class FrmSaisieCoordonnees
             parametres.Add("@Rue1", .Rue1)
             parametres.Add("@Rue2", .Rue2)
             parametres.Add("@CodePostal", .CodePostal)
-            parametres.Add("@Ville", .NomCommune)
+            parametres.Add("@Ville", .Ville)
             parametres.Add("@Pays", .Pays)
             parametres.Add("@Email", If(String.IsNullOrWhiteSpace(.Email), DBNull.Value, .Email))
             parametres.Add("@Telephone", If(String.IsNullOrWhiteSpace(.Telephone), DBNull.Value, .Telephone))
@@ -140,8 +139,6 @@ Public Class FrmSaisieCoordonnees
             End If
         End Using
     End Sub
-
-
     Public Function GetVillesByCodePostal(cp As String) As List(Of String)
         Dim result As New List(Of String)
 
@@ -181,7 +178,6 @@ Public Class FrmSaisieCoordonnees
             cbVilles.Text = ""
         End If
     End Sub
-
     Private Sub txtCodePostal_LostFocus(sender As Object, e As EventArgs) Handles txtCodePostal.LostFocus
         ChargeNomsCommunes(txtCodePostal.Text)
     End Sub

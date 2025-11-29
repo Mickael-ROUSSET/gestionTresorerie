@@ -152,7 +152,7 @@ Partial Class frmSaisieCoordonnees
         lblVille.Name = "lblVille"
         lblVille.Size = New Size(29, 15)
         lblVille.TabIndex = 14
-        lblVille.Text = "NomCommune"
+        lblVille.Text = "Ville"
         ' 
         ' lblPays
         ' 

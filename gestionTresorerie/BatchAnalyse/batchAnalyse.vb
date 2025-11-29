@@ -3,6 +3,7 @@
 
 Imports System.IO
 Imports System.Reflection
+Imports gestionTresorerie.Agumaaa
 Imports Newtonsoft.Json.Linq
 
 Public Class batchAnalyse
@@ -259,12 +260,13 @@ Public Class batchAnalyse
         For Each kvp As KeyValuePair(Of String, (Integer, Integer, Integer)) In compteursParRepertoire
             ' Mapper le répertoire à un TypeDocument (ajustez selon votre logique)
             Dim typeDoc As RapportTraitement.TypeDocument
+
             Select Case kvp.Key.ToLower()
-                Case "cheques"
+                Case TypeDocument.Cheque
                     typeDoc = RapportTraitement.TypeDocument.Cheque
-                Case "formulairesadhesion"
+                Case TypeDocument.FormulaireAdhesion
                     typeDoc = RapportTraitement.TypeDocument.FormulaireAdhesion
-                Case "questionnairesmedicaux"
+                Case TypeDocument.QuestionnaireMedical
                     typeDoc = RapportTraitement.TypeDocument.QuestionnaireMedical
                 Case Else
                     RapportTraitement.WriteToLog($"Répertoire inconnu : {kvp.Key}", "WARN")

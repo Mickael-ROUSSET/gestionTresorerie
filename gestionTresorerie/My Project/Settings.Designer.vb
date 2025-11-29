@@ -1381,6 +1381,16 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT nom, prenom, raisonSociale, Email FROM Tiers t, Coordonnees c where c.IdTi"& _ 
+            "ers = t.Id;")>  _
+        Public ReadOnly Property reqIdentiteCoordonnees() As String
+            Get
+                Return CType(Me("reqIdentiteCoordonnees"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("SELECT id,nom, prenom FROM Tiers where nom is not null;")>  _
         Public ReadOnly Property reqIdentitePPTiers() As String
             Get
@@ -1487,6 +1497,15 @@ Namespace My
         Public ReadOnly Property selCoordonneesByIdTiers() As String
             Get
                 Return CType(Me("selCoordonneesByIdTiers"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\source\repos\gestionTresorerie\ressources\BatchMailConfig.json")>  _
+        Public ReadOnly Property ConfigBatch() As String
+            Get
+                Return CType(Me("ConfigBatch"),String)
             End Get
         End Property
     End Class
