@@ -7,6 +7,8 @@ Imports Newtonsoft.Json
 ''' Compte-rendu global du batch
 ''' </summary>
 Public Class BatchMailReport
+    Public Property NomBatch As String
+    Public Property Description As String
     Public Property DateDebut As DateTime
     Public Property DateFin As DateTime?
     Public Property NomRequete As String
@@ -18,7 +20,8 @@ Public Class BatchMailReport
 
     Public Function ToText() As String
         Dim sb As New StringBuilder()
-        sb.AppendLine($"BatchMailReport - Début : {DateDebut:yyyy-MM-dd HH:mm:ss}")
+        sb.AppendLine($"{NomBatch} - Début : {DateDebut:yyyy-MM-dd HH:mm:ss}")
+        sb.AppendLine($"Description : {Description}")
         sb.AppendLine($"Requête : {NomRequete}")
         sb.AppendLine($"Paramètres : {If(Parametres IsNot Nothing, JsonConvert.SerializeObject(Parametres), "{}")}")
         sb.AppendLine($"Total destinataires : {Total}")

@@ -1,6 +1,4 @@
 ﻿Imports System.IO
-Imports DocumentFormat.OpenXml.Packaging
-Imports DocumentFormat.OpenXml.Spreadsheet
 
 Public Class BatchMailSender
 
@@ -36,6 +34,8 @@ Public Class BatchMailSender
 
     Public Function RunBatch(config As BatchMailConfig) As BatchMailReport
         Dim report As New BatchMailReport With {
+            .NomBatch = config.NomBatch,
+            .Description = config.Description,
             .DateDebut = Now,
             .NomRequete = config.NomRequeteSQL,
             .Parametres = config.ParametresRequeteSQL

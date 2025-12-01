@@ -1,6 +1,8 @@
 {
+  "NomBatch": "Générique",
+  "Description": "Générique",
   "NomRequeteSQL": "reqIdentiteCoordonnees",
-  "ParametresRequete": {
+  "ParametresRequeteSQL": {
     "@IdSeance": 12
   },
   "ColonneEmail": "Email",

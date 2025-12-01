@@ -89,6 +89,7 @@ Partial Class FrmPrincipale
         ChangeMdPToolStripMenuItem = New ToolStripMenuItem()
         BatchToolStripMenuItem = New ToolStripMenuItem()
         AnalyseDocumentsToolStripMenuItem = New ToolStripMenuItem()
+        BatchGénériqueToolStripMenuItem = New ToolStripMenuItem()
         ToolStripMenuItem1 = New ToolStripMenuItem()
         ImporterExcelToolStripMenuItem = New ToolStripMenuItem()
         GénérerAttestationsToolStripMenuItem = New ToolStripMenuItem()
@@ -115,7 +116,10 @@ Partial Class FrmPrincipale
         FolderBrowserDialog1 = New FolderBrowserDialog()
         pgBar = New ProgressBar()
         StatusLabelEnv = New StatusStrip()
-        BatchGénériqueToolStripMenuItem = New ToolStripMenuItem()
+        GymToolStripMenuItem = New ToolStripMenuItem()
+        ListeUtilisateursToolStripMenuItem = New ToolStripMenuItem()
+        LicencesToolStripMenuItem = New ToolStripMenuItem()
+        ReçusFiscauxToolStripMenuItem = New ToolStripMenuItem()
         CType(dgvPrincipale, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -256,7 +260,7 @@ Partial Class FrmPrincipale
         ' MenuStrip1
         ' 
         MenuStrip1.GripStyle = ToolStripGripStyle.Visible
-        MenuStrip1.Items.AddRange(New ToolStripItem() {FichierToolStripMenuItem1, FichierToolStripMenuItem, ModifierToolStripMenuItem, AnalyseToolStripMenuItem, GestionBDDToolStripMenuItem, GestionUtilisateurToolStripMenuItem, BatchToolStripMenuItem, ToolStripMenuItem1, CinémaToolStripMenuItem, ParamètresToolStripMenuItem1, OutilsToolStripMenuItem, AideToolStripMenuItem})
+        MenuStrip1.Items.AddRange(New ToolStripItem() {FichierToolStripMenuItem1, FichierToolStripMenuItem, ModifierToolStripMenuItem, AnalyseToolStripMenuItem, GestionBDDToolStripMenuItem, GestionUtilisateurToolStripMenuItem, BatchToolStripMenuItem, ToolStripMenuItem1, GymToolStripMenuItem, CinémaToolStripMenuItem, ParamètresToolStripMenuItem1, OutilsToolStripMenuItem, AideToolStripMenuItem})
         MenuStrip1.Location = New Point(0, 0)
         MenuStrip1.Name = "MenuStrip1"
         MenuStrip1.RenderMode = ToolStripRenderMode.System
@@ -549,6 +553,12 @@ Partial Class FrmPrincipale
         AnalyseDocumentsToolStripMenuItem.Size = New Size(180, 22)
         AnalyseDocumentsToolStripMenuItem.Text = "Analyse documents"
         ' 
+        ' BatchGénériqueToolStripMenuItem
+        ' 
+        BatchGénériqueToolStripMenuItem.Name = "BatchGénériqueToolStripMenuItem"
+        BatchGénériqueToolStripMenuItem.Size = New Size(180, 22)
+        BatchGénériqueToolStripMenuItem.Text = "Batch ..."
+        ' 
         ' ToolStripMenuItem1
         ' 
         ToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {ImporterExcelToolStripMenuItem, GénérerAttestationsToolStripMenuItem})
@@ -707,11 +717,30 @@ Partial Class FrmPrincipale
         StatusLabelEnv.TabIndex = 11
         StatusLabelEnv.Text = "StatusStrip1"
         ' 
-        ' BatchGénériqueToolStripMenuItem
+        ' GymToolStripMenuItem
         ' 
-        BatchGénériqueToolStripMenuItem.Name = "BatchGénériqueToolStripMenuItem"
-        BatchGénériqueToolStripMenuItem.Size = New Size(180, 22)
-        BatchGénériqueToolStripMenuItem.Text = "Batch générique"
+        GymToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ListeUtilisateursToolStripMenuItem, LicencesToolStripMenuItem, ReçusFiscauxToolStripMenuItem})
+        GymToolStripMenuItem.Name = "GymToolStripMenuItem"
+        GymToolStripMenuItem.Size = New Size(44, 20)
+        GymToolStripMenuItem.Text = "Gym"
+        ' 
+        ' ListeUtilisateursToolStripMenuItem
+        ' 
+        ListeUtilisateursToolStripMenuItem.Name = "ListeUtilisateursToolStripMenuItem"
+        ListeUtilisateursToolStripMenuItem.Size = New Size(180, 22)
+        ListeUtilisateursToolStripMenuItem.Text = "ListeUtilisateurs"
+        ' 
+        ' LicencesToolStripMenuItem
+        ' 
+        LicencesToolStripMenuItem.Name = "LicencesToolStripMenuItem"
+        LicencesToolStripMenuItem.Size = New Size(180, 22)
+        LicencesToolStripMenuItem.Text = "Licences"
+        ' 
+        ' ReçusFiscauxToolStripMenuItem
+        ' 
+        ReçusFiscauxToolStripMenuItem.Name = "ReçusFiscauxToolStripMenuItem"
+        ReçusFiscauxToolStripMenuItem.Size = New Size(180, 22)
+        ReçusFiscauxToolStripMenuItem.Text = "Reçus fiscaux"
         ' 
         ' FrmPrincipale
         ' 
@@ -827,4 +856,8 @@ Partial Class FrmPrincipale
     Friend WithEvents ConsultationToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents SaisieToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents BatchGénériqueToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents GymToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ListeUtilisateursToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents LicencesToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ReçusFiscauxToolStripMenuItem As ToolStripMenuItem
 End Class

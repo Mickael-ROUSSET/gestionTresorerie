@@ -307,7 +307,7 @@ Public Class FrmPrincipale
 
         MessageBox.Show("Nouvel environnement actif : " & EnvironmentManager.GetEnvironmentLabel() &
                     vbCrLf &
-                    "Redémarrez l'application pour appliquer pleinement les changements.",
+                    "Redémarrez l'application pour appliquer les changements.",
                     "Environnement modifié",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information)
@@ -343,14 +343,33 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub BatchGénériqueToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles BatchGénériqueToolStripMenuItem.Click
-        Dim config = BatchMailConfig.Load(LectureProprietes.GetVariable("ConfigBatch"))
-
+        Dim config = BatchMailConfig.Load(selectionneJson)
         Dim batch As New BatchMailSender()
         Dim rapport = batch.RunBatch(config)
 
         Logger.INFO(rapport.ToText())
-    End Sub
 
+    End Sub
+    Private Function selectionneJson() As String
+        Dim dlg As New OpenFileDialog()
+        dlg.Title = "Sélectionnez le fichier de configuration JSON"
+        dlg.Filter = "Fichiers JSON (*.json)|*.json|Tous les fichiers|*.*"
+        dlg.InitialDirectory = "G:\Mon Drive\AGUMAAA\Documents"
+        dlg.Multiselect = False
+
+        If dlg.ShowDialog() = DialogResult.OK Then
+            Return dlg.FileName
+            Logger.INFO($"Fichier paramètre batch sélectionné : {dlg.FileName}")
+        Else
+            MessageBox.Show("Aucun fichier sélectionné.", "Annulé", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            End
+        End If
+
+    End Function
+
+    Private Sub ListeUtilisateursToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ListeUtilisateursToolStripMenuItem.Click
+        AppelIReseau.TestIReseau()
+    End Sub
     'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
     '    'Call CreeBilans()
     '    'Call genereBilans.AjouteImage()

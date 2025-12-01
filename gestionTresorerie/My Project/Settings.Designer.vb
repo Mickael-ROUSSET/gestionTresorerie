@@ -1499,15 +1499,6 @@ Namespace My
                 Return CType(Me("selCoordonneesByIdTiers"),String)
             End Get
         End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\source\repos\gestionTresorerie\ressources\BatchMailConfig.json")>  _
-        Public ReadOnly Property ConfigBatch() As String
-            Get
-                Return CType(Me("ConfigBatch"),String)
-            End Get
-        End Property
     End Class
 End Namespace
 

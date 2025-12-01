@@ -1,6 +1,8 @@
 ﻿Imports Newtonsoft.Json
 
 Public Class BatchMailConfig
+    Public Property NomBatch As String
+    Public Property Description As String
     Public Property NomRequeteSQL As String
     Public Property ParametresRequeteSQL As Dictionary(Of String, Object)
     Public Property ColonneEmail As String
@@ -17,4 +19,3 @@ Public Class BatchMailConfig
         Return JsonConvert.DeserializeObject(Of BatchMailConfig)(json)
     End Function
 End Class
-
