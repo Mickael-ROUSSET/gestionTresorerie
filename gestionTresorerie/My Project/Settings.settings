@@ -458,5 +458,11 @@ SELECT SCOPE_IDENTITY();</Value>
     <Setting Name="selCoordonneesByIdTiers" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT Id, IdTiers, Rue1, Rue2, CodePostal, Ville, Pays, Email, Telephone FROM Coordonnees WHERE IdTiers = @IdTiers ORDER BY CodePostal DESC, Id ASC;</Value>
     </Setting>
+    <Setting Name="cheminLicence" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\Manifestations récurrentes\Activités\Gym\2025-2026\Licences</Value>
+    </Setting>
+    <Setting Name="cheminRecuFiscal" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\Manifestations récurrentes\Activités\Gym\2025-2026\RecusFiscaux</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

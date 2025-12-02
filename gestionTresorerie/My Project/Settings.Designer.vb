@@ -1499,6 +1499,26 @@ Namespace My
                 Return CType(Me("selCoordonneesByIdTiers"),String)
             End Get
         End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\Manifestations récurrentes\Activités\Gym\2025-2026"& _ 
+            "\Licences")>  _
+        Public ReadOnly Property cheminLicence() As String
+            Get
+                Return CType(Me("cheminLicence"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\Manifestations récurrentes\Activités\Gym\2025-2026"& _ 
+            "\RecusFiscaux")>  _
+        Public ReadOnly Property cheminRecuFiscal() As String
+            Get
+                Return CType(Me("cheminRecuFiscal"),String)
+            End Get
+        End Property
     End Class
 End Namespace
 

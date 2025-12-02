@@ -48,11 +48,11 @@ Public Module IReseauApi
     Public Async Function GetAsync(Of T)(url As String) As Task(Of T)
         Dim response = Await client.GetAsync(url)
         response.EnsureSuccessStatusCode()
-        Dim json As String = Await response.Content.ReadAsStringAsync()
-        Dim page As UserPage = JsonConvert.DeserializeObject(Of UserPage)(json)
 
-        Dim users As List(Of UserContext) = page.items
+        Dim json As String = Await response.Content.ReadAsStringAsync()
+        Return JsonConvert.DeserializeObject(Of T)(json)
     End Function
+
 
     ''' <summary>
     ''' Requête POST générique avec multipart/form-data
@@ -81,12 +81,10 @@ Public Module IReseauApi
             ' Construire l'URL avec pagination
             Dim url As String = $"https://i-reseau.ffepgv.fr/api/internal/users-current-context?page={page}&itemsPerPage={itemsPerPage}&{filtreUser}={valeurFiltre}"
 
-            ' Récupérer la page courante
-            'Dim usersPage As List(Of UserContext) = Await IReseauApi.GetAsync(Of List(Of UserContext))(url)
-            Dim userJson As UserPage = Await IReseauApi.GetAsync(Of UserPage)(url)
+            ' Récupérer la page courante 
+            Dim monUserPage As UserPage = Await GetAsync(Of UserPage)(url)
 
-            Dim users As List(Of UserContext) = userJson.items
-
+            Dim users As List(Of UserContext) = monUserPage.Items
 
             ' Ajouter les utilisateurs à la liste complète
             allUsers.AddRange(users)
@@ -102,4 +100,40 @@ Public Module IReseauApi
         Return allUsers
     End Function
 
+    Public Async Function GetLicencesForUserAsync(uref As String) As Task(Of List(Of LicenceDetail))
+        Dim url = $"https://i-reseau.ffepgv.fr/api/internal/association-members-licences-all-for-user?uref={uref}&order[licence.season.title]=DESC"
+
+        Dim raw As String = Await client.GetStringAsync(url)
+        Dim json As String = UtilitaireJson.CleanJson(raw)
+
+        Return JsonConvert.DeserializeObject(Of List(Of LicenceDetail))(json)
+    End Function
+    Public Async Function GetLicencesAsync(user As UserContext) As Task(Of List(Of LicenceDetail))
+
+        Dim result As New List(Of LicenceDetail)
+
+        'Dim allUsers As List(Of UserContext) = Await IReseauApi.GetAllUsersAsync()
+        'For Each u In allUsers
+        result = Await IReseauApi.GetLicencesForUserAsync(user.Ref)
+        Return result
+    End Function
+    Public Async Function DownloadPdfAsync(url As String, outputFile As String) As Task(Of String)
+
+        Try
+            Dim bytes = Await client.GetByteArrayAsync(url)
+
+            Dim folder = IO.Path.GetDirectoryName(outputFile)
+            IO.Directory.CreateDirectory(folder)
+
+            Await IO.File.WriteAllBytesAsync(outputFile, bytes)
+
+            Logger.INFO($"Téléchargé : {outputFile}")
+            Return outputFile
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur téléchargement {url} : {ex.Message}")
+            Return Nothing
+        End Try
+
+    End Function
 End Module
