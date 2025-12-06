@@ -40,6 +40,7 @@ Partial Class frmSaisieCoordonnees
         lblEmail = New Label()
         lblTelephone = New Label()
         cbVilles = New ComboBox()
+        btnRetourSansEnregistrer = New Button()
         SuspendLayout()
         ' 
         ' txtRue1
@@ -69,6 +70,7 @@ Partial Class frmSaisieCoordonnees
         txtPays.Name = "txtPays"
         txtPays.Size = New Size(248, 23)
         txtPays.TabIndex = 4
+        txtPays.Text = "France"
         ' 
         ' txtEmail
         ' 
@@ -86,7 +88,7 @@ Partial Class frmSaisieCoordonnees
         ' 
         ' btnValider
         ' 
-        btnValider.Location = New Point(68, 410)
+        btnValider.Location = New Point(41, 410)
         btnValider.Name = "btnValider"
         btnValider.Size = New Size(100, 23)
         btnValider.TabIndex = 7
@@ -95,7 +97,7 @@ Partial Class frmSaisieCoordonnees
         ' 
         ' btnAnnuler
         ' 
-        btnAnnuler.Location = New Point(208, 410)
+        btnAnnuler.Location = New Point(378, 410)
         btnAnnuler.Name = "btnAnnuler"
         btnAnnuler.Size = New Size(100, 23)
         btnAnnuler.TabIndex = 8
@@ -108,6 +110,7 @@ Partial Class frmSaisieCoordonnees
         txtTypeAdresse.Name = "txtTypeAdresse"
         txtTypeAdresse.Size = New Size(248, 23)
         txtTypeAdresse.TabIndex = 9
+        txtTypeAdresse.Text = "Principale"
         ' 
         ' lblTypeAdresse
         ' 
@@ -189,11 +192,21 @@ Partial Class frmSaisieCoordonnees
         cbVilles.Size = New Size(248, 23)
         cbVilles.TabIndex = 18
         ' 
+        ' btnRetourSansEnregistrer
+        ' 
+        btnRetourSansEnregistrer.Location = New Point(195, 412)
+        btnRetourSansEnregistrer.Name = "btnRetourSansEnregistrer"
+        btnRetourSansEnregistrer.Size = New Size(133, 23)
+        btnRetourSansEnregistrer.TabIndex = 19
+        btnRetourSansEnregistrer.Text = "RetourSansEnregistrer"
+        btnRetourSansEnregistrer.UseVisualStyleBackColor = True
+        ' 
         ' frmSaisieCoordonnees
         ' 
-        AutoScaleDimensions = New SizeF(7.0F, 15.0F)
+        AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(505, 450)
+        Controls.Add(btnRetourSansEnregistrer)
         Controls.Add(cbVilles)
         Controls.Add(lblTelephone)
         Controls.Add(lblEmail)
@@ -236,4 +249,5 @@ Partial Class frmSaisieCoordonnees
     Friend WithEvents lblEmail As Label
     Friend WithEvents lblTelephone As Label
     Friend WithEvents cbVilles As ComboBox
+    Friend WithEvents btnRetourSansEnregistrer As Button
 End Class

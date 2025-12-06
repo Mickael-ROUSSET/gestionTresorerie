@@ -19,7 +19,7 @@ Public Module IReseauApi
     End Sub
 
     ''' <summary>
-    ''' Initialise l’authentification Bearer et Cookie
+    ''' Initialise l’authentification Cookie
     ''' </summary>
     Public Sub SetAuth(Optional cookie As String = Nothing)
 
@@ -112,8 +112,6 @@ Public Module IReseauApi
 
         Dim result As New List(Of LicenceDetail)
 
-        'Dim allUsers As List(Of UserContext) = Await IReseauApi.GetAllUsersAsync()
-        'For Each u In allUsers
         result = Await IReseauApi.GetLicencesForUserAsync(user.Ref)
         Return result
     End Function

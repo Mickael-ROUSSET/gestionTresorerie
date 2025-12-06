@@ -22,6 +22,7 @@ Partial Class FrmNouveauTiers
     'Ne la modifiez pas à l'aide de l'éditeur de code.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        components = New ComponentModel.Container()
         lblNom = New Label()
         rbPersonneMorale = New RadioButton()
         grpPersonne = New GroupBox()
@@ -33,25 +34,26 @@ Partial Class FrmNouveauTiers
         lblRaisonSociale = New Label()
         txtCategorie = New TextBox()
         lblCatégorie = New Label()
-        txtSousCategorie = New TextBox()
         lblSousCategorie = New Label()
         btnCreerTiers = New Button()
-        dgvNTCategorie = New DataGridView()
-        dgvNTSousCategorie = New DataGridView()
-        Label1 = New Label()
-        lblMail = New Label()
-        txtMail = New TextBox()
-        txtTelephone = New TextBox()
-        lblTelephone = New Label()
+        lblCoordonnees = New Label()
+        btnCoordonnees = New Button()
+        btnCategorie = New Button()
+        btnSousCategorie = New Button()
+        txtSousCategorie = New TextBox()
+        lblDateNaissance = New Label()
+        lblLieuNaissance = New Label()
+        txtDateNaissance = New TextBox()
+        txLieuNaissance = New TextBox()
+        dtpDateNaissance = New DateTimePicker()
+        ttCoordonnes = New ToolTip(components)
         grpPersonne.SuspendLayout()
-        CType(dgvNTCategorie, ComponentModel.ISupportInitialize).BeginInit()
-        CType(dgvNTSousCategorie, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
         ' 
         ' lblNom
         ' 
         lblNom.AutoSize = True
-        lblNom.Location = New Point(45, 109)
+        lblNom.Location = New Point(52, 109)
         lblNom.Name = "lblNom"
         lblNom.Size = New Size(34, 15)
         lblNom.TabIndex = 0
@@ -91,22 +93,22 @@ Partial Class FrmNouveauTiers
         ' 
         ' txtNom
         ' 
-        txtNom.Location = New Point(227, 106)
+        txtNom.Location = New Point(167, 106)
         txtNom.Name = "txtNom"
-        txtNom.Size = New Size(100, 23)
+        txtNom.Size = New Size(296, 23)
         txtNom.TabIndex = 3
         ' 
         ' txtPrenom
         ' 
-        txtPrenom.Location = New Point(227, 154)
+        txtPrenom.Location = New Point(167, 154)
         txtPrenom.Name = "txtPrenom"
-        txtPrenom.Size = New Size(100, 23)
+        txtPrenom.Size = New Size(296, 23)
         txtPrenom.TabIndex = 5
         ' 
         ' lblPrenom
         ' 
         lblPrenom.AutoSize = True
-        lblPrenom.Location = New Point(45, 154)
+        lblPrenom.Location = New Point(52, 154)
         lblPrenom.Name = "lblPrenom"
         lblPrenom.Size = New Size(49, 15)
         lblPrenom.TabIndex = 4
@@ -114,15 +116,15 @@ Partial Class FrmNouveauTiers
         ' 
         ' txtRaisonSociale
         ' 
-        txtRaisonSociale.Location = New Point(227, 204)
+        txtRaisonSociale.Location = New Point(167, 276)
         txtRaisonSociale.Name = "txtRaisonSociale"
-        txtRaisonSociale.Size = New Size(100, 23)
+        txtRaisonSociale.Size = New Size(296, 23)
         txtRaisonSociale.TabIndex = 7
         ' 
         ' lblRaisonSociale
         ' 
         lblRaisonSociale.AutoSize = True
-        lblRaisonSociale.Location = New Point(45, 207)
+        lblRaisonSociale.Location = New Point(52, 279)
         lblRaisonSociale.Name = "lblRaisonSociale"
         lblRaisonSociale.Size = New Size(81, 15)
         lblRaisonSociale.TabIndex = 6
@@ -130,31 +132,24 @@ Partial Class FrmNouveauTiers
         ' 
         ' txtCategorie
         ' 
-        txtCategorie.Location = New Point(227, 257)
+        txtCategorie.Location = New Point(167, 363)
         txtCategorie.Name = "txtCategorie"
-        txtCategorie.Size = New Size(100, 23)
+        txtCategorie.Size = New Size(296, 23)
         txtCategorie.TabIndex = 9
         ' 
         ' lblCatégorie
         ' 
         lblCatégorie.AutoSize = True
-        lblCatégorie.Location = New Point(45, 260)
+        lblCatégorie.Location = New Point(52, 366)
         lblCatégorie.Name = "lblCatégorie"
         lblCatégorie.Size = New Size(58, 15)
         lblCatégorie.TabIndex = 8
         lblCatégorie.Text = "Catégorie"
         ' 
-        ' txtSousCategorie
-        ' 
-        txtSousCategorie.Location = New Point(227, 463)
-        txtSousCategorie.Name = "txtSousCategorie"
-        txtSousCategorie.Size = New Size(100, 23)
-        txtSousCategorie.TabIndex = 11
-        ' 
         ' lblSousCategorie
         ' 
         lblSousCategorie.AutoSize = True
-        lblSousCategorie.Location = New Point(45, 466)
+        lblSousCategorie.Location = New Point(52, 415)
         lblSousCategorie.Name = "lblSousCategorie"
         lblSousCategorie.Size = New Size(83, 15)
         lblSousCategorie.TabIndex = 10
@@ -162,88 +157,111 @@ Partial Class FrmNouveauTiers
         ' 
         ' btnCreerTiers
         ' 
-        btnCreerTiers.Location = New Point(56, 527)
+        btnCreerTiers.Location = New Point(52, 485)
         btnCreerTiers.Name = "btnCreerTiers"
         btnCreerTiers.Size = New Size(75, 23)
         btnCreerTiers.TabIndex = 12
         btnCreerTiers.Text = "Créer Tiers"
         btnCreerTiers.UseVisualStyleBackColor = True
         ' 
-        ' dgvNTCategorie
+        ' lblCoordonnees
         ' 
-        dgvNTCategorie.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
-        dgvNTCategorie.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvNTCategorie.Location = New Point(358, 258)
-        dgvNTCategorie.Name = "dgvNTCategorie"
-        dgvNTCategorie.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvNTCategorie.Size = New Size(402, 150)
-        dgvNTCategorie.TabIndex = 13
+        lblCoordonnees.AutoSize = True
+        lblCoordonnees.Location = New Point(52, 324)
+        lblCoordonnees.Name = "lblCoordonnees"
+        lblCoordonnees.Size = New Size(91, 15)
+        lblCoordonnees.TabIndex = 20
+        lblCoordonnees.Text = "lblCoordonnées"
         ' 
-        ' dgvNTSousCategorie
+        ' btnCoordonnees
         ' 
-        dgvNTSousCategorie.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
-        dgvNTSousCategorie.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        dgvNTSousCategorie.Location = New Point(358, 463)
-        dgvNTSousCategorie.Name = "dgvNTSousCategorie"
-        dgvNTSousCategorie.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        dgvNTSousCategorie.Size = New Size(402, 150)
-        dgvNTSousCategorie.TabIndex = 14
+        btnCoordonnees.Location = New Point(167, 319)
+        btnCoordonnees.Name = "btnCoordonnees"
+        btnCoordonnees.Size = New Size(46, 23)
+        btnCoordonnees.TabIndex = 21
+        btnCoordonnees.Text = "..."
+        btnCoordonnees.UseVisualStyleBackColor = True
         ' 
-        ' Label1
+        ' btnCategorie
         ' 
-        Label1.AutoSize = True
-        Label1.Location = New Point(0, 0)
-        Label1.Name = "Label1"
-        Label1.Size = New Size(41, 15)
-        Label1.TabIndex = 15
-        Label1.Text = "Label1"
+        btnCategorie.Location = New Point(495, 363)
+        btnCategorie.Name = "btnCategorie"
+        btnCategorie.Size = New Size(39, 23)
+        btnCategorie.TabIndex = 23
+        btnCategorie.Text = "..."
+        btnCategorie.UseVisualStyleBackColor = True
         ' 
-        ' lblMail
+        ' btnSousCategorie
         ' 
-        lblMail.AutoSize = True
-        lblMail.Location = New Point(48, 303)
-        lblMail.Name = "lblMail"
-        lblMail.Size = New Size(30, 15)
-        lblMail.TabIndex = 16
-        lblMail.Text = "Mail"
+        btnSousCategorie.Location = New Point(495, 411)
+        btnSousCategorie.Name = "btnSousCategorie"
+        btnSousCategorie.Size = New Size(39, 23)
+        btnSousCategorie.TabIndex = 24
+        btnSousCategorie.Text = "..."
+        btnSousCategorie.UseVisualStyleBackColor = True
         ' 
-        ' txtMail
+        ' txtSousCategorie
         ' 
-        txtMail.Location = New Point(227, 295)
-        txtMail.Name = "txtMail"
-        txtMail.Size = New Size(100, 23)
-        txtMail.TabIndex = 17
+        txtSousCategorie.Location = New Point(167, 416)
+        txtSousCategorie.Name = "txtSousCategorie"
+        txtSousCategorie.Size = New Size(296, 23)
+        txtSousCategorie.TabIndex = 25
         ' 
-        ' txtTelephone
+        ' lblDateNaissance
         ' 
-        txtTelephone.Location = New Point(230, 340)
-        txtTelephone.Name = "txtTelephone"
-        txtTelephone.Size = New Size(100, 23)
-        txtTelephone.TabIndex = 18
+        lblDateNaissance.AutoSize = True
+        lblDateNaissance.Location = New Point(54, 202)
+        lblDateNaissance.Name = "lblDateNaissance"
+        lblDateNaissance.Size = New Size(101, 15)
+        lblDateNaissance.TabIndex = 26
+        lblDateNaissance.Text = "Date de naissance"
         ' 
-        ' lblTelephone
+        ' lblLieuNaissance
         ' 
-        lblTelephone.AutoSize = True
-        lblTelephone.Location = New Point(48, 348)
-        lblTelephone.Name = "lblTelephone"
-        lblTelephone.Size = New Size(62, 15)
-        lblTelephone.TabIndex = 19
-        lblTelephone.Text = "Téléphone"
+        lblLieuNaissance.AutoSize = True
+        lblLieuNaissance.Location = New Point(56, 241)
+        lblLieuNaissance.Name = "lblLieuNaissance"
+        lblLieuNaissance.Size = New Size(99, 15)
+        lblLieuNaissance.TabIndex = 27
+        lblLieuNaissance.Text = "Lieu de naissance"
+        ' 
+        ' txtDateNaissance
+        ' 
+        txtDateNaissance.Location = New Point(168, 196)
+        txtDateNaissance.Name = "txtDateNaissance"
+        txtDateNaissance.Size = New Size(100, 23)
+        txtDateNaissance.TabIndex = 28
+        ' 
+        ' txLieuNaissance
+        ' 
+        txLieuNaissance.Location = New Point(168, 239)
+        txLieuNaissance.Name = "txLieuNaissance"
+        txLieuNaissance.Size = New Size(295, 23)
+        txLieuNaissance.TabIndex = 29
+        ' 
+        ' dtpDateNaissance
+        ' 
+        dtpDateNaissance.Location = New Point(274, 196)
+        dtpDateNaissance.Name = "dtpDateNaissance"
+        dtpDateNaissance.Size = New Size(189, 23)
+        dtpDateNaissance.TabIndex = 30
         ' 
         ' FrmNouveauTiers
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(1001, 717)
-        Controls.Add(lblTelephone)
-        Controls.Add(txtTelephone)
-        Controls.Add(txtMail)
-        Controls.Add(lblMail)
-        Controls.Add(Label1)
-        Controls.Add(dgvNTSousCategorie)
-        Controls.Add(dgvNTCategorie)
-        Controls.Add(btnCreerTiers)
+        ClientSize = New Size(564, 522)
+        Controls.Add(dtpDateNaissance)
+        Controls.Add(txLieuNaissance)
+        Controls.Add(txtDateNaissance)
+        Controls.Add(lblLieuNaissance)
+        Controls.Add(lblDateNaissance)
         Controls.Add(txtSousCategorie)
+        Controls.Add(btnSousCategorie)
+        Controls.Add(btnCategorie)
+        Controls.Add(btnCoordonnees)
+        Controls.Add(lblCoordonnees)
+        Controls.Add(btnCreerTiers)
         Controls.Add(lblSousCategorie)
         Controls.Add(txtCategorie)
         Controls.Add(lblCatégorie)
@@ -258,8 +276,6 @@ Partial Class FrmNouveauTiers
         Text = "Nouveau Tiers"
         grpPersonne.ResumeLayout(False)
         grpPersonne.PerformLayout()
-        CType(dgvNTCategorie, ComponentModel.ISupportInitialize).EndInit()
-        CType(dgvNTSousCategorie, ComponentModel.ISupportInitialize).EndInit()
         ResumeLayout(False)
         PerformLayout()
     End Sub
@@ -275,14 +291,17 @@ Partial Class FrmNouveauTiers
     Friend WithEvents lblRaisonSociale As Label
     Friend WithEvents txtCategorie As TextBox
     Friend WithEvents lblCatégorie As Label
-    Friend WithEvents txtSousCategorie As TextBox
     Friend WithEvents lblSousCategorie As Label
     Friend WithEvents btnCreerTiers As Button
-    Friend WithEvents dgvNTCategorie As DataGridView
-    Friend WithEvents dgvNTSousCategorie As DataGridView
-    Friend WithEvents Label1 As Label
-    Friend WithEvents lblMail As Label
-    Friend WithEvents txtMail As TextBox
-    Friend WithEvents txtTelephone As TextBox
-    Friend WithEvents lblTelephone As Label
+    Friend WithEvents lblCoordonnees As Label
+    Friend WithEvents btnCoordonnees As Button
+    Friend WithEvents btnCategorie As Button
+    Friend WithEvents btnSousCategorie As Button
+    Friend WithEvents txtSousCategorie As TextBox
+    Friend WithEvents lblDateNaissance As Label
+    Friend WithEvents lblLieuNaissance As Label
+    Friend WithEvents txtDateNaissance As TextBox
+    Friend WithEvents txLieuNaissance As TextBox
+    Friend WithEvents dtpDateNaissance As DateTimePicker
+    Friend WithEvents ttCoordonnes As ToolTip
 End Class

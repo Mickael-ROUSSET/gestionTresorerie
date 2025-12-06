@@ -264,7 +264,6 @@ Public Class FrmSaisie
             Dim unused = MessageBox.Show($"Erreur lors de la sélection du document : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
-
     Private Sub IdDocSelectionneChangedHandler(ByVal idDoc As Integer)
         'Mettre à jour le Mouvement 
         Mouvements.MettreAJourIdDoc(_Mvt.Id, idDoc)

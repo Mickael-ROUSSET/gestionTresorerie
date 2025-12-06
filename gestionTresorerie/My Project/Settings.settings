@@ -143,7 +143,7 @@
       <Value Profile="(Default)">SELECT COUNT(*) FROM Tiers WHERE (nom = @nom AND prenom = @prenom) OR raisonSociale = @raisonSociale);</Value>
     </Setting>
     <Setting Name="insertTiers" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">INSERT INTO Tiers (nom, prenom, raisonSociale, categorieDefaut, sousCategorieDefaut, dateCreation, dateModification) VALUES (@nom, @prenom, @raisonSociale, @categorieDefaut, @sousCategorieDefaut, @dateCreation, @dateModification);</Value>
+      <Value Profile="(Default)">INSERT INTO Tiers (nom, prenom, raisonSociale, categorieDefaut, sousCategorieDefaut, dateCreation, dateModification) VALUES (@nom, @prenom, @raisonSociale, @categorieDefaut, @sousCategorieDefaut, @dateCreation, @dateModification);SELECT SCOPE_IDENTITY();</Value>
     </Setting>
     <Setting Name="parametresJson" Type="System.String" Scope="Application">
       <Value Profile="(Default)">parametresAppli.json</Value>
@@ -458,11 +458,11 @@ SELECT SCOPE_IDENTITY();</Value>
     <Setting Name="selCoordonneesByIdTiers" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT Id, IdTiers, Rue1, Rue2, CodePostal, Ville, Pays, Email, Telephone FROM Coordonnees WHERE IdTiers = @IdTiers ORDER BY CodePostal DESC, Id ASC;</Value>
     </Setting>
-    <Setting Name="cheminLicence" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\Manifestations récurrentes\Activités\Gym\2025-2026\Licences</Value>
+    <Setting Name="updDateMajLicence" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">UPDATE AdherantsGym SET DateMiseAJourLicence = @dateMaj, LicenceId = @licenceId  WHERE IdTiers = IdTiers;</Value>
     </Setting>
-    <Setting Name="cheminRecuFiscal" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\Manifestations récurrentes\Activités\Gym\2025-2026\RecusFiscaux</Value>
+    <Setting Name="getIdTiersByNomPrenomDate" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SELECT TOP 1 Id FROM dbo.Tiers WHERE (@nom IS NULL OR UPPER(LTRIM(RTRIM(nom))) = UPPER(LTRIM(RTRIM(@nom)))) AND (@prenom IS NULL OR UPPER(LTRIM(RTRIM(prenom))) = UPPER(LTRIM(RTRIM(@prenom)))) AND (@dateNaissance IS NULL OR CAST(dateNaissance AS DATE) = @dateNaissance);</Value>
     </Setting>
   </Settings>
 </SettingsFile>

@@ -370,6 +370,10 @@ Public Class FrmPrincipale
     Private Sub ListeUtilisateursToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ListeUtilisateursToolStripMenuItem.Click
         AppelIReseau.TestIReseau()
     End Sub
+
+    Private Sub NouveauTiersToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles NouveauTiersToolStripMenuItem.Click
+        FrmNouveauTiers.Show()
+    End Sub
     'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
     '    'Call CreeBilans()
     '    'Call genereBilans.AjouteImage()

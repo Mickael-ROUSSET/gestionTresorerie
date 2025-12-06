@@ -132,4 +132,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Présentation\Gym\" />
+  </ItemGroup>
+
 </Project>

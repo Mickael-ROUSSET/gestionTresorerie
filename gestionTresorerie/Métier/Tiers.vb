@@ -1,4 +1,6 @@
 ﻿Imports System.Data.SqlClient
+Imports System.Diagnostics.Eventing
+Imports DocumentFormat.OpenXml.Math
 
 Public Class Tiers
     Inherits BaseDataRow
@@ -10,7 +12,8 @@ Public Class Tiers
     Public Property CategorieDefaut As Integer
     Public Property SousCategorieDefaut As Integer
     ' Liste des coordonnées associées
-    Public Property Coordonnées As Coordonnees
+    Public Property DateNaissance As Date
+    Public Property LieuNaissance As String
 
     Public Property dateCreation As Date
         Get
@@ -145,51 +148,74 @@ Public Class Tiers
             Return New Tiers(id, nom, prenom, categorie, sousCategorie)
         End If
     End Function
+    ''' <summary>
+    ''' Récupère l'idTiers à partir du nom, prénom et date de naissance du user.
+    ''' Utilise la requête/procédure nommée "getIdTiersByNomPrenomDate" (à créer côté base).
+    ''' </summary>
+    Public Shared Function GetIdTiersByUser(nom As String, prenom As String, Optional dateNaissance As Date? = Nothing) As Integer
+        Try
+            ' Date optionnelle
+            Dim dateNaissanceParam As Object = If(dateNaissance.HasValue, CType(dateNaissance.Value, Object), DBNull.Value)
+
+            Dim param As New Dictionary(Of String, Object) From {
+                {"@nom", If(String.IsNullOrWhiteSpace(nom), DBNull.Value, CType(nom, Object))},
+                {"@prenom", If(String.IsNullOrWhiteSpace(prenom), DBNull.Value, CType(prenom, Object))},
+                {"@dateNaissance", dateNaissanceParam}
+            }
+
+            Using Reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "getIdTiersByNomPrenomDate", param).ExecuteReader
+                Dim IdTiers As Integer
+                If Reader.HasRows Then
+                    While Reader.Read()
+                        ' Créer une instance concrète implémentant ITypeDoc
+                        IdTiers = Reader.GetInt32(0)
+                    End While
+                    Return IdTiers
+                End If
+            End Using
+        Catch ex As Exception
+            Logger.ERR($"GetIdTiersByUser({prenom} {nom} {dateNaissance}) : {ex.Message}")
+            Return Nothing
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Représentation textuelle du tiers.
+    ''' Priorité : RaisonSociale > "Nom Prénom (DateNaissance)" > Nom Prénom.
+    ''' Date au format français dd/MM/yyyy si disponible.
+    ''' </summary>
+    Public Overrides Function ToString() As String
+        Try
+            ' Si raison sociale renseignée, l'afficher directement
+            If Not String.IsNullOrWhiteSpace(RaisonSociale) Then
+                Return RaisonSociale
+            End If
+
+            ' Construire le nom complet
+            Dim parts As New List(Of String)
+            If Not String.IsNullOrWhiteSpace(Nom) Then parts.Add(Nom.Trim())
+            If Not String.IsNullOrWhiteSpace(Prenom) Then parts.Add(Prenom.Trim())
+
+            Dim fullName As String = String.Join(" ", parts).Trim()
+
+            ' Si date de naissance valide (non nulle)
+            If DateNaissance <> Date.MinValue Then
+                Dim dateStr As String = DateNaissance.ToString("dd/MM/yyyy")
+                If String.IsNullOrWhiteSpace(fullName) Then
+                    Return dateStr
+                Else
+                    Return $"{fullName} ({dateStr})"
+                End If
+            End If
+
+            If String.IsNullOrWhiteSpace(fullName) Then
+                Return MyBase.ToString()
+            End If
+
+            Return fullName
+        Catch ex As Exception
+            Logger.ERR($"ToString() Tiers Id={Id} : {ex.Message}")
+            Return MyBase.ToString()
+        End Try
+    End Function
 End Class
-'Public Property Id As Integer
-'Public Property RaisonSociale As String
-'Public Property Nom As String
-'Public Property Prenom As String
-'Public Property CategorieDefaut As Integer
-'Public Property SousCategorieDefaut As Integer
-
-'' Liste des coordonnées associées
-'Public Property Coordonnees As List(Of Coordonnees)
-
-'Public Property DateCreation As Date
-'Public Property DateModification As Date
-
-'Public Sub New()
-'    Coordonnees = New List(Of Coordonnees)
-'    DateCreation = Now
-'    DateModification = Now
-'End Sub
-
-'Public Sub New(Id As Integer, nom As String, prenom As String,
-'           Optional categorie As Integer = 0,
-'           Optional sousCategorie As Integer = 0)
-'    Me.New()
-'    Me.Id = Id
-'    Me.Nom = nom
-'    Me.Prenom = prenom
-'    Me.CategorieDefaut = categorie
-'    Me.SousCategorieDefaut = sousCategorie
-'End Sub
-
-'Public Sub New(Id As Integer, raison As String,
-'           Optional categorie As Integer = 0,
-'           Optional sousCategorie As Integer = 0)
-'    Me.New()
-'    Me.Id = Id
-'    Me.RaisonSociale = raison
-'    Me.CategorieDefaut = categorie
-'    Me.SousCategorieDefaut = sousCategorie
-'End Sub
-
-'Public Function ResumeTexte() As String
-'    If Not String.IsNullOrWhiteSpace(RaisonSociale) Then
-'        Return RaisonSociale
-'    Else
-'        Return $"{Prenom} {Nom}".Trim()
-'    End If
-'End Function

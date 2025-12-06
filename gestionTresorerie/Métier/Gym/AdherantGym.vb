@@ -34,6 +34,8 @@ Public Class AdherantGym
     <Required(ErrorMessage:="Le formulaire d'adhésion est obligatoire")>
     Public Property FormulaireAdhesion As Boolean
 
+    Public Property NumLicence As Boolean
+
     ' --- Constructeur par défaut ---
     Public Sub New()
         LieuNaissance = String.Empty
@@ -42,6 +44,7 @@ Public Class AdherantGym
         NumeroCheque = String.Empty
         Questionnaire = False
         FormulaireAdhesion = False
+        NumLicence = 0
     End Sub
 End Class
 

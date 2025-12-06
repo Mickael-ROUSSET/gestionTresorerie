@@ -450,7 +450,8 @@ Namespace My
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO Tiers (nom, prenom, raisonSociale, categorieDefaut, sousCategorieDefa"& _ 
             "ut, dateCreation, dateModification) VALUES (@nom, @prenom, @raisonSociale, @cate"& _ 
-            "gorieDefaut, @sousCategorieDefaut, @dateCreation, @dateModification);")>  _
+            "gorieDefaut, @sousCategorieDefaut, @dateCreation, @dateModification);SELECT SCOP"& _ 
+            "E_IDENTITY();")>  _
         Public ReadOnly Property insertTiers() As String
             Get
                 Return CType(Me("insertTiers"),String)
@@ -1502,21 +1503,23 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\Manifestations récurrentes\Activités\Gym\2025-2026"& _ 
-            "\Licences")>  _
-        Public ReadOnly Property cheminLicence() As String
+         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE AdherantsGym SET DateMiseAJourLicence = @dateMaj, LicenceId = @licenceId  "& _ 
+            "WHERE IdTiers = IdTiers;")>  _
+        Public ReadOnly Property updDateMajLicence() As String
             Get
-                Return CType(Me("cheminLicence"),String)
+                Return CType(Me("updDateMajLicence"),String)
             End Get
         End Property
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("G:\Mon Drive\AGUMAAA\Documents\Manifestations récurrentes\Activités\Gym\2025-2026"& _ 
-            "\RecusFiscaux")>  _
-        Public ReadOnly Property cheminRecuFiscal() As String
+         Global.System.Configuration.DefaultSettingValueAttribute("SELECT TOP 1 Id FROM dbo.Tiers WHERE (@nom IS NULL OR UPPER(LTRIM(RTRIM(nom))) = "& _ 
+            "UPPER(LTRIM(RTRIM(@nom)))) AND (@prenom IS NULL OR UPPER(LTRIM(RTRIM(prenom))) ="& _ 
+            " UPPER(LTRIM(RTRIM(@prenom)))) AND (@dateNaissance IS NULL OR CAST(dateNaissance"& _ 
+            " AS DATE) = @dateNaissance);")>  _
+        Public ReadOnly Property getIdTiersByNomPrenomDate() As String
             Get
-                Return CType(Me("cheminRecuFiscal"),String)
+                Return CType(Me("getIdTiersByNomPrenomDate"),String)
             End Get
         End Property
     End Class

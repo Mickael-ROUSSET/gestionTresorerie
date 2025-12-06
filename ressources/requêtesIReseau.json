@@ -1,0 +1,1895 @@
+association : _oc = uxD3nVjHWLR7
+
+Cookie
+_gid=GA1.2.105771323.1764615902; 
+PHPSESSID=lehsq8lfot4hv4b89c4ioms7f2; 
+_ga_RRZJDXRPS1=GS2.1.s1764615902$o1$g1$t1764616184$j60$l0$h0; 
+_ga=GA1.1.504858324.1764615902
+
+
+--Historique des dirigeants
+https://i-reseau.ffepgv.fr/api/internal/organization-for-season-users-groups/U3XaueLrPT?order[groups.type.position]=ASC&_oc=uxD3nVjHWLR7
+_oc = uxD3nVjHWLR7
+{
+    "id": 646,
+    "ref": "U3XaueLrPT",
+    "creationDate": "2016-09-06T05:09:28+00:00",
+    "updateDate": "2025-11-25T10:41:43+00:00",
+    "type": {
+        "id": 4,
+        "ref": "association",
+        "creationDate": "2023-06-19T10:12:16+00:00",
+        "updateDate": "2025-11-21T12:12:55+00:00"
+    },
+    "groups": [
+        {
+            "id": 2516,
+            "ref": "6i5Z1EwwQD",
+            "creationDate": "2023-07-23T08:18:58+00:00",
+            "updateDate": "2025-11-30T18:55:26+00:00",
+            "type": {
+                "ref": "comite-directeur-club",
+                "internalRef": "steering-committee",
+                "label": "Comité Directeur",
+                "id": 6,
+                "creationDate": "2023-07-05T08:03:06+00:00",
+                "updateDate": "2025-12-01T14:22:02+00:00"
+            },
+            "season": {
+                "title": "2020 - 2021",
+                "current": false,
+                "id": 21,
+                "ref": "0p5WXR",
+                "creationDate": "2020-07-06T04:56:37+00:00",
+                "updateDate": "2020-07-21T06:17:09+00:00"
+            },
+            "members": [
+                {
+                    "honorabilityValid": null,
+                    "id": 10429,
+                    "ref": "4Ic3fz0gJ5",
+                    "creationDate": "2023-07-23T08:18:58+00:00",
+                    "updateDate": "2024-09-16T13:31:34+00:00",
+                    "user": {
+                        "ssoRef": "zVrMmrvDr4",
+                        "firstName": "CLOTILDE",
+                        "lastName": "JACOB",
+                        "email": "clotilde.monierjacob@gmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 542478,
+                        "ref": "SryZ8GT2NG",
+                        "creationDate": "2016-09-06T22:27:45+00:00",
+                        "updateDate": "2024-03-27T18:59:42+00:00"
+                    },
+                    "function": {
+                        "ref": "president-e",
+                        "name": "Président.e",
+                        "nameSlug": "president-e",
+                        "mandatory": true,
+                        "position": 1,
+                        "unique": true,
+                        "editionEndDate": null,
+                        "id": 34,
+                        "creationDate": "2023-11-02T16:50:23+00:00",
+                        "updateDate": "2025-11-28T08:21:04+00:00"
+                    }
+                }
+            ]
+        },
+        {
+            "id": 22659,
+            "ref": "jEX7i5f6e91d",
+            "creationDate": "2024-09-16T13:31:34+00:00",
+            "updateDate": "2025-11-30T18:55:26+00:00",
+            "type": {
+                "ref": "comite-directeur-club",
+                "internalRef": "steering-committee",
+                "label": "Comité Directeur",
+                "id": 6,
+                "creationDate": "2023-07-05T08:03:06+00:00",
+                "updateDate": "2025-12-01T14:22:02+00:00"
+            },
+            "season": {
+                "title": "2024 - 2025",
+                "current": false,
+                "id": 25,
+                "ref": "uUyFV1NwGrI8",
+                "creationDate": "2024-07-25T07:00:18+00:00",
+                "updateDate": "2025-07-10T12:55:05+00:00"
+            },
+            "members": [
+                {
+                    "honorabilityValid": true,
+                    "id": 103191,
+                    "ref": "ukUUkflO1bWW",
+                    "creationDate": "2024-09-16T13:31:34+00:00",
+                    "updateDate": "2024-11-26T13:48:07+00:00",
+                    "user": {
+                        "ssoRef": "DykwdAHH9X",
+                        "firstName": "MICKAEL",
+                        "lastName": "ROUSSET",
+                        "email": "mickael_rousset@hotmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 1869902,
+                        "ref": "oo0avnTTc7qM",
+                        "creationDate": "2024-10-08T11:27:58+00:00",
+                        "updateDate": "2025-11-26T09:48:37+00:00"
+                    },
+                    "function": {
+                        "ref": "president-e",
+                        "name": "Président.e",
+                        "nameSlug": "president-e",
+                        "mandatory": true,
+                        "position": 1,
+                        "unique": true,
+                        "editionEndDate": null,
+                        "id": 34,
+                        "creationDate": "2023-11-02T16:50:23+00:00",
+                        "updateDate": "2025-11-28T08:21:04+00:00"
+                    }
+                },
+                {
+                    "honorabilityValid": true,
+                    "id": 103691,
+                    "ref": "aIgsueQhNh8U",
+                    "creationDate": "2024-09-22T09:45:32+00:00",
+                    "updateDate": "2024-11-26T13:48:07+00:00",
+                    "user": {
+                        "ssoRef": "DykwdAHH9X",
+                        "firstName": "MICKAEL",
+                        "lastName": "ROUSSET",
+                        "email": "mickael_rousset@hotmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 1869902,
+                        "ref": "oo0avnTTc7qM",
+                        "creationDate": "2024-10-08T11:27:58+00:00",
+                        "updateDate": "2025-11-26T09:48:37+00:00"
+                    },
+                    "function": {
+                        "ref": "JqO53esKrOuR",
+                        "name": "Délégué AG",
+                        "nameSlug": "delegue-ag",
+                        "mandatory": false,
+                        "position": 2,
+                        "unique": true,
+                        "editionEndDate": "2026-01-04T00:00:00+00:00",
+                        "id": 113,
+                        "creationDate": "2024-04-04T07:19:44+00:00",
+                        "updateDate": "2025-11-24T14:49:05+00:00"
+                    }
+                },
+                {
+                    "honorabilityValid": true,
+                    "id": 103189,
+                    "ref": "ZBqjl29h6aql",
+                    "creationDate": "2024-09-16T13:31:34+00:00",
+                    "updateDate": "2024-11-26T13:48:07+00:00",
+                    "user": {
+                        "ssoRef": "OKhE8RKYpZ",
+                        "firstName": "LOLA",
+                        "lastName": "GUDIMARD",
+                        "email": "l.gudimard@gmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 1869913,
+                        "ref": "4EQXxB2SAos7",
+                        "creationDate": "2024-10-08T11:31:52+00:00",
+                        "updateDate": "2025-11-26T09:50:13+00:00"
+                    },
+                    "function": {
+                        "ref": "secretaire-general-e-ou-secretaire",
+                        "name": "Secrétaire Général.e ou Secrétaire",
+                        "nameSlug": "secretaire-general-e-ou-secretaire",
+                        "mandatory": true,
+                        "position": 4,
+                        "unique": false,
+                        "editionEndDate": null,
+                        "id": 28,
+                        "creationDate": "2023-11-02T16:50:23+00:00",
+                        "updateDate": "2025-11-25T14:09:05+00:00"
+                    }
+                },
+                {
+                    "honorabilityValid": true,
+                    "id": 103190,
+                    "ref": "AvDh4jdH1s9n",
+                    "creationDate": "2024-09-16T13:31:34+00:00",
+                    "updateDate": "2024-11-26T13:48:07+00:00",
+                    "user": {
+                        "ssoRef": "5ryMI2wwlj",
+                        "firstName": "VICTORIEN",
+                        "lastName": "VICENTE",
+                        "email": "victorien.vicente@gmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 1869909,
+                        "ref": "cqyjoGMKne2Z",
+                        "creationDate": "2024-10-08T11:30:00+00:00",
+                        "updateDate": "2025-11-26T09:51:13+00:00"
+                    },
+                    "function": {
+                        "ref": "tresorier-e",
+                        "name": "Trésorier.e",
+                        "nameSlug": "tresorier-e",
+                        "mandatory": true,
+                        "position": 5,
+                        "unique": false,
+                        "editionEndDate": null,
+                        "id": 32,
+                        "creationDate": "2023-11-02T16:50:23+00:00",
+                        "updateDate": "2025-11-28T15:06:25+00:00"
+                    }
+                }
+            ]
+        },
+        {
+            "id": 32008,
+            "ref": "Ks9R7cAEwT7v",
+            "creationDate": "2025-08-18T08:27:04+00:00",
+            "updateDate": "2025-11-30T18:55:26+00:00",
+            "type": {
+                "ref": "comite-directeur-club",
+                "internalRef": "steering-committee",
+                "label": "Comité Directeur",
+                "id": 6,
+                "creationDate": "2023-07-05T08:03:06+00:00",
+                "updateDate": "2025-12-01T14:22:02+00:00"
+            },
+            "season": {
+                "title": "2025 - 2026",
+                "current": true,
+                "id": 26,
+                "ref": "FC0d9ZREzilS",
+                "creationDate": "2025-06-02T09:51:03+00:00",
+                "updateDate": "2025-12-01T09:44:39+00:00"
+            },
+            "members": [
+                {
+                    "honorabilityValid": true,
+                    "id": 153938,
+                    "ref": "qEI47E1m5yaw",
+                    "creationDate": "2025-08-18T08:27:04+00:00",
+                    "updateDate": "2025-08-20T20:01:12+00:00",
+                    "user": {
+                        "ssoRef": "DykwdAHH9X",
+                        "firstName": "MICKAEL",
+                        "lastName": "ROUSSET",
+                        "email": "mickael_rousset@hotmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 1869902,
+                        "ref": "oo0avnTTc7qM",
+                        "creationDate": "2024-10-08T11:27:58+00:00",
+                        "updateDate": "2025-11-26T09:48:37+00:00"
+                    },
+                    "function": {
+                        "ref": "president-e",
+                        "name": "Président.e",
+                        "nameSlug": "president-e",
+                        "mandatory": true,
+                        "position": 1,
+                        "unique": true,
+                        "editionEndDate": null,
+                        "id": 34,
+                        "creationDate": "2023-11-02T16:50:23+00:00",
+                        "updateDate": "2025-11-28T08:21:04+00:00"
+                    }
+                },
+                {
+                    "honorabilityValid": true,
+                    "id": 153939,
+                    "ref": "vYhiDRclTe6a",
+                    "creationDate": "2025-08-18T08:27:04+00:00",
+                    "updateDate": "2025-08-20T20:01:12+00:00",
+                    "user": {
+                        "ssoRef": "DykwdAHH9X",
+                        "firstName": "MICKAEL",
+                        "lastName": "ROUSSET",
+                        "email": "mickael_rousset@hotmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 1869902,
+                        "ref": "oo0avnTTc7qM",
+                        "creationDate": "2024-10-08T11:27:58+00:00",
+                        "updateDate": "2025-11-26T09:48:37+00:00"
+                    },
+                    "function": {
+                        "ref": "JqO53esKrOuR",
+                        "name": "Délégué AG",
+                        "nameSlug": "delegue-ag",
+                        "mandatory": false,
+                        "position": 2,
+                        "unique": true,
+                        "editionEndDate": "2026-01-04T00:00:00+00:00",
+                        "id": 113,
+                        "creationDate": "2024-04-04T07:19:44+00:00",
+                        "updateDate": "2025-11-24T14:49:05+00:00"
+                    }
+                },
+                {
+                    "honorabilityValid": true,
+                    "id": 153936,
+                    "ref": "hu5MInTCVzEr",
+                    "creationDate": "2025-08-18T08:27:04+00:00",
+                    "updateDate": "2025-08-20T20:01:12+00:00",
+                    "user": {
+                        "ssoRef": "OKhE8RKYpZ",
+                        "firstName": "LOLA",
+                        "lastName": "GUDIMARD",
+                        "email": "l.gudimard@gmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 1869913,
+                        "ref": "4EQXxB2SAos7",
+                        "creationDate": "2024-10-08T11:31:52+00:00",
+                        "updateDate": "2025-11-26T09:50:13+00:00"
+                    },
+                    "function": {
+                        "ref": "secretaire-general-e-ou-secretaire",
+                        "name": "Secrétaire Général.e ou Secrétaire",
+                        "nameSlug": "secretaire-general-e-ou-secretaire",
+                        "mandatory": true,
+                        "position": 4,
+                        "unique": false,
+                        "editionEndDate": null,
+                        "id": 28,
+                        "creationDate": "2023-11-02T16:50:23+00:00",
+                        "updateDate": "2025-11-25T14:09:05+00:00"
+                    }
+                },
+                {
+                    "honorabilityValid": true,
+                    "id": 153937,
+                    "ref": "Ir136mcl4Fi0",
+                    "creationDate": "2025-08-18T08:27:04+00:00",
+                    "updateDate": "2025-08-20T20:01:12+00:00",
+                    "user": {
+                        "ssoRef": "5ryMI2wwlj",
+                        "firstName": "VICTORIEN",
+                        "lastName": "VICENTE",
+                        "email": "victorien.vicente@gmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 1869909,
+                        "ref": "cqyjoGMKne2Z",
+                        "creationDate": "2024-10-08T11:30:00+00:00",
+                        "updateDate": "2025-11-26T09:51:13+00:00"
+                    },
+                    "function": {
+                        "ref": "tresorier-e",
+                        "name": "Trésorier.e",
+                        "nameSlug": "tresorier-e",
+                        "mandatory": true,
+                        "position": 5,
+                        "unique": false,
+                        "editionEndDate": null,
+                        "id": 32,
+                        "creationDate": "2023-11-02T16:50:23+00:00",
+                        "updateDate": "2025-11-28T15:06:25+00:00"
+                    }
+                }
+            ]
+        }
+    ],
+    "discr": "association"
+}
+
+
+--Historique des affiliations
+https://i-reseau.ffepgv.fr/api/internal/association-mine?_ep=&_oc=uxD3nVjHWLR7
+_ep
+_oc = uxD3nVjHWLR7
+{
+    "code": "A043067",
+    "name": "AGUMAAA",
+    "phone": "+33 04 71 00 70 68",
+    "mobilePhone": "+33 07 89 02 84 00",
+    "email": "agumaaa43@gmail.com",
+    "website": "https:\/\/agumaaa.jimdofree.com\/",
+    "description": "",
+    "assoconnectId": "0HX7C5A7CJ2R9B6NG28AP10082",
+    "clubVitafede": false,
+    "status": 0,
+    "statusText": "Actif",
+    "ref": "U3XaueLrPT",
+    "creationDate": "2016-09-06T05:09:28+00:00",
+    "updateDate": "2025-11-25T10:41:43+00:00",
+    "labeled": false,
+    "canCreateLicences": false,
+    "inseeCode": "43003",
+    "type": {
+        "label": "Club",
+        "position": 4,
+        "ref": "association",
+        "creationDate": "2023-06-19T10:12:16+00:00",
+        "updateDate": "2025-11-21T12:12:55+00:00"
+    },
+    "associationType": {
+        "ref": "WfnpNv",
+        "creationDate": "2020-03-02T07:40:39+00:00",
+        "updateDate": "2025-10-22T19:27:06+00:00"
+    },
+    "contact": {
+        "civility": "M",
+        "lastName": "Rousset",
+        "firstName": "Mickaël",
+        "email": "agumaaa43@gmail.com",
+        "phone": "+33 04 71 00 70 68",
+        "mobilePhone": "+33 06 63 78 19 70",
+        "function": "Président",
+        "ref": "P7u9jIkLcv",
+        "creationDate": "2020-06-30T15:12:40+00:00",
+        "updateDate": "2025-08-12T12:25:52+00:00",
+        "address": {
+            "name": null,
+            "component1": "3 RUE PORTE DE MONSIEUR",
+            "component2": "",
+            "component3": "",
+            "component4": "43270",
+            "component5": "ALLEGRE",
+            "component5Complement": "",
+            "component6": "",
+            "component7": "",
+            "component8": "",
+            "inseeCode": "43003",
+            "phone1": null,
+            "phone2": null,
+            "gpsLatitude": "45.19989700",
+            "gpsLongitude": "3.71139200",
+            "formatted": "3 RUE PORTE DE MONSIEUR\u003Cbr\/\u003E43270 ALLEGRE \u003Cbr\/\u003EFrance",
+            "obsolete": false,
+            "countryCode": "fr",
+            "ref": "UCOLWbxnvB",
+            "creationDate": "2020-06-30T15:12:40+00:00",
+            "updateDate": "2025-11-25T10:41:45+00:00"
+        }
+    },
+    "address": {
+        "name": "",
+        "component1": "CENTRE GEORGE SAND",
+        "component2": "",
+        "component3": "4 RUE GRELLET DE LA DEYTE",
+        "component4": "43270",
+        "component5": "ALLEGRE",
+        "component5Complement": "",
+        "component6": "",
+        "component7": "",
+        "component8": "",
+        "inseeCode": "43003",
+        "phone1": null,
+        "phone2": null,
+        "gpsLatitude": "45.20230600",
+        "gpsLongitude": "3.71853800",
+        "formatted": "4 RUE GRELLET DE LA DEYTE\u003Cbr\/\u003ECENTRE GEORGE SAND\u003Cbr\/\u003E43270 ALLEGRE \u003Cbr\/\u003EFrance",
+        "obsolete": false,
+        "countryCode": "fr",
+        "ref": "QOXGul6J2E",
+        "creationDate": "2020-06-30T15:12:40+00:00",
+        "updateDate": "2025-11-25T10:41:44+00:00"
+    },
+    "department": {
+        "code": "D043",
+        "name": "CODEP EPGV 43 HAUTE LOIRE",
+        "phone": "+33 04 71 02 75 24",
+        "mobilePhone": "",
+        "email": "hauteloire@comite-epgv.fr",
+        "website": "http:\/\/epgv43.fr",
+        "description": null,
+        "assoconnectId": "0HX7C59F96B8C8BVR28AP10082",
+        "clubVitafede": false,
+        "status": 0,
+        "statusText": "Actif",
+        "ref": "hcTMsGRrIh",
+        "creationDate": "2016-09-06T05:09:28+00:00",
+        "updateDate": "2025-09-10T11:31:09+00:00",
+        "type": {
+            "label": "Département",
+            "position": 3,
+            "ref": "department",
+            "creationDate": "2023-06-19T10:12:16+00:00",
+            "updateDate": "2025-11-03T09:34:46+00:00"
+        },
+        "discr": "department"
+    },
+    "affiliations": [
+        {
+            "code": "A043067",
+            "ref": "13eKkHArvk",
+            "creationDate": "2016-10-12T13:25:00+00:00",
+            "updateDate": "2016-10-12T13:25:00+00:00",
+            "licence": {
+                "ref": "DDvKOa",
+                "creationDate": "2020-06-30T15:12:09+00:00",
+                "updateDate": "2020-06-30T15:12:09+00:00",
+                "product": {
+                    "name": "Affiliation - (Licences avec Assurance)",
+                    "minAge": 0,
+                    "maxAge": 0,
+                    "insurance": true,
+                    "private": false,
+                    "management": false,
+                    "ref": "UqwViQ",
+                    "creationDate": "2020-06-30T15:11:50+00:00",
+                    "updateDate": "2025-06-02T09:51:03+00:00"
+                },
+                "season": {
+                    "title": "2016 - 2017",
+                    "ref": "l6dmEk",
+                    "creationDate": "2016-10-10T07:43:19+00:00",
+                    "updateDate": "2020-07-08T08:02:42+00:00"
+                }
+            },
+            "steeringCommittee": null
+        },
+        {
+            "code": "A043067",
+            "ref": "kISpM9NZJS",
+            "creationDate": "2008-08-31T22:00:00+00:00",
+            "updateDate": "2008-08-31T22:00:00+00:00",
+            "licence": {
+                "ref": "JpFAEP",
+                "creationDate": "2020-06-30T15:12:10+00:00",
+                "updateDate": "2020-06-30T15:12:10+00:00",
+                "product": {
+                    "name": "Affiliation - (Licences avec Assurance)",
+                    "minAge": 0,
+                    "maxAge": 0,
+                    "insurance": true,
+                    "private": false,
+                    "management": false,
+                    "ref": "UqwViQ",
+                    "creationDate": "2020-06-30T15:11:50+00:00",
+                    "updateDate": "2025-06-02T09:51:03+00:00"
+                },
+                "season": {
+                    "title": "2008 - 2009",
+                    "ref": "9fPqAR",
+                    "creationDate": "2016-09-06T04:58:20+00:00",
+                    "updateDate": "2020-07-08T08:02:41+00:00"
+                }
+            },
+            "steeringCommittee": null
+        },
+        {
+            "code": "A043067",
+            "ref": "4enPd5pgpz",
+            "creationDate": "2009-08-09T22:00:00+00:00",
+            "updateDate": "2009-08-09T22:00:00+00:00",
+            "licence": {
+                "ref": "zmmC4j",
+                "creationDate": "2020-06-30T15:12:10+00:00",
+                "updateDate": "2020-06-30T15:12:10+00:00",
+                "product": {
+                    "name": "Affiliation - (Licences avec Assurance)",
+                    "minAge": 0,
+                    "maxAge": 0,
+                    "insurance": true,
+                    "private": false,
+                    "management": false,
+                    "ref": "UqwViQ",
+                    "creationDate": "2020-06-30T15:11:50+00:00",
+                    "updateDate": "2025-06-02T09:51:03+00:00"
+                },
+                "season": {
+                    "title": "2009 - 2010",
+                    "ref": "aoUJGa",
+                    "creationDate": "2016-09-06T04:58:20+00:00",
+                    "updateDate": "2020-07-08T08:02:41+00:00"
+                }
+            },
+            "steeringCommittee": null
+        },
+        {
+            "code": "A043067",
+            "ref": "rABTHXnK73",
+            "creationDate": "2010-08-31T22:00:00+00:00",
+            "updateDate": "2010-08-31T22:00:00+00:00",
+            "licence": {
+                "ref": "Bjnfvh",
+                "creationDate": "2020-06-30T15:12:09+00:00",
+                "updateDate": "2020-06-30T15:12:09+00:00",
+                "product": {
+                    "name": "Affiliation - (Licences avec Assurance)",
+                    "minAge": 0,
+                    "maxAge": 0,
+                    "insurance": true,
+                    "private": false,
+                    "management": false,
+                    "ref": "UqwViQ",
+                    "creationDate": "2020-06-30T15:11:50+00:00",
+                    "updateDate": "2025-06-02T09:51:03+00:00"
+                },
+                "season": {
+                    "title": "2010 - 2011",
+                    "ref": "omp3yh",
+                    "creationDate": "2016-09-06T04:58:20+00:00",
+                    "updateDate": "2020-07-08T08:02:41+00:00"
+                }
+            },
+            "steeringCommittee": null
+        },
+        {
+            "code": "A043067",
+            "ref": "owPTXj1Z9C",
+            "creationDate": "2011-08-31T22:00:00+00:00",
+            "updateDate": "2011-08-31T22:00:00+00:00",
+            "licence": {
+                "ref": "0criSM",
+                "creationDate": "2020-06-30T15:12:09+00:00",
+                "updateDate": "2020-06-30T15:12:09+00:00",
+                "product": {
+                    "name": "Affiliation - (Licences avec Assurance)",
+                    "minAge": 0,
+                    "maxAge": 0,
+                    "insurance": true,
+                    "private": false,
+                    "management": false,
+                    "ref": "UqwViQ",
+                    "creationDate": "2020-06-30T15:11:50+00:00",
+                    "updateDate": "2025-06-02T09:51:03+00:00"
+                },
+                "season": {
+                    "title": "2011 - 2012",
+                    "ref": "MXNvOb",
+                    "creationDate": "2016-09-06T04:58:20+00:00",
+                    "updateDate": "2020-07-08T08:02:41+00:00"
+                }
+            },
+            "steeringCommittee": null
+        },
+        {
+            "code": "A043067",
+            "ref": "NfIc1Oj6DnYctxFqF2GO",
+            "creationDate": "2012-08-31T22:00:00+00:00",
+            "updateDate": "2012-08-31T22:00:00+00:00",
+            "licence": {
+                "ref": "wukBt5",
+                "creationDate": "2020-06-30T15:12:09+00:00",
+                "updateDate": "2020-06-30T15:12:09+00:00",
+                "product": {
+                    "name": "Affiliation - (Licences avec Assurance)",
+                    "minAge": 0,
+                    "maxAge": 0,
+                    "insurance": true,
+                    "private": false,
+                    "management": false,
+                    "ref": "UqwViQ",
+                    "creationDate": "2020-06-30T15:11:50+00:00",
+                    "updateDate": "2025-06-02T09:51:03+00:00"
+                },
+                "season": {
+                    "title": "2012 - 2013",
+                    "ref": "rPb1X1",
+                    "creationDate": "2016-09-06T04:58:20+00:00",
+                    "updateDate": "2020-07-08T08:02:41+00:00"
+                }
+            },
+            "steeringCommittee": null
+        },
+        {
+            "code": "A043067",
+            "ref": "Ivw2Xww9si",
+            "creationDate": "2013-08-31T22:00:00+00:00",
+            "updateDate": "2013-08-31T22:00:00+00:00",
+            "licence": {
+                "ref": "eeaA32",
+                "creationDate": "2020-06-30T15:12:09+00:00",
+                "updateDate": "2020-06-30T15:12:09+00:00",
+                "product": {
+                    "name": "Affiliation - (Licences avec Assurance)",
+                    "minAge": 0,
+                    "maxAge": 0,
+                    "insurance": true,
+                    "private": false,
+                    "management": false,
+                    "ref": "UqwViQ",
+                    "creationDate": "2020-06-30T15:11:50+00:00",
+                    "updateDate": "2025-06-02T09:51:03+00:00"
+                },
+                "season": {
+                    "title": "2013 - 2014",
+                    "ref": "ZxKaU4",
+                    "creationDate": "2016-09-06T04:58:20+00:00",
+                    "updateDate": "2020-07-08T08:02:41+00:00"
+                }
+            },
+            "steeringCommittee": null
+        },
+        {
+            "code": "A043067",
+            "ref": "jc63IAb6hz",
+            "creationDate": "2014-08-31T22:00:00+00:00",
+            "updateDate": "2014-08-31T22:00:00+00:00",
+            "licence": {
+                "ref": "xIJzrY",
+                "creationDate": "2020-06-30T15:12:09+00:00",
+                "updateDate": "2020-06-30T15:12:09+00:00",
+                "product": {
+                    "name": "Affiliation - (Licences avec Assurance)",
+                    "minAge": 0,
+                    "maxAge": 0,
+                    "insurance": true,
+                    "private": false,
+                    "management": false,
+                    "ref": "UqwViQ",
+                    "creationDate": "2020-06-30T15:11:50+00:00",
+                    "updateDate": "2025-06-02T09:51:03+00:00"
+                },
+                "season": {
+                    "title": "2014 - 2015",
+                    "ref": "k3W2Zz",
+                    "creationDate": "2016-09-06T04:58:20+00:00",
+                    "updateDate": "2020-07-08T08:02:41+00:00"
+                }
+            },
+            "steeringCommittee": null
+        },
+        {
+            "code": "A043067",
+            "ref": "SuXSk5uRov",
+            "creationDate": "2015-08-31T22:00:00+00:00",
+            "updateDate": "2015-08-31T22:00:00+00:00",
+            "licence": {
+                "ref": "AJhIhT",
+                "creationDate": "2020-06-30T15:12:09+00:00",
+                "updateDate": "2020-06-30T15:12:09+00:00",
+                "product": {
+                    "name": "Affiliation - (Licences avec Assurance)",
+                    "minAge": 0,
+                    "maxAge": 0,
+                    "insurance": true,
+                    "private": false,
+                    "management": false,
+                    "ref": "UqwViQ",
+                    "creationDate": "2020-06-30T15:11:50+00:00",
+                    "updateDate": "2025-06-02T09:51:03+00:00"
+                },
+                "season": {
+                    "title": "2015 - 2016",
+                    "ref": "cW5A9R",
+                    "creationDate": "2016-09-06T04:58:20+00:00",
+                    "updateDate": "2020-07-08T08:02:41+00:00"
+                }
+            },
+            "steeringCommittee": null
+        },
+        {
+            "code": "A043067",
+            "ref": "BoDwXOpBqA",
+            "creationDate": "2017-09-25T10:50:58+00:00",
+            "updateDate": "2017-09-25T10:50:58+00:00",
+            "licence": {
+                "ref": "nM4e1f",
+                "creationDate": "2020-06-30T15:12:09+00:00",
+                "updateDate": "2020-06-30T15:12:09+00:00",
+                "product": {
+                    "name": "Affiliation - (Licences avec Assurance)",
+                    "minAge": 0,
+                    "maxAge": 0,
+                    "insurance": true,
+                    "private": false,
+                    "management": false,
+                    "ref": "UqwViQ",
+                    "creationDate": "2020-06-30T15:11:50+00:00",
+                    "updateDate": "2025-06-02T09:51:03+00:00"
+                },
+                "season": {
+                    "title": "2017 - 2018",
+                    "ref": "8W1Me9",
+                    "creationDate": "2017-06-20T09:56:01+00:00",
+                    "updateDate": "2020-07-08T08:02:41+00:00"
+                }
+            },
+            "steeringCommittee": null
+        },
+        {
+            "code": "A043067",
+            "ref": "9ia9eebDj0",
+            "creationDate": "2018-09-10T10:12:36+00:00",
+            "updateDate": "2018-09-10T10:12:36+00:00",
+            "licence": {
+                "ref": "X9JEbI",
+                "creationDate": "2020-06-30T15:12:09+00:00",
+                "updateDate": "2020-06-30T15:12:09+00:00",
+                "product": {
+                    "name": "Affiliation - (Licences avec Assurance)",
+                    "minAge": 0,
+                    "maxAge": 0,
+                    "insurance": true,
+                    "private": false,
+                    "management": false,
+                    "ref": "UqwViQ",
+                    "creationDate": "2020-06-30T15:11:50+00:00",
+                    "updateDate": "2025-06-02T09:51:03+00:00"
+                },
+                "season": {
+                    "title": "2018 - 2019",
+                    "ref": "TGbxVt",
+                    "creationDate": "2018-05-29T15:05:48+00:00",
+                    "updateDate": "2020-07-08T08:02:41+00:00"
+                }
+            },
+            "steeringCommittee": null
+        },
+        {
+            "code": "A043067",
+            "ref": "51qf87TT5k",
+            "creationDate": "2019-10-01T09:47:49+00:00",
+            "updateDate": "2019-10-01T09:47:49+00:00",
+            "licence": {
+                "ref": "wnh00A",
+                "creationDate": "2020-06-30T15:12:08+00:00",
+                "updateDate": "2020-06-30T15:12:08+00:00",
+                "product": {
+                    "name": "Affiliation - (Licences avec Assurance)",
+                    "minAge": 0,
+                    "maxAge": 0,
+                    "insurance": true,
+                    "private": false,
+                    "management": false,
+                    "ref": "UqwViQ",
+                    "creationDate": "2020-06-30T15:11:50+00:00",
+                    "updateDate": "2025-06-02T09:51:03+00:00"
+                },
+                "season": {
+                    "title": "2019 - 2020",
+                    "ref": "fM9HV9",
+                    "creationDate": "2019-06-17T14:41:46+00:00",
+                    "updateDate": "2020-07-08T08:02:41+00:00"
+                }
+            },
+            "steeringCommittee": null
+        },
+        {
+            "code": "A043067",
+            "ref": "y6v8vh",
+            "creationDate": "2020-09-09T12:43:27+00:00",
+            "updateDate": "2021-07-27T15:12:11+00:00",
+            "licence": {
+                "ref": "MB7jJQ",
+                "creationDate": "2020-07-06T04:56:37+00:00",
+                "updateDate": "2020-07-20T16:32:17+00:00",
+                "product": {
+                    "name": "Affiliation - (Licences avec Assurance)",
+                    "minAge": 0,
+                    "maxAge": 0,
+                    "insurance": true,
+                    "private": false,
+                    "management": false,
+                    "ref": "UqwViQ",
+                    "creationDate": "2020-06-30T15:11:50+00:00",
+                    "updateDate": "2025-06-02T09:51:03+00:00"
+                },
+                "season": {
+                    "title": "2020 - 2021",
+                    "ref": "0p5WXR",
+                    "creationDate": "2020-07-06T04:56:37+00:00",
+                    "updateDate": "2020-07-21T06:17:09+00:00"
+                }
+            },
+            "steeringCommittee": {
+                "ref": "5f2kbCiN",
+                "creationDate": "2021-07-27T15:12:11+00:00",
+                "updateDate": "2021-07-27T15:12:11+00:00",
+                "members": [
+                    {
+                        "ref": "r8dP1zKk",
+                        "creationDate": "2021-07-27T15:12:11+00:00",
+                        "updateDate": "2021-07-27T15:12:11+00:00",
+                        "user": {
+                            "ssoRef": "zVrMmrvDr4",
+                            "firstName": "CLOTILDE",
+                            "lastName": "JACOB",
+                            "email": "clotilde.monierjacob@gmail.com",
+                            "status": 0,
+                            "statusText": "Vivant",
+                            "ref": "SryZ8GT2NG",
+                            "creationDate": "2016-09-06T22:27:45+00:00",
+                            "updateDate": "2024-03-27T18:59:42+00:00"
+                        },
+                        "function": {
+                            "label": "Président.e",
+                            "openAssociationEmailAccess": true,
+                            "ref": "HbHrET",
+                            "creationDate": "2020-03-03T11:13:37+00:00",
+                            "updateDate": "2022-01-07T13:50:29+00:00"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "code": "A043067",
+            "ref": "p7wiV95PRnt0",
+            "creationDate": "2024-09-16T13:36:20+00:00",
+            "updateDate": "2024-09-16T13:36:20+00:00",
+            "licence": {
+                "ref": "pPg6kIHRIjE5",
+                "creationDate": "2024-07-25T07:00:18+00:00",
+                "updateDate": "2024-07-25T07:14:28+00:00",
+                "product": {
+                    "name": "Affiliation - (Licences avec Assurance)",
+                    "minAge": 0,
+                    "maxAge": 0,
+                    "insurance": true,
+                    "private": false,
+                    "management": false,
+                    "ref": "UqwViQ",
+                    "creationDate": "2020-06-30T15:11:50+00:00",
+                    "updateDate": "2025-06-02T09:51:03+00:00"
+                },
+                "season": {
+                    "title": "2024 - 2025",
+                    "ref": "uUyFV1NwGrI8",
+                    "creationDate": "2024-07-25T07:00:18+00:00",
+                    "updateDate": "2025-07-10T12:55:05+00:00"
+                }
+            },
+            "steeringCommittee": null
+        },
+        {
+            "code": "A043067",
+            "ref": "rMsnR9kb9loz",
+            "creationDate": "2025-09-08T07:11:10+00:00",
+            "updateDate": "2025-09-08T07:11:10+00:00",
+            "licence": {
+                "ref": "D0RvP93EzT6W",
+                "creationDate": "2025-06-02T09:51:03+00:00",
+                "updateDate": "2025-06-10T06:33:43+00:00",
+                "product": {
+                    "name": "Affiliation - (Licences avec Assurance)",
+                    "minAge": 0,
+                    "maxAge": 0,
+                    "insurance": true,
+                    "private": false,
+                    "management": false,
+                    "ref": "UqwViQ",
+                    "creationDate": "2020-06-30T15:11:50+00:00",
+                    "updateDate": "2025-06-02T09:51:03+00:00"
+                },
+                "season": {
+                    "title": "2025 - 2026",
+                    "ref": "FC0d9ZREzilS",
+                    "creationDate": "2025-06-02T09:51:03+00:00",
+                    "updateDate": "2025-12-01T09:44:39+00:00"
+                }
+            },
+            "steeringCommittee": null
+        }
+    ],
+    "activeAffiliation": {
+        "code": "A043067",
+        "ref": "rMsnR9kb9loz",
+        "creationDate": "2025-09-08T07:11:10+00:00",
+        "updateDate": "2025-09-08T07:11:10+00:00",
+        "licence": {
+            "ref": "D0RvP93EzT6W",
+            "creationDate": "2025-06-02T09:51:03+00:00",
+            "updateDate": "2025-06-10T06:33:43+00:00",
+            "product": {
+                "name": "Affiliation - (Licences avec Assurance)",
+                "minAge": 0,
+                "maxAge": 0,
+                "insurance": true,
+                "private": false,
+                "management": false,
+                "ref": "UqwViQ",
+                "creationDate": "2020-06-30T15:11:50+00:00",
+                "updateDate": "2025-06-02T09:51:03+00:00"
+            },
+            "season": {
+                "title": "2025 - 2026",
+                "ref": "FC0d9ZREzilS",
+                "creationDate": "2025-06-02T09:51:03+00:00",
+                "updateDate": "2025-12-01T09:44:39+00:00"
+            }
+        },
+        "steeringCommittee": null
+    },
+    "discr": "association"
+}
+
+
+--Dirigeants
+https://i-reseau.ffepgv.fr/api/internal/organization-for-season-users-groups/U3XaueLrPT?order[groups.type.position]=ASC&_oc=uxD3nVjHWLR7
+_oc = uxD3nVjHWLR7
+{
+    "id": 646,
+    "ref": "U3XaueLrPT",
+    "creationDate": "2016-09-06T05:09:28+00:00",
+    "updateDate": "2025-11-25T10:41:43+00:00",
+    "type": {
+        "id": 4,
+        "ref": "association",
+        "creationDate": "2023-06-19T10:12:16+00:00",
+        "updateDate": "2025-11-21T12:12:55+00:00"
+    },
+    "groups": [
+        {
+            "id": 2516,
+            "ref": "6i5Z1EwwQD",
+            "creationDate": "2023-07-23T08:18:58+00:00",
+            "updateDate": "2025-11-30T18:55:26+00:00",
+            "type": {
+                "ref": "comite-directeur-club",
+                "internalRef": "steering-committee",
+                "label": "Comité Directeur",
+                "id": 6,
+                "creationDate": "2023-07-05T08:03:06+00:00",
+                "updateDate": "2025-12-01T14:22:02+00:00"
+            },
+            "season": {
+                "title": "2020 - 2021",
+                "current": false,
+                "id": 21,
+                "ref": "0p5WXR",
+                "creationDate": "2020-07-06T04:56:37+00:00",
+                "updateDate": "2020-07-21T06:17:09+00:00"
+            },
+            "members": [
+                {
+                    "honorabilityValid": null,
+                    "id": 10429,
+                    "ref": "4Ic3fz0gJ5",
+                    "creationDate": "2023-07-23T08:18:58+00:00",
+                    "updateDate": "2024-09-16T13:31:34+00:00",
+                    "user": {
+                        "ssoRef": "zVrMmrvDr4",
+                        "firstName": "CLOTILDE",
+                        "lastName": "JACOB",
+                        "email": "clotilde.monierjacob@gmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 542478,
+                        "ref": "SryZ8GT2NG",
+                        "creationDate": "2016-09-06T22:27:45+00:00",
+                        "updateDate": "2024-03-27T18:59:42+00:00"
+                    },
+                    "function": {
+                        "ref": "president-e",
+                        "name": "Président.e",
+                        "nameSlug": "president-e",
+                        "mandatory": true,
+                        "position": 1,
+                        "unique": true,
+                        "editionEndDate": null,
+                        "id": 34,
+                        "creationDate": "2023-11-02T16:50:23+00:00",
+                        "updateDate": "2025-11-28T08:21:04+00:00"
+                    }
+                }
+            ]
+        },
+        {
+            "id": 22659,
+            "ref": "jEX7i5f6e91d",
+            "creationDate": "2024-09-16T13:31:34+00:00",
+            "updateDate": "2025-11-30T18:55:26+00:00",
+            "type": {
+                "ref": "comite-directeur-club",
+                "internalRef": "steering-committee",
+                "label": "Comité Directeur",
+                "id": 6,
+                "creationDate": "2023-07-05T08:03:06+00:00",
+                "updateDate": "2025-12-01T14:22:02+00:00"
+            },
+            "season": {
+                "title": "2024 - 2025",
+                "current": false,
+                "id": 25,
+                "ref": "uUyFV1NwGrI8",
+                "creationDate": "2024-07-25T07:00:18+00:00",
+                "updateDate": "2025-07-10T12:55:05+00:00"
+            },
+            "members": [
+                {
+                    "honorabilityValid": true,
+                    "id": 103191,
+                    "ref": "ukUUkflO1bWW",
+                    "creationDate": "2024-09-16T13:31:34+00:00",
+                    "updateDate": "2024-11-26T13:48:07+00:00",
+                    "user": {
+                        "ssoRef": "DykwdAHH9X",
+                        "firstName": "MICKAEL",
+                        "lastName": "ROUSSET",
+                        "email": "mickael_rousset@hotmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 1869902,
+                        "ref": "oo0avnTTc7qM",
+                        "creationDate": "2024-10-08T11:27:58+00:00",
+                        "updateDate": "2025-11-26T09:48:37+00:00"
+                    },
+                    "function": {
+                        "ref": "president-e",
+                        "name": "Président.e",
+                        "nameSlug": "president-e",
+                        "mandatory": true,
+                        "position": 1,
+                        "unique": true,
+                        "editionEndDate": null,
+                        "id": 34,
+                        "creationDate": "2023-11-02T16:50:23+00:00",
+                        "updateDate": "2025-11-28T08:21:04+00:00"
+                    }
+                },
+                {
+                    "honorabilityValid": true,
+                    "id": 103691,
+                    "ref": "aIgsueQhNh8U",
+                    "creationDate": "2024-09-22T09:45:32+00:00",
+                    "updateDate": "2024-11-26T13:48:07+00:00",
+                    "user": {
+                        "ssoRef": "DykwdAHH9X",
+                        "firstName": "MICKAEL",
+                        "lastName": "ROUSSET",
+                        "email": "mickael_rousset@hotmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 1869902,
+                        "ref": "oo0avnTTc7qM",
+                        "creationDate": "2024-10-08T11:27:58+00:00",
+                        "updateDate": "2025-11-26T09:48:37+00:00"
+                    },
+                    "function": {
+                        "ref": "JqO53esKrOuR",
+                        "name": "Délégué AG",
+                        "nameSlug": "delegue-ag",
+                        "mandatory": false,
+                        "position": 2,
+                        "unique": true,
+                        "editionEndDate": "2026-01-04T00:00:00+00:00",
+                        "id": 113,
+                        "creationDate": "2024-04-04T07:19:44+00:00",
+                        "updateDate": "2025-11-24T14:49:05+00:00"
+                    }
+                },
+                {
+                    "honorabilityValid": true,
+                    "id": 103189,
+                    "ref": "ZBqjl29h6aql",
+                    "creationDate": "2024-09-16T13:31:34+00:00",
+                    "updateDate": "2024-11-26T13:48:07+00:00",
+                    "user": {
+                        "ssoRef": "OKhE8RKYpZ",
+                        "firstName": "LOLA",
+                        "lastName": "GUDIMARD",
+                        "email": "l.gudimard@gmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 1869913,
+                        "ref": "4EQXxB2SAos7",
+                        "creationDate": "2024-10-08T11:31:52+00:00",
+                        "updateDate": "2025-11-26T09:50:13+00:00"
+                    },
+                    "function": {
+                        "ref": "secretaire-general-e-ou-secretaire",
+                        "name": "Secrétaire Général.e ou Secrétaire",
+                        "nameSlug": "secretaire-general-e-ou-secretaire",
+                        "mandatory": true,
+                        "position": 4,
+                        "unique": false,
+                        "editionEndDate": null,
+                        "id": 28,
+                        "creationDate": "2023-11-02T16:50:23+00:00",
+                        "updateDate": "2025-11-25T14:09:05+00:00"
+                    }
+                },
+                {
+                    "honorabilityValid": true,
+                    "id": 103190,
+                    "ref": "AvDh4jdH1s9n",
+                    "creationDate": "2024-09-16T13:31:34+00:00",
+                    "updateDate": "2024-11-26T13:48:07+00:00",
+                    "user": {
+                        "ssoRef": "5ryMI2wwlj",
+                        "firstName": "VICTORIEN",
+                        "lastName": "VICENTE",
+                        "email": "victorien.vicente@gmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 1869909,
+                        "ref": "cqyjoGMKne2Z",
+                        "creationDate": "2024-10-08T11:30:00+00:00",
+                        "updateDate": "2025-11-26T09:51:13+00:00"
+                    },
+                    "function": {
+                        "ref": "tresorier-e",
+                        "name": "Trésorier.e",
+                        "nameSlug": "tresorier-e",
+                        "mandatory": true,
+                        "position": 5,
+                        "unique": false,
+                        "editionEndDate": null,
+                        "id": 32,
+                        "creationDate": "2023-11-02T16:50:23+00:00",
+                        "updateDate": "2025-11-28T15:06:25+00:00"
+                    }
+                }
+            ]
+        },
+        {
+            "id": 32008,
+            "ref": "Ks9R7cAEwT7v",
+            "creationDate": "2025-08-18T08:27:04+00:00",
+            "updateDate": "2025-11-30T18:55:26+00:00",
+            "type": {
+                "ref": "comite-directeur-club",
+                "internalRef": "steering-committee",
+                "label": "Comité Directeur",
+                "id": 6,
+                "creationDate": "2023-07-05T08:03:06+00:00",
+                "updateDate": "2025-12-01T14:22:02+00:00"
+            },
+            "season": {
+                "title": "2025 - 2026",
+                "current": true,
+                "id": 26,
+                "ref": "FC0d9ZREzilS",
+                "creationDate": "2025-06-02T09:51:03+00:00",
+                "updateDate": "2025-12-01T09:44:39+00:00"
+            },
+            "members": [
+                {
+                    "honorabilityValid": true,
+                    "id": 153938,
+                    "ref": "qEI47E1m5yaw",
+                    "creationDate": "2025-08-18T08:27:04+00:00",
+                    "updateDate": "2025-08-20T20:01:12+00:00",
+                    "user": {
+                        "ssoRef": "DykwdAHH9X",
+                        "firstName": "MICKAEL",
+                        "lastName": "ROUSSET",
+                        "email": "mickael_rousset@hotmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 1869902,
+                        "ref": "oo0avnTTc7qM",
+                        "creationDate": "2024-10-08T11:27:58+00:00",
+                        "updateDate": "2025-11-26T09:48:37+00:00"
+                    },
+                    "function": {
+                        "ref": "president-e",
+                        "name": "Président.e",
+                        "nameSlug": "president-e",
+                        "mandatory": true,
+                        "position": 1,
+                        "unique": true,
+                        "editionEndDate": null,
+                        "id": 34,
+                        "creationDate": "2023-11-02T16:50:23+00:00",
+                        "updateDate": "2025-11-28T08:21:04+00:00"
+                    }
+                },
+                {
+                    "honorabilityValid": true,
+                    "id": 153939,
+                    "ref": "vYhiDRclTe6a",
+                    "creationDate": "2025-08-18T08:27:04+00:00",
+                    "updateDate": "2025-08-20T20:01:12+00:00",
+                    "user": {
+                        "ssoRef": "DykwdAHH9X",
+                        "firstName": "MICKAEL",
+                        "lastName": "ROUSSET",
+                        "email": "mickael_rousset@hotmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 1869902,
+                        "ref": "oo0avnTTc7qM",
+                        "creationDate": "2024-10-08T11:27:58+00:00",
+                        "updateDate": "2025-11-26T09:48:37+00:00"
+                    },
+                    "function": {
+                        "ref": "JqO53esKrOuR",
+                        "name": "Délégué AG",
+                        "nameSlug": "delegue-ag",
+                        "mandatory": false,
+                        "position": 2,
+                        "unique": true,
+                        "editionEndDate": "2026-01-04T00:00:00+00:00",
+                        "id": 113,
+                        "creationDate": "2024-04-04T07:19:44+00:00",
+                        "updateDate": "2025-11-24T14:49:05+00:00"
+                    }
+                },
+                {
+                    "honorabilityValid": true,
+                    "id": 153936,
+                    "ref": "hu5MInTCVzEr",
+                    "creationDate": "2025-08-18T08:27:04+00:00",
+                    "updateDate": "2025-08-20T20:01:12+00:00",
+                    "user": {
+                        "ssoRef": "OKhE8RKYpZ",
+                        "firstName": "LOLA",
+                        "lastName": "GUDIMARD",
+                        "email": "l.gudimard@gmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 1869913,
+                        "ref": "4EQXxB2SAos7",
+                        "creationDate": "2024-10-08T11:31:52+00:00",
+                        "updateDate": "2025-11-26T09:50:13+00:00"
+                    },
+                    "function": {
+                        "ref": "secretaire-general-e-ou-secretaire",
+                        "name": "Secrétaire Général.e ou Secrétaire",
+                        "nameSlug": "secretaire-general-e-ou-secretaire",
+                        "mandatory": true,
+                        "position": 4,
+                        "unique": false,
+                        "editionEndDate": null,
+                        "id": 28,
+                        "creationDate": "2023-11-02T16:50:23+00:00",
+                        "updateDate": "2025-11-25T14:09:05+00:00"
+                    }
+                },
+                {
+                    "honorabilityValid": true,
+                    "id": 153937,
+                    "ref": "Ir136mcl4Fi0",
+                    "creationDate": "2025-08-18T08:27:04+00:00",
+                    "updateDate": "2025-08-20T20:01:12+00:00",
+                    "user": {
+                        "ssoRef": "5ryMI2wwlj",
+                        "firstName": "VICTORIEN",
+                        "lastName": "VICENTE",
+                        "email": "victorien.vicente@gmail.com",
+                        "status": 0,
+                        "statusText": "Vivant",
+                        "id": 1869909,
+                        "ref": "cqyjoGMKne2Z",
+                        "creationDate": "2024-10-08T11:30:00+00:00",
+                        "updateDate": "2025-11-26T09:51:13+00:00"
+                    },
+                    "function": {
+                        "ref": "tresorier-e",
+                        "name": "Trésorier.e",
+                        "nameSlug": "tresorier-e",
+                        "mandatory": true,
+                        "position": 5,
+                        "unique": false,
+                        "editionEndDate": null,
+                        "id": 32,
+                        "creationDate": "2023-11-02T16:50:23+00:00",
+                        "updateDate": "2025-11-28T15:06:25+00:00"
+                    }
+                }
+            ]
+        }
+    ],
+    "discr": "association"
+}
+
+--Liste utilisateurs (moi, Victorien, Lola)
+https://i-reseau.ffepgv.fr/api/internal/users-current-context?page=1&itemsPerPage=20&groupby=&_oc=uxD3nVjHWLR7&_bck=L3V0aWxpc2F0ZXVycy9saXN0ZS1jb250ZXh0ZS1hY3R1ZWw=
+DOMContentLoaded: 3.45 s
+page = 1
+itemsPerPage = 20
+groupby
+_oc = uxD3nVjHWLR7
+_bck = L3V0aWxpc2F0ZXVycy9saXN0ZS1jb250ZXh0ZS1hY3R1ZWw=
+{
+    "items": [
+        {
+            "ref": "oo0avnTTc7qM",
+            "licenceId": "251022471",
+            "firstName": "MICKAEL",
+            "lastName": "ROUSSET",
+            "phone": "",
+            "mobilePhone": "+33 06 63 78 19 70",
+            "email": "mickael_rousset@hotmail.com",
+            "birthDate": "1973-02-04 10:00:00",
+            "ssoRef": "DykwdAHH9X",
+            "creationDate": "2024-10-08 11:27:58",
+            "updateDate": "2025-11-26 09:48:37",
+            "nameSearch": "MICKAEL ROUSSET#ROUSSET MICKAEL",
+            "organizationsContexts": [
+                {
+                    "accessRightsTemplate": {
+                        "name": "Administrateur"
+                    },
+                    "organization": {
+                        "code": "A043067",
+                        "name": "AGUMAAA",
+                        "discr": "association"
+                    }
+                }
+            ]
+        },
+        {
+            "ref": "cqyjoGMKne2Z",
+            "licenceId": "251022472",
+            "firstName": "VICTORIEN",
+            "lastName": "VICENTE",
+            "phone": "",
+            "mobilePhone": "+33 06 17 84 59 21",
+            "email": "victorien.vicente@gmail.com",
+            "birthDate": "1994-05-10 10:00:00",
+            "ssoRef": "5ryMI2wwlj",
+            "creationDate": "2024-10-08 11:30:00",
+            "updateDate": "2025-11-26 09:51:13",
+            "nameSearch": "VICTORIEN VICENTE#VICENTE VICTORIEN",
+            "organizationsContexts": [
+                {
+                    "accessRightsTemplate": {
+                        "name": "Administrateur"
+                    },
+                    "organization": {
+                        "code": "A043067",
+                        "name": "AGUMAAA",
+                        "discr": "association"
+                    }
+                }
+            ]
+        },
+        {
+            "ref": "4EQXxB2SAos7",
+            "licenceId": "251022473",
+            "firstName": "LOLA",
+            "lastName": "GUDIMARD",
+            "phone": "",
+            "mobilePhone": "+33 06 80 36 89 23",
+            "email": "l.gudimard@gmail.com",
+            "birthDate": "1995-05-25 10:00:00",
+            "ssoRef": "OKhE8RKYpZ",
+            "creationDate": "2024-10-08 11:31:52",
+            "updateDate": "2025-11-26 09:50:13",
+            "nameSearch": "LOLA GUDIMARD#GUDIMARD LOLA",
+            "organizationsContexts": [
+                {
+                    "accessRightsTemplate": {
+                        "name": "Consultation uniquement"
+                    },
+                    "organization": {
+                        "code": "A043067",
+                        "name": "AGUMAAA",
+                        "discr": "association"
+                    }
+                }
+            ]
+        }
+    ],
+    "page": 1,
+    "lastPage": 1,
+    "itemsPerPage": 20,
+    "count": 3,
+    "total": 3
+}
+
+
+
+--Liste inscrits
+https://i-reseau.ffepgv.fr/api/internal/users-current-context?page=1&itemsPerPage=20&organizationsContexts.accessRightsTemplate.ref=nonea&groupby=&_oc=uxD3nVjHWLR7&_bck=L3V0aWxpc2F0ZXVycy9saXN0ZS1jb250ZXh0ZS1hY3R1ZWw=
+page = 1
+itemsPerPage = 20
+organizationsContexts.accessRightsTemplate.ref = nonea
+groupby
+_oc = uxD3nVjHWLR7
+_bck = L3V0aWxpc2F0ZXVycy9saXN0ZS1jb250ZXh0ZS1hY3R1ZWw=
+{
+    "items": [
+        {
+            "ref": "l1hP3Q31e1js",
+            "licenceId": "251022453",
+            "firstName": "STEPHANIE",
+            "lastName": "AMPILHAC",
+            "phone": "+33 06 24 91 55 04",
+            "mobilePhone": "",
+            "email": "ampilhac.julien@orange.fr",
+            "birthDate": "1986-06-23 00:00:00",
+            "ssoRef": null,
+            "creationDate": "2024-10-08 09:06:03",
+            "updateDate": "2024-10-15 08:47:37",
+            "nameSearch": null,
+            "accessRightsTemplateName": null,
+            "accessRightsTemplateOrganizationCode": null,
+            "accessRightsTemplateOrganizationName": null,
+            "accessRightsTemplateOrganizationDiscr": null
+        },
+        {
+            "ref": "ZXBUUhZX4qID",
+            "licenceId": "251022454",
+            "firstName": "ANNE-MARIE",
+            "lastName": "ANTHOUARD",
+            "phone": "",
+            "mobilePhone": "",
+            "email": "corinne.anthouard@icloud.com",
+            "birthDate": "1960-10-15 01:00:00",
+            "ssoRef": null,
+            "creationDate": "2024-10-08 09:08:46",
+            "updateDate": "2024-10-15 08:47:37",
+            "nameSearch": null,
+            "accessRightsTemplateName": null,
+            "accessRightsTemplateOrganizationCode": null,
+            "accessRightsTemplateOrganizationName": null,
+            "accessRightsTemplateOrganizationDiscr": null
+        },
+        {
+            "ref": "ENK3ofr4jKTG",
+            "licenceId": "251022456",
+            "firstName": "CHANTAL",
+            "lastName": "CHABANNE",
+            "phone": "",
+            "mobilePhone": "+33 06 88 59 23 84",
+            "email": "chabanne.philippe@wanadoo.fr",
+            "birthDate": "1964-07-31 01:00:00",
+            "ssoRef": "mP2jGcRUCE",
+            "creationDate": "2024-10-08 09:14:22",
+            "updateDate": "2024-10-17 12:39:55",
+            "nameSearch": null,
+            "accessRightsTemplateName": null,
+            "accessRightsTemplateOrganizationCode": null,
+            "accessRightsTemplateOrganizationName": null,
+            "accessRightsTemplateOrganizationDiscr": null
+        },
+        {
+            "ref": "f0AEPCsJjLjk",
+            "licenceId": "251022460",
+            "firstName": "ISABELLE",
+            "lastName": "FAUX",
+            "phone": "",
+            "mobilePhone": "+33 06 81 51 25 43",
+            "email": "rheane-faux@wanadoo.fr",
+            "birthDate": "1963-10-24 01:00:00",
+            "ssoRef": null,
+            "creationDate": "2024-10-08 09:36:33",
+            "updateDate": "2024-10-15 08:47:37",
+            "nameSearch": null,
+            "accessRightsTemplateName": null,
+            "accessRightsTemplateOrganizationCode": null,
+            "accessRightsTemplateOrganizationName": null,
+            "accessRightsTemplateOrganizationDiscr": null
+        },
+        {
+            "ref": "RwkjJpkQAQ8K",
+            "licenceId": "06847530",
+            "firstName": "MICHELE",
+            "lastName": "JACQUIN",
+            "phone": "",
+            "mobilePhone": "+33 06 77 46 65 02",
+            "email": "michelejacquin.dp@gmail.com",
+            "birthDate": "1958-11-12 01:00:00",
+            "ssoRef": "tbCWSlCIib",
+            "creationDate": "2024-10-08 09:45:04",
+            "updateDate": "2024-10-16 13:22:27",
+            "nameSearch": null,
+            "accessRightsTemplateName": null,
+            "accessRightsTemplateOrganizationCode": null,
+            "accessRightsTemplateOrganizationName": null,
+            "accessRightsTemplateOrganizationDiscr": null
+        },
+        {
+            "ref": "l7mSgPTXY8LJ",
+            "licenceId": "251022461",
+            "firstName": "MAGUY",
+            "lastName": "LOUPPE",
+            "phone": "",
+            "mobilePhone": "+33 06 74 75 59 65",
+            "email": "devillersmaguy@orange.fr",
+            "birthDate": "1954-09-22 01:00:00",
+            "ssoRef": null,
+            "creationDate": "2024-10-08 09:59:44",
+            "updateDate": "2024-10-15 08:47:37",
+            "nameSearch": null,
+            "accessRightsTemplateName": null,
+            "accessRightsTemplateOrganizationCode": null,
+            "accessRightsTemplateOrganizationName": null,
+            "accessRightsTemplateOrganizationDiscr": null
+        },
+        {
+            "ref": "M0uWB7xSBkGt",
+            "licenceId": "251022462",
+            "firstName": "ANDREE",
+            "lastName": "MARREL",
+            "phone": "",
+            "mobilePhone": "+33 06 81 06 19 56",
+            "email": "hubertmarrel@orange.fr",
+            "birthDate": "1951-09-02 01:00:00",
+            "ssoRef": null,
+            "creationDate": "2024-10-08 10:03:35",
+            "updateDate": "2024-10-15 08:47:37",
+            "nameSearch": null,
+            "accessRightsTemplateName": null,
+            "accessRightsTemplateOrganizationCode": null,
+            "accessRightsTemplateOrganizationName": null,
+            "accessRightsTemplateOrganizationDiscr": null
+        },
+        {
+            "ref": "KdrDteoOjb0M",
+            "licenceId": "251022463",
+            "firstName": "CHANTAL",
+            "lastName": "PANTTARELLY",
+            "phone": "+33 04 71 00 72 65",
+            "mobilePhone": "",
+            "email": "alain.ampilhac@orange.fr",
+            "birthDate": "1950-04-15 01:00:00",
+            "ssoRef": null,
+            "creationDate": "2024-10-08 10:05:54",
+            "updateDate": "2024-10-15 08:47:37",
+            "nameSearch": null,
+            "accessRightsTemplateName": null,
+            "accessRightsTemplateOrganizationCode": null,
+            "accessRightsTemplateOrganizationName": null,
+            "accessRightsTemplateOrganizationDiscr": null
+        },
+        {
+            "ref": "H4jUkmR7t3oI",
+            "licenceId": "251022464",
+            "firstName": "BRIGITTE",
+            "lastName": "PERRIN",
+            "phone": "",
+            "mobilePhone": "+33 06 95 06 12 82",
+            "email": "christophe.perrin92@gmail.com",
+            "birthDate": "1960-07-30 01:00:00",
+            "ssoRef": "DvapJkfkim",
+            "creationDate": "2024-10-08 10:09:56",
+            "updateDate": "2024-10-15 16:02:08",
+            "nameSearch": null,
+            "accessRightsTemplateName": null,
+            "accessRightsTemplateOrganizationCode": null,
+            "accessRightsTemplateOrganizationName": null,
+            "accessRightsTemplateOrganizationDiscr": null
+        },
+        {
+            "ref": "DMvVKmqGB5UG",
+            "licenceId": "251022467",
+            "firstName": "MARIE-CLAUDE",
+            "lastName": "TISSANDIER",
+            "phone": "+33 04 71 00 71 77",
+            "mobilePhone": "",
+            "email": "roger.tissandier@orange.fr",
+            "birthDate": "1978-09-17 01:00:00",
+            "ssoRef": null,
+            "creationDate": "2024-10-08 10:24:27",
+            "updateDate": "2024-10-15 08:47:37",
+            "nameSearch": null,
+            "accessRightsTemplateName": null,
+            "accessRightsTemplateOrganizationCode": null,
+            "accessRightsTemplateOrganizationName": null,
+            "accessRightsTemplateOrganizationDiscr": null
+        },
+        {
+            "ref": "JDHJhMUSFlP4",
+            "licenceId": "251022469",
+            "firstName": "VICTOIRE",
+            "lastName": "TRIPHON LEGER",
+            "phone": "",
+            "mobilePhone": "+33 06 32 55 56 30",
+            "email": "ftriphon@yahoo.com",
+            "birthDate": "2010-03-30 00:00:00",
+            "ssoRef": null,
+            "creationDate": "2024-10-08 11:23:04",
+            "updateDate": "2024-10-15 08:47:37",
+            "nameSearch": null,
+            "accessRightsTemplateName": null,
+            "accessRightsTemplateOrganizationCode": null,
+            "accessRightsTemplateOrganizationName": null,
+            "accessRightsTemplateOrganizationDiscr": null
+        },
+        {
+            "ref": "iKe2H2komHuA",
+            "licenceId": "251204607",
+            "firstName": "NATHALIE",
+            "lastName": "BEAUMEL",
+            "phone": "",
+            "mobilePhone": "+33 06 64 95 51 77",
+            "email": "didetnat43@yahoo.fr",
+            "birthDate": "1981-09-19 00:00:00",
+            "ssoRef": null,
+            "creationDate": "2024-12-02 15:35:57",
+            "updateDate": "2024-12-09 09:10:47",
+            "nameSearch": null,
+            "accessRightsTemplateName": null,
+            "accessRightsTemplateOrganizationCode": null,
+            "accessRightsTemplateOrganizationName": null,
+            "accessRightsTemplateOrganizationDiscr": null
+        },
+        {
+            "ref": "erQq3K9HmW33",
+            "licenceId": "251204610",
+            "firstName": "ANNE",
+            "lastName": "ELSENER",
+            "phone": "",
+            "mobilePhone": "+33 06 71 23 00 37",
+            "email": "eric.chazot@orange.fr",
+            "birthDate": "1980-03-06 01:00:00",
+            "ssoRef": null,
+            "creationDate": "2024-12-02 15:43:37",
+            "updateDate": "2024-12-09 09:10:47",
+            "nameSearch": null,
+            "accessRightsTemplateName": null,
+            "accessRightsTemplateOrganizationCode": null,
+            "accessRightsTemplateOrganizationName": null,
+            "accessRightsTemplateOrganizationDiscr": null
+        },
+        {
+            "ref": "ND7MZleEuVbz",
+            "licenceId": "251204612",
+            "firstName": "FABIENNE",
+            "lastName": "MOUTTE",
+            "phone": "",
+            "mobilePhone": "+33 06 82 30 02 09",
+            "email": "carle.fabienne@wanadoo.fr",
+            "birthDate": "1973-04-04 01:00:00",
+            "ssoRef": null,
+            "creationDate": "2024-12-02 15:47:20",
+            "updateDate": "2024-12-09 09:10:47",
+            "nameSearch": null,
+            "accessRightsTemplateName": null,
+            "accessRightsTemplateOrganizationCode": null,
+            "accessRightsTemplateOrganizationName": null,
+            "accessRightsTemplateOrganizationDiscr": null
+        },
+        {
+            "ref": "pyb0eD7zvVU9",
+            "licenceId": null,
+            "firstName": "GAELLE",
+            "lastName": "GIRAUDEAU",
+            "phone": "",
+            "mobilePhone": "+33 06 79 87 54 78",
+            "email": "giraudeau.gaelle@orange.fr",
+            "birthDate": "1992-05-02 10:00:00",
+            "ssoRef": null,
+            "creationDate": "2025-11-24 09:28:40",
+            "updateDate": "2025-11-24 09:28:53",
+            "nameSearch": null,
+            "accessRightsTemplateName": null,
+            "accessRightsTemplateOrganizationCode": null,
+            "accessRightsTemplateOrganizationName": null,
+            "accessRightsTemplateOrganizationDiscr": null
+        },
+        {
+            "ref": "O1YOTb5fs5zE",
+            "licenceId": null,
+            "firstName": "PAULINE",
+            "lastName": "CHARRAT",
+            "phone": "",
+            "mobilePhone": "+33 06 37 65 15 00",
+            "email": "pauline.charrat@gmail.com",
+            "birthDate": "1992-01-17 10:00:00",
+            "ssoRef": null,
+            "creationDate": "2025-11-25 10:39:44",
+            "updateDate": "2025-11-25 10:44:48",
+            "nameSearch": null,
+            "accessRightsTemplateName": null,
+            "accessRightsTemplateOrganizationCode": null,
+            "accessRightsTemplateOrganizationName": null,
+            "accessRightsTemplateOrganizationDiscr": null
+        },
+        {
+            "ref": "v5a4j5MfqkAe",
+            "licenceId": null,
+            "firstName": "FLORENCE",
+            "lastName": "RIX",
+            "phone": "",
+            "mobilePhone": "+33 06 30 00 06 93",
+            "email": "rix.flo@free.fr",
+            "birthDate": "1989-07-01 10:00:00",
+            "ssoRef": null,
+            "creationDate": "2025-11-25 10:41:43",
+            "updateDate": "2025-11-25 10:45:56",
+            "nameSearch": null,
+            "accessRightsTemplateName": null,
+            "accessRightsTemplateOrganizationCode": null,
+            "accessRightsTemplateOrganizationName": null,
+            "accessRightsTemplateOrganizationDiscr": null
+        }
+    ],
+    "page": 1,
+    "lastPage": 1,
+    "itemsPerPage": 20,
+    "count": 17,
+    "total": 17
+}
+
+--Détail d'un inscrits
+https://i-reseau.ffepgv.fr/api/internal/user/DMvVKmqGB5UG?_ep=&_oc=uxD3nVjHWLR7&_bck=L3V0aWxpc2F0ZXVycy9saXN0ZS1jb250ZXh0ZS1hY3R1ZWw=
+_ep
+_oc = uxD3nVjHWLR7
+_bck = L3V0aWxpc2F0ZXVycy9saXN0ZS1jb250ZXh0ZS1hY3R1ZWw=
+{
+    "ssoRef": null,
+    "licenceId": "251022467",
+    "avatar": null,
+    "civility": "Mme",
+    "gender": "f",
+    "firstName": "MARIE-CLAUDE",
+    "lastName": "TISSANDIER",
+    "maidenName": "",
+    "phone": "+33 04 71 00 71 77",
+    "mobilePhone": "",
+    "email": "roger.tissandier@orange.fr",
+    "personalEmail": null,
+    "birthDate": "1978-09-17T01:00:00+00:00",
+    "newsletter": false,
+    "subscriptionsSentToAssociation": false,
+    "businessCard": null,
+    "businessCardExpirationDate": null,
+    "businessCardComment": null,
+    "medicalCertificateDate": null,
+    "assoconnectId": null,
+    "honorability": [],
+    "honorabilityRequired": null,
+    "honorabilityValid": null,
+    "skipSpringboardLicenceCheck": false,
+    "status": 0,
+    "statusText": "Vivant",
+    "deathDate": null,
+    "steeringCommitteeFunctions": null,
+    "id": 1869816,
+    "ref": "DMvVKmqGB5UG",
+    "creationDate": "2024-10-08T10:24:27+00:00",
+    "updateDate": "2024-10-15T08:47:37+00:00",
+    "address": {
+        "name": null,
+        "component1": "15 RUE DE FONTELINE",
+        "component2": "",
+        "component3": "",
+        "component4": "43270",
+        "component5": "ALLEGRE",
+        "component5Complement": "",
+        "component6": "",
+        "component7": "",
+        "component8": "",
+        "inseeCode": "43003",
+        "phone1": null,
+        "phone2": null,
+        "gpsLatitude": "45.20381100",
+        "gpsLongitude": "3.71579200",
+        "formatted": "15 RUE DE FONTELINE\u003Cbr\/\u003E43270 ALLEGRE \u003Cbr\/\u003EFrance",
+        "obsolete": null,
+        "countryCode": "fr",
+        "id": 1969745,
+        "ref": "VjISH9jBY5HW",
+        "creationDate": "2024-10-08T10:24:27+00:00",
+        "updateDate": "2024-10-15T08:47:43+00:00"
+    },
+    "organizationsContexts": [],
+    "activeLicence": null,
+    "activeHonorabilityDeclaration": null
+}
+
+
+--Détail d'une licence
+
+https://i-reseau.ffepgv.fr/api/internal/association-members-licences-all-for-user?uref=DMvVKmqGB5UG&order[licence.season.title]=DESC&groupby=&_oc=uxD3nVjHWLR7&_bck=L3V0aWxpc2F0ZXVycy9saXN0ZS1jb250ZXh0ZS1hY3R1ZWw=
+uref = DMvVKmqGB5UG
+order[licence.season.title] = DESC
+groupby
+_oc = uxD3nVjHWLR7
+_bck = L3V0aWxpc2F0ZXVycy9saXN0ZS1jb250ZXh0ZS1hY3R1ZWw=
+)
+]
+}'
+[{"licenceId":"251022467","downloadIdentifier":"487lGoBQOy53ilbdsZn4NJdtu7I5zwFQmxxE0m2BVxNirfKjEcpJhWKXyHGo26UFy1PeRs43XPfyUsfoEhlj1LaorsosFtMocB3KHYGLvs7sbmM8kSk5hpp5PxcUL3gs","taxDeductionDownloadIdentifier":"9DaSZK6tl1wdcyVOLqbWZcBw5crXFJL0RnLKKMAgobQenLuj58CgxMKVa1CxCqGuLT4WwdfE5vXFyqQb8Xqo38csE8ehjdY7WEO06sWz55SEq8aOQK1X3magCcWtTCcG","management":false,"paidByThirdParty":false,"managementHistory":[],"vitafedeClubGroup":"","vitafedeClubSubGroup":"","ref":"rzSAi8XhbfpFhG","creationDate":"2024-10-15T08:47:36+00:00","updateDate":"2024-10-15T08:47:36+00:00","homeAssociation":{"code":"A043067","name":"AGUMAAA","clubVitafede":false,"ref":"U3XaueLrPT","creationDate":"2016-09-06T05:09:28+00:00","updateDate":"2025-11-25T10:41:43+00:00","address":{"formatted":"4 RUE GRELLET DE LA DEYTE\u003Cbr\/\u003ECENTRE GEORGE SAND\u003Cbr\/\u003E43270 ALLEGRE \u003Cbr\/\u003EFrance","ref":"QOXGul6J2E","creationDate":"2020-06-30T15:12:40+00:00","updateDate":"2025-11-25T10:41:44+00:00"},"discr":"association"},"licence":{"ref":"owB91xACOGE9","creationDate":"2024-07-25T07:00:18+00:00","updateDate":"2025-06-16T08:53:17+00:00","product":{"name":"Licence Adulte avec Assurance","ref":"dNtt5p","creationDate":"2020-06-30T15:11:50+00:00","updateDate":"2025-10-02T12:35:16+00:00"},"season":{"title":"2024 - 2025","ref":"uUyFV1NwGrI8","creationDate":"2024-07-25T07:00:18+00:00","updateDate":"2025-07-10T12:55:05+00:00"}},"user":{"ref":"DMvVKmqGB5UG","creationDate":"2024-10-08T10:24:27+00:00","updateDate":"2024-10-15T08:47:37+00:00"}}]
+
+--Activité
+https://i-reseau.ffepgv.fr/api/internal/user-season-activities-all-for-user?uref=DMvVKmqGB5UG&order[season.title]=DESC&groupby=&_oc=uxD3nVjHWLR7&_bck=L3V0aWxpc2F0ZXVycy9saXN0ZS1jb250ZXh0ZS1hY3R1ZWw=
+uref = DMvVKmqGB5UG
+order[season.title] = DESC
+groupby
+_oc = xD3nVjHWLR7
+_bck = L3V0aWxpc2F0ZXVycy9saXN0ZS1jb250ZXh0ZS1hY3R1ZWw=
+)
+]
+}'
+[{"fulfilled":false,"active":true,"lastVisitDate":null,"expirationDate":"2025-08-31T06:00:00+00:00","year":2024,"token":"KDYCibVL9nmD7MhuxQCiWIf6xSe5gXW6BUKwsrTsg9FwBdmBUwrNzZPDAFfTLEtBaTzjmtu5wvaPto7rgJLiSRRr6cMpEa4HTevhXP72sgs92P0WqssEZoSnVW2tkNnegJrtDkmo4C7k7h8QvGZnW5gpQ1OsEH1zDINx","ref":"TsVttySn4WCL","creationDate":"2024-10-15T08:47:36+00:00","updateDate":"2024-10-15T08:47:36+00:00","primaryActivity":null,"secondaryActivities":[],"season":{"title":"2024 - 2025","current":false,"ref":"uUyFV1NwGrI8","creationDate":"2024-07-25T07:00:18+00:00","updateDate":"2025-07-10T12:55:05+00:00"}}]
+
+--Lien pour licence
+https://i-reseau.ffepgv.fr/adhesions-association/telechargement-487lGoBQOy53ilbdsZn4NJdtu7I5zwFQmxxE0m2BVxNirfKjEcpJhWKXyHGo26UFy1PeRs43XPfyUsfoEhlj1LaorsosFtMocB3KHYGLvs7sbmM8kSk5hpp5PxcUL3gs?_oc=uxD3nVjHWLR7&_bck=L3V0aWxpc2F0ZXVycy9saXN0ZS1jb250ZXh0ZS1hY3R1ZWw%3D
+
+--Reçu fiscal
+https://i-reseau.ffepgv.fr/adhesions-association/voir-recu-fiscal-9DaSZK6tl1wdcyVOLqbWZcBw5crXFJL0RnLKKMAgobQenLuj58CgxMKVa1CxCqGuLT4WwdfE5vXFyqQb8Xqo38csE8ehjdY7WEO06sWz55SEq8aOQK1X3magCcWtTCcG?type=print&_oc=uxD3nVjHWLR7&_bck=L3V0aWxpc2F0ZXVycy9saXN0ZS1jb250ZXh0ZS1hY3R1ZWw%3D
+
+
+--Liste des fonctions possibles
+https://i-reseau.ffepgv.fr/api/internal/user-functions-all?groupby=&_oc=uxD3nVjHWLR7
+_oc = uxD3nVjHWLR7
+)
+]
+}'
+[{"ref":"secretaire-general-e-ou-secretaire","name":"Secrétaire Général.e ou Secrétaire","nameSlug":"secretaire-general-e-ou-secretaire","requiresLicence":true,"mandatory":true,"position":4,"unique":false,"editionEndDate":null,"id":28,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-11-25T14:09:05+00:00","group":{"ref":"comite-directeur-club","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":6,"creationDate":"2023-07-05T08:03:06+00:00","updateDate":"2025-12-01T14:22:02+00:00","organizationsTypes":[{"label":"Club","id":4,"ref":"association","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-21T12:12:55+00:00"}]}},{"ref":"secretaire-general-e-adjoint-e","name":"Secrétaire Général.e Adjoint.e","nameSlug":"secretaire-general-e-adjoint-e","requiresLicence":true,"mandatory":false,"position":7,"unique":false,"editionEndDate":null,"id":29,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-11-28T10:51:03+00:00","group":{"ref":"comite-directeur-club","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":6,"creationDate":"2023-07-05T08:03:06+00:00","updateDate":"2025-12-01T14:22:02+00:00","organizationsTypes":[{"label":"Club","id":4,"ref":"association","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-21T12:12:55+00:00"}]}},{"ref":"tresorier-e-adjoint-e","name":"Trésorier.e Adjoint.e","nameSlug":"tresorier-e-adjoint-e","requiresLicence":true,"mandatory":false,"position":8,"unique":false,"editionEndDate":null,"id":30,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-11-30T20:37:34+00:00","group":{"ref":"comite-directeur-club","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":6,"creationDate":"2023-07-05T08:03:06+00:00","updateDate":"2025-12-01T14:22:02+00:00","organizationsTypes":[{"label":"Club","id":4,"ref":"association","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-21T12:12:55+00:00"}]}},{"ref":"vice-president-e","name":"Vice-président.e","nameSlug":"vice-president-e","requiresLicence":true,"mandatory":false,"position":6,"unique":false,"editionEndDate":null,"id":31,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-12-01T13:08:44+00:00","group":{"ref":"comite-directeur-club","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":6,"creationDate":"2023-07-05T08:03:06+00:00","updateDate":"2025-12-01T14:22:02+00:00","organizationsTypes":[{"label":"Club","id":4,"ref":"association","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-21T12:12:55+00:00"}]}},{"ref":"tresorier-e","name":"Trésorier.e","nameSlug":"tresorier-e","requiresLicence":true,"mandatory":true,"position":5,"unique":false,"editionEndDate":null,"id":32,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-11-28T15:06:25+00:00","group":{"ref":"comite-directeur-club","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":6,"creationDate":"2023-07-05T08:03:06+00:00","updateDate":"2025-12-01T14:22:02+00:00","organizationsTypes":[{"label":"Club","id":4,"ref":"association","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-21T12:12:55+00:00"}]}},{"ref":"membre","name":"Membre","nameSlug":"membre","requiresLicence":true,"mandatory":false,"position":98,"unique":false,"editionEndDate":null,"id":33,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-12-01T11:59:47+00:00","group":{"ref":"comite-directeur-club","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":6,"creationDate":"2023-07-05T08:03:06+00:00","updateDate":"2025-12-01T14:22:02+00:00","organizationsTypes":[{"label":"Club","id":4,"ref":"association","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-21T12:12:55+00:00"}]}},{"ref":"president-e","name":"Président.e","nameSlug":"president-e","requiresLicence":true,"mandatory":true,"position":1,"unique":true,"editionEndDate":null,"id":34,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-11-28T08:21:04+00:00","group":{"ref":"comite-directeur-club","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":6,"creationDate":"2023-07-05T08:03:06+00:00","updateDate":"2025-12-01T14:22:02+00:00","organizationsTypes":[{"label":"Club","id":4,"ref":"association","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-21T12:12:55+00:00"}]}},{"ref":"co-president-e","name":"Co-Président.e","nameSlug":"co-president-e","requiresLicence":true,"mandatory":false,"position":3,"unique":false,"editionEndDate":null,"id":50,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-12-01T11:59:47+00:00","group":{"ref":"comite-directeur-club","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":6,"creationDate":"2023-07-05T08:03:06+00:00","updateDate":"2025-12-01T14:22:02+00:00","organizationsTypes":[{"label":"Club","id":4,"ref":"association","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-21T12:12:55+00:00"}]}},{"ref":"qtycC0AOjcm8","name":"Membre suppléant","nameSlug":"membre-suppleant","requiresLicence":true,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":96,"creationDate":"2023-11-27T13:24:32+00:00","updateDate":"2025-11-29T18:28:42+00:00","group":{"ref":"comite-directeur-club","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":6,"creationDate":"2023-07-05T08:03:06+00:00","updateDate":"2025-12-01T14:22:02+00:00","organizationsTypes":[{"label":"Club","id":4,"ref":"association","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-21T12:12:55+00:00"}]}},{"ref":"JqO53esKrOuR","name":"Délégué AG","nameSlug":"delegue-ag","requiresLicence":true,"mandatory":false,"position":2,"unique":true,"editionEndDate":"2026-01-04T00:00:00+00:00","id":113,"creationDate":"2024-04-04T07:19:44+00:00","updateDate":"2025-11-24T14:49:05+00:00","group":{"ref":"comite-directeur-club","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":6,"creationDate":"2023-07-05T08:03:06+00:00","updateDate":"2025-12-01T14:22:02+00:00","organizationsTypes":[{"label":"Club","id":4,"ref":"association","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-21T12:12:55+00:00"}]}},{"ref":"WqCllmcXLQxc","name":"Référent Sport","nameSlug":"referent-sport","requiresLicence":true,"mandatory":false,"position":98,"unique":true,"editionEndDate":null,"id":134,"creationDate":"2025-12-01T14:22:02+00:00","updateDate":"2025-12-01T14:22:02+00:00","group":{"ref":"comite-directeur-club","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":6,"creationDate":"2023-07-05T08:03:06+00:00","updateDate":"2025-12-01T14:22:02+00:00","organizationsTypes":[{"label":"Club","id":4,"ref":"association","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-21T12:12:55+00:00"}]}},{"ref":"tresorier-e","name":"Trésorier.e","nameSlug":"tresorier-e","requiresLicence":true,"mandatory":true,"position":3,"unique":false,"editionEndDate":null,"id":17,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-11-13T12:03:53+00:00","group":{"ref":"comite-directeur","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":7,"creationDate":"2023-07-05T08:03:13+00:00","updateDate":"2025-12-01T14:22:11+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"vice-president-e","name":"Vice-président.e","nameSlug":"vice-president-e","requiresLicence":true,"mandatory":false,"position":4,"unique":false,"editionEndDate":null,"id":18,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-04-11T07:03:56+00:00","group":{"ref":"comite-directeur","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":7,"creationDate":"2023-07-05T08:03:13+00:00","updateDate":"2025-12-01T14:22:11+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"secretaire-general-e","name":"Secrétaire Général.e","nameSlug":"secretaire-general-e","requiresLicence":true,"mandatory":true,"position":2,"unique":false,"editionEndDate":null,"id":19,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-11-17T08:04:26+00:00","group":{"ref":"comite-directeur","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":7,"creationDate":"2023-07-05T08:03:13+00:00","updateDate":"2025-12-01T14:22:11+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"membre","name":"Membre","nameSlug":"membre","requiresLicence":true,"mandatory":false,"position":98,"unique":false,"editionEndDate":null,"id":20,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-11-30T12:58:04+00:00","group":{"ref":"comite-directeur","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":7,"creationDate":"2023-07-05T08:03:13+00:00","updateDate":"2025-12-01T14:22:11+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"secretaire-general-e-adjoint-e","name":"Secrétaire Général.e Adjoint.e","nameSlug":"secretaire-general-e-adjoint-e","requiresLicence":true,"mandatory":false,"position":5,"unique":false,"editionEndDate":null,"id":21,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-11-24T09:01:29+00:00","group":{"ref":"comite-directeur","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":7,"creationDate":"2023-07-05T08:03:13+00:00","updateDate":"2025-12-01T14:22:11+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"tresorier-e-adjoint-e","name":"Trésorier.e Adjoint.e","nameSlug":"tresorier-e-adjoint-e","requiresLicence":true,"mandatory":false,"position":6,"unique":false,"editionEndDate":null,"id":22,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-11-24T09:01:29+00:00","group":{"ref":"comite-directeur","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":7,"creationDate":"2023-07-05T08:03:13+00:00","updateDate":"2025-12-01T14:22:11+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"president-e","name":"Président.e","nameSlug":"president-e","requiresLicence":true,"mandatory":true,"position":1,"unique":false,"editionEndDate":null,"id":23,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-10-20T15:40:50+00:00","group":{"ref":"comite-directeur","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":7,"creationDate":"2023-07-05T08:03:13+00:00","updateDate":"2025-12-01T14:22:11+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"C9bEloVnbRrd","name":"Membre suppléant","nameSlug":"membre-suppleant","requiresLicence":true,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":98,"creationDate":"2023-11-27T17:06:25+00:00","updateDate":"2024-03-02T13:49:51+00:00","group":{"ref":"comite-directeur","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":7,"creationDate":"2023-07-05T08:03:13+00:00","updateDate":"2025-12-01T14:22:11+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"VtsHLltYP0mD","name":"Co-Président.e","nameSlug":"co-president-e","requiresLicence":true,"mandatory":false,"position":2,"unique":false,"editionEndDate":null,"id":99,"creationDate":"2023-11-29T08:34:07+00:00","updateDate":"2025-11-21T18:24:03+00:00","group":{"ref":"comite-directeur","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":7,"creationDate":"2023-07-05T08:03:13+00:00","updateDate":"2025-12-01T14:22:11+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"1gDslNwqZoA3","name":"Délégué AG","nameSlug":"delegue-ag","requiresLicence":true,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":111,"creationDate":"2024-02-07T11:56:25+00:00","updateDate":"2025-11-30T10:03:25+00:00","group":{"ref":"comite-directeur","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":7,"creationDate":"2023-07-05T08:03:13+00:00","updateDate":"2025-12-01T14:22:11+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"BtLJQzSvrgO1","name":"Référent Sport","nameSlug":"referent-sport","requiresLicence":true,"mandatory":false,"position":98,"unique":true,"editionEndDate":null,"id":135,"creationDate":"2025-12-01T14:22:11+00:00","updateDate":"2025-12-01T14:22:11+00:00","group":{"ref":"comite-directeur","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":7,"creationDate":"2023-07-05T08:03:13+00:00","updateDate":"2025-12-01T14:22:11+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"tresorier-e-adjoint-e","name":"Trésorier.e Adjoint.e","nameSlug":"tresorier-e-adjoint-e","requiresLicence":true,"mandatory":false,"position":6,"unique":false,"editionEndDate":null,"id":10,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-04-11T06:39:31+00:00","group":{"ref":"comite-directeur-coreg","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":8,"creationDate":"2023-07-05T08:03:19+00:00","updateDate":"2025-12-01T14:22:19+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"vice-president-e","name":"Vice-président.e","nameSlug":"vice-president-e","requiresLicence":true,"mandatory":false,"position":4,"unique":false,"editionEndDate":null,"id":11,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-04-02T11:28:31+00:00","group":{"ref":"comite-directeur-coreg","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":8,"creationDate":"2023-07-05T08:03:19+00:00","updateDate":"2025-12-01T14:22:19+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"tresorier-e","name":"Trésorier.e","nameSlug":"tresorier-e","requiresLicence":true,"mandatory":true,"position":3,"unique":false,"editionEndDate":null,"id":12,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-04-02T11:28:31+00:00","group":{"ref":"comite-directeur-coreg","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":8,"creationDate":"2023-07-05T08:03:19+00:00","updateDate":"2025-12-01T14:22:19+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"secretaire-general-e-adjoint-e","name":"Secrétaire Général.e Adjoint.e","nameSlug":"secretaire-general-e-adjoint-e","requiresLicence":true,"mandatory":false,"position":5,"unique":false,"editionEndDate":null,"id":13,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-10-28T14:49:55+00:00","group":{"ref":"comite-directeur-coreg","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":8,"creationDate":"2023-07-05T08:03:19+00:00","updateDate":"2025-12-01T14:22:19+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"president-e","name":"Président.e","nameSlug":"president-e","requiresLicence":true,"mandatory":true,"position":1,"unique":false,"editionEndDate":null,"id":14,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-04-02T11:28:31+00:00","group":{"ref":"comite-directeur-coreg","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":8,"creationDate":"2023-07-05T08:03:19+00:00","updateDate":"2025-12-01T14:22:19+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"membre","name":"Membre","nameSlug":"membre","requiresLicence":true,"mandatory":false,"position":98,"unique":false,"editionEndDate":null,"id":15,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-04-11T06:38:49+00:00","group":{"ref":"comite-directeur-coreg","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":8,"creationDate":"2023-07-05T08:03:19+00:00","updateDate":"2025-12-01T14:22:19+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"secretaire-general-e","name":"Secrétaire Général.e","nameSlug":"secretaire-general-e","requiresLicence":true,"mandatory":true,"position":2,"unique":false,"editionEndDate":null,"id":16,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-04-02T11:28:31+00:00","group":{"ref":"comite-directeur-coreg","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":8,"creationDate":"2023-07-05T08:03:19+00:00","updateDate":"2025-12-01T14:22:19+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"7hRj0FieSw56","name":"Membre suppléant","nameSlug":"membre-suppleant","requiresLicence":true,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":97,"creationDate":"2023-11-27T17:05:46+00:00","updateDate":"2025-01-15T10:11:14+00:00","group":{"ref":"comite-directeur-coreg","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":8,"creationDate":"2023-07-05T08:03:19+00:00","updateDate":"2025-12-01T14:22:19+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"nDk3K7Y5Z1LT","name":"Membre (Poste réservé Médecin)","nameSlug":"membre-poste-reserve-medecin","requiresLicence":true,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":104,"creationDate":"2024-01-10T14:50:29+00:00","updateDate":"2025-01-14T09:48:57+00:00","group":{"ref":"comite-directeur-coreg","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":8,"creationDate":"2023-07-05T08:03:19+00:00","updateDate":"2025-12-01T14:22:19+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"ALDbp1Xm9kWA","name":"Délégué AG","nameSlug":"delegue-ag","requiresLicence":true,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":110,"creationDate":"2024-02-07T11:55:56+00:00","updateDate":"2025-11-12T13:57:36+00:00","group":{"ref":"comite-directeur-coreg","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":8,"creationDate":"2023-07-05T08:03:19+00:00","updateDate":"2025-12-01T14:22:19+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"WiUjAEBjx5O5","name":"Référent Sport","nameSlug":"referent-sport","requiresLicence":true,"mandatory":false,"position":98,"unique":true,"editionEndDate":null,"id":136,"creationDate":"2025-12-01T14:22:19+00:00","updateDate":"2025-12-01T14:22:19+00:00","group":{"ref":"comite-directeur-coreg","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":8,"creationDate":"2023-07-05T08:03:19+00:00","updateDate":"2025-12-01T14:22:19+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"membre","name":"Membre","nameSlug":"membre","requiresLicence":true,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":3,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-02-26T17:38:00+00:00","group":{"ref":"comite-directeur-federation","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":9,"creationDate":"2023-07-05T08:03:27+00:00","updateDate":"2025-12-01T14:22:26+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"secretaire-general-e","name":"Secrétaire Général.e","nameSlug":"secretaire-general-e","requiresLicence":true,"mandatory":true,"position":2,"unique":false,"editionEndDate":null,"id":4,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"comite-directeur-federation","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":9,"creationDate":"2023-07-05T08:03:27+00:00","updateDate":"2025-12-01T14:22:26+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"secretaire-general-e-adjoint-e","name":"Secrétaire Général.e Adjoint.e","nameSlug":"secretaire-general-e-adjoint-e","requiresLicence":true,"mandatory":false,"position":5,"unique":false,"editionEndDate":null,"id":5,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-01-19T13:15:31+00:00","group":{"ref":"comite-directeur-federation","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":9,"creationDate":"2023-07-05T08:03:27+00:00","updateDate":"2025-12-01T14:22:26+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"tresorier-e","name":"Trésorier.e","nameSlug":"tresorier-e","requiresLicence":true,"mandatory":true,"position":3,"unique":false,"editionEndDate":null,"id":6,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"comite-directeur-federation","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":9,"creationDate":"2023-07-05T08:03:27+00:00","updateDate":"2025-12-01T14:22:26+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"tresorier-e-adjoint-e","name":"Trésorier.e Adjoint.e","nameSlug":"tresorier-e-adjoint-e","requiresLicence":true,"mandatory":false,"position":10,"unique":false,"editionEndDate":null,"id":7,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"comite-directeur-federation","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":9,"creationDate":"2023-07-05T08:03:27+00:00","updateDate":"2025-12-01T14:22:26+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"president-e","name":"Président.e","nameSlug":"president-e","requiresLicence":true,"mandatory":true,"position":1,"unique":false,"editionEndDate":null,"id":8,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"comite-directeur-federation","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":9,"creationDate":"2023-07-05T08:03:27+00:00","updateDate":"2025-12-01T14:22:26+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"vice-president-e","name":"Vice-président.e","nameSlug":"vice-president-e","requiresLicence":true,"mandatory":false,"position":4,"unique":false,"editionEndDate":null,"id":9,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-02-26T17:39:42+00:00","group":{"ref":"comite-directeur-federation","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":9,"creationDate":"2023-07-05T08:03:27+00:00","updateDate":"2025-12-01T14:22:26+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"vice-presidente-accompagnem-des-terrritoires","name":"Vice-président des Terrritoires","nameSlug":"vice-president-des-terrritoires","requiresLicence":true,"mandatory":false,"position":4,"unique":false,"editionEndDate":null,"id":52,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-02-26T17:34:05+00:00","group":{"ref":"comite-directeur-federation","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":9,"creationDate":"2023-07-05T08:03:27+00:00","updateDate":"2025-12-01T14:22:26+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"medecin-federal","name":"Médecin fédéral","nameSlug":"medecin-federal","requiresLicence":false,"mandatory":false,"position":90,"unique":false,"editionEndDate":null,"id":56,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"comite-directeur-federation","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":9,"creationDate":"2023-07-05T08:03:27+00:00","updateDate":"2025-12-01T14:22:26+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"chargee-de-communication","name":"Chargée de Communication","nameSlug":"chargee-de-communication","requiresLicence":true,"mandatory":false,"position":30,"unique":false,"editionEndDate":null,"id":57,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"comite-directeur-federation","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":9,"creationDate":"2023-07-05T08:03:27+00:00","updateDate":"2025-12-01T14:22:26+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"vice-president-e-formation-evolution-metiers","name":"Vice-président.e Formation, Evolution Métiers","nameSlug":"vice-president-e-formation-evolution-metiers","requiresLicence":true,"mandatory":false,"position":4,"unique":false,"editionEndDate":null,"id":58,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"comite-directeur-federation","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":9,"creationDate":"2023-07-05T08:03:27+00:00","updateDate":"2025-12-01T14:22:26+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"vice-president-e-dvpt-offres-pratiq-public","name":"Vice président.e Dvpt Offres pratiq. ,public","nameSlug":"vice-president-e-dvpt-offres-pratiq-public","requiresLicence":true,"mandatory":false,"position":4,"unique":false,"editionEndDate":null,"id":59,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"comite-directeur-federation","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":9,"creationDate":"2023-07-05T08:03:27+00:00","updateDate":"2025-12-01T14:22:26+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"8CY6ruTPSwba","name":"Vice-président.e Coordination des Processus","nameSlug":"vice-president-e-coordination-des-processus","requiresLicence":true,"mandatory":false,"position":0,"unique":true,"editionEndDate":null,"id":133,"creationDate":"2025-04-01T08:51:24+00:00","updateDate":"2025-04-01T08:52:02+00:00","group":{"ref":"comite-directeur-federation","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":9,"creationDate":"2023-07-05T08:03:27+00:00","updateDate":"2025-12-01T14:22:26+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"Gl2BJKn4XDIV","name":"Référent Sport","nameSlug":"referent-sport","requiresLicence":true,"mandatory":false,"position":98,"unique":true,"editionEndDate":null,"id":137,"creationDate":"2025-12-01T14:22:26+00:00","updateDate":"2025-12-01T14:22:26+00:00","group":{"ref":"comite-directeur-federation","internalRef":"steering-committee","label":"Comité Directeur","mandatory":true,"position":0,"id":9,"creationDate":"2023-07-05T08:03:27+00:00","updateDate":"2025-12-01T14:22:26+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"responsable-de-commission","name":"Responsable de commission","nameSlug":"responsable-de-commission","requiresLicence":true,"mandatory":false,"position":1,"unique":false,"editionEndDate":null,"id":24,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"commission-de-mise-en-concurrence","internalRef":null,"label":"Commission de mise en concurrence","mandatory":false,"position":10,"id":10,"creationDate":"2023-07-05T08:03:36+00:00","updateDate":"2024-07-31T07:07:49+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"membre","name":"Membre","nameSlug":"membre","requiresLicence":true,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":25,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-02-25T13:17:44+00:00","group":{"ref":"commission-de-mise-en-concurrence","internalRef":null,"label":"Commission de mise en concurrence","mandatory":false,"position":10,"id":10,"creationDate":"2023-07-05T08:03:36+00:00","updateDate":"2024-07-31T07:07:49+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"contact-principal","name":"Contact principal","nameSlug":"contact-principal","requiresLicence":false,"mandatory":false,"position":0,"unique":false,"editionEndDate":null,"id":26,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"contacts","internalRef":null,"label":"Contacts","mandatory":false,"position":0,"id":11,"creationDate":"2023-07-05T08:03:43+00:00","updateDate":"2024-02-13T14:27:46+00:00","organizationsTypes":[{"label":"Maison Sport Santé","id":6,"ref":"tyla0T0hO9NY","creationDate":"2023-06-06T14:22:13+00:00","updateDate":"2025-11-10T09:48:46+00:00"}]}},{"ref":"secretaire-administrative","name":"Sécrétaire Administrative","nameSlug":"secretaire-administrative","requiresLicence":false,"mandatory":false,"position":10,"unique":false,"editionEndDate":null,"id":35,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-12-01T12:30:29+00:00","group":{"ref":"contacts-codep","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":12,"creationDate":"2023-07-05T08:03:50+00:00","updateDate":"2025-01-28T13:08:14+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"conseiller-e-de-developpement","name":"Conseiller.e de Developpement","nameSlug":"conseiller-e-de-developpement","requiresLicence":false,"mandatory":false,"position":5,"unique":false,"editionEndDate":null,"id":36,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-10-20T15:38:23+00:00","group":{"ref":"contacts-codep","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":12,"creationDate":"2023-07-05T08:03:50+00:00","updateDate":"2025-01-28T13:08:14+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"animateur-trice-i-reseau","name":"Animateur.trice (i-réseau)","nameSlug":"animateur-trice-i-reseau","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":46,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-05-22T07:58:54+00:00","group":{"ref":"contacts-codep","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":12,"creationDate":"2023-07-05T08:03:50+00:00","updateDate":"2025-01-28T13:08:14+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"charge-e-de-communication","name":"Chargé.e de Communication","nameSlug":"charge-e-de-communication","requiresLicence":false,"mandatory":false,"position":15,"unique":false,"editionEndDate":null,"id":70,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-03-19T07:39:20+00:00","group":{"ref":"contacts-codep","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":12,"creationDate":"2023-07-05T08:03:50+00:00","updateDate":"2025-01-28T13:08:14+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"directeur-trice-de-comite-departemental","name":"Directeur.trice de Comité Départemental","nameSlug":"directeur-trice-de-comite-departemental","requiresLicence":false,"mandatory":false,"position":1,"unique":false,"editionEndDate":null,"id":72,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-02-06T08:34:50+00:00","group":{"ref":"contacts-codep","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":12,"creationDate":"2023-07-05T08:03:50+00:00","updateDate":"2025-01-28T13:08:14+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"conseiller-e-referent-territorial-e","name":"Conseiller.e Référent Territorial.e","nameSlug":"conseiller-e-referent-territorial-e","requiresLicence":false,"mandatory":false,"position":60,"unique":false,"editionEndDate":null,"id":76,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-07-13T14:54:55+00:00","group":{"ref":"contacts-codep","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":12,"creationDate":"2023-07-05T08:03:50+00:00","updateDate":"2025-01-28T13:08:14+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"gestionnaire-de-paie","name":"Gestionnaire de Paie","nameSlug":"gestionnaire-de-paie","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":94,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-10-22T07:50:23+00:00","group":{"ref":"contacts-codep","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":12,"creationDate":"2023-07-05T08:03:50+00:00","updateDate":"2025-01-28T13:08:14+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"gestionnaire-comptable","name":"Gestionnaire Comptable","nameSlug":"gestionnaire-comptable","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":95,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-12-14T18:33:22+00:00","group":{"ref":"contacts-codep","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":12,"creationDate":"2023-07-05T08:03:50+00:00","updateDate":"2025-01-28T13:08:14+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"X0i0MSOegxt9","name":"Destinataire Notif Mail I-Réseau","nameSlug":"destinataire-notif-mail-i-reseau","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":100,"creationDate":"2023-12-18T08:24:23+00:00","updateDate":"2025-04-08T13:24:21+00:00","group":{"ref":"contacts-codep","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":12,"creationDate":"2023-07-05T08:03:50+00:00","updateDate":"2025-01-28T13:08:14+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"LAnJRplKFCaL","name":"Interlocteur.trice Subvention PSF","nameSlug":"interlocteur-trice-subvention-psf","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":105,"creationDate":"2024-01-22T08:46:12+00:00","updateDate":"2025-10-11T12:17:06+00:00","group":{"ref":"contacts-codep","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":12,"creationDate":"2023-07-05T08:03:50+00:00","updateDate":"2025-01-28T13:08:14+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"QWwjszQoiImk","name":"Chargé.e de mission","nameSlug":"charge-e-de-mission","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":108,"creationDate":"2024-01-22T12:44:10+00:00","updateDate":"2024-03-19T07:40:01+00:00","group":{"ref":"contacts-codep","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":12,"creationDate":"2023-07-05T08:03:50+00:00","updateDate":"2025-01-28T13:08:14+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"ZtOdC94qbNtq","name":"Chargé.e de Recrutement","nameSlug":"charge-e-de-recrutement","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":114,"creationDate":"2024-07-05T14:49:32+00:00","updateDate":"2024-07-05T14:49:32+00:00","group":{"ref":"contacts-codep","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":12,"creationDate":"2023-07-05T08:03:50+00:00","updateDate":"2025-01-28T13:08:14+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"UxFyS42uZQ6f","name":"Agent de Développement","nameSlug":"agent-de-developpement","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":123,"creationDate":"2024-10-10T17:22:15+00:00","updateDate":"2024-11-05T08:28:44+00:00","group":{"ref":"contacts-codep","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":12,"creationDate":"2023-07-05T08:03:50+00:00","updateDate":"2025-01-28T13:08:14+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"TNf1pmURJA6X","name":"Interlocteur.trice AFPT","nameSlug":"interlocteur-trice-afpt","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":125,"creationDate":"2025-01-28T13:08:14+00:00","updateDate":"2025-02-25T09:55:41+00:00","group":{"ref":"contacts-codep","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":12,"creationDate":"2023-07-05T08:03:50+00:00","updateDate":"2025-01-28T13:08:14+00:00","organizationsTypes":[{"label":"Département","id":3,"ref":"department","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"animateur-trice-i-reseau","name":"Animateur.trice (i-réseau)","nameSlug":"animateur-trice-i-reseau","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":37,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-12-03T13:19:16+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"secretaire-administrative","name":"Sécrétaire Administrative","nameSlug":"secretaire-administrative","requiresLicence":false,"mandatory":false,"position":10,"unique":false,"editionEndDate":null,"id":48,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-12-17T09:27:58+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"conseiller-e-de-developpement","name":"Conseiller.e de Developpement","nameSlug":"conseiller-e-de-developpement","requiresLicence":false,"mandatory":false,"position":5,"unique":false,"editionEndDate":null,"id":49,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-12-03T13:19:16+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"charge-e-de-communication","name":"Chargé.e de Communication","nameSlug":"charge-e-de-communication","requiresLicence":false,"mandatory":false,"position":15,"unique":false,"editionEndDate":null,"id":69,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"directeur-trice-de-comite-regional","name":"Directeur.trice de Comité Régional","nameSlug":"directeur-trice-de-comite-regional","requiresLicence":false,"mandatory":false,"position":1,"unique":false,"editionEndDate":null,"id":71,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-02-19T07:57:32+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"conseiller-e-pedagogique-regional-e","name":"Conseiller.e Pédagogique Régional.e","nameSlug":"conseiller-e-pedagogique-regional-e","requiresLicence":false,"mandatory":false,"position":50,"unique":false,"editionEndDate":null,"id":73,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-04-08T12:56:52+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"conseillier-e-technique-sportif","name":"Conseillier.e Technique Sportif","nameSlug":"conseillier-e-technique-sportif","requiresLicence":false,"mandatory":false,"position":50,"unique":false,"editionEndDate":null,"id":74,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-03-25T10:53:04+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"conseiller-e-referent-territorial-e","name":"Conseiller.e Référent Territorial.e","nameSlug":"conseiller-e-referent-territorial-e","requiresLicence":false,"mandatory":false,"position":60,"unique":false,"editionEndDate":null,"id":75,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-01-16T13:42:13+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"assistante-accompagnement-financier","name":"Assistante Accompagnement Financier","nameSlug":"assistante-accompagnement-financier","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":87,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-11-29T09:57:51+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"7wpHAL7WyV8t","name":"Destinataire Notif Mail I-Réseau","nameSlug":"destinataire-notif-mail-i-reseau","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":101,"creationDate":"2023-12-18T08:24:38+00:00","updateDate":"2024-01-08T15:53:06+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"bVNgL6v8LBWM","name":"Formateur.trice","nameSlug":"formateur-trice","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":102,"creationDate":"2024-01-10T14:30:29+00:00","updateDate":"2025-11-06T13:03:04+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"HbDZV2STGU0w","name":"Gestionnaire de Formation","nameSlug":"gestionnaire-de-formation","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":103,"creationDate":"2024-01-10T14:32:58+00:00","updateDate":"2024-02-12T13:25:38+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"tdUt6oiWX9Yf","name":"Interlocteur.trice Subventions PSF","nameSlug":"interlocteur-trice-subventions-psf","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":106,"creationDate":"2024-01-22T08:46:28+00:00","updateDate":"2024-01-22T08:46:28+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"kuuXEDDOZwby","name":"Chargé.e de mission","nameSlug":"charge-e-de-mission","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":107,"creationDate":"2024-01-22T12:43:47+00:00","updateDate":"2024-01-24T15:31:46+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"iLsjJClLGFfn","name":"Chargé.e de Comptabilité","nameSlug":"charge-e-de-comptabilite","requiresLicence":false,"mandatory":false,"position":0,"unique":false,"editionEndDate":null,"id":109,"creationDate":"2024-01-24T15:18:34+00:00","updateDate":"2025-02-22T10:48:16+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"ZoupQiJ4qwo9","name":"Gestionnaire de Paie","nameSlug":"gestionnaire-de-paie","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":112,"creationDate":"2024-03-28T08:25:36+00:00","updateDate":"2024-03-28T08:25:36+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"7KEDOEUky9yY","name":"Chargé.e de Recrutement","nameSlug":"charge-e-de-recrutement","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":115,"creationDate":"2024-07-05T14:49:53+00:00","updateDate":"2024-07-05T14:49:53+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"asVExq3N0gq2","name":"Responsable Administratif.tive","nameSlug":"responsable-administratif-tive","requiresLicence":false,"mandatory":false,"position":1,"unique":false,"editionEndDate":null,"id":119,"creationDate":"2024-08-12T09:16:41+00:00","updateDate":"2025-04-08T12:57:39+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"YQ56G5fdb635","name":"Interlocteur.trice AFPT","nameSlug":"interlocteur-trice-afpt","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":126,"creationDate":"2025-01-28T13:08:33+00:00","updateDate":"2025-01-28T13:08:33+00:00","group":{"ref":"contacts-coreg","internalRef":null,"label":"Contacts","mandatory":false,"position":99,"id":13,"creationDate":"2023-07-05T08:03:57+00:00","updateDate":"2025-01-28T13:08:33+00:00","organizationsTypes":[{"label":"Région","id":2,"ref":"region","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-11-03T09:34:46+00:00"}]}},{"ref":"directrice-vie-associative-et-juridique","name":"Directrice Vie Associative et Juridique","nameSlug":"directrice-vie-associative-et-juridique","requiresLicence":false,"mandatory":false,"position":2,"unique":false,"editionEndDate":null,"id":38,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-09-25T09:51:20+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"directeur-marketing-communication-et-even","name":"Directeur Marketing, Communication et Even.","nameSlug":"directeur-marketing-communication-et-even","requiresLicence":false,"mandatory":false,"position":2,"unique":false,"editionEndDate":null,"id":39,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-09-25T11:10:17+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"directeur-des-systemes-d-information","name":"Directeur des Systèmes d\u0027Information","nameSlug":"directeur-des-systemes-d-information","requiresLicence":false,"mandatory":false,"position":2,"unique":false,"editionEndDate":null,"id":40,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-09-25T11:10:17+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"directeur-general","name":"Directeur Général","nameSlug":"directeur-general","requiresLicence":false,"mandatory":false,"position":1,"unique":false,"editionEndDate":null,"id":41,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-09-25T11:06:50+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"animateur-trice-i-reseau","name":"Animateur.trice (i-réseau)","nameSlug":"animateur-trice-i-reseau","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":47,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-09-25T10:12:36+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"chef-fe-de-projet-digital","name":"Chef.fe de projet digital","nameSlug":"chef-fe-de-projet-digital","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":66,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-09-25T11:33:39+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"responsable-valorisation-ressources-humaines","name":"Responsable Valorisation Ressources Humaines","nameSlug":"responsable-valorisation-ressources-humaines","requiresLicence":false,"mandatory":false,"position":10,"unique":false,"editionEndDate":null,"id":67,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-09-25T11:07:04+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"assistante-evenementielle","name":"Assistante Evenementielle","nameSlug":"assistante-evenementielle","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":77,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-11-29T10:00:03+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"assistante-de-direction","name":"Assistante de Direction","nameSlug":"assistante-de-direction","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":78,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-02-26T09:22:47+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"chargee-de-communication-externe","name":"Chargée de Communication Externe","nameSlug":"chargee-de-communication-externe","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":79,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-11-29T10:00:19+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"administrateur-systemes-et-reseaux","name":"Administrateur Systèmes et Réseaux","nameSlug":"administrateur-systemes-et-reseaux","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":80,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-09-26T15:34:35+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"ux-designer-apprenti","name":"UX Designer Apprenti","nameSlug":"ux-designer-apprenti","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":81,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-09-25T11:33:39+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"assistante-helpdesk","name":"Assistante Helpdesk","nameSlug":"assistante-helpdesk","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":82,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-11-29T10:00:28+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"chargee-d-etudes-statistiques","name":"Chargée d’Etudes Statistiques","nameSlug":"chargee-d-etudes-statistiques","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":83,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-11-29T10:00:36+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"assistante-formation","name":"Assistante Formation","nameSlug":"assistante-formation","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":84,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-11-29T10:00:43+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"juriste","name":"Juriste","nameSlug":"juriste","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":85,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-11-29T10:00:50+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"juriste-apprentie","name":"Juriste Apprentie","nameSlug":"juriste-apprentie","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":86,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-11-29T10:00:58+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"charge-de-mission","name":"Chargé de mission","nameSlug":"charge-de-mission","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":88,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-11-29T10:01:04+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"responsable-environnement-federal","name":"Responsable Environnement Fédéral","nameSlug":"responsable-environnement-federal","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":89,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-11-29T10:01:11+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"responsable-finances-comptabilite","name":"Responsable Finances \u0026 Comptabilité","nameSlug":"responsable-finances-comptabilite","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":90,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-11-29T10:01:18+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"assistante-comptable","name":"Assistante Comptable","nameSlug":"assistante-comptable","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":91,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-11-29T10:01:24+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"comptable-generale","name":"Comptable générale","nameSlug":"comptable-generale","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":92,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-11-29T10:01:30+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"directeur-de-structure","name":"Directeur de structure","nameSlug":"directeur-de-structure","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":93,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2024-11-29T10:01:37+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"Va7oWvk7xv0z","name":"Apprenti Chargé de Communication","nameSlug":"apprenti-charge-de-communication","requiresLicence":false,"mandatory":false,"position":0,"unique":false,"editionEndDate":null,"id":120,"creationDate":"2024-09-24T13:30:43+00:00","updateDate":"2024-09-27T05:40:49+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"iDil8ffQyz6e","name":"Chargé.e de Support","nameSlug":"charge-e-de-support","requiresLicence":false,"mandatory":false,"position":0,"unique":true,"editionEndDate":null,"id":121,"creationDate":"2024-10-07T08:39:30+00:00","updateDate":"2024-10-07T08:40:33+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"NinpadHO5ccv","name":"Assistante Accompagnement Financier","nameSlug":"assistante-accompagnement-financier","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":124,"creationDate":"2024-11-29T10:11:10+00:00","updateDate":"2024-11-29T10:13:53+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"53dz6HPO","name":"Conseiller Technique National","nameSlug":"conseiller-technique-national","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":129,"creationDate":"2025-03-09T09:18:06+00:00","updateDate":"2025-03-09T09:18:06+00:00","group":{"ref":"contacts-federation","internalRef":null,"label":"Contacts","mandatory":false,"position":25,"id":14,"creationDate":"2023-07-05T08:04:04+00:00","updateDate":"2024-11-29T10:11:11+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"directeur-technique-national","name":"Directeur Technique National","nameSlug":"directeur-technique-national","requiresLicence":false,"mandatory":false,"position":1,"unique":false,"editionEndDate":null,"id":27,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"direction-technique-nationale","internalRef":null,"label":"Direction Technique Nationale","mandatory":false,"position":15,"id":15,"creationDate":"2023-07-05T08:04:10+00:00","updateDate":"2024-07-31T07:08:04+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"directrice-technique-nationale-adjointe","name":"Directrice Technique Nationale Adjointe","nameSlug":"directrice-technique-nationale-adjointe","requiresLicence":false,"mandatory":false,"position":2,"unique":false,"editionEndDate":null,"id":51,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"direction-technique-nationale","internalRef":null,"label":"Direction Technique Nationale","mandatory":false,"position":15,"id":15,"creationDate":"2023-07-05T08:04:10+00:00","updateDate":"2024-07-31T07:08:04+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"cadre-technique-national","name":"Cadre Technique National","nameSlug":"cadre-technique-national","requiresLicence":false,"mandatory":false,"position":10,"unique":false,"editionEndDate":null,"id":65,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-03-09T09:22:17+00:00","group":{"ref":"direction-technique-nationale","internalRef":null,"label":"Direction Technique Nationale","mandatory":false,"position":15,"id":15,"creationDate":"2023-07-05T08:04:10+00:00","updateDate":"2024-07-31T07:08:04+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"responsable-de-commission","name":"Responsable de commission","nameSlug":"responsable-de-commission","requiresLicence":true,"mandatory":false,"position":1,"unique":false,"editionEndDate":null,"id":43,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"commission-ethique-et-deonthologie","internalRef":null,"label":"Commission Ethique et Déonthologie","mandatory":false,"position":5,"id":17,"creationDate":"2023-07-10T09:48:26+00:00","updateDate":"2024-07-31T07:07:20+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"membre","name":"Membre","nameSlug":"membre","requiresLicence":true,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":44,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"commission-ethique-et-deonthologie","internalRef":null,"label":"Commission Ethique et Déonthologie","mandatory":false,"position":5,"id":17,"creationDate":"2023-07-10T09:48:26+00:00","updateDate":"2024-07-31T07:07:20+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"president-e","name":"Président.e","nameSlug":"president-e","requiresLicence":true,"mandatory":true,"position":1,"unique":false,"editionEndDate":null,"id":53,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"4aJO0e5MrFZA","internalRef":null,"label":"Bureau fédéral","mandatory":true,"position":1,"id":18,"creationDate":"2023-07-24T09:07:51+00:00","updateDate":"2025-02-26T09:01:54+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"secretaire-general-e","name":"Secrétaire Général.e","nameSlug":"secretaire-general-e","requiresLicence":true,"mandatory":true,"position":2,"unique":false,"editionEndDate":null,"id":54,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"4aJO0e5MrFZA","internalRef":null,"label":"Bureau fédéral","mandatory":true,"position":1,"id":18,"creationDate":"2023-07-24T09:07:51+00:00","updateDate":"2025-02-26T09:01:54+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"tresorier-e","name":"Trésorier.e","nameSlug":"tresorier-e","requiresLicence":true,"mandatory":true,"position":3,"unique":false,"editionEndDate":null,"id":55,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"4aJO0e5MrFZA","internalRef":null,"label":"Bureau fédéral","mandatory":true,"position":1,"id":18,"creationDate":"2023-07-24T09:07:51+00:00","updateDate":"2025-02-26T09:01:54+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"vice-president-e-dvpt-offres-pratiq-public","name":"Vice président.e Dvpt Offres pratiq. ,public","nameSlug":"vice-president-e-dvpt-offres-pratiq-public","requiresLicence":true,"mandatory":false,"position":4,"unique":false,"editionEndDate":null,"id":60,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"4aJO0e5MrFZA","internalRef":null,"label":"Bureau fédéral","mandatory":true,"position":1,"id":18,"creationDate":"2023-07-24T09:07:51+00:00","updateDate":"2025-02-26T09:01:54+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"vice-presidente-accompagnem-des-terrritoires","name":"Vice-Présidente Accompagnem. des Terrritoires","nameSlug":"vice-presidente-accompagnem-des-terrritoires","requiresLicence":true,"mandatory":false,"position":4,"unique":false,"editionEndDate":null,"id":61,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"4aJO0e5MrFZA","internalRef":null,"label":"Bureau fédéral","mandatory":true,"position":1,"id":18,"creationDate":"2023-07-24T09:07:51+00:00","updateDate":"2025-02-26T09:01:54+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"vice-president-e-formation-evolution-metiers","name":"Vice-président.e Formation, Evolution Métiers","nameSlug":"vice-president-e-formation-evolution-metiers","requiresLicence":true,"mandatory":false,"position":4,"unique":false,"editionEndDate":null,"id":62,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-02-25T13:17:44+00:00","group":{"ref":"4aJO0e5MrFZA","internalRef":null,"label":"Bureau fédéral","mandatory":true,"position":1,"id":18,"creationDate":"2023-07-24T09:07:51+00:00","updateDate":"2025-02-26T09:01:54+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"chargee-de-communication","name":"Chargée de Communication","nameSlug":"chargee-de-communication","requiresLicence":true,"mandatory":false,"position":30,"unique":false,"editionEndDate":null,"id":63,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2023-11-02T16:50:25+00:00","group":{"ref":"4aJO0e5MrFZA","internalRef":null,"label":"Bureau fédéral","mandatory":true,"position":1,"id":18,"creationDate":"2023-07-24T09:07:51+00:00","updateDate":"2025-02-26T09:01:54+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"secretaire-general-e-adjoint-e","name":"Secrétaire Général.e Adjoint.e","nameSlug":"secretaire-general-e-adjoint-e","requiresLicence":true,"mandatory":false,"position":5,"unique":false,"editionEndDate":null,"id":64,"creationDate":"2023-11-02T16:50:23+00:00","updateDate":"2025-02-26T17:42:33+00:00","group":{"ref":"4aJO0e5MrFZA","internalRef":null,"label":"Bureau fédéral","mandatory":true,"position":1,"id":18,"creationDate":"2023-07-24T09:07:51+00:00","updateDate":"2025-02-26T09:01:54+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"9f3qZavRDxNl","name":"Vice-président des Terrritoires","nameSlug":"vice-president-des-terrritoires","requiresLicence":true,"mandatory":false,"position":4,"unique":false,"editionEndDate":null,"id":127,"creationDate":"2025-02-26T09:01:11+00:00","updateDate":"2025-02-26T17:41:15+00:00","group":{"ref":"4aJO0e5MrFZA","internalRef":null,"label":"Bureau fédéral","mandatory":true,"position":1,"id":18,"creationDate":"2023-07-24T09:07:51+00:00","updateDate":"2025-02-26T09:01:54+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"Da9Djq1IOSx8","name":"Vice-Président Coordination des Processus","nameSlug":"vice-president-coordination-des-processus","requiresLicence":true,"mandatory":false,"position":4,"unique":false,"editionEndDate":null,"id":128,"creationDate":"2025-02-26T09:01:54+00:00","updateDate":"2025-02-26T17:43:31+00:00","group":{"ref":"4aJO0e5MrFZA","internalRef":null,"label":"Bureau fédéral","mandatory":true,"position":1,"id":18,"creationDate":"2023-07-24T09:07:51+00:00","updateDate":"2025-02-26T09:01:54+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"xWxXArW7XbeY","name":"Animateur.trice (i-réseau)","nameSlug":"animateur-trice-i-reseau","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":117,"creationDate":"2024-07-18T15:01:12+00:00","updateDate":"2024-07-23T08:39:20+00:00","group":{"ref":"d1G4QpghmrCZ","internalRef":null,"label":"Partenaires Justice","mandatory":false,"position":99,"id":19,"creationDate":"2024-07-18T15:00:43+00:00","updateDate":"2024-07-18T15:04:24+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"awSlv3DxReGy","name":"Partenaire (i-réseau)","nameSlug":"partenaire-i-reseau","requiresLicence":false,"mandatory":false,"position":99,"unique":false,"editionEndDate":null,"id":118,"creationDate":"2024-07-18T15:01:37+00:00","updateDate":"2024-07-18T15:01:37+00:00","group":{"ref":"d1G4QpghmrCZ","internalRef":null,"label":"Partenaires Justice","mandatory":false,"position":99,"id":19,"creationDate":"2024-07-18T15:00:43+00:00","updateDate":"2024-07-18T15:04:24+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"gHmya552vk3M","name":"Animateur.trice (i-réseau)","nameSlug":"animateur-trice-i-reseau","requiresLicence":false,"mandatory":false,"position":0,"unique":false,"editionEndDate":null,"id":122,"creationDate":"2024-10-07T08:56:24+00:00","updateDate":"2024-10-07T08:58:17+00:00","group":{"ref":"FW752Hokkci2","internalRef":null,"label":"Partenaires PSSCS","mandatory":false,"position":99,"id":20,"creationDate":"2024-10-07T08:55:02+00:00","updateDate":"2024-10-07T08:58:17+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"b6oUiwRFRGJJ","name":"Responsable de Commission","nameSlug":"responsable-de-commission","requiresLicence":true,"mandatory":false,"position":1,"unique":true,"editionEndDate":null,"id":130,"creationDate":"2025-03-26T12:06:04+00:00","updateDate":"2025-03-26T12:08:14+00:00","group":{"ref":"w5NnFqtV7e7K","internalRef":null,"label":"Commission Territoriale et Clubs","mandatory":false,"position":99,"id":22,"creationDate":"2025-03-26T12:04:53+00:00","updateDate":"2025-03-26T12:08:14+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"nWOPCtmcinKp","name":"Responsable de Commission","nameSlug":"responsable-de-commission","requiresLicence":true,"mandatory":false,"position":1,"unique":true,"editionEndDate":null,"id":131,"creationDate":"2025-03-26T12:19:26+00:00","updateDate":"2025-03-26T12:22:19+00:00","group":{"ref":"uKHGSGIJ4kB3","internalRef":null,"label":"Comité GEVEDIT","mandatory":false,"position":99,"id":23,"creationDate":"2025-03-26T12:16:07+00:00","updateDate":"2025-03-26T12:26:40+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}},{"ref":"EM5ywkh4sqm7","name":"Responsable de Commission","nameSlug":"responsable-de-commission","requiresLicence":true,"mandatory":false,"position":1,"unique":true,"editionEndDate":null,"id":132,"creationDate":"2025-03-26T12:19:47+00:00","updateDate":"2025-03-26T12:22:19+00:00","group":{"ref":"c2x3xNwUzfnN","internalRef":null,"label":"Commission Patrimoine","mandatory":false,"position":99,"id":24,"creationDate":"2025-03-26T12:17:08+00:00","updateDate":"2025-03-26T12:22:19+00:00","organizationsTypes":[{"label":"Fédération","id":1,"ref":"federation","creationDate":"2023-06-19T10:12:16+00:00","updateDate":"2025-12-01T08:22:45+00:00"}]}}]
+
