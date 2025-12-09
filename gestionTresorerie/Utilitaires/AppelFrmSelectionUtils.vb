@@ -5,7 +5,7 @@ Public Module AppelFrmSelectionUtils
     ''' <summary>
     ''' Ouvre une fenêtre de sélection générique et retourne l’entité choisie.
     ''' </summary>
-    ''' <typeparam name="T">Type de l’entité (Categorie, SousCategorie, TypeDocImpl...)</typeparam>
+    ''' <typeparam name="T">TypeMouvement de l’entité (Categorie, SousCategorie, TypeDocImpl...)</typeparam>
     ''' <param name="nomRequete">Nom de la requête SQL à exécuter</param>
     ''' <param name="titreFenetre">Titre affiché dans la fenêtre</param>
     ''' <param name="txtDestination">TextBox à alimenter avec le libellé de l’entité sélectionnée</param>

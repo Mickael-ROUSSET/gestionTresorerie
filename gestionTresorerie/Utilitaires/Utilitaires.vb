@@ -301,7 +301,7 @@ Friend Class Utilitaires
                                 Case "date"
                                     resultat(fieldName) = CDate(fieldValue).ToString("yyyy-MM-dd")
                                 Case Else
-                                    Logger.DBG($"Type de conversion non reconnu pour le champ {fieldName}: {fieldType}")
+                                    Logger.DBG($"TypeMouvement de conversion non reconnu pour le champ {fieldName}: {fieldType}")
                                     resultat(fieldName) = fieldValue
                             End Select
                         Next

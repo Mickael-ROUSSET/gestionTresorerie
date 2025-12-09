@@ -125,7 +125,7 @@ Public Class batchAnalyse
             ' Obtenir le type de la classe dérivée
             Dim typeClasse As Type = Type.GetType("gestionTresorerie." & _TypeDoc.ClasseTypeDoc)
             If typeClasse Is Nothing OrElse Not GetType(DocumentAgumaaa).IsAssignableFrom(typeClasse) Then
-                Logger.ERR($"Type non trouvé ou non dérivé de DocumentAgumaaa : {"gestionTresorerie." & _TypeDoc.ClasseTypeDoc}")
+                Logger.ERR($"TypeMouvement non trouvé ou non dérivé de DocumentAgumaaa : {"gestionTresorerie." & _TypeDoc.ClasseTypeDoc}")
                 Return
             End If
 
@@ -177,7 +177,7 @@ Public Class batchAnalyse
                 ' Tentative alternative : chercher dans l'assembly courant
                 typeClasse = Assembly.GetExecutingAssembly().GetType(doc.ClasseTypeDoc, False, True)
                 If typeClasse Is Nothing Then
-                    Logger.ERR($"Type non trouvé : {doc.ClasseTypeDoc}")
+                    Logger.ERR($"TypeMouvement non trouvé : {doc.ClasseTypeDoc}")
                     Return Nothing
                 End If
             End If

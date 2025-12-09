@@ -77,7 +77,7 @@ Partial Class FrmNouveauTiers
         grpPersonne.Location = New Point(45, 35)
         grpPersonne.Name = "grpPersonne"
         grpPersonne.Size = New Size(418, 60)
-        grpPersonne.TabIndex = 2
+        grpPersonne.TabIndex = 1
         grpPersonne.TabStop = False
         ' 
         ' rbPersonnePhysique
@@ -96,14 +96,14 @@ Partial Class FrmNouveauTiers
         txtNom.Location = New Point(167, 106)
         txtNom.Name = "txtNom"
         txtNom.Size = New Size(296, 23)
-        txtNom.TabIndex = 3
+        txtNom.TabIndex = 2
         ' 
         ' txtPrenom
         ' 
         txtPrenom.Location = New Point(167, 154)
         txtPrenom.Name = "txtPrenom"
         txtPrenom.Size = New Size(296, 23)
-        txtPrenom.TabIndex = 5
+        txtPrenom.TabIndex = 3
         ' 
         ' lblPrenom
         ' 
@@ -119,7 +119,7 @@ Partial Class FrmNouveauTiers
         txtRaisonSociale.Location = New Point(167, 276)
         txtRaisonSociale.Name = "txtRaisonSociale"
         txtRaisonSociale.Size = New Size(296, 23)
-        txtRaisonSociale.TabIndex = 7
+        txtRaisonSociale.TabIndex = 6
         ' 
         ' lblRaisonSociale
         ' 
@@ -160,7 +160,7 @@ Partial Class FrmNouveauTiers
         btnCreerTiers.Location = New Point(52, 485)
         btnCreerTiers.Name = "btnCreerTiers"
         btnCreerTiers.Size = New Size(75, 23)
-        btnCreerTiers.TabIndex = 12
+        btnCreerTiers.TabIndex = 10
         btnCreerTiers.Text = "Créer Tiers"
         btnCreerTiers.UseVisualStyleBackColor = True
         ' 
@@ -178,7 +178,7 @@ Partial Class FrmNouveauTiers
         btnCoordonnees.Location = New Point(167, 319)
         btnCoordonnees.Name = "btnCoordonnees"
         btnCoordonnees.Size = New Size(46, 23)
-        btnCoordonnees.TabIndex = 21
+        btnCoordonnees.TabIndex = 7
         btnCoordonnees.Text = "..."
         btnCoordonnees.UseVisualStyleBackColor = True
         ' 
@@ -187,7 +187,7 @@ Partial Class FrmNouveauTiers
         btnCategorie.Location = New Point(495, 363)
         btnCategorie.Name = "btnCategorie"
         btnCategorie.Size = New Size(39, 23)
-        btnCategorie.TabIndex = 23
+        btnCategorie.TabIndex = 8
         btnCategorie.Text = "..."
         btnCategorie.UseVisualStyleBackColor = True
         ' 
@@ -196,7 +196,7 @@ Partial Class FrmNouveauTiers
         btnSousCategorie.Location = New Point(495, 411)
         btnSousCategorie.Name = "btnSousCategorie"
         btnSousCategorie.Size = New Size(39, 23)
-        btnSousCategorie.TabIndex = 24
+        btnSousCategorie.TabIndex = 9
         btnSousCategorie.Text = "..."
         btnSousCategorie.UseVisualStyleBackColor = True
         ' 
@@ -237,14 +237,14 @@ Partial Class FrmNouveauTiers
         txLieuNaissance.Location = New Point(168, 239)
         txLieuNaissance.Name = "txLieuNaissance"
         txLieuNaissance.Size = New Size(295, 23)
-        txLieuNaissance.TabIndex = 29
+        txLieuNaissance.TabIndex = 5
         ' 
         ' dtpDateNaissance
         ' 
         dtpDateNaissance.Location = New Point(274, 196)
         dtpDateNaissance.Name = "dtpDateNaissance"
         dtpDateNaissance.Size = New Size(189, 23)
-        dtpDateNaissance.TabIndex = 30
+        dtpDateNaissance.TabIndex = 4
         ' 
         ' FrmNouveauTiers
         ' 

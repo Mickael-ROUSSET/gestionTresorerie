@@ -112,7 +112,7 @@ Public Class ProgrammeCinemaCreator
             CreerPage1(mainPart, body, seances)
 
             ' --- Saut de page avant page 2 ---
-            'body.Append(New Paragraph(New Run(New Break() With {.Type = BreakValues.Page})))
+            'body.Append(New Paragraph(New Run(New Break() With {.TypeMouvement = BreakValues.Page})))
 
             ' Page 2 avec la liste des films et leurs affiches
             CreerPage2(mainPart, body, seances)

@@ -1,11 +1,53 @@
 ﻿Imports System.Data.SqlClient
 Imports System.Text.RegularExpressions
-Imports Windows.Win32.System
+Imports System.Globalization
 Public Class Mouvements
     Private _note As String
-    Private _événement As String
-    Private _type As String
+    Private _evenement As String
+    Private _typeMouvement As String
     Private _numeroRemise As String
+    Public ReadOnly Property Id() As Integer
+    Public Property Categorie() As Integer
+    Public Property SousCategorie() As Integer
+    Public Property Tiers() As Integer
+    Public Property DateMvt() As Date
+    Public Property Montant() As Decimal
+    Public Property Sens() As Boolean
+    Public Property Etat() As Boolean
+    Public Property reference() As String
+    Public Property typeReference() As String
+    Public Property idDoc() As Integer
+    Public Property Evenement() As String
+        Get
+            Return _evenement
+        End Get
+        Set(ByVal value As String)
+            _evenement = If(value, String.Empty).Trim()
+        End Set
+    End Property
+    Public Property TypeMouvement() As String
+        Get
+            Return _typeMouvement
+        End Get
+        Set(ByVal value As String)
+            _typeMouvement = If(value, String.Empty).Trim()
+        End Set
+    End Property
+    Public Property Modifiable() As Boolean
+    Public Property NumeroRemise() As String
+        Get
+            Return _numeroRemise
+        End Get
+        Set(ByVal value As String)
+            Dim s As String = Trim(Strings.Replace(If(value, String.Empty), """", String.Empty))
+            Dim remiseInt As Integer
+            If Integer.TryParse(s, remiseInt) Then
+                _numeroRemise = s
+            Else
+                _numeroRemise = "0"
+            End If
+        End Set
+    End Property
 
     Public Shared Sub InsereMouvement(mouvement)
         Try
@@ -24,92 +66,105 @@ Public Class Mouvements
             Logger.ERR($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
         End Try
     End Sub
+
+    ' Constructeur rendu tolérant aux valeurs nulles et conversions robustes
     Public Sub New(ByVal note As String, ByVal categorie As Integer, ByVal sousCategorie As Integer, ByVal tiers As Integer, ByVal dateMvt As Date, ByVal montant As String, ByVal sens As String, ByVal etat As String, ByVal événement As String, ByVal type As String, ByVal modifiable As Boolean, ByVal numeroRemise As String, ByVal reference As String, ByVal typeReference As String, ByVal idDoc As Integer)
-        ' Set the property value.
-        With Me
-            If VerifParam(categorie, sousCategorie, tiers, dateMvt, montant, sens, etat, type) Then
-                .Note = note
-                .Categorie = categorie
-                .SousCategorie = sousCategorie
-                .Tiers = tiers
-                .DateMvt = dateMvt
-                .DateCréation = Date.Now
-                .Montant = montant
-                .Sens = sens
-                .Etat = etat
-                .Événement = événement
-                .Type = type
-                .Modifiable = modifiable
-                .NumeroRemise = numeroRemise
-                .reference = reference
-                .typeReference = typeReference
-                .idDoc = idDoc
+        ' Préparer des valeurs sûres et convertir silencieusement les types
+        Dim noteSafe As String = If(note, String.Empty).Trim()
+        Dim categorieSafe As Integer = categorie
+        Dim sousCategorieSafe As Integer = sousCategorie
+        Dim tiersSafe As Integer = tiers
+        Dim dateMvtSafe As Date = If(dateMvt = Nothing, Date.MinValue, dateMvt)
+
+        Dim montantSafe As Decimal = 0D
+        Dim montantStr As String = Convert.ToString(montant)
+        If Not Decimal.TryParse(montantStr, NumberStyles.Any, CultureInfo.CurrentCulture, montantSafe) Then
+            ' Si impossible à parser, conserver 0
+            montantSafe = 0D
+        End If
+
+        Dim sensBool As Boolean = False
+        Dim sensStr As String = Convert.ToString(sens)
+        If Not Boolean.TryParse(sensStr, sensBool) Then
+            ' essayer conversion numérique (0/1)
+            If Integer.TryParse(sensStr, Nothing) Then
+                sensBool = CInt(sensStr) <> 0
             Else
-                Logger.WARN($"Infos manquantes pour la création du mouvement : {note} {categorie} {sousCategorie} {tiers} {dateMvt} {montant} {sens} {etat} {événement} {type} {modifiable} {numeroRemise} {reference} {typeReference} {idDoc}")
+                sensBool = False
             End If
-        End With
+        End If
+
+        Dim etatSafe As String = If(etat, String.Empty).Trim()
+        Dim evenementSafe As String = If(événement, String.Empty).Trim()
+        Dim typeSafe As String = If(type, String.Empty).Trim()
+        Dim numeroRemiseSafe As String = If(numeroRemise, String.Empty).Trim()
+        Dim referenceSafe As String = If(reference, String.Empty).Trim()
+        Dim typeReferenceSafe As String = If(typeReference, String.Empty).Trim()
+        Dim idDocSafe As Integer = idDoc
+
+        ' Vérifier la présence minimale des paramètres en appelant VerifParam avec des chaînes sûres
+        If VerifParam(categorieSafe.ToString(), sousCategorieSafe.ToString(), tiersSafe, dateMvtSafe, montantSafe.ToString(CultureInfo.CurrentCulture), sensBool.ToString(), etatSafe, typeSafe) Then
+            With Me
+                .Note = noteSafe
+                .Categorie = categorieSafe
+                .SousCategorie = sousCategorieSafe
+                .Tiers = tiersSafe
+                .DateMvt = dateMvtSafe
+                .DateCréation = Date.Now
+                .Montant = montantSafe
+                .Sens = sensBool
+                .Etat = etatSafe
+                .Evenement = evenementSafe
+                .TypeMouvement = typeSafe
+                .Modifiable = modifiable
+                .NumeroRemise = numeroRemiseSafe
+                .reference = referenceSafe
+                .typeReference = typeReferenceSafe
+                .idDoc = idDocSafe
+            End With
+        Else
+            Logger.WARN($"Infos manquantes pour la création du mouvement : {noteSafe} {categorieSafe} {sousCategorieSafe} {tiersSafe} {dateMvtSafe} {montantSafe} {sensBool} {etatSafe} {evenementSafe} {typeSafe} {modifiable} {numeroRemiseSafe} {referenceSafe} {typeReferenceSafe} {idDocSafe}")
+        End If
     End Sub
+
     Public Sub New()
         If Not IsDate(DateMvt) AndAlso Sens = String.Empty AndAlso Montant = String.Empty Then
             Err.Raise("Erreur dans la création du mouvement : " & ObtenirValeursConcatenees())
         End If
     End Sub
-    'Public Shared Sub InsererMouvementEnBase(mouvement As Mouvements)
-    '    Try
-    '        Dim unused = SqlCommandBuilder.
-    '            CreateSqlCommand("insertMvts",
-    '                             New Dictionary(Of String, Object) From
-    '                                                     {{"@note", mouvement.Note},
-    '                                                     {"@categorie", mouvement.Categorie},
-    '                                                     {"@sousCategorie", mouvement.SousCategorie},
-    '                                                     {"@tiers", mouvement.Tiers},
-    '                                                     {"@dateCréation", DateTime.Now},
-    '                                                     {"@dateMvt", mouvement.DateMvt},
-    '                                                     {"@montant", Utilitaires.ConvertToDecimal(mouvement.Montant)},
-    '                                                     {"@sens", mouvement.Sens},
-    '                                                     {"@etat", mouvement.Etat},
-    '                                                     {"@événement", mouvement.Événement},
-    '                                                     {"@type", mouvement.Type},
-    '                                                     {"@modifiable", mouvement.Modifiable},
-    '                                                     {"@numeroRemise", mouvement.NumeroRemise},
-    '                                                     {"@reference", mouvement.reference},
-    '                                                     {"@typeReference", mouvement.typeReference},
-    '                                                     {"@idDoc", mouvement.idDoc}}
-    '                         ).ExecuteNonQuery()
-    '        Logger.INFO($"Insertion du mouvement réussie : {mouvement.ObtenirValeursConcatenees}")
-    '    Catch ex As Exception
-    '        Logger.ERR($"Erreur générale lors de l'insertion du mouvement : {ex.Message}, Mouvement : {mouvement.ObtenirValeursConcatenees}")
-    '        Throw ' Re-lancer l'exception après l'avoir loggée
-    '    End Try
-    'End Sub
+
     Public Shared Sub InsererMouvementEnBase(mouvement As Mouvements)
         If mouvement Is Nothing Then Throw New ArgumentNullException(NameOf(mouvement))
 
         Try
             Dim paramètres As New Dictionary(Of String, Object) From {
             {"@note", If(String.IsNullOrWhiteSpace(mouvement.Note), DBNull.Value, mouvement.Note.Trim())},
-            {"@categorie", If(String.IsNullOrWhiteSpace(mouvement.Categorie), DBNull.Value, mouvement.Categorie)},
-            {"@sousCategorie", If(String.IsNullOrWhiteSpace(mouvement.SousCategorie), DBNull.Value, mouvement.SousCategorie)},
+            {"@categorie", If(mouvement.Categorie = 0, DBNull.Value, mouvement.Categorie)},
+            {"@sousCategorie", If(mouvement.SousCategorie = 0, DBNull.Value, mouvement.SousCategorie)},
             {"@tiers", If(String.IsNullOrWhiteSpace(mouvement.Tiers), DBNull.Value, mouvement.Tiers)},
-            {"@dateCréation", DateTime.Now},
+            {"@dateCreation", DateTime.Now},
             {"@dateMvt", If(mouvement.DateMvt = Date.MinValue, DBNull.Value, mouvement.DateMvt)},
             {"@montant", mouvement.Montant},
-            {"@sens", If(String.IsNullOrWhiteSpace(mouvement.Sens), DBNull.Value, mouvement.Sens)},
-            {"@etat", If(String.IsNullOrWhiteSpace(mouvement.Etat), DBNull.Value, mouvement.Etat)},
-            {"@événement", If(String.IsNullOrWhiteSpace(mouvement.Événement), DBNull.Value, mouvement.Événement)},
-            {"@type", If(String.IsNullOrWhiteSpace(mouvement.Type), DBNull.Value, mouvement.Type)},
+            {"@sens", mouvement.Sens},
+            {"@etat", mouvement.Etat},
+            {"@evenement", If(String.IsNullOrWhiteSpace(mouvement.Evenement), DBNull.Value, mouvement.Evenement)},
+            {"@typeMouvement", If(String.IsNullOrWhiteSpace(mouvement.TypeMouvement), DBNull.Value, mouvement.TypeMouvement)},
             {"@modifiable", mouvement.Modifiable},
             {"@numeroRemise", If(String.IsNullOrWhiteSpace(mouvement.NumeroRemise), DBNull.Value, mouvement.NumeroRemise.Trim())},
             {"@reference", If(String.IsNullOrWhiteSpace(mouvement.reference), DBNull.Value, mouvement.reference.Trim())},
             {"@typeReference", If(String.IsNullOrWhiteSpace(mouvement.typeReference), DBNull.Value, mouvement.typeReference.Trim())},
             {"@idDoc", If(mouvement.idDoc = 0, DBNull.Value, mouvement.idDoc)}
         }
-            Utilitaires.LogCommand(SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertMvts", paramètres))
-            Dim lignes = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertMvts", paramètres).ExecuteNonQuery()
+            Dim cmd As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertMvts", paramètres)
+            Utilitaires.LogCommand(cmd)
+            Logger.WARN($"cmd.Connection.State.ToString(1) : {cmd.Connection.State.ToString()}")
+
+            Dim lignes = cmd.ExecuteNonQuery()
+            Logger.WARN($"cmd.Connection.State.ToString(2) : {cmd.Connection.State.ToString()}")
 
             If lignes = 1 Then
                 'Logger.INFO($"Mouvement inséré : {mouvement.ObtenirValeursConcatenees()}")
-                Logger.INFO($"Mouvement inséré  ")
+                Logger.INFO($"Mouvement inséré")
             Else
                 'Logger.WARN($"Insertion anormale : {lignes} ligne(s) affectée(s). {mouvement.ObtenirValeursConcatenees()}")
                 Logger.WARN($"Insertion anormale : {lignes} ligne(s) affectée(s). ")
@@ -181,15 +236,15 @@ Public Class Mouvements
         Dim dataTable As New DataTable()
 
         Try
-            ' Définir la commande SQL pour appeler la procédure stockée 
-            Dim cmd As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "procMvtsIdentiques",
+            ' Définir la commande SQL pour appeler la requête
+            Dim cmd As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqMouvementsSimilaires",
                                            New Dictionary(Of String, Object) From {{"@dateMvt", mouvement.DateMvt},
                                            {"@montant", CDec(mouvement.Montant)},
                                            {"@sens", mouvement.Sens}})
             ' Créer un DataAdapter pour remplir le DataTable
             Using adapter As New SqlDataAdapter(cmd)
                 ' Remplir le DataTable avec les données de la base de données
-                Dim unused = adapter.Fill(dataTable)
+                adapter.Fill(dataTable)
             End Using
 
             ' Écrire un log d'information
@@ -215,7 +270,7 @@ Public Class Mouvements
                                                                      {"@DateMvt", dateMvt},
                                                                      {"@Etat", etat},
                                                                      {"@Evenement", If(evenement, DBNull.Value)},
-                                                                     {"@Type", If(type, DBNull.Value)},
+                                                                     {"@TypeMouvement", If(type, DBNull.Value)},
                                                                      {"@Modifiable", modifiable},
                                                                      {"@NumeroRemise", If(numeroRemise, DBNull.Value)},
                                                                      {"@reference", If(reference, DBNull.Value)},
@@ -224,7 +279,7 @@ Public Class Mouvements
                              ).
                              ExecuteNonQuery()
             ' Trace indiquant les valeurs mises à jour
-            Logger.INFO($"Valeurs mises à jour - Catégorie: {categorie}, Sous-Catégorie: {sousCategorie}, Montant: {montant}, Sens: {sens}, Tiers: {tiers}, Note: {note}, DateMvt: {dateMvt}, Etat: {etat}, Evénement: {evenement}, Type: {type}, Modifiable: {modifiable}, Numéro Remise: {numeroRemise}, reference: {reference}, typeReference: {typeReference}, idDoc: {idDoc}")
+            Logger.INFO($"Valeurs mises à jour - Catégorie: {categorie}, Sous-Catégorie: {sousCategorie}, Montant: {montant}, Sens: {sens}, Tiers: {tiers}, Note: {note}, DateMvt: {dateMvt}, Etat: {etat}, Evénement: {evenement}, TypeMouvement: {type}, Modifiable: {modifiable}, Numéro Remise: {numeroRemise}, reference: {reference}, typeReference: {typeReference}, idDoc: {idDoc}")
         Catch ex As Exception
             ' Trace en cas d'erreur
             Logger.ERR($"Erreur lors de la mise à jour du mouvement : {ex.Message}")
@@ -286,46 +341,6 @@ Public Class Mouvements
             _note = Regex.Replace(value, "(.*)""(.*)", String.Empty)
         End Set
     End Property
-    Public ReadOnly Property Id() As Integer
-    Public Property Categorie() As Integer
-    Public Property SousCategorie() As Integer
-    Public Property Tiers() As Integer
-    Public Property DateMvt() As Date
-    Public Property Montant() As Decimal
-    Public Property Sens() As Boolean
-    Public Property Etat() As String
-    Public Property reference() As String
-    Public Property typeReference() As String
-    Public Property idDoc() As Integer
-    Public Property Événement() As String
-        Get
-            Return _événement
-        End Get
-        Set(ByVal value As String)
-            _événement = Trim(value)
-        End Set
-    End Property
-    Public Property Type() As String
-        Get
-            Return _type
-        End Get
-        Set(ByVal value As String)
-            _type = Trim(value)
-        End Set
-    End Property
-    Public Property Modifiable() As Boolean
-    Public Property NumeroRemise() As String
-        Get
-            Return CInt(_numeroRemise)
-        End Get
-        Set(ByVal value As String)
-            Dim s As String
-            s = Trim(Strings.Replace(value, """", String.Empty))
-            _numeroRemise = If(Integer.TryParse(Trim(Strings.Replace(value, """", String.Empty)), vbNull),
-                Trim(Strings.Replace(value, """", String.Empty)),
-                "0")
-        End Set
-    End Property
     ''' <summary>
     ''' Retourne une chaîne formatée avec toutes les valeurs du mouvement.
     ''' </summary>
@@ -342,13 +357,13 @@ Public Class Mouvements
         AjouterChamp(sb, "Montant", _Montant, "N2")
         AjouterChamp(sb, "Sens", _Sens)
         AjouterChamp(sb, "État", Etat)
-        AjouterChamp(sb, "Événement", _événement)
-        AjouterChamp(sb, "Type", _type)
+        AjouterChamp(sb, "Evenement", _evenement)
+        AjouterChamp(sb, "TypeMouvement", _typeMouvement)
         AjouterChamp(sb, "Modifiable", Modifiable)
         AjouterChamp(sb, "Numéro de Remise", _numeroRemise)
         sb.Append(vbCrLf)
         AjouterChamp(sb, "Référence", reference)
-        AjouterChamp(sb, "Type de référence", typeReference)
+        AjouterChamp(sb, "TypeMouvement de référence", typeReference)
         AjouterChamp(sb, "idDoc", idDoc)
 
         ' Nettoyage final

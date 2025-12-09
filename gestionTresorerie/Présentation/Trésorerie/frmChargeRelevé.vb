@@ -75,8 +75,9 @@ Public Class FrmChargeRelevé
                     Else
                         Logger.WARN($"Montant non trouvé dans les cellules de la ligne {row.Index} : {row}")
                     End If
-
-                    row.Cells(_iColTraiteImage).Value = If(Mouvements.Existe(dateMvt, montant, sens), My.Resources.OK, My.Resources.KO)
+                    'TODO : à revoir, cela fait baucoup de requêtes
+                    'row.Cells(_iColTraiteImage).Value = If(Mouvements.Existe(dateMvt, montant, sens), My.Resources.OK, My.Resources.KO)
+                    row.Cells(_iColTraiteImage).Value = My.Resources.KO
                 Catch ex As Exception
                     Logger.ERR($"Erreur lors de la définition de l'image pour la colonne 'Traité' dans la ligne {row.Index}: {ex.Message}")
                     row.Cells("iTraiteImageIndex").Value = Nothing ' Par défaut, en cas d'erreur

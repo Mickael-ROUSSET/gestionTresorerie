@@ -136,13 +136,13 @@ Public Class FrmSelectionneDocument
 
     Private Function ObtenirIdDocSelectionne() As Integer
         ' Logique pour obtenir l'idDoc sélectionné
+        MsgBox("Fonction fictive ObtenirIdDocSelectionne appelée")
         Return 123 ' Exemple d'idDoc
     End Function
 
 
     Public Sub chargeListeDoc()
-        ' Appelle la version générique avec la requête "selDocPagination" qui ramène tous les documents
-        'chargeListeDocInterne("selDocPagination", New Dictionary(Of String, Object))
+        ' Appelle la version générique avec la requête "selDocPagination" qui ramène tous les documents 
         ChargerDocuments()
     End Sub
     Public Sub chargeListeDoc(montant As Decimal)
@@ -350,7 +350,7 @@ Public Class FrmSelectionneDocument
             ' Position du bouton : sous le textbox (avec marge)
             btnChanger.Location = New System.Drawing.Point(txtChemin.Left, txtChemin.Bottom + 8)
 
-            ' Événement clic
+            ' Evenement clic
             AddHandler btnChanger.Click,
         Sub(sender As Object, e As EventArgs)
             ChangerEmplacementOuNomFichier(txtChemin)
@@ -654,17 +654,7 @@ Public Class FrmSelectionneDocument
             SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "cptDocPagination").ExecuteScalar()
         Return CInt(nbDoc)
     End Function
-    'Private Shared Function GetDocumentsPagines(sWhereClause As String, sOffset As Integer, sTaillePage As Integer, sColonneTri As String, sOrdreTri As String) As SqlDataReader
     Private Shared Function GetDocumentsPagines(sOffset As Integer, sTaillePage As Integer, sColonneTri As String, sOrdreTri As String) As SqlDataReader
-        'Dim cmd As SqlCommand =
-        'SqlCommandBuilder.CreateSqlCommand("selDocPagination",
-        '                 New Dictionary(Of String, Object) From {{"@whereClause", sWhereClause},
-        '                                                         {"@Offset", sOffset},
-        '                                                         {"@TaillePage", sTaillePage},
-        '                                                         {"@ColonneTri", sColonneTri},
-        '                                                         {"@OrdreTri", sOrdreTri}
-        '                                                        }
-        '                 )
         Dim cmd As SqlCommand =
             SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "selDocPagination",
                              New Dictionary(Of String, Object) From {{"@Offset", sOffset},
@@ -791,18 +781,6 @@ Public Class FrmSelectionneDocument
                         "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
-
-    'Private Sub btnChercheTiers_Click(sender As Object, e As EventArgs) Handles btnChercheTiers.Click
-
-    '    Using frm As New FrmSelectionGenerique("reqIdentiteCatTiers")
-    '        If frm.ShowDialog() = DialogResult.OK Then
-    '            Dim lst = frm.ResultatsSelectionnes
-    '            For Each r In lst
-    '                Logger.INFO($"Tiers sélectionné : {r("Nom")}, {r("Prenom")}, {r("raisonSociale")}")
-    '            Next
-    '        End If
-    '    End Using
-    'End Sub
     Private Sub btnChercheTiers_Click(sender As Object, e As EventArgs) Handles btnChercheTiers.Click
         Try
             ' --- Ouvre la fenêtre de sélection des tiers ---

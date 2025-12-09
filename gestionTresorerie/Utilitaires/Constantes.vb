@@ -51,7 +51,7 @@ Public Class Constantes
     Public Const sqlSelTiersPhysique As String = "selTiersPhysique"
     Public Const sqlSelSelectMouvementsLibelles As String = "sqlSelectMouvementsLibelles"
     Public Const sqlSelLibCat As String = "reqLibCat"
-    Public Const sqlSelTypes As String = "reqTypes"
+    Public Const sqlSelTypes As String = "reqTypesMouvement"
     Public Const sqlSelEvenement As String = "reqEvenement"
     Public Const sqlSelTypesDocuments As String = "reqLibellesTypesDocuments"
     'Mises à jour

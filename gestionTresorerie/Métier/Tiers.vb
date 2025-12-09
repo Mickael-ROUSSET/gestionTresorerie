@@ -1,6 +1,4 @@
 ﻿Imports System.Data.SqlClient
-Imports System.Diagnostics.Eventing
-Imports DocumentFormat.OpenXml.Math
 
 Public Class Tiers
     Inherits BaseDataRow
@@ -83,7 +81,8 @@ Public Class Tiers
     Public Shared Function getSousCategorieTiers(idTiers As Double) As Integer
         ' Renvoie la sous catégorie d'un tiers  
         Dim iSousCategorie As Integer
-        Dim monReader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqSousCategoriesDefautMouvements",
+        Dim monReader As SqlDataReader = SqlCommandBuilder.
+            CreateSqlCommand(Constantes.bddAgumaaa, "reqSousCategoriesDefautMouvements",
                              New Dictionary(Of String, Object) From {{"@Id", idTiers}}
                              ).ExecuteReader()
         Do While monReader.Read()
@@ -163,7 +162,9 @@ Public Class Tiers
                 {"@dateNaissance", dateNaissanceParam}
             }
 
-            Using Reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "getIdTiersByNomPrenomDate", param).ExecuteReader
+            Using Reader As SqlDataReader = SqlCommandBuilder.
+                CreateSqlCommand(Constantes.bddAgumaaa, "getIdTiersByNomPrenomDate", param).
+                ExecuteReader
                 Dim IdTiers As Integer
                 If Reader.HasRows Then
                     While Reader.Read()

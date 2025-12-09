@@ -43,16 +43,10 @@ Partial Class frmSaisie
         txtRemise = New TextBox()
         txtNote = New TextBox()
         lblNote = New Label()
-        cbEvénement = New ComboBox()
         TiersBindingSource = New BindingSource(components)
         MouvementsBindingSource1 = New BindingSource(components)
         MouvementsBindingSource = New BindingSource(components)
-        txtRechercheTiers = New TextBox()
         btnSelDoc = New Button()
-        btnCreerTiers = New Button()
-        btnListeChqRemise = New Button()
-        lblChercheTiers = New Label()
-        btnNouveauChq = New Button()
         lblTypeDocument = New Label()
         TypeDocImplBindingSource = New BindingSource(components)
         btnSelTiers = New Button()
@@ -67,7 +61,8 @@ Partial Class frmSaisie
         txtTypeMvt = New TextBox()
         txtEvenement = New TextBox()
         btnSelEvenement = New Button()
-        btnAjouteCoord = New Button()
+        Document = New Label()
+        txtDocument = New TextBox()
         grpSens.SuspendLayout()
         GroupBox1.SuspendLayout()
         CType(TiersBindingSource, ComponentModel.ISupportInitialize).BeginInit()
@@ -80,16 +75,16 @@ Partial Class frmSaisie
         ' 
         lblType.AutoSize = True
         lblType.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblType.Location = New Point(20, 395)
+        lblType.Location = New Point(23, 373)
         lblType.Name = "lblType"
-        lblType.Size = New Size(33, 15)
+        lblType.Size = New Size(128, 15)
         lblType.TabIndex = 0
-        lblType.Text = "Type"
+        lblType.Text = "TypeMouvement mvt"
         ' 
         ' dateMvt
         ' 
         dateMvt.AllowDrop = True
-        dateMvt.Location = New Point(17, 33)
+        dateMvt.Location = New Point(23, 27)
         dateMvt.Name = "dateMvt"
         dateMvt.Size = New Size(194, 23)
         dateMvt.TabIndex = 1
@@ -98,7 +93,7 @@ Partial Class frmSaisie
         ' 
         lblTiers.AutoSize = True
         lblTiers.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblTiers.Location = New Point(17, 81)
+        lblTiers.Location = New Point(23, 111)
         lblTiers.Name = "lblTiers"
         lblTiers.Size = New Size(34, 15)
         lblTiers.TabIndex = 4
@@ -108,7 +103,7 @@ Partial Class frmSaisie
         ' 
         lblCategorie.AutoSize = True
         lblCategorie.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblCategorie.Location = New Point(17, 176)
+        lblCategorie.Location = New Point(23, 163)
         lblCategorie.Name = "lblCategorie"
         lblCategorie.Size = New Size(61, 15)
         lblCategorie.TabIndex = 5
@@ -118,7 +113,7 @@ Partial Class frmSaisie
         ' 
         lblSousCategorie.AutoSize = True
         lblSousCategorie.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblSousCategorie.Location = New Point(20, 250)
+        lblSousCategorie.Location = New Point(23, 212)
         lblSousCategorie.Name = "lblSousCategorie"
         lblSousCategorie.Size = New Size(91, 15)
         lblSousCategorie.TabIndex = 8
@@ -151,9 +146,9 @@ Partial Class frmSaisie
         grpSens.AutoSize = True
         grpSens.Controls.Add(rbDebit)
         grpSens.Controls.Add(rbCredit)
-        grpSens.Location = New Point(374, 29)
+        grpSens.Location = New Point(302, 27)
         grpSens.Name = "grpSens"
-        grpSens.Size = New Size(154, 63)
+        grpSens.Size = New Size(154, 65)
         grpSens.TabIndex = 12
         grpSens.TabStop = False
         grpSens.Text = "Sens"
@@ -161,25 +156,26 @@ Partial Class frmSaisie
         ' btnValider
         ' 
         btnValider.AutoSize = True
-        btnValider.Location = New Point(21, 613)
+        btnValider.Location = New Point(23, 554)
         btnValider.Name = "btnValider"
         btnValider.Size = New Size(75, 25)
-        btnValider.TabIndex = 13
+        btnValider.TabIndex = 7
         btnValider.Text = "Valider"
         btnValider.UseVisualStyleBackColor = True
         ' 
         ' lblMontant
         ' 
         lblMontant.AutoSize = True
-        lblMontant.Location = New Point(237, 34)
+        lblMontant.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
+        lblMontant.Location = New Point(23, 66)
         lblMontant.Name = "lblMontant"
-        lblMontant.Size = New Size(53, 15)
+        lblMontant.Size = New Size(55, 15)
         lblMontant.TabIndex = 14
         lblMontant.Text = "Montant"
         ' 
         ' txtMontant
         ' 
-        txtMontant.Location = New Point(237, 58)
+        txtMontant.Location = New Point(125, 63)
         txtMontant.Name = "txtMontant"
         txtMontant.Size = New Size(128, 23)
         txtMontant.TabIndex = 15
@@ -188,7 +184,7 @@ Partial Class frmSaisie
         ' 
         lblEvénement.AutoSize = True
         lblEvénement.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblEvénement.Location = New Point(20, 515)
+        lblEvénement.Location = New Point(23, 469)
         lblEvénement.Name = "lblEvénement"
         lblEvénement.Size = New Size(71, 15)
         lblEvénement.TabIndex = 17
@@ -199,9 +195,9 @@ Partial Class frmSaisie
         GroupBox1.AutoSize = True
         GroupBox1.Controls.Add(rbCree)
         GroupBox1.Controls.Add(rbRapproche)
-        GroupBox1.Location = New Point(570, 27)
+        GroupBox1.Location = New Point(482, 27)
         GroupBox1.Name = "GroupBox1"
-        GroupBox1.Size = New Size(180, 63)
+        GroupBox1.Size = New Size(172, 63)
         GroupBox1.TabIndex = 13
         GroupBox1.TabStop = False
         GroupBox1.Text = "Etat"
@@ -221,7 +217,7 @@ Partial Class frmSaisie
         ' rbRapproche
         ' 
         rbRapproche.AutoSize = True
-        rbRapproche.Location = New Point(92, 22)
+        rbRapproche.Location = New Point(67, 22)
         rbRapproche.Name = "rbRapproche"
         rbRapproche.Size = New Size(82, 19)
         rbRapproche.TabIndex = 10
@@ -230,18 +226,18 @@ Partial Class frmSaisie
         ' 
         ' btnInsereTiers
         ' 
-        btnInsereTiers.Location = New Point(582, 111)
+        btnInsereTiers.Location = New Point(552, 109)
         btnInsereTiers.Name = "btnInsereTiers"
         btnInsereTiers.Size = New Size(105, 23)
         btnInsereTiers.TabIndex = 19
-        btnInsereTiers.Text = "Insère un tiers"
+        btnInsereTiers.Text = "Nouveau tiers"
         btnInsereTiers.UseVisualStyleBackColor = True
         ' 
         ' lblRemise
         ' 
         lblRemise.AutoSize = True
         lblRemise.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblRemise.Location = New Point(22, 556)
+        lblRemise.Location = New Point(23, 510)
         lblRemise.Name = "lblRemise"
         lblRemise.Size = New Size(48, 15)
         lblRemise.TabIndex = 23
@@ -249,35 +245,27 @@ Partial Class frmSaisie
         ' 
         ' txtRemise
         ' 
-        txtRemise.Location = New Point(133, 556)
+        txtRemise.Location = New Point(125, 510)
         txtRemise.Name = "txtRemise"
-        txtRemise.Size = New Size(328, 23)
+        txtRemise.Size = New Size(372, 23)
         txtRemise.TabIndex = 24
         ' 
         ' txtNote
         ' 
-        txtNote.Location = New Point(137, 471)
+        txtNote.Location = New Point(125, 420)
         txtNote.Name = "txtNote"
-        txtNote.Size = New Size(424, 23)
+        txtNote.Size = New Size(372, 23)
         txtNote.TabIndex = 26
         ' 
         ' lblNote
         ' 
         lblNote.AutoSize = True
         lblNote.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblNote.Location = New Point(21, 479)
+        lblNote.Location = New Point(23, 428)
         lblNote.Name = "lblNote"
         lblNote.Size = New Size(35, 15)
         lblNote.TabIndex = 25
         lblNote.Text = "Note"
-        ' 
-        ' cbEvénement
-        ' 
-        cbEvénement.FormattingEnabled = True
-        cbEvénement.Location = New Point(828, 515)
-        cbEvénement.Name = "cbEvénement"
-        cbEvénement.Size = New Size(114, 23)
-        cbEvénement.TabIndex = 31
         ' 
         ' TiersBindingSource
         ' 
@@ -291,63 +279,20 @@ Partial Class frmSaisie
         ' 
         MouvementsBindingSource.DataSource = GetType(Mouvements)
         ' 
-        ' txtRechercheTiers
-        ' 
-        txtRechercheTiers.Location = New Point(297, 110)
-        txtRechercheTiers.Name = "txtRechercheTiers"
-        txtRechercheTiers.Size = New Size(100, 23)
-        txtRechercheTiers.TabIndex = 36
-        ' 
         ' btnSelDoc
         ' 
-        btnSelDoc.Location = New Point(582, 345)
+        btnSelDoc.Location = New Point(508, 311)
         btnSelDoc.Name = "btnSelDoc"
-        btnSelDoc.Size = New Size(168, 23)
-        btnSelDoc.TabIndex = 38
-        btnSelDoc.Text = "Sélectionne document"
+        btnSelDoc.Size = New Size(38, 23)
+        btnSelDoc.TabIndex = 5
+        btnSelDoc.Text = "..."
         btnSelDoc.UseVisualStyleBackColor = True
-        ' 
-        ' btnCreerTiers
-        ' 
-        btnCreerTiers.Location = New Point(20, 110)
-        btnCreerTiers.Name = "btnCreerTiers"
-        btnCreerTiers.Size = New Size(75, 23)
-        btnCreerTiers.TabIndex = 39
-        btnCreerTiers.Text = "Créer"
-        btnCreerTiers.UseVisualStyleBackColor = True
-        ' 
-        ' btnListeChqRemise
-        ' 
-        btnListeChqRemise.Location = New Point(582, 552)
-        btnListeChqRemise.Name = "btnListeChqRemise"
-        btnListeChqRemise.Size = New Size(159, 23)
-        btnListeChqRemise.TabIndex = 44
-        btnListeChqRemise.Text = "Entrer la liste des chèques"
-        btnListeChqRemise.UseVisualStyleBackColor = True
-        ' 
-        ' lblChercheTiers
-        ' 
-        lblChercheTiers.AutoSize = True
-        lblChercheTiers.Location = New Point(195, 110)
-        lblChercheTiers.Name = "lblChercheTiers"
-        lblChercheTiers.Size = New Size(76, 15)
-        lblChercheTiers.TabIndex = 45
-        lblChercheTiers.Text = "Cherche tiers"
-        ' 
-        ' btnNouveauChq
-        ' 
-        btnNouveauChq.Location = New Point(206, 614)
-        btnNouveauChq.Name = "btnNouveauChq"
-        btnNouveauChq.Size = New Size(120, 23)
-        btnNouveauChq.TabIndex = 46
-        btnNouveauChq.Text = "Nouveau chèque"
-        btnNouveauChq.UseVisualStyleBackColor = True
         ' 
         ' lblTypeDocument
         ' 
         lblTypeDocument.AutoSize = True
         lblTypeDocument.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblTypeDocument.Location = New Point(20, 316)
+        lblTypeDocument.Location = New Point(23, 263)
         lblTypeDocument.Name = "lblTypeDocument"
         lblTypeDocument.Size = New Size(92, 15)
         lblTypeDocument.TabIndex = 47
@@ -359,115 +304,124 @@ Partial Class frmSaisie
         ' 
         ' btnSelTiers
         ' 
-        btnSelTiers.Location = New Point(20, 139)
+        btnSelTiers.Location = New Point(508, 111)
         btnSelTiers.Name = "btnSelTiers"
-        btnSelTiers.Size = New Size(110, 23)
-        btnSelTiers.TabIndex = 51
-        btnSelTiers.Text = "Sélection du tiers"
+        btnSelTiers.Size = New Size(38, 23)
+        btnSelTiers.TabIndex = 0
+        btnSelTiers.Text = "..."
         btnSelTiers.UseVisualStyleBackColor = True
         ' 
         ' txtTiers
         ' 
-        txtTiers.Location = New Point(195, 140)
+        txtTiers.Location = New Point(125, 111)
         txtTiers.Name = "txtTiers"
-        txtTiers.Size = New Size(366, 23)
-        txtTiers.TabIndex = 52
+        txtTiers.Size = New Size(372, 23)
+        txtTiers.TabIndex = 0
         ' 
         ' btnSelCat
         ' 
-        btnSelCat.Location = New Point(17, 205)
+        btnSelCat.Location = New Point(508, 163)
         btnSelCat.Name = "btnSelCat"
-        btnSelCat.Size = New Size(156, 23)
-        btnSelCat.TabIndex = 53
-        btnSelCat.Text = "Sélection de la catégorie"
+        btnSelCat.Size = New Size(38, 23)
+        btnSelCat.TabIndex = 2
+        btnSelCat.Text = "..."
         btnSelCat.UseVisualStyleBackColor = True
         ' 
         ' txtCategorie
         ' 
-        txtCategorie.Location = New Point(195, 206)
+        txtCategorie.Location = New Point(125, 163)
         txtCategorie.Name = "txtCategorie"
-        txtCategorie.Size = New Size(366, 23)
+        txtCategorie.Size = New Size(372, 23)
         txtCategorie.TabIndex = 54
         ' 
         ' btnSelSousCategorie
         ' 
-        btnSelSousCategorie.Location = New Point(20, 272)
+        btnSelSousCategorie.Location = New Point(508, 212)
         btnSelSousCategorie.Name = "btnSelSousCategorie"
-        btnSelSousCategorie.Size = New Size(168, 23)
-        btnSelSousCategorie.TabIndex = 55
-        btnSelSousCategorie.Text = "Sélection sous-catégorie"
+        btnSelSousCategorie.Size = New Size(38, 23)
+        btnSelSousCategorie.TabIndex = 3
+        btnSelSousCategorie.Text = "..."
         btnSelSousCategorie.UseVisualStyleBackColor = True
         ' 
         ' txtSousCategorie
         ' 
-        txtSousCategorie.Location = New Point(206, 271)
+        txtSousCategorie.Location = New Point(125, 212)
         txtSousCategorie.Name = "txtSousCategorie"
-        txtSousCategorie.Size = New Size(355, 23)
+        txtSousCategorie.Size = New Size(372, 23)
         txtSousCategorie.TabIndex = 56
         ' 
         ' txtTypeDoc
         ' 
-        txtTypeDoc.Location = New Point(256, 345)
+        txtTypeDoc.Location = New Point(125, 263)
         txtTypeDoc.Name = "txtTypeDoc"
-        txtTypeDoc.Size = New Size(305, 23)
+        txtTypeDoc.Size = New Size(372, 23)
         txtTypeDoc.TabIndex = 57
         ' 
         ' btnSelTypeDoc
         ' 
-        btnSelTypeDoc.Location = New Point(20, 344)
+        btnSelTypeDoc.Location = New Point(508, 263)
         btnSelTypeDoc.Name = "btnSelTypeDoc"
-        btnSelTypeDoc.Size = New Size(215, 23)
-        btnSelTypeDoc.TabIndex = 58
-        btnSelTypeDoc.Text = "Sélection du tye de document"
+        btnSelTypeDoc.Size = New Size(38, 23)
+        btnSelTypeDoc.TabIndex = 4
+        btnSelTypeDoc.Text = "..."
         btnSelTypeDoc.UseVisualStyleBackColor = True
         ' 
         ' btnSelTypeMvt
         ' 
-        btnSelTypeMvt.Location = New Point(20, 417)
+        btnSelTypeMvt.Location = New Point(508, 366)
         btnSelTypeMvt.Name = "btnSelTypeMvt"
-        btnSelTypeMvt.Size = New Size(211, 23)
-        btnSelTypeMvt.TabIndex = 59
-        btnSelTypeMvt.Text = "Sélection du type de mouvement"
+        btnSelTypeMvt.Size = New Size(38, 23)
+        btnSelTypeMvt.TabIndex = 6
+        btnSelTypeMvt.Text = "..."
         btnSelTypeMvt.UseVisualStyleBackColor = True
         ' 
         ' txtTypeMvt
         ' 
-        txtTypeMvt.Location = New Point(256, 418)
+        txtTypeMvt.Location = New Point(125, 366)
         txtTypeMvt.Name = "txtTypeMvt"
-        txtTypeMvt.Size = New Size(305, 23)
+        txtTypeMvt.Size = New Size(372, 23)
         txtTypeMvt.TabIndex = 60
         ' 
         ' txtEvenement
         ' 
-        txtEvenement.Location = New Point(137, 507)
+        txtEvenement.Location = New Point(125, 461)
         txtEvenement.Name = "txtEvenement"
-        txtEvenement.Size = New Size(424, 23)
+        txtEvenement.Size = New Size(372, 23)
         txtEvenement.TabIndex = 61
         ' 
         ' btnSelEvenement
         ' 
-        btnSelEvenement.Location = New Point(582, 507)
+        btnSelEvenement.Location = New Point(508, 461)
         btnSelEvenement.Name = "btnSelEvenement"
-        btnSelEvenement.Size = New Size(159, 23)
-        btnSelEvenement.TabIndex = 62
-        btnSelEvenement.Text = "Sélection de l'événement"
+        btnSelEvenement.Size = New Size(38, 23)
+        btnSelEvenement.TabIndex = 8
+        btnSelEvenement.Text = "..."
         btnSelEvenement.UseVisualStyleBackColor = True
         ' 
-        ' btnAjouteCoord
+        ' Document
         ' 
-        btnAjouteCoord.Location = New Point(582, 140)
-        btnAjouteCoord.Name = "btnAjouteCoord"
-        btnAjouteCoord.Size = New Size(105, 23)
-        btnAjouteCoord.TabIndex = 63
-        btnAjouteCoord.Text = "Coordonnées..."
-        btnAjouteCoord.UseVisualStyleBackColor = True
+        Document.AutoSize = True
+        Document.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
+        Document.Location = New Point(23, 314)
+        Document.Name = "Document"
+        Document.Size = New Size(79, 15)
+        Document.TabIndex = 64
+        Document.Text = "id Document"
         ' 
-        ' FrmSaisie
+        ' txtDocument
+        ' 
+        txtDocument.Location = New Point(125, 307)
+        txtDocument.Name = "txtDocument"
+        txtDocument.Size = New Size(372, 23)
+        txtDocument.TabIndex = 65
+        ' 
+        ' frmSaisie
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
-        ClientSize = New Size(973, 660)
-        Controls.Add(btnAjouteCoord)
+        ClientSize = New Size(672, 606)
+        Controls.Add(txtDocument)
+        Controls.Add(Document)
         Controls.Add(btnSelEvenement)
         Controls.Add(txtEvenement)
         Controls.Add(txtTypeMvt)
@@ -481,13 +435,7 @@ Partial Class frmSaisie
         Controls.Add(txtTiers)
         Controls.Add(btnSelTiers)
         Controls.Add(lblTypeDocument)
-        Controls.Add(btnNouveauChq)
-        Controls.Add(lblChercheTiers)
-        Controls.Add(btnListeChqRemise)
-        Controls.Add(btnCreerTiers)
         Controls.Add(btnSelDoc)
-        Controls.Add(txtRechercheTiers)
-        Controls.Add(cbEvénement)
         Controls.Add(txtNote)
         Controls.Add(lblNote)
         Controls.Add(txtRemise)
@@ -504,7 +452,7 @@ Partial Class frmSaisie
         Controls.Add(lblTiers)
         Controls.Add(dateMvt)
         Controls.Add(lblType)
-        Name = "FrmSaisie"
+        Name = "frmSaisie"
         Text = "Saisie d'un mouvement"
         grpSens.ResumeLayout(False)
         grpSens.PerformLayout()
@@ -538,16 +486,10 @@ Partial Class frmSaisie
     Friend WithEvents txtRemise As TextBox
     Friend WithEvents txtNote As TextBox
     Friend WithEvents lblNote As Label
-    Friend WithEvents cbEvénement As ComboBox
     Friend WithEvents MouvementsBindingSource1 As BindingSource
     Friend WithEvents MouvementsBindingSource As BindingSource
     Friend WithEvents TiersBindingSource As BindingSource
-    Friend WithEvents txtRechercheTiers As TextBox
     Friend WithEvents btnSelDoc As Button
-    Friend WithEvents btnCreerTiers As Button
-    Friend WithEvents btnListeChqRemise As Button
-    Friend WithEvents lblChercheTiers As Label
-    Friend WithEvents btnNouveauChq As Button
     Friend WithEvents lblTypeDocument As Label
     Friend WithEvents TypeDocImplBindingSource As BindingSource
     Friend WithEvents ClasseTypeDocDataGridViewTextBoxColumn As DataGridViewTextBoxColumn
@@ -563,6 +505,7 @@ Partial Class frmSaisie
     Friend WithEvents txtTypeMvt As TextBox
     Friend WithEvents txtEvenement As TextBox
     Friend WithEvents btnSelEvenement As Button
-    Friend WithEvents btnAjouteCoord As Button
+    Friend WithEvents Document As Label
+    Friend WithEvents txtDocument As TextBox
 
 End Class

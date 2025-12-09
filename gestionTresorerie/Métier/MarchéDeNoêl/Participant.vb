@@ -40,7 +40,7 @@ Public Class Participant
         Me.Siret = GetValue(Of String)(reader, "Siret")
         Me.Tel = GetValue(Of String)(reader, "Tel")
         Me.Mail = GetValue(Of String)(reader, "Mail")
-        Me.Type = GetValue(Of String)(reader, "Type")
+        Me.Type = GetValue(Of String)(reader, "TypeMouvement")
         Me.Sexe = GetValue(Of String)(reader, "Sexe")
         Me.PieceIdentite = GetValue(Of String)(reader, "PieceIdentite")
         Me.DateNaissance = GetValue(Of String)(reader, "DateNaissance")

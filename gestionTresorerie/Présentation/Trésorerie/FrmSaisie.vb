@@ -10,11 +10,10 @@ Public Class FrmSaisie
     Private _dtMvtsIdentiques As DataTable = Nothing
     Private _tiersSelectionne As Tiers
     Private _categorieSelectionne As Categorie
-    Private _sousCategorieSelectionne As SousCategorie
+    Private _sousCategorieSelectionnee As SousCategorie
     Private _typeDocSelectionne As TypeDocImpl
     Private _typeEvenement As Evenement
     Private _typeMvt As TypeMvt
-
 
     Public Property Properties As Object
     Private isExpanded As Boolean = True
@@ -23,16 +22,11 @@ Public Class FrmSaisie
     Private Sub FrmSaisie_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Try
             InitialiserListeTiers()
-            Call initZonesSaisies()
             Dim indTiersDetecte As Integer = listeTiers.DetecteTiers(txtNote.Text)
         Catch ex As Exception
             Logger.ERR($"Erreur lors du chargement du formulaire : {ex.Message}")
             End
         End Try
-    End Sub
-    Private Sub initZonesSaisies()
-        txtRechercheTiers.Text = String.Empty
-        cbEvénement.SelectedItem = Nothing
     End Sub
     Private Sub InitialiserListeTiers()
         If listeTiers Is Nothing Then
@@ -40,21 +34,51 @@ Public Class FrmSaisie
         End If
     End Sub
     Private Sub BtnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
-        ' Récupérer tous les DataGridView du formulaire courant
-        Dim grilles As IEnumerable(Of DataGridView) = Me.Controls.OfType(Of DataGridView)()
-
-        Dim grilleSansSelection As New List(Of String)
-
-        ' S'il y a des grilles sans sélection → bloquer
-        If grilleSansSelection.Count > 0 Then
-            Dim message As String = If(grilleSansSelection.Count = 1,
-            $"Veuillez sélectionner une ligne dans la grille : {grilleSansSelection(0)}.",
-            "Veuillez sélectionner une ligne dans les grilles suivantes :" & vbCrLf & "• " & String.Join(vbCrLf & "• ", grilleSansSelection))
-
-            MessageBox.Show(message, "Sélection requise", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        If verifMouvement() Then
+            Call InsereMouvement()
+        Else
+            MessageBox.Show("Le mouvement est invalide. Veuillez vérifier les informations saisies.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Return
         End If
     End Sub
+    Private Function verifMouvement() As Boolean
+        Dim missing As New List(Of String)
+
+        If String.IsNullOrWhiteSpace(txtMontant.Text) Then missing.Add("Montant")
+        If String.IsNullOrWhiteSpace(txtTiers.Text) Then missing.Add("Tiers")
+        If String.IsNullOrWhiteSpace(txtCategorie.Text) Then missing.Add("Catégorie")
+        If String.IsNullOrWhiteSpace(txtSousCategorie.Text) Then missing.Add("Sous-catégorie")
+        If String.IsNullOrWhiteSpace(txtTypeDoc.Text) Then missing.Add("TypeMouvement de document")
+        If String.IsNullOrWhiteSpace(txtDocument.Text) Then missing.Add("Document")
+        If String.IsNullOrWhiteSpace(txtTypeMvt.Text) Then missing.Add("TypeMouvement de mouvement")
+
+        If missing.Count > 0 Then
+            Dim msg As String = "Champs obligatoires manquants : " & String.Join(", ", missing)
+            MessageBox.Show(msg, "Champs obligatoires", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Logger.WARN($"Mouvement invalide — champs manquants : {String.Join(", ", missing)}")
+
+            ' Donner le focus au premier champ manquant dans l'ordre défini
+            If missing.Contains("Montant") Then
+                txtMontant.Focus()
+            ElseIf missing.Contains("Tiers") Then
+                txtTiers.Focus()
+            ElseIf missing.Contains("Catégorie") Then
+                txtCategorie.Focus()
+            ElseIf missing.Contains("Sous-catégorie") Then
+                txtSousCategorie.Focus()
+            ElseIf missing.Contains("TypeMouvement de document") Then
+                txtTypeDoc.Focus()
+            ElseIf missing.Contains("Document") Then
+                txtDocument.Focus()
+            ElseIf missing.Contains("TypeMouvement de mouvement") Then
+                txtTypeMvt.Focus()
+            End If
+
+            Return False ' mouvement invalide
+        End If
+
+        Return True ' tout renseigné
+    End Function
     Private Sub TxtMontant_TextChanged(sender As Object, e As EventArgs) Handles txtMontant.Leave
 
         If Not Regex.Match(txtMontant.Text, Constantes.regExMontant, RegexOptions.IgnoreCase).Success Then
@@ -67,6 +91,7 @@ Public Class FrmSaisie
         FrmNouveauTiers.Show()
     End Sub
     Private Sub InsereMouvement()
+        'TODO à mettre dans la classe Mouvements
         Dim mouvement As Mouvements
         Try
             'Les infos de création du mouvement sont récupérées sur la fenêtre de saisie
@@ -84,7 +109,7 @@ Public Class FrmSaisie
                 Logger.INFO($"Insertion du mouvement pour : {mouvement.ObtenirValeursConcatenees}")
             End If
         Catch ex As Exception
-            Dim unused = MsgBox($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
+            MsgBox($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
             Logger.ERR($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
         End Try
     End Sub
@@ -140,14 +165,10 @@ Public Class FrmSaisie
     End Function
     Private Function CreerMouvement() As Mouvements
         Try
-            ' 🔹 Validation minimale des sélections
-            If txtCategorie.Text = String.Empty OrElse txtSousCategorie.Text = String.Empty OrElse txtTiers.Text = String.Empty Then
-                Throw New InvalidOperationException("Veuillez sélectionner une catégorie, une sous-catégorie et un typeDoc.")
-            End If
 
             ' 🔹 Récupération du typeDoc de document
             Dim sTypeDoc As String = ""
-            If txtTypeDoc.Text = String.Empty Then
+            If txtTypeDoc.Text <> String.Empty Then
                 sTypeDoc = txtTypeDoc.Text
             End If
 
@@ -170,22 +191,23 @@ Public Class FrmSaisie
                 montantDecimal *= -1D
             End If
 
-            ' 🔹 Création de l'objet Mouvements
+            ' 🔹 Création de l'objet Mouvements 
+            Dim evenementSafe As String = If(_typeEvenement, String.Empty).Trim()
             Dim mouvement As New Mouvements(
                             note:=txtNote.Text.Trim(),
-                            categorie:=txtCategorie.Text,
-                            sousCategorie:=txtSousCategorie.Text,
-                            tiers:=Convert.ToInt32(txtTiers.Text),
+                            categorie:=_categorieSelectionne.Id,
+                            sousCategorie:=_sousCategorieSelectionnee.Id,
+                            tiers:=_tiersSelectionne.Id,
                             dateMvt:=dateMvt.Value,
                             montant:=montantDecimal,
                             sens:=rbCredit.Checked,
                             etat:=rbRapproche.Checked,
-                            événement:=txtEvenement.Text,
-                            type:=txtTypeDoc.Text,
+                            événement:=evenementSafe,
+                            type:=_typeMvt.libelle,
                             modifiable:=False,
                             numeroRemise:=txtRemise.Text.Trim(),
                             reference:=sNumCheque,
-                            typeReference:=sTypeDoc,
+                            typeReference:=_typeDocSelectionne.Libellé,
                             idDoc:=_idDocSelectionne
                         )
 
@@ -200,7 +222,6 @@ Public Class FrmSaisie
             Return Nothing
         End Try
     End Function
-
     Private Sub btnSelDoc_Click(sender As Object, e As EventArgs) Handles btnSelDoc.Click
         Try
 
@@ -237,25 +258,16 @@ Public Class FrmSaisie
                 If _idDocSelectionne = 0 Then
                     Logger.WARN($"Aucun document associé à ce mouvement pour le montant : {montant}")
                 Else
+                    txtDocument.Text = _idDocSelectionne
                     Logger.INFO($"Document sélectionné : ID {_idDocSelectionne}")
                 End If
 
                 ' Toutes les grilles ont une sélection → procéder
                 Try
-                    Call InsereMouvement()
-                    Me.Hide()
-                    Call initZonesSaisies()
-
-                    If Not btnNouveauChq.Visible Then
-                        FrmPrincipale.Show()
-                    End If
-
                 Catch ex As Exception
                     MessageBox.Show("Erreur lors de la validation : " & ex.Message,
                         "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
                 End Try
-
-
                 ' 💡 Ici tu peux lancer ton traitement :
                 ' Charger les métadonnées, afficher le contenu, lier à un mouvement, etc.
             End If
@@ -268,77 +280,6 @@ Public Class FrmSaisie
         'Mettre à jour le Mouvement 
         Mouvements.MettreAJourIdDoc(_Mvt.Id, idDoc)
     End Sub
-    Private Sub btnCreerTiers_Click(sender As Object, e As EventArgs) Handles btnCreerTiers.Click
-        FrmNouveauTiers.Show()
-    End Sub
-    'Private Sub InitializeToggleButton(btnToggle As Button, pnlDataGridView As Panel, expandedHeight As Integer, reducedHeight As Integer)
-    '    ' Définir l'état initial
-    '    Dim isExpanded As Boolean = True
-
-    '    ' Ajouter un gestionnaire d'événements pour le bouton
-    '    AddHandler btnToggle.Click, Sub(sender, e)
-    '                                    If isExpanded Then
-    '                                        ' Réduire le Panel
-    '                                        pnlDataGridView.Height = reducedHeight
-    '                                        btnToggle.Text = "Étendre"
-    '                                    Else
-    '                                        ' Étendre le Panel
-    '                                        pnlDataGridView.Height = expandedHeight
-    '                                        btnToggle.Text = "Réduire"
-    '                                    End If
-    '                                    isExpanded = Not isExpanded
-    '                                End Sub
-    '    ' Déclencher l'événement "réduire" après l'ajout du handler
-    '    If isExpanded Then
-    '        btnToggle.PerformClick()
-    '    End If
-    'End Sub
-    Private Sub txtRemise_TextChanged(sender As Object, e As EventArgs) Handles txtRemise.TextChanged
-        'btnListeChqRemise.Visible = Trim(txtRemise.Text) <> String.Empty
-        btnNouveauChq.Visible = True
-        'Si on n'est pas sur une remise de chèque, on quitte la Frm sur validation
-        If txtRemise.Text = String.Empty Then
-            btnNouveauChq.Visible = False
-        End If
-    End Sub
-    Private Sub btnNouveauChq_Click(sender As Object, e As EventArgs) Handles btnNouveauChq.Click
-        'On réinitialise les zones de saisie pour un nouveau mouvement
-        txtMontant.Text = String.Empty
-        rbRapproche.Checked = False
-    End Sub
-
-    'Private Sub btnSelTiers_Click(sender As Object, e As EventArgs) Handles btnSelTiers.Click
-    '    Try
-    '        ' --- Ouvre la fenêtre de sélection des typeDoc ---
-    '        Dim frmTiers As New FrmSelectionGenerique(
-    '                            GetType(gestionTresorerie.Tiers),
-    '                            nomRequete:="reqIdentiteCatTiers",  ' Nom de la requête SQL
-    '                            parametres:=Nothing,                ' Paramètres si nécessaires
-    '                            multiSelect:=False,                 ' Sélection unique
-    '                            lectureSeule:=True                   ' Lecture seule
-    '                        )
-    '        frmTiers.Text = "Sélection du tiers"
-
-    '        ' --- Si un typeDoc est sélectionné ---
-    '        If frmTiers.ShowDialog() = DialogResult.OK AndAlso
-    '       frmTiers.ResultatsSelectionnes IsNot Nothing AndAlso
-    '       frmTiers.ResultatsSelectionnes.Count > 0 Then
-    '            Dim selection = frmTiers.ResultatsSelectionnes
-    '            If selection.Count > 0 Then
-    '                Dim tiers As Tiers = TryCast(selection(0), Tiers)
-    '                If tiers IsNot Nothing Then
-    '                    _tiersSelectionne = tiers
-    '                    txtTiers.Text = tiers.Nom & " " & tiers.Prenom & " " & tiers.RaisonSociale
-    '                    'Logger.INFO($"Tiers sélectionné : {typeDoc.Nom & " " & typeDoc.Prenom & " " & typeDoc.RaisonSociale}")
-    '                End If
-    '            End If
-    '        Else
-    '            Logger.INFO("Aucun tiers sélectionné.")
-    '        End If
-    '    Catch ex As Exception
-    '        Logger.ERR($"Erreur dans btnChercheTiers_Click : {ex.Message}")
-    '    End Try
-    'End Sub
     Private Sub btnSelTiers_Click(sender As Object, e As EventArgs) Handles btnSelTiers.Click
         _tiersSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of gestionTresorerie.Tiers)(
         nomRequete:="reqIdentiteCatTiers",
@@ -376,11 +317,11 @@ Public Class FrmSaisie
                 If Reader.HasRows Then
                     While Reader.Read()
                         ' Créer une instance concrète implémentant ITypeDoc
-                        Dim cat As New Categorie(Reader.GetInt32(0), Reader.GetString(1))
-                        Dim sousCategorie As New SousCategorie(Reader.GetInt32(0), Reader.GetString(1))
+                        _categorieSelectionne = New Categorie(Reader.GetInt32(0), Reader.GetString(1))
+                        _sousCategorieSelectionnee = New SousCategorie(Reader.GetInt32(0), Reader.GetString(1))
 
-                        txtCategorie.Text = $"{cat.Id} - {cat.Libelle}"
-                        txtSousCategorie.Text = $"{sousCategorie.Id} - {sousCategorie.Libelle}"
+                        txtCategorie.Text = $"{_categorieSelectionne.Id} - {_categorieSelectionne.Libelle}"
+                        txtSousCategorie.Text = $"{_sousCategorieSelectionnee.Id} - {_sousCategorieSelectionnee.Libelle}"
                     End While
                 Else
                     ' Gérer le cas où le reader est vide
@@ -392,38 +333,6 @@ Public Class FrmSaisie
         End Try
     End Sub
 
-    'Private Sub btnSelCat_Click(sender As Object, e As EventArgs) Handles btnSelCat.Click
-    '    Try
-    '        ' --- Ouvre la fenêtre de sélection des typeDoc ---
-    '        Dim frmCategorie As New FrmSelectionGenerique(
-    '                            GetType(gestionTresorerie.Categorie),
-    '                            nomRequete:="selIdLibCat",  ' Nom de la requête SQL
-    '                            parametres:=Nothing,                ' Paramètres si nécessaires
-    '                            multiSelect:=False,                 ' Sélection unique
-    '                            lectureSeule:=True                   ' Lecture seule
-    '                        )
-    '        frmCategorie.Text = "Sélection de la catégorie"
-
-    '        ' --- Si une catégorie est sélectionné ---
-    '        If frmCategorie.ShowDialog() = DialogResult.OK AndAlso
-    '       frmCategorie.ResultatsSelectionnes IsNot Nothing AndAlso
-    '       frmCategorie.ResultatsSelectionnes.Count > 0 Then
-    '            Dim selection = frmCategorie.ResultatsSelectionnes
-    '            If selection.Count > 0 Then
-    '                Dim categorie As Categorie = TryCast(selection(0), Categorie)
-    '                If categorie IsNot Nothing Then
-    '                    _categorieSelectionne = categorie
-    '                    txtCategorie.Text = categorie.Libelle
-    '                End If
-    '            End If
-    '        Else
-    '            Logger.INFO("Aucune catégorie sélectionnée.")
-    '        End If
-    '    Catch ex As Exception
-    '        Logger.ERR($"Erreur dans btnSelCat_Click : {ex.Message}")
-    '    End Try
-    'End Sub
-
     Private Sub btnSelCat_Click(sender As Object, e As EventArgs) Handles btnSelCat.Click
         _categorieSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of Categorie)(
         nomRequete:="selIdLibCat",
@@ -432,76 +341,14 @@ Public Class FrmSaisie
     )
         txtCategorie.Text = _categorieSelectionne.Libelle
     End Sub
-    'Private Sub btnSelSousCategorie_Click(sender As Object, e As EventArgs) Handles btnSelCat.Click
-    '    Try
-    '        ' --- Ouvre la fenêtre de sélection des typeDoc ---
-    '        Dim frmSousCategorie As New FrmSelectionGenerique(
-    '                            GetType(gestionTresorerie.SousCategorie),
-    '                            nomRequete:="sqlSelSousCategoriesTout",  ' Nom de la requête SQL
-    '                            parametres:=Nothing,                ' Paramètres si nécessaires
-    '                            multiSelect:=False,                 ' Sélection unique
-    '                            lectureSeule:=True                   ' Lecture seule
-    '                        )
-    '        frmSousCategorie.Text = "Sélection de la sous-catégorie"
-
-    '        ' --- Si une sous-catégorie est sélectionnée ---
-    '        If frmSousCategorie.ShowDialog() = DialogResult.OK AndAlso
-    '       frmSousCategorie.ResultatsSelectionnes IsNot Nothing AndAlso
-    '       frmSousCategorie.ResultatsSelectionnes.Count > 0 Then
-    '            Dim selection = frmSousCategorie.ResultatsSelectionnes
-    '            If selection.Count > 0 Then
-    '                Dim sousCategorie As SousCategorie = TryCast(selection(0), SousCategorie)
-    '                If sousCategorie IsNot Nothing Then
-    '                    _sousCategorieSelectionne = sousCategorie
-    '                    txtSousCategorie.Text = sousCategorie.Libelle
-    '                End If
-    '            End If
-    '        Else
-    '            Logger.INFO("Aucune sous-catégorie sélectionnée.")
-    '        End If
-    '    Catch ex As Exception
-    '        Logger.ERR($"Erreur dans btnSelSousCategorie_Click : {ex.Message}")
-    '    End Try
-    'End Sub
     Private Sub btnSelSousCategorie_Click(sender As Object, e As EventArgs) Handles btnSelSousCategorie.Click
-        _sousCategorieSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of SousCategorie)(
+        _sousCategorieSelectionnee = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of SousCategorie)(
         nomRequete:="sqlSelSousCategoriesTout",
         titreFenetre:="Sélection de la sous-catégorie",
         txtDestination:=txtSousCategorie
     )
-        txtSousCategorie.Text = _sousCategorieSelectionne.Libelle
+        txtSousCategorie.Text = _sousCategorieSelectionnee.Libelle
     End Sub
-    'Private Sub btnSelTypeDoc_Click(sender As Object, e As EventArgs) Handles btnSelCat.Click
-    '    Try
-    '        ' --- Ouvre la fenêtre de sélection des typeDoc ---
-    '        Dim frmTypeDocument As New FrmSelectionGenerique(
-    '                            GetType(gestionTresorerie.TypeDocImpl),
-    '                            nomRequete:="reqLibellesTypesDocuments",  ' Nom de la requête SQL
-    '                            parametres:=Nothing,                ' Paramètres si nécessaires
-    '                            multiSelect:=False,                 ' Sélection unique
-    '                            lectureSeule:=True                   ' Lecture seule
-    '                        )
-    '        frmTypeDocument.Text = "Sélection du typeDoc de document"
-
-    '        ' --- Si une sous-catégorie est sélectionnée ---
-    '        If frmTypeDocument.ShowDialog() = DialogResult.OK AndAlso
-    '       frmTypeDocument.ResultatsSelectionnes IsNot Nothing AndAlso
-    '       frmTypeDocument.ResultatsSelectionnes.Count > 0 Then
-    '            Dim selection = frmTypeDocument.ResultatsSelectionnes
-    '            If selection.Count > 0 Then
-    '                Dim typeDoc As TypeDocImpl = TryCast(selection(0), TypeDocImpl)
-    '                If typeDoc IsNot Nothing Then
-    '                    _typeDocSelectionne = typeDoc
-    '                    txtTypeDoc.Text = typeDoc.GetType.ToString
-    '                End If
-    '            End If
-    '        Else
-    '            Logger.INFO("Aucun typeDoc de documente sélectionné.")
-    '        End If
-    '    Catch ex As Exception
-    '        Logger.ERR($"Erreur dans btnSelTypeDoc_Click : {ex.Message}")
-    '    End Try
-    'End Sub
     Private Sub btnSelEvenement_Click(sender As Object, e As EventArgs) Handles btnSelEvenement.Click
         _typeEvenement = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of Evenement)(
             nomRequete:="reqEvenement",
@@ -511,43 +358,12 @@ Public Class FrmSaisie
         )
         txtEvenement.Text = _typeEvenement.libelle
     End Sub
-    'Private Sub btnSelTypeDoc_Click(sender As Object, e As EventArgs) Handles btnSelCat.Click
-    '    Try
-    '        ' --- Ouvre la fenêtre de sélection des typeDoc ---
-    '        Dim frmTypeDocument As New FrmSelectionGenerique(
-    '                            GetType(gestionTresorerie.TypeDocImpl),
-    '                            nomRequete:="reqLibellesTypesDocuments",  ' Nom de la requête SQL
-    '                            parametres:=Nothing,                ' Paramètres si nécessaires
-    '                            multiSelect:=False,                 ' Sélection unique
-    '                            lectureSeule:=True                   ' Lecture seule
-    '                        )
-    '        frmTypeDocument.Text = "Sélection du typeDoc de document"
-
-    '        ' --- Si une sous-catégorie est sélectionnée ---
-    '        If frmTypeDocument.ShowDialog() = DialogResult.OK AndAlso
-    '       frmTypeDocument.ResultatsSelectionnes IsNot Nothing AndAlso
-    '       frmTypeDocument.ResultatsSelectionnes.Count > 0 Then
-    '            Dim selection = frmTypeDocument.ResultatsSelectionnes
-    '            If selection.Count > 0 Then
-    '                Dim typeDoc As TypeDocImpl = TryCast(selection(0), TypeDocImpl)
-    '                If typeDoc IsNot Nothing Then
-    '                    _typeDocSelectionne = typeDoc
-    '                    txtTypeDoc.Text = typeDoc.GetType.ToString
-    '                End If
-    '            End If
-    '        Else
-    '            Logger.INFO("Aucun typeDoc de documente sélectionné.")
-    '        End If
-    '    Catch ex As Exception
-    '        Logger.ERR($"Erreur dans btnSelTypeDoc_Click : {ex.Message}")
-    '    End Try
-    'End Sub
     Private Sub btnSelTypeMvt_Click(sender As Object, e As EventArgs) Handles btnSelTypeMvt.Click
         _typeMvt = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of TypeMvt)(
-            nomRequete:="reqType",
+            nomRequete:="reqTypesMouvement",
             titreFenetre:="Sélection du typeDoc de mouvement",
             txtDestination:=txtTypeMvt,
-            champLibelle:="Type mouvement"  ' ou autre propriété si besoin
+            champLibelle:="TypeMouvement mouvement"  ' ou autre propriété si besoin
         )
         txtTypeMvt.Text = _typeMvt.libelle
     End Sub
@@ -559,10 +375,5 @@ Public Class FrmSaisie
             champLibelle:="Libellé"  ' ou autre propriété si besoin
         )
         txtTypeDoc.Text = _typeDocSelectionne.Libellé
-    End Sub
-
-    Private Sub btnAjouteCoord_Click(sender As Object, e As EventArgs) Handles btnAjouteCoord.Click
-        Dim frm As New frmSaisieCoordonnees(_tiersSelectionne.id)
-        frm.ShowDialog()
     End Sub
 End Class

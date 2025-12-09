@@ -118,7 +118,7 @@ Public Class RapportTraitement
             totalEchecs += kvp.Value.Echecs
             totalAvertissements += kvp.Value.Avertissements
 
-            Dim unused13 = rapport.AppendLine($"Type de document : {kvp.Key.ToString()}")
+            Dim unused13 = rapport.AppendLine($"TypeMouvement de document : {kvp.Key.ToString()}")
             Dim unused12 = rapport.AppendLine($"  - Succès : {kvp.Value.Succes}")
             Dim unused11 = rapport.AppendLine($"  - Échecs : {kvp.Value.Echecs}")
             Dim unused10 = rapport.AppendLine($"  - Avertissements : {kvp.Value.Avertissements}")

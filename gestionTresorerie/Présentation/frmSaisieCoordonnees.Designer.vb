@@ -100,7 +100,7 @@ Partial Class frmSaisieCoordonnees
         btnAnnuler.Location = New Point(378, 410)
         btnAnnuler.Name = "btnAnnuler"
         btnAnnuler.Size = New Size(100, 23)
-        btnAnnuler.TabIndex = 8
+        btnAnnuler.TabIndex = 9
         btnAnnuler.Text = "&Annuler"
         btnAnnuler.UseVisualStyleBackColor = True
         ' 
@@ -190,14 +190,14 @@ Partial Class frmSaisieCoordonnees
         cbVilles.Location = New Point(208, 208)
         cbVilles.Name = "cbVilles"
         cbVilles.Size = New Size(248, 23)
-        cbVilles.TabIndex = 18
+        cbVilles.TabIndex = 3
         ' 
         ' btnRetourSansEnregistrer
         ' 
         btnRetourSansEnregistrer.Location = New Point(195, 412)
         btnRetourSansEnregistrer.Name = "btnRetourSansEnregistrer"
         btnRetourSansEnregistrer.Size = New Size(133, 23)
-        btnRetourSansEnregistrer.TabIndex = 19
+        btnRetourSansEnregistrer.TabIndex = 8
         btnRetourSansEnregistrer.Text = "RetourSansEnregistrer"
         btnRetourSansEnregistrer.UseVisualStyleBackColor = True
         ' 

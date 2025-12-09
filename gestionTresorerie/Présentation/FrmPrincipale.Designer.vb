@@ -206,8 +206,8 @@ Partial Class FrmPrincipale
         ' 
         ' colEvenement
         ' 
-        colEvenement.DataPropertyName = "Événement"
-        colEvenement.HeaderText = "Événement"
+        colEvenement.DataPropertyName = "Evenement"
+        colEvenement.HeaderText = "Evenement"
         colEvenement.Name = "colEvenement"
         ' 
         ' colNote
@@ -218,8 +218,8 @@ Partial Class FrmPrincipale
         ' 
         ' colType
         ' 
-        colType.DataPropertyName = "Type"
-        colType.HeaderText = "Type"
+        colType.DataPropertyName = "TypeMouvement"
+        colType.HeaderText = "TypeMouvement"
         colType.Name = "colType"
         ' 
         ' colModifiable

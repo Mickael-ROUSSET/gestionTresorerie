@@ -45,7 +45,7 @@ Public Class GenereAttestationNonParticipation
                 {"@Siret", ws.Cell(ligne, 16).GetString()},
                 {"@Tel", ws.Cell(ligne, 17).GetString()},
                 {"@Mail", ws.Cell(ligne, 18).GetString()},
-                {"@Type", ws.Cell(ligne, 19).GetString()},         ' Commerçant / particulier
+                {"@TypeMouvement", ws.Cell(ligne, 19).GetString()},         ' Commerçant / particulier
                 {"@Sexe", ws.Cell(ligne, 20).GetString()},
                 {"@PieceIdentite", ws.Cell(ligne, 21).GetString()},
                 {"@DateNaissance", ws.Cell(ligne, 22).GetString()},

@@ -19,7 +19,7 @@ Public Class SqlCommandBuilder
                     command.Parameters.AddWithValue(param.Key, param.Value)
                 Next
             End If
-            'Logger.INFO($"Création de la commande : {command.CommandText }")
+            Logger.INFO($"Création de la commande : {command.CommandText }")
 
             Return command
         Catch ex As SqlException
@@ -32,7 +32,7 @@ Public Class SqlCommandBuilder
     End Function    ''' <summary>
     ''' Exécute une requête SQL paramétrée et retourne les résultats sous forme d'une liste d'objets typés.
     ''' </summary>
-    ''' <typeparam name="T">Type métier cible (ex : Tiers, Categorie...)</typeparam>
+    ''' <typeparam name="T">TypeMouvement métier cible (ex : Tiers, Categorie...)</typeparam>
     ''' <param name="nomRequete">Nom ou texte de la requête SQL</param>
     ''' <param name="parametres">Dictionnaire de paramètres nommés</param>
     ''' <returns>Liste d'objets de type T</returns>

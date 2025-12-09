@@ -160,4 +160,37 @@ Public Class FrmSelectionGenerique
         Close()
     End Sub
 
+    Private Sub btnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
+        Try
+            If dgvResultats.SelectedRows.Count = 0 Then
+                Logger.INFO($"Aucune ligne sélectionnée pour '{_nomRequete}'.")
+                Return
+            End If
+
+            ' Récupère la première ligne sélectionnée et renvoie l'objet correspondant
+            Dim row As DataGridViewRow = dgvResultats.SelectedRows(0)
+            Dim boundItem = row.DataBoundItem
+            Dim selection As New List(Of Object)
+
+            If TypeOf boundItem Is DataRowView Then
+                selection.Add(DirectCast(boundItem, DataRowView).Row)
+            Else
+                selection.Add(boundItem)
+            End If
+
+            ResultatsSelectionnes = selection
+
+            If _callback IsNot Nothing Then
+                _callback.Invoke(selection)
+            End If
+
+            Logger.INFO($"{selection.Count} document(s) renvoyé(s) depuis '{_nomRequete}'.")
+
+            DialogResult = DialogResult.OK
+            Close()
+        Catch ex As Exception
+            Logger.ERR($"btnValider_Click({_nomRequete}) : {ex.Message}")
+            MessageBox.Show($"Erreur lors de la validation : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
 End Class

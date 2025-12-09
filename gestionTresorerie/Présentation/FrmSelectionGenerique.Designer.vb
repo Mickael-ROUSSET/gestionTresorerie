@@ -29,6 +29,7 @@ Partial Class FrmSelectionGenerique
         txtFiltre = New TextBox()
         lblStatus = New Label()
         btnActualiser = New Button()
+        btnValider = New Button()
         CType(dgvResultats, ComponentModel.ISupportInitialize).BeginInit()
         Panel1.SuspendLayout()
         SuspendLayout()
@@ -39,6 +40,7 @@ Partial Class FrmSelectionGenerique
         dgvResultats.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
         dgvResultats.Location = New Point(29, 32)
         dgvResultats.Name = "dgvResultats"
+        dgvResultats.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToDisplayedHeaders
         dgvResultats.SelectionMode = DataGridViewSelectionMode.FullRowSelect
         dgvResultats.Size = New Size(759, 200)
         dgvResultats.TabIndex = 0
@@ -80,7 +82,7 @@ Partial Class FrmSelectionGenerique
         ' lblStatus
         ' 
         lblStatus.AutoSize = True
-        lblStatus.Location = New Point(37, 356)
+        lblStatus.Location = New Point(406, 290)
         lblStatus.Name = "lblStatus"
         lblStatus.Size = New Size(101, 15)
         lblStatus.TabIndex = 3
@@ -88,18 +90,28 @@ Partial Class FrmSelectionGenerique
         ' 
         ' btnActualiser
         ' 
-        btnActualiser.Location = New Point(39, 385)
+        btnActualiser.Location = New Point(633, 282)
         btnActualiser.Name = "btnActualiser"
         btnActualiser.Size = New Size(75, 23)
         btnActualiser.TabIndex = 4
         btnActualiser.Text = "Actualiser"
         btnActualiser.UseVisualStyleBackColor = True
         ' 
+        ' btnValider
+        ' 
+        btnValider.Location = New Point(58, 379)
+        btnValider.Name = "btnValider"
+        btnValider.Size = New Size(75, 23)
+        btnValider.TabIndex = 5
+        btnValider.Text = "Valider"
+        btnValider.UseVisualStyleBackColor = True
+        ' 
         ' FrmSelectionGenerique
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(800, 450)
+        Controls.Add(btnValider)
         Controls.Add(btnActualiser)
         Controls.Add(lblStatus)
         Controls.Add(txtFiltre)
@@ -120,4 +132,5 @@ Partial Class FrmSelectionGenerique
     Friend WithEvents txtFiltre As TextBox
     Friend WithEvents lblStatus As Label
     Friend WithEvents btnActualiser As Button
+    Friend WithEvents btnValider As Button
 End Class
