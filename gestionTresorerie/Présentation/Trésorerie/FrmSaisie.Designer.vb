@@ -75,7 +75,7 @@ Partial Class frmSaisie
         ' 
         lblType.AutoSize = True
         lblType.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblType.Location = New Point(23, 373)
+        lblType.Location = New Point(23, 364)
         lblType.Name = "lblType"
         lblType.Size = New Size(128, 15)
         lblType.TabIndex = 0
@@ -84,7 +84,7 @@ Partial Class frmSaisie
         ' dateMvt
         ' 
         dateMvt.AllowDrop = True
-        dateMvt.Location = New Point(23, 27)
+        dateMvt.Location = New Point(23, 17)
         dateMvt.Name = "dateMvt"
         dateMvt.Size = New Size(194, 23)
         dateMvt.TabIndex = 1
@@ -93,7 +93,7 @@ Partial Class frmSaisie
         ' 
         lblTiers.AutoSize = True
         lblTiers.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblTiers.Location = New Point(23, 111)
+        lblTiers.Location = New Point(23, 114)
         lblTiers.Name = "lblTiers"
         lblTiers.Size = New Size(34, 15)
         lblTiers.TabIndex = 4
@@ -103,7 +103,7 @@ Partial Class frmSaisie
         ' 
         lblCategorie.AutoSize = True
         lblCategorie.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblCategorie.Location = New Point(23, 163)
+        lblCategorie.Location = New Point(23, 164)
         lblCategorie.Name = "lblCategorie"
         lblCategorie.Size = New Size(61, 15)
         lblCategorie.TabIndex = 5
@@ -113,7 +113,7 @@ Partial Class frmSaisie
         ' 
         lblSousCategorie.AutoSize = True
         lblSousCategorie.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblSousCategorie.Location = New Point(23, 212)
+        lblSousCategorie.Location = New Point(23, 214)
         lblSousCategorie.Name = "lblSousCategorie"
         lblSousCategorie.Size = New Size(91, 15)
         lblSousCategorie.TabIndex = 8
@@ -146,9 +146,9 @@ Partial Class frmSaisie
         grpSens.AutoSize = True
         grpSens.Controls.Add(rbDebit)
         grpSens.Controls.Add(rbCredit)
-        grpSens.Location = New Point(302, 27)
+        grpSens.Location = New Point(302, 6)
         grpSens.Name = "grpSens"
-        grpSens.Size = New Size(154, 65)
+        grpSens.Size = New Size(154, 63)
         grpSens.TabIndex = 12
         grpSens.TabStop = False
         grpSens.Text = "Sens"
@@ -156,18 +156,18 @@ Partial Class frmSaisie
         ' btnValider
         ' 
         btnValider.AutoSize = True
-        btnValider.Location = New Point(23, 554)
+        btnValider.Location = New Point(23, 560)
         btnValider.Name = "btnValider"
-        btnValider.Size = New Size(75, 25)
+        btnValider.Size = New Size(92, 25)
         btnValider.TabIndex = 7
-        btnValider.Text = "Valider"
+        btnValider.Text = "&Valider"
         btnValider.UseVisualStyleBackColor = True
         ' 
         ' lblMontant
         ' 
         lblMontant.AutoSize = True
         lblMontant.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblMontant.Location = New Point(23, 66)
+        lblMontant.Location = New Point(23, 63)
         lblMontant.Name = "lblMontant"
         lblMontant.Size = New Size(55, 15)
         lblMontant.TabIndex = 14
@@ -175,7 +175,7 @@ Partial Class frmSaisie
         ' 
         ' txtMontant
         ' 
-        txtMontant.Location = New Point(125, 63)
+        txtMontant.Location = New Point(125, 60)
         txtMontant.Name = "txtMontant"
         txtMontant.Size = New Size(128, 23)
         txtMontant.TabIndex = 15
@@ -184,7 +184,7 @@ Partial Class frmSaisie
         ' 
         lblEvénement.AutoSize = True
         lblEvénement.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblEvénement.Location = New Point(23, 469)
+        lblEvénement.Location = New Point(23, 464)
         lblEvénement.Name = "lblEvénement"
         lblEvénement.Size = New Size(71, 15)
         lblEvénement.TabIndex = 17
@@ -195,7 +195,7 @@ Partial Class frmSaisie
         GroupBox1.AutoSize = True
         GroupBox1.Controls.Add(rbCree)
         GroupBox1.Controls.Add(rbRapproche)
-        GroupBox1.Location = New Point(482, 27)
+        GroupBox1.Location = New Point(482, 4)
         GroupBox1.Name = "GroupBox1"
         GroupBox1.Size = New Size(172, 63)
         GroupBox1.TabIndex = 13
@@ -226,7 +226,7 @@ Partial Class frmSaisie
         ' 
         ' btnInsereTiers
         ' 
-        btnInsereTiers.Location = New Point(552, 109)
+        btnInsereTiers.Location = New Point(552, 110)
         btnInsereTiers.Name = "btnInsereTiers"
         btnInsereTiers.Size = New Size(105, 23)
         btnInsereTiers.TabIndex = 19
@@ -237,7 +237,7 @@ Partial Class frmSaisie
         ' 
         lblRemise.AutoSize = True
         lblRemise.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblRemise.Location = New Point(23, 510)
+        lblRemise.Location = New Point(23, 514)
         lblRemise.Name = "lblRemise"
         lblRemise.Size = New Size(48, 15)
         lblRemise.TabIndex = 23
@@ -252,7 +252,7 @@ Partial Class frmSaisie
         ' 
         ' txtNote
         ' 
-        txtNote.Location = New Point(125, 420)
+        txtNote.Location = New Point(125, 410)
         txtNote.Name = "txtNote"
         txtNote.Size = New Size(372, 23)
         txtNote.TabIndex = 26
@@ -261,7 +261,7 @@ Partial Class frmSaisie
         ' 
         lblNote.AutoSize = True
         lblNote.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblNote.Location = New Point(23, 428)
+        lblNote.Location = New Point(23, 414)
         lblNote.Name = "lblNote"
         lblNote.Size = New Size(35, 15)
         lblNote.TabIndex = 25
@@ -281,7 +281,7 @@ Partial Class frmSaisie
         ' 
         ' btnSelDoc
         ' 
-        btnSelDoc.Location = New Point(508, 311)
+        btnSelDoc.Location = New Point(508, 310)
         btnSelDoc.Name = "btnSelDoc"
         btnSelDoc.Size = New Size(38, 23)
         btnSelDoc.TabIndex = 5
@@ -292,7 +292,7 @@ Partial Class frmSaisie
         ' 
         lblTypeDocument.AutoSize = True
         lblTypeDocument.Font = New Font("Segoe UI", 9F, FontStyle.Bold)
-        lblTypeDocument.Location = New Point(23, 263)
+        lblTypeDocument.Location = New Point(23, 264)
         lblTypeDocument.Name = "lblTypeDocument"
         lblTypeDocument.Size = New Size(92, 15)
         lblTypeDocument.TabIndex = 47
@@ -304,7 +304,7 @@ Partial Class frmSaisie
         ' 
         ' btnSelTiers
         ' 
-        btnSelTiers.Location = New Point(508, 111)
+        btnSelTiers.Location = New Point(508, 110)
         btnSelTiers.Name = "btnSelTiers"
         btnSelTiers.Size = New Size(38, 23)
         btnSelTiers.TabIndex = 0
@@ -313,14 +313,14 @@ Partial Class frmSaisie
         ' 
         ' txtTiers
         ' 
-        txtTiers.Location = New Point(125, 111)
+        txtTiers.Location = New Point(125, 110)
         txtTiers.Name = "txtTiers"
         txtTiers.Size = New Size(372, 23)
         txtTiers.TabIndex = 0
         ' 
         ' btnSelCat
         ' 
-        btnSelCat.Location = New Point(508, 163)
+        btnSelCat.Location = New Point(508, 160)
         btnSelCat.Name = "btnSelCat"
         btnSelCat.Size = New Size(38, 23)
         btnSelCat.TabIndex = 2
@@ -329,14 +329,14 @@ Partial Class frmSaisie
         ' 
         ' txtCategorie
         ' 
-        txtCategorie.Location = New Point(125, 163)
+        txtCategorie.Location = New Point(125, 160)
         txtCategorie.Name = "txtCategorie"
         txtCategorie.Size = New Size(372, 23)
         txtCategorie.TabIndex = 54
         ' 
         ' btnSelSousCategorie
         ' 
-        btnSelSousCategorie.Location = New Point(508, 212)
+        btnSelSousCategorie.Location = New Point(508, 210)
         btnSelSousCategorie.Name = "btnSelSousCategorie"
         btnSelSousCategorie.Size = New Size(38, 23)
         btnSelSousCategorie.TabIndex = 3
@@ -345,21 +345,21 @@ Partial Class frmSaisie
         ' 
         ' txtSousCategorie
         ' 
-        txtSousCategorie.Location = New Point(125, 212)
+        txtSousCategorie.Location = New Point(125, 210)
         txtSousCategorie.Name = "txtSousCategorie"
         txtSousCategorie.Size = New Size(372, 23)
         txtSousCategorie.TabIndex = 56
         ' 
         ' txtTypeDoc
         ' 
-        txtTypeDoc.Location = New Point(125, 263)
+        txtTypeDoc.Location = New Point(125, 260)
         txtTypeDoc.Name = "txtTypeDoc"
         txtTypeDoc.Size = New Size(372, 23)
         txtTypeDoc.TabIndex = 57
         ' 
         ' btnSelTypeDoc
         ' 
-        btnSelTypeDoc.Location = New Point(508, 263)
+        btnSelTypeDoc.Location = New Point(508, 260)
         btnSelTypeDoc.Name = "btnSelTypeDoc"
         btnSelTypeDoc.Size = New Size(38, 23)
         btnSelTypeDoc.TabIndex = 4
@@ -368,7 +368,7 @@ Partial Class frmSaisie
         ' 
         ' btnSelTypeMvt
         ' 
-        btnSelTypeMvt.Location = New Point(508, 366)
+        btnSelTypeMvt.Location = New Point(508, 360)
         btnSelTypeMvt.Name = "btnSelTypeMvt"
         btnSelTypeMvt.Size = New Size(38, 23)
         btnSelTypeMvt.TabIndex = 6
@@ -377,21 +377,21 @@ Partial Class frmSaisie
         ' 
         ' txtTypeMvt
         ' 
-        txtTypeMvt.Location = New Point(125, 366)
+        txtTypeMvt.Location = New Point(125, 360)
         txtTypeMvt.Name = "txtTypeMvt"
         txtTypeMvt.Size = New Size(372, 23)
         txtTypeMvt.TabIndex = 60
         ' 
         ' txtEvenement
         ' 
-        txtEvenement.Location = New Point(125, 461)
+        txtEvenement.Location = New Point(125, 460)
         txtEvenement.Name = "txtEvenement"
         txtEvenement.Size = New Size(372, 23)
         txtEvenement.TabIndex = 61
         ' 
         ' btnSelEvenement
         ' 
-        btnSelEvenement.Location = New Point(508, 461)
+        btnSelEvenement.Location = New Point(508, 460)
         btnSelEvenement.Name = "btnSelEvenement"
         btnSelEvenement.Size = New Size(38, 23)
         btnSelEvenement.TabIndex = 8
@@ -410,7 +410,7 @@ Partial Class frmSaisie
         ' 
         ' txtDocument
         ' 
-        txtDocument.Location = New Point(125, 307)
+        txtDocument.Location = New Point(125, 310)
         txtDocument.Name = "txtDocument"
         txtDocument.Size = New Size(372, 23)
         txtDocument.TabIndex = 65

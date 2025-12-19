@@ -8,19 +8,13 @@ Public Class ConnexionDB
     Implements IDisposable
 
     Private _connexionBddAgumaaa As SqlConnection
-    Private _connexionCinema As SqlConnection
-    Private _connexionMdN As SqlConnection
     Private disposedValue As Boolean
 
     ' Locks pour le thread-safe
     Private Shared ReadOnly _lockBddAgumaaa As New Object()
-    Private Shared ReadOnly _lockCinema As New Object()
-    Private Shared ReadOnly _lockMdN As New Object()
 
     ' Singleton par base
     Private Shared _instanceBddAgumaaa As ConnexionDB
-    Private Shared _instanceCinema As ConnexionDB
-    Private Shared _instanceMdN As ConnexionDB
 
     ' Accès aux instances singleton
     Public Shared Function GetInstance(sBase As String) As ConnexionDB
@@ -34,24 +28,6 @@ Public Class ConnexionDB
                     End SyncLock
                 End If
                 Return _instanceBddAgumaaa
-            Case Constantes.cinemaDB
-                If _instanceCinema Is Nothing Then
-                    SyncLock _lockCinema
-                        If _instanceCinema Is Nothing Then
-                            _instanceCinema = New ConnexionDB()
-                        End If
-                    End SyncLock
-                End If
-                Return _instanceCinema
-            Case Constantes.MarcheDeNoelDB
-                If _instanceMdN Is Nothing Then
-                    SyncLock _lockMdN
-                        If _instanceMdN Is Nothing Then
-                            _instanceMdN = New ConnexionDB()
-                        End If
-                    End SyncLock
-                End If
-                Return _instanceMdN
             Case Else
                 Throw New ArgumentException($"Base inconnue : {sBase}")
         End Select
@@ -74,20 +50,6 @@ Public Class ConnexionDB
                             _connexionBddAgumaaa = CreeConnexion(LectureProprietes.connexionString(sBase))
                         End If
                         Return _connexionBddAgumaaa
-                    End SyncLock
-                Case Constantes.cinemaDB
-                    SyncLock _lockCinema
-                        If _connexionCinema Is Nothing OrElse _connexionCinema.State = ConnectionState.Closed Then
-                            _connexionCinema = CreeConnexion(LectureProprietes.connexionString(sBase))
-                        End If
-                        Return _connexionCinema
-                    End SyncLock
-                Case Constantes.MarcheDeNoelDB
-                    SyncLock _lockMdN
-                        If _connexionMdN Is Nothing OrElse _connexionMdN.State = ConnectionState.Closed Then
-                            _connexionMdN = CreeConnexion(LectureProprietes.connexionString(sBase))
-                        End If
-                        Return _connexionMdN
                     End SyncLock
                 Case Else
                     Throw New ArgumentException($"Base inconnue : {sBase}")
@@ -131,16 +93,6 @@ Public Class ConnexionDB
                     FermerConnexion(_connexionBddAgumaaa)
                     _connexionBddAgumaaa = Nothing
                 End SyncLock
-            Case Constantes.cinemaDB
-                SyncLock _lockCinema
-                    FermerConnexion(_connexionCinema)
-                    _connexionCinema = Nothing
-                End SyncLock
-            Case Constantes.MarcheDeNoelDB
-                SyncLock _lockMdN
-                    FermerConnexion(_connexionMdN)
-                    _connexionMdN = Nothing
-                End SyncLock
         End Select
     End Sub
 
@@ -161,7 +113,6 @@ Public Class ConnexionDB
         If Not disposedValue Then
             If disposing Then
                 FermerConnexion(_connexionBddAgumaaa)
-                FermerConnexion(_connexionCinema)
             End If
             disposedValue = True
         End If

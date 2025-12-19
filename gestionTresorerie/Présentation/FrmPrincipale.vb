@@ -374,6 +374,11 @@ Public Class FrmPrincipale
     Private Sub NouveauTiersToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles NouveauTiersToolStripMenuItem.Click
         FrmNouveauTiers.Show()
     End Sub
+
+    Private Sub ExportDesDonnéesToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ExportDesDonnéesToolStripMenuItem.Click
+        ' Appel de la procédure
+        ServiceExport.ExecuterExportSQL(LectureProprietes.GetVariable("dossierDestinationExportData"))
+    End Sub
     'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
     '    'Call CreeBilans()
     '    'Call genereBilans.AjouteImage()

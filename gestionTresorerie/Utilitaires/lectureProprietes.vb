@@ -29,32 +29,23 @@
     End Property
     Public Shared ReadOnly Property connexionString(sBase As String) As String
         Get
-            With My.Settings
-                Select Case _env
-                    Case "Prod"
-                        '"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=&quot;G:\Mon Drive\AGUMAAA\Documents\BacASable\bddAgumaaa.mdf&quot;;Integrated Security=True;Connect Timeout=30" /> 
-                        Select Case sBase
-                            Case Constantes.bddAgumaaa
-                                Return .DataSource & "'" & .bddAgumaaaProd & "'" & .ParamDb
-                            Case Constantes.cinemaDB
-                                Return .DataSource & "'" & .cinemaDBProd & "'" & .ParamDb
-                            Case Constantes.MarcheDeNoelDB
-                                Return .DataSource & "'" & .marcheDeNoelDBProd & "'" & .ParamDb
-                        End Select
-                    Case "Test"
-                        Select Case sBase
-                            Case Constantes.bddAgumaaa
-                                Return .DataSource & "'" & .bddAgumaaaTest & "'" & .ParamDb
-                            Case Constantes.cinemaDB
-                                Return .DataSource & "'" & .cinemaDBTest & "'" & .ParamDb
-                            Case Constantes.MarcheDeNoelDB
-                                Return .DataSource & "'" & .marcheDeNoelDBTest & "'" & .ParamDb
-                        End Select
-                End Select
-                Return String.Empty
-            End With
+            Return My.Settings.DataSoure &
+                "Initial Catalog=" & GetDatabaseName() & ";" &
+                My.Settings.IntegratedSecurity &
+                My.Settings.MultipleActiveResultSets &
+                My.Settings.ConnectTimeout
         End Get
     End Property
+    Private Shared Function GetDatabaseName() As String
+        Select Case _env.ToUpperInvariant()
+            Case EnvironnementLibelles.Libelles(Environnement.Prod).ToUpperInvariant()
+                'Prod
+                Return BaseDonneesLibelles.Libelles(BaseDonnees.bddAgumaaa)
+            Case Else
+                'Test
+                Return BaseDonneesLibelles.Libelles(BaseDonnees.bddAgumaaaTest)
+        End Select
+    End Function
     Public Shared Function GetVariable(nomVariable As String) As String
         ' Retourner la variable demandée 
         Return My.Settings.Item(nomVariable)

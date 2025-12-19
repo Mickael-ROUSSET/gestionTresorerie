@@ -6,17 +6,17 @@ Public Class FrmSaisie
     Inherits System.Windows.Forms.Form
 
     Private listeTiers As ListeTiers
-    Private _Mvt As Mouvements
+    Private _mvtEnCours As Mouvements ' Renommé pour plus de clarté
     Private _dtMvtsIdentiques As DataTable = Nothing
     Private _tiersSelectionne As Tiers
     Private _categorieSelectionne As Categorie
     Private _sousCategorieSelectionnee As SousCategorie
     Private _typeDocSelectionne As TypeDocImpl
-    Private _typeEvenement As Evenement
-    Private _typeMvt As TypeMvt
+    Private _evenementSelectionne As Evenement ' Renommé pour la cohérence
+    Private _typeMvtSelectionne As TypeMvt ' Renommé pour la cohérence
 
     Public Property Properties As Object
-    Private isExpanded As Boolean = True
+    Private isExpanded As Boolean = True ' Non utilisé dans les méthodes fournies, mais conservé
     Private _idDocSelectionne As Integer = 0
 
     Private Sub FrmSaisie_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -25,7 +25,9 @@ Public Class FrmSaisie
             Dim indTiersDetecte As Integer = listeTiers.DetecteTiers(txtNote.Text)
         Catch ex As Exception
             Logger.ERR($"Erreur lors du chargement du formulaire : {ex.Message}")
-            End
+            ' Utilisation de Exit Sub au lieu de End pour un comportement plus propre dans WinForms
+            MessageBox.Show($"Une erreur critique est survenue : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Me.Close()
         End Try
     End Sub
     Private Sub InitialiserListeTiers()
@@ -34,44 +36,52 @@ Public Class FrmSaisie
         End If
     End Sub
     Private Sub BtnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
-        If verifMouvement() Then
-            Call InsereMouvement()
+        If VerifierValiditeMouvement() Then
+            InsereMouvement()
         Else
+            ' La méthode VerifierValiditeMouvement gère déjà l'affichage de l'erreur
+            ' et le focus, donc ce MessageBox est redondant sauf pour une erreur non gérée
+            ' Je le laisse pour la rétrocompatibilité, mais l'erreur spécifique est affichée par la fonction
             MessageBox.Show("Le mouvement est invalide. Veuillez vérifier les informations saisies.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Return
         End If
     End Sub
-    Private Function verifMouvement() As Boolean
-        Dim missing As New List(Of String)
 
-        If String.IsNullOrWhiteSpace(txtMontant.Text) Then missing.Add("Montant")
-        If String.IsNullOrWhiteSpace(txtTiers.Text) Then missing.Add("Tiers")
-        If String.IsNullOrWhiteSpace(txtCategorie.Text) Then missing.Add("Catégorie")
-        If String.IsNullOrWhiteSpace(txtSousCategorie.Text) Then missing.Add("Sous-catégorie")
-        If String.IsNullOrWhiteSpace(txtTypeDoc.Text) Then missing.Add("TypeMouvement de document")
-        If String.IsNullOrWhiteSpace(txtDocument.Text) Then missing.Add("Document")
-        If String.IsNullOrWhiteSpace(txtTypeMvt.Text) Then missing.Add("TypeMouvement de mouvement")
+    ' --- Logique de Validation et de Gestion des Erreurs ---
 
-        If missing.Count > 0 Then
-            Dim msg As String = "Champs obligatoires manquants : " & String.Join(", ", missing)
+    Private Function VerifierValiditeMouvement() As Boolean
+        Dim champsManquants As New List(Of String)
+        Dim objetsManquants As New List(Of String)
+        Dim premierControleNonValide As Control = Nothing
+
+        ' 1. Vérification des champs de texte obligatoires
+        AjouterSiVide(txtMontant, "Montant", champsManquants, premierControleNonValide)
+        AjouterSiVide(txtTiers, "Tiers", champsManquants, premierControleNonValide)
+        AjouterSiVide(txtCategorie, "Catégorie", champsManquants, premierControleNonValide)
+        AjouterSiVide(txtSousCategorie, "Sous-catégorie", champsManquants, premierControleNonValide)
+        AjouterSiVide(txtTypeDoc, "Type de document", champsManquants, premierControleNonValide)
+        AjouterSiVide(txtDocument, "Document", champsManquants, premierControleNonValide)
+        AjouterSiVide(txtTypeMvt, "Type de mouvement", champsManquants, premierControleNonValide)
+
+        ' 2. Vérification de la sélection des objets métiers (plus fiable que le texte du contrôle)
+        If _tiersSelectionne Is Nothing Then objetsManquants.Add("Tiers (non sélectionné)")
+        If _categorieSelectionne Is Nothing Then objetsManquants.Add("Catégorie (non sélectionnée)")
+        If _sousCategorieSelectionnee Is Nothing Then objetsManquants.Add("Sous-catégorie (non sélectionnée)")
+        If _typeDocSelectionne Is Nothing Then objetsManquants.Add("Type de document (non sélectionné)")
+        If _typeMvtSelectionne Is Nothing Then objetsManquants.Add("Type de mouvement (non sélectionné)")
+
+        ' 3. Affichage des erreurs et gestion du focus
+        If champsManquants.Count > 0 OrElse objetsManquants.Count > 0 Then
+            Dim msg As String = "Champs obligatoires manquants : " & String.Join(", ", champsManquants)
+            If objetsManquants.Count > 0 Then
+                msg &= vbCrLf & "Objets métiers manquants : " & String.Join(", ", objetsManquants)
+            End If
+
             MessageBox.Show(msg, "Champs obligatoires", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-            Logger.WARN($"Mouvement invalide — champs manquants : {String.Join(", ", missing)}")
+            Logger.WARN($"Mouvement invalide — champs manquants : {String.Join(", ", champsManquants)} | Objets manquants : {String.Join(", ", objetsManquants)}")
 
-            ' Donner le focus au premier champ manquant dans l'ordre défini
-            If missing.Contains("Montant") Then
-                txtMontant.Focus()
-            ElseIf missing.Contains("Tiers") Then
-                txtTiers.Focus()
-            ElseIf missing.Contains("Catégorie") Then
-                txtCategorie.Focus()
-            ElseIf missing.Contains("Sous-catégorie") Then
-                txtSousCategorie.Focus()
-            ElseIf missing.Contains("TypeMouvement de document") Then
-                txtTypeDoc.Focus()
-            ElseIf missing.Contains("Document") Then
-                txtDocument.Focus()
-            ElseIf missing.Contains("TypeMouvement de mouvement") Then
-                txtTypeMvt.Focus()
+            ' Donne le focus au premier contrôle dont le texte est vide
+            If Not premierControleNonValide Is Nothing Then
+                premierControleNonValide.Focus()
             End If
 
             Return False ' mouvement invalide
@@ -79,141 +89,170 @@ Public Class FrmSaisie
 
         Return True ' tout renseigné
     End Function
-    Private Sub TxtMontant_TextChanged(sender As Object, e As EventArgs) Handles txtMontant.Leave
 
+    ''' <summary>
+    ''' Fonction utilitaire pour vérifier si un contrôle est vide et l'ajouter à la liste des manquants.
+    ''' Gère également la définition du premier contrôle non valide pour le focus.
+    ''' </summary>
+    Private Sub AjouterSiVide(ByVal ctrl As Control, ByVal nomChamp As String, ByVal listeManquants As List(Of String), ByRef premierControleNonValide As Control)
+        If String.IsNullOrWhiteSpace(ctrl.Text) Then
+            listeManquants.Add(nomChamp)
+            If premierControleNonValide Is Nothing Then
+                premierControleNonValide = ctrl
+            End If
+        End If
+    End Sub
+
+    ' --- Gestion des événements de contrôles ---
+
+    Private Sub TxtMontant_Leave(sender As Object, e As EventArgs) Handles txtMontant.Leave
+        ' Utilisation de Handles TxtMontant.Leave plutôt que TextChanged pour la validation
+        ' après que l'utilisateur ait quitté le champ.
         If Not Regex.Match(txtMontant.Text, Constantes.regExMontant, RegexOptions.IgnoreCase).Success Then
-            Dim unused1 = MessageBox.Show($"Le montant {txtMontant.Text} doit être numérique!")
-            'Remet le focus sur la zone de saisie du montant
-            Dim unused = txtMontant.Focus()
+            MessageBox.Show($"Le montant '{txtMontant.Text}' doit être numérique ou respecter le format attendu!")
+            ' Remet le focus sur la zone de saisie du montant
+            txtMontant.Focus()
         End If
     End Sub
     Private Sub btnInsereTiers_Click(sender As Object, e As EventArgs) Handles btnInsereTiers.Click
         FrmNouveauTiers.Show()
     End Sub
+
     Private Sub InsereMouvement()
-        'TODO à mettre dans la classe Mouvements
-        Dim mouvement As Mouvements
         Try
-            'Les infos de création du mouvement sont récupérées sur la fenêtre de saisie
-            mouvement = CreerMouvement()
-            _Mvt = mouvement
-            _dtMvtsIdentiques = Mouvements.ChargerMouvementsSimilaires(mouvement)
-            If _dtMvtsIdentiques.Rows.Count > 0 Then
-                'Un mouvement identique existe déjà
+            ' Les infos de création du mouvement sont récupérées sur la fenêtre de saisie
+            _mvtEnCours = CreerMouvement()
+
+            If _mvtEnCours Is Nothing Then
+                ' Une erreur est survenue dans CreerMouvement (déjà loggée)
+                Return
+            End If
+
+            _dtMvtsIdentiques = Mouvements.ChargerMouvementsSimilaires(_mvtEnCours)
+
+            If _dtMvtsIdentiques IsNot Nothing AndAlso _dtMvtsIdentiques.Rows.Count > 0 Then
+                ' Un mouvement identique existe déjà
                 Dim frmListe As New FrmListe(_dtMvtsIdentiques)
                 AddHandler frmListe.objetSelectionneChanged, AddressOf mvtSelectionneChangedHandler
-                Dim unused1 = frmListe.ShowDialog()
-                Logger.INFO($"Le mouvement existe déjà : {mouvement.ObtenirValeursConcatenees}")
+                frmListe.ShowDialog()
+                Logger.INFO($"Le mouvement existe déjà : {_mvtEnCours.mvtValeursConcatenees}")
             Else
-                Mouvements.InsererMouvementEnBase(mouvement)
-                Logger.INFO($"Insertion du mouvement pour : {mouvement.ObtenirValeursConcatenees}")
+                Mouvements.InsererMouvementEnBase(_mvtEnCours)
+                Logger.INFO($"Insertion du mouvement pour : {_mvtEnCours.mvtValeursConcatenees}")
+                ' TODO : Ajouter une réinitialisation du formulaire après insertion réussie
             End If
         Catch ex As Exception
-            MsgBox($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
-            Logger.ERR($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
+            MsgBox($"Erreur {ex.Message} lors de l'insertion des données {_mvtEnCours?.mvtValeursConcatenees}")
+            Logger.ERR($"Erreur {ex.Message} lors de l'insertion des données {_mvtEnCours?.mvtValeursConcatenees}")
         End Try
     End Sub
     Private Sub mvtSelectionneChangedHandler(sender As Object, index As Integer)
         Try
             ' Vérifier si l'objet peut être converti en Mouvements
             If index = -1 Then
-                Logger.INFO("L'objet sélectionné est nul => mouvement à insérer")
-                Mouvements.InsererMouvementEnBase(_Mvt)
+                Logger.INFO("L'objet sélectionné est nul (annulation ou non-sélection) => mouvement à insérer.")
+                ' Insertion du nouveau mouvement si l'utilisateur annule le choix dans la liste des similaires
+                Mouvements.InsererMouvementEnBase(_mvtEnCours)
             Else
-                ' Utiliser des variables intermédiaires pour rendre le code plus lisible
-                Dim id As Integer = _dtMvtsIdentiques.Rows(index).ItemArray(0)
-                Dim categorie As String = txtCategorie.Text.Split("-"c)(0).Trim()
-                Dim sousCategorie As String = txtSousCategorie.Text.Split("-"c)(0).Trim()
-                Dim montant As String = txtMontant.Text.Trim().Replace(Constantes.espace, String.Empty)
-                Dim credit As Boolean = rbCredit.Checked
-                Dim tiers As Integer = Convert.ToInt32(txtTiers.Text.Split("-"c)(0).Trim())
+                ' Récupération de l'ID du mouvement existant à mettre à jour
+                Dim idMouvementExistant As Integer = Convert.ToInt32(_dtMvtsIdentiques.Rows(index).ItemArray(0))
+
+                ' Utilisation des objets sélectionnés (plus fiable)
+                Dim idCategorie As Integer = If(_categorieSelectionne Is Nothing, 0, _categorieSelectionne.Id)
+                Dim idSousCategorie As Integer = If(_sousCategorieSelectionnee Is Nothing, 0, _sousCategorieSelectionnee.Id)
+                Dim montantDecimal As Decimal = GetMontantValue(txtMontant.Text, rbCredit.Checked) ' Utilisation de la nouvelle fonction
+                Dim idTiers As Integer = If(_tiersSelectionne Is Nothing, 0, _tiersSelectionne.Id)
+
+                ' Autres valeurs
                 Dim note As String = txtNote.Text
                 Dim dateMouvement As Date = dateMvt.Value
                 Dim rapproche As Boolean = rbRapproche.Checked
-                Dim evenement As String = txtEvenement.Text
-                Dim typeDoc As String = txtTypeDoc.Text
-                Dim typeMvt = txtTypeMvt.Text
-                Dim modifiable As Boolean = True
+                Dim evenementLibelle As String = If(_evenementSelectionne Is Nothing, String.Empty, _evenementSelectionne.libelle)
+                Dim typeDocLibelle As String = If(_typeDocSelectionne Is Nothing, String.Empty, _typeDocSelectionne.Libellé)
+                ' TypeMvt n'est pas utilisé dans MettreAJourMouvement, mais conservé pour l'exemple
+                Dim modifiable As Boolean = True ' À revoir selon la logique métier
                 Dim remise As Integer = GetRemiseValue(txtRemise.Text)
-                Dim reference As String = ""
-                Dim typeReference As String = ""
-                Dim idDoc As Integer = 0
-                ' Mettre à jour le mouvement
+                Dim reference As String = Utilitaires.ExtraitNuméroChèque(txtNote.Text) ' Calcul de la référence
+                Dim typeReference As String = If(_typeDocSelectionne Is Nothing, String.Empty, _typeDocSelectionne.Libellé)
+
+                ' Mettre à jour le mouvement existant
                 Dim rowsAffected As Integer = Mouvements.MettreAJourMouvement(
-                id, categorie, sousCategorie, montant, credit, tiers, note, dateMouvement, rapproche, evenement, typeDoc, modifiable, remise, reference, typeReference, idDoc
-            )
-                ' Trace indiquant le nombre de lignes mises à jour
-                Logger.INFO($"Nombre de mouvements mis à jour : {rowsAffected}")
+                    idMouvementExistant, idCategorie, idSousCategorie, montantDecimal.ToString(), rbCredit.Checked, idTiers, note, dateMouvement, rapproche, evenementLibelle, typeDocLibelle, modifiable, remise, reference, typeReference, _idDocSelectionne
+                )
+
+                Logger.INFO($"Mouvement existant ID {idMouvementExistant} mis à jour : {rowsAffected} ligne(s) affectée(s).")
             End If
         Catch ex As Exception
             ' Log des exceptions
             Logger.ERR($"Erreur lors de la mise à jour du mouvement : {ex.Message}")
+            MessageBox.Show($"Une erreur est survenue lors de la mise à jour du mouvement : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
     Private Function GetRemiseValue(texteRemise As String) As Integer
-
-        If String.IsNullOrEmpty(texteRemise) Then
-            Return 0 ' Retourne 0 si le texte est vide
-        End If
-
-        Dim remiseValue As Integer
-        If Integer.TryParse(texteRemise, remiseValue) Then
-            Return remiseValue ' Retourne la valeur convertie en entier
+        If Integer.TryParse(texteRemise, GetRemiseValue) Then
+            Return GetRemiseValue ' Retourne la valeur convertie en entier (via TryParse)
         Else
             Return 0 ' Retourne 0 si la conversion échoue
         End If
     End Function
+
+    ''' <summary>
+    ''' Calcule la valeur décimale du montant en tenant compte du sens (Crédit/Débit).
+    ''' </summary>
+    Private Function GetMontantValue(montantTexte As String, isCredit As Boolean) As Decimal
+        Dim montantDecimal As Decimal
+        montantTexte = montantTexte.Trim().Replace(Constantes.espace, String.Empty)
+
+        If Not Decimal.TryParse(montantTexte, NumberStyles.Any, CultureInfo.CurrentCulture, montantDecimal) Then
+            Throw New FormatException($"Montant invalide : « {montantTexte} »")
+        End If
+
+        ' Ajustement du sens : négatif si Débit (et si le montant est positif)
+        If Not isCredit AndAlso montantDecimal > 0 Then
+            montantDecimal *= -1D
+        End If
+
+        Return montantDecimal
+    End Function
+
     Private Function CreerMouvement() As Mouvements
         Try
+            ' 🔹 Conversion sécurisée du montant (utilise la nouvelle fonction)
+            Dim montantDecimal As Decimal = GetMontantValue(txtMontant.Text, rbCredit.Checked)
 
-            ' 🔹 Récupération du typeDoc de document
-            Dim sTypeDoc As String = ""
-            If txtTypeDoc.Text <> String.Empty Then
-                sTypeDoc = txtTypeDoc.Text
-            End If
+            ' 🔹 Récupération des ID et Libellés (plus sûr avec les objets)
+            Dim idCategorie As Integer = If(_categorieSelectionne Is Nothing, 0, _categorieSelectionne.Id)
+            Dim idSousCategorie As Integer = If(_sousCategorieSelectionnee Is Nothing, 0, _sousCategorieSelectionnee.Id)
+            Dim idTiers As Integer = If(_tiersSelectionne Is Nothing, 0, _tiersSelectionne.Id)
+            Dim evenementLibelle As String = If(_evenementSelectionne Is Nothing, String.Empty, _evenementSelectionne.libelle).Trim()
+            Dim typeMvtLibelle As String = If(_typeMvtSelectionne Is Nothing, String.Empty, _typeMvtSelectionne.libelle).Trim()
+            Dim typeDocLibelle As String = If(_typeDocSelectionne Is Nothing, String.Empty, _typeDocSelectionne.Libellé)
 
-            ' 🔹 Extraction du numéro de chèque uniquement si le typeDoc est "Chèque"
-            Dim sNumCheque As String = ""
-            If sTypeDoc.Equals("Chèque", StringComparison.OrdinalIgnoreCase) Then
-                sNumCheque = Utilitaires.ExtraitNuméroChèque(txtNote.Text)
-            End If
+            ' 🔹 Extraction de la référence (numéro de chèque si TypeDoc est "Chèque")
+            Dim sNumCheque As String = If(typeDocLibelle.Equals("Chèque", StringComparison.OrdinalIgnoreCase),
+                                          Utilitaires.ExtraitNuméroChèque(txtNote.Text),
+                                          String.Empty)
 
-            ' 🔹 Conversion sécurisée du montant
-            Dim montantDecimal As Decimal
-            Dim montantTexte As String = txtMontant.Text.Trim().Replace(Constantes.espace, String.Empty)
-
-            If Not Decimal.TryParse(montantTexte, NumberStyles.Any, CultureInfo.CurrentCulture, montantDecimal) Then
-                Throw New FormatException($"Montant invalide : « {txtMontant.Text} »")
-            End If
-
-            ' 🔹 Ajustement du sens : négatif si débit sélectionné
-            If rbDebit.Checked Then
-                montantDecimal *= -1D
-            End If
-
-            ' 🔹 Création de l'objet Mouvements 
-            Dim evenementSafe As String = If(_typeEvenement, String.Empty).Trim()
+            ' 🔹 Création de l'objet Mouvements
             Dim mouvement As New Mouvements(
-                            note:=txtNote.Text.Trim(),
-                            categorie:=_categorieSelectionne.Id,
-                            sousCategorie:=_sousCategorieSelectionnee.Id,
-                            tiers:=_tiersSelectionne.Id,
-                            dateMvt:=dateMvt.Value,
-                            montant:=montantDecimal,
-                            sens:=rbCredit.Checked,
-                            etat:=rbRapproche.Checked,
-                            événement:=evenementSafe,
-                            type:=_typeMvt.libelle,
-                            modifiable:=False,
-                            numeroRemise:=txtRemise.Text.Trim(),
-                            reference:=sNumCheque,
-                            typeReference:=_typeDocSelectionne.Libellé,
-                            idDoc:=_idDocSelectionne
-                        )
+                note:=txtNote.Text.Trim(),
+                categorie:=idCategorie,
+                sousCategorie:=idSousCategorie,
+                tiers:=idTiers,
+                dateMvt:=dateMvt.Value,
+                montant:=montantDecimal,
+                sens:=rbCredit.Checked,
+                etat:=rbRapproche.Checked,
+                événement:=evenementLibelle,
+                type:=typeMvtLibelle,
+                modifiable:=False,
+                numeroRemise:=txtRemise.Text.Trim(),
+                reference:=sNumCheque,
+                typeReference:=typeDocLibelle,
+                idDoc:=_idDocSelectionne
+            )
 
-            ' 🔹 Log de création
-            Logger.INFO($"Mouvement créé : {mouvement.Note} | Montant {montantDecimal} | TypeDoc={sTypeDoc} | idDoc={_idDocSelectionne}")
-
+            Logger.INFO($"Mouvement créé : {mouvement.Note} | Montant {montantDecimal} | TypeDoc={typeDocLibelle} | idDoc={_idDocSelectionne}")
             Return mouvement
 
         Catch ex As Exception
@@ -222,30 +261,40 @@ Public Class FrmSaisie
             Return Nothing
         End Try
     End Function
+
+    ' --- Gestion des Documents Associés ---
+
     Private Sub btnSelDoc_Click(sender As Object, e As EventArgs) Handles btnSelDoc.Click
         Try
 
             ' Récupère et valide le montant
             Dim montant As Decimal
-            If Not Decimal.TryParse(txtMontant.Text, montant) Then
-                Dim unused1 = MessageBox.Show("Montant invalide.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
-            End If
+            ' Utilisation d'une fonction pour la conversion du montant
+            Try
+                montant = GetMontantValue(txtMontant.Text, rbCredit.Checked)
+            Catch ex As FormatException
+                MessageBox.Show(ex.Message, "Erreur de format", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Return
+            End Try
 
-            ' ✅ Si rbDebit est sélectionné → montant négatif
-            montant = If(rbDebit.Checked, -Math.Abs(montant), Math.Abs(montant))
-
-            ' Instancie la fenêtre de sélection
             Dim selectionneDocument As New FrmSelectionneDocument()
 
             AddHandler selectionneDocument.IdDocSelectionneChanged, AddressOf IdDocSelectionneChangedHandler
 
-            ' 🔹 Cas 1 : typeDoc "cheque" → 3 arguments
-            'TODO : supprimer la valeur en dur "Cheque" et utiliser une constante ou une énumération
-            If txtTypeDoc.Text = "Chèque" Then
-                Dim numeroCheque As Decimal = CDec(Utilitaires.ExtraitNuméroChèque(txtNote.Text))
-                Dim nomTiers As String = txtTiers.Text
+            ' Récupération du type de document sélectionné
+            Dim typeDocLibelle As String = If(_typeDocSelectionne Is Nothing, String.Empty, _typeDocSelectionne.Libellé)
 
-                selectionneDocument.chargeListeDoc(numeroCheque, montant, nomTiers)
+            If typeDocLibelle.Equals("Chèque", StringComparison.OrdinalIgnoreCase) Then
+                Dim numeroCheque As String = Utilitaires.ExtraitNuméroChèque(txtNote.Text)
+                Dim nomTiers As String = txtTiers.Text ' Utilisation du texte du Tiers pour la recherche
+
+                ' Convertir le numéro de chèque en Decimal si nécessaire pour chargeListeDoc
+                Dim numChequeDecimal As Decimal
+                If Decimal.TryParse(numeroCheque, numChequeDecimal) Then
+                    selectionneDocument.chargeListeDoc(numChequeDecimal, montant, nomTiers)
+                Else
+                    selectionneDocument.chargeListeDoc(montant) ' Fallback si le numéro de chèque n'est pas numérique
+                End If
 
                 ' 🔹 Cas 2 : autres types → 1 seul argument
             Else
@@ -257,28 +306,21 @@ Public Class FrmSaisie
                 _idDocSelectionne = selectionneDocument.IdDocSelectionne
                 If _idDocSelectionne = 0 Then
                     Logger.WARN($"Aucun document associé à ce mouvement pour le montant : {montant}")
+                    txtDocument.Clear()
                 Else
-                    txtDocument.Text = _idDocSelectionne
+                    txtDocument.Text = _idDocSelectionne.ToString()
                     Logger.INFO($"Document sélectionné : ID {_idDocSelectionne}")
                 End If
-
-                ' Toutes les grilles ont une sélection → procéder
-                Try
-                Catch ex As Exception
-                    MessageBox.Show("Erreur lors de la validation : " & ex.Message,
-                        "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
-                End Try
-                ' 💡 Ici tu peux lancer ton traitement :
-                ' Charger les métadonnées, afficher le contenu, lier à un mouvement, etc.
             End If
 
         Catch ex As Exception
-            Dim unused = MessageBox.Show($"Erreur lors de la sélection du document : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Logger.ERR($"Erreur lors de la sélection du document : {ex.Message}")
+            MessageBox.Show($"Erreur lors de la sélection du document : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
     Private Sub IdDocSelectionneChangedHandler(ByVal idDoc As Integer)
         'Mettre à jour le Mouvement 
-        Mouvements.MettreAJourIdDoc(_Mvt.Id, idDoc)
+        Mouvements.MettreAJourIdDoc(_mvtEnCours.Id, idDoc)
     End Sub
     Private Sub btnSelTiers_Click(sender As Object, e As EventArgs) Handles btnSelTiers.Click
         _tiersSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of gestionTresorerie.Tiers)(
@@ -350,22 +392,22 @@ Public Class FrmSaisie
         txtSousCategorie.Text = _sousCategorieSelectionnee.Libelle
     End Sub
     Private Sub btnSelEvenement_Click(sender As Object, e As EventArgs) Handles btnSelEvenement.Click
-        _typeEvenement = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of Evenement)(
+        _evenementSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of Evenement)(
             nomRequete:="reqEvenement",
             titreFenetre:="Sélection de l'événement",
             txtDestination:=txtEvenement,
             champLibelle:="Evénement"  ' ou autre propriété si besoin
         )
-        txtEvenement.Text = _typeEvenement.libelle
+        txtEvenement.Text = _evenementSelectionne.libelle
     End Sub
     Private Sub btnSelTypeMvt_Click(sender As Object, e As EventArgs) Handles btnSelTypeMvt.Click
-        _typeMvt = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of TypeMvt)(
+        _typeMvtSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of TypeMvt)(
             nomRequete:="reqTypesMouvement",
             titreFenetre:="Sélection du typeDoc de mouvement",
             txtDestination:=txtTypeMvt,
             champLibelle:="TypeMouvement mouvement"  ' ou autre propriété si besoin
         )
-        txtTypeMvt.Text = _typeMvt.libelle
+        txtTypeMvt.Text = _typeMvtSelectionne.libelle
     End Sub
     Private Sub btnSelTypeDoc_Click(sender As Object, e As EventArgs) Handles btnSelTypeDoc.Click
         _typeDocSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of TypeDocImpl)(

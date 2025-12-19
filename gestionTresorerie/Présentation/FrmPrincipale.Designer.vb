@@ -111,6 +111,7 @@ Partial Class FrmPrincipale
         OutilsToolStripMenuItem = New ToolStripMenuItem()
         PersonnaliserToolStripMenuItem = New ToolStripMenuItem()
         OptionsToolStripMenuItem = New ToolStripMenuItem()
+        NouveauTiersToolStripMenuItem = New ToolStripMenuItem()
         AideToolStripMenuItem = New ToolStripMenuItem()
         ContenuToolStripMenuItem = New ToolStripMenuItem()
         IndexToolStripMenuItem = New ToolStripMenuItem()
@@ -120,7 +121,7 @@ Partial Class FrmPrincipale
         FolderBrowserDialog1 = New FolderBrowserDialog()
         pgBar = New ProgressBar()
         StatusLabelEnv = New StatusStrip()
-        NouveauTiersToolStripMenuItem = New ToolStripMenuItem()
+        ExportDesDonnéesToolStripMenuItem = New ToolStripMenuItem()
         CType(dgvPrincipale, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -493,7 +494,7 @@ Partial Class FrmPrincipale
         ' 
         ' GestionBDDToolStripMenuItem
         ' 
-        GestionBDDToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {SauvegarderToolStripMenuItem, RestaurerToolStripMenuItem, CopierVersLeDriveToolStripMenuItem, RécupérerDuDriveToolStripMenuItem})
+        GestionBDDToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {SauvegarderToolStripMenuItem, RestaurerToolStripMenuItem, CopierVersLeDriveToolStripMenuItem, RécupérerDuDriveToolStripMenuItem, ExportDesDonnéesToolStripMenuItem})
         GestionBDDToolStripMenuItem.Name = "GestionBDDToolStripMenuItem"
         GestionBDDToolStripMenuItem.Size = New Size(85, 20)
         GestionBDDToolStripMenuItem.Text = "Gestion BDD"
@@ -501,25 +502,25 @@ Partial Class FrmPrincipale
         ' SauvegarderToolStripMenuItem
         ' 
         SauvegarderToolStripMenuItem.Name = "SauvegarderToolStripMenuItem"
-        SauvegarderToolStripMenuItem.Size = New Size(175, 22)
+        SauvegarderToolStripMenuItem.Size = New Size(180, 22)
         SauvegarderToolStripMenuItem.Text = "Sauvegarder"
         ' 
         ' RestaurerToolStripMenuItem
         ' 
         RestaurerToolStripMenuItem.Name = "RestaurerToolStripMenuItem"
-        RestaurerToolStripMenuItem.Size = New Size(175, 22)
+        RestaurerToolStripMenuItem.Size = New Size(180, 22)
         RestaurerToolStripMenuItem.Text = "Restaurer"
         ' 
         ' CopierVersLeDriveToolStripMenuItem
         ' 
         CopierVersLeDriveToolStripMenuItem.Name = "CopierVersLeDriveToolStripMenuItem"
-        CopierVersLeDriveToolStripMenuItem.Size = New Size(175, 22)
+        CopierVersLeDriveToolStripMenuItem.Size = New Size(180, 22)
         CopierVersLeDriveToolStripMenuItem.Text = "Copier vers le Drive"
         ' 
         ' RécupérerDuDriveToolStripMenuItem
         ' 
         RécupérerDuDriveToolStripMenuItem.Name = "RécupérerDuDriveToolStripMenuItem"
-        RécupérerDuDriveToolStripMenuItem.Size = New Size(175, 22)
+        RécupérerDuDriveToolStripMenuItem.Size = New Size(180, 22)
         RécupérerDuDriveToolStripMenuItem.Text = "Récupérer du Drive"
         ' 
         ' GestionUtilisateurToolStripMenuItem
@@ -683,14 +684,20 @@ Partial Class FrmPrincipale
         ' PersonnaliserToolStripMenuItem
         ' 
         PersonnaliserToolStripMenuItem.Name = "PersonnaliserToolStripMenuItem"
-        PersonnaliserToolStripMenuItem.Size = New Size(180, 22)
+        PersonnaliserToolStripMenuItem.Size = New Size(156, 22)
         PersonnaliserToolStripMenuItem.Text = "&Personnaliser"
         ' 
         ' OptionsToolStripMenuItem
         ' 
         OptionsToolStripMenuItem.Name = "OptionsToolStripMenuItem"
-        OptionsToolStripMenuItem.Size = New Size(180, 22)
+        OptionsToolStripMenuItem.Size = New Size(156, 22)
         OptionsToolStripMenuItem.Text = "&Options"
+        ' 
+        ' NouveauTiersToolStripMenuItem
+        ' 
+        NouveauTiersToolStripMenuItem.Name = "NouveauTiersToolStripMenuItem"
+        NouveauTiersToolStripMenuItem.Size = New Size(156, 22)
+        NouveauTiersToolStripMenuItem.Text = "Nouveau tiers..."
         ' 
         ' AideToolStripMenuItem
         ' 
@@ -743,11 +750,11 @@ Partial Class FrmPrincipale
         StatusLabelEnv.TabIndex = 11
         StatusLabelEnv.Text = "StatusStrip1"
         ' 
-        ' NouveauTiersToolStripMenuItem
+        ' ExportDesDonnéesToolStripMenuItem
         ' 
-        NouveauTiersToolStripMenuItem.Name = "NouveauTiersToolStripMenuItem"
-        NouveauTiersToolStripMenuItem.Size = New Size(180, 22)
-        NouveauTiersToolStripMenuItem.Text = "Nouveau tiers..."
+        ExportDesDonnéesToolStripMenuItem.Name = "ExportDesDonnéesToolStripMenuItem"
+        ExportDesDonnéesToolStripMenuItem.Size = New Size(180, 22)
+        ExportDesDonnéesToolStripMenuItem.Text = "Export des données"
         ' 
         ' FrmPrincipale
         ' 
@@ -868,4 +875,5 @@ Partial Class FrmPrincipale
     Friend WithEvents LicencesToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ReçusFiscauxToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents NouveauTiersToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ExportDesDonnéesToolStripMenuItem As ToolStripMenuItem
 End Class

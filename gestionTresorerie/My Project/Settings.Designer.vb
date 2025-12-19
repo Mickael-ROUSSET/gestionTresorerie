@@ -1492,6 +1492,73 @@ Namespace My
                 Return CType(Me("reqMouvementsSimilaires"),String)
             End Get
         End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\MSSQLLocalDB;   ")>  _
+        Public ReadOnly Property DataSoure() As String
+            Get
+                Return CType(Me("DataSoure"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Initial Catalog=bddAgumaaaProd2;")>  _
+        Public ReadOnly Property InitialCatalog() As String
+            Get
+                Return CType(Me("InitialCatalog"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Integrated Security=True;")>  _
+        Public ReadOnly Property IntegratedSecurity() As String
+            Get
+                Return CType(Me("IntegratedSecurity"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("MultipleActiveResultSets=False;")>  _
+        Public ReadOnly Property MultipleActiveResultSets() As String
+            Get
+                Return CType(Me("MultipleActiveResultSets"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Connect Timeout=30")>  _
+        Public ReadOnly Property ConnectTimeout() As String
+            Get
+                Return CType(Me("ConnectTimeout"),String)
+            End Get
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\MSSQLLocalDB; Initial Catalog=bddAgumaaaProd2;Integrated Se"& _ 
+            "curity=True;MultipleActiveResultSets=True;Connect Timeout=30")>  _
+        Public Property connectionString() As String
+            Get
+                Return CType(Me("connectionString"),String)
+            End Get
+            Set
+                Me("connectionString") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("C:\Users\User\SQLDATA\")>  _
+        Public ReadOnly Property dossierDestinationExportData() As String
+            Get
+                Return CType(Me("dossierDestinationExportData"),String)
+            End Get
+        End Property
     End Class
 End Namespace
 
