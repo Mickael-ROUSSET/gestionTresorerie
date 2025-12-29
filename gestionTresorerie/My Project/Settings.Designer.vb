@@ -180,7 +180,7 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("\ressources")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("ressources")>  _
         Public ReadOnly Property repFichierBilan() As String
             Get
                 Return CType(Me("repFichierBilan"),String)
@@ -248,15 +248,6 @@ Namespace My
         Public ReadOnly Property reqLibelleSousCategorie() As String
             Get
                 Return CType(Me("reqLibelleSousCategorie"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("3rD/s9+aP2fG4h5jK7lMnO=")>  _
-        Public ReadOnly Property selAleatoire() As String
-            Get
-                Return CType(Me("selAleatoire"),String)
             End Get
         End Property
         
@@ -520,7 +511,7 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("\A_Trier")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("A_Trier")>  _
         Public ReadOnly Property repFichiersDocumentsATrier() As String
             Get
                 Return CType(Me("repFichiersDocumentsATrier"),String)
@@ -529,7 +520,7 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("\Chèques")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Chèques")>  _
         Public ReadOnly Property repFichiersDocumentsChèques() As String
             Get
                 Return CType(Me("repFichiersDocumentsChèques"),String)
@@ -538,7 +529,7 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("\Manifestations récurrentes\Activités\Gym")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Manifestations récurrentes\Activités\Gym")>  _
         Public ReadOnly Property repFichiersGym() As String
             Get
                 Return CType(Me("repFichiersGym"),String)
@@ -547,7 +538,7 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("\Formulaires d'adhésion")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Formulaires d'adhésion")>  _
         Public ReadOnly Property repGymAdhésion() As String
             Get
                 Return CType(Me("repGymAdhésion"),String)
@@ -556,7 +547,7 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("\QuestionnairesSanté")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("QuestionnairesSanté")>  _
         Public ReadOnly Property repGymQuestionnaire() As String
             Get
                 Return CType(Me("repGymQuestionnaire"),String)
@@ -565,7 +556,7 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("\Documents")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Documents")>  _
         Public ReadOnly Property repRacineDocuments() As String
             Get
                 Return CType(Me("repRacineDocuments"),String)
@@ -574,7 +565,7 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("\Gestion\Trésorerie\Comptabilité\Eléments comptables")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Gestion\Trésorerie\Comptabilité\Eléments comptables")>  _
         Public ReadOnly Property repRacineComptabilité() As String
             Get
                 Return CType(Me("repRacineComptabilité"),String)
@@ -601,7 +592,7 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("\Factures")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Factures")>  _
         Public ReadOnly Property repFichiersDocumentsFactures() As String
             Get
                 Return CType(Me("repFichiersDocumentsFactures"),String)
@@ -610,7 +601,7 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("\Emises")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Emises")>  _
         Public ReadOnly Property repFichiersFacturesEmises() As String
             Get
                 Return CType(Me("repFichiersFacturesEmises"),String)
@@ -619,7 +610,7 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("\Recues")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("Recues")>  _
         Public ReadOnly Property repFichiersFacturesRecues() As String
             Get
                 Return CType(Me("repFichiersFacturesRecues"),String)
@@ -1196,24 +1187,6 @@ Namespace My
         Public ReadOnly Property SMTP_User() As String
             Get
                 Return CType(Me("SMTP_User"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("43GeorgeSand+")>  _
-        Public ReadOnly Property SMTP_PASS() As String
-            Get
-                Return CType(Me("SMTP_PASS"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("esvyxmvwlxphgjeg")>  _
-        Public ReadOnly Property SmtpPassword() As String
-            Get
-                Return CType(Me("SmtpPassword"),String)
             End Get
         End Property
         

@@ -80,11 +80,12 @@ Public Class AdhesionGym
         Dim anneeSuivante As Integer = anneeEnCours + 1
 
         Dim sRepSortie As String
-        sRepSortie = LectureProprietes.GetVariable("repRacineAgumaaa") &
-            LectureProprietes.GetVariable("repRacineDocuments") &
-            LectureProprietes.GetVariable("repFichiersGym") &
-            anneeEnCours.ToString & "-" & anneeSuivante.ToString &
-            LectureProprietes.GetVariable("repGymAdhésion")
+        sRepSortie = path.combine(LectureProprietes.GetVariable("repRacineAgumaaa") ,
+								LectureProprietes.GetVariable("repRacineDocuments") ,
+								LectureProprietes.GetVariable("repFichiersGym") ,
+								anneeEnCours.ToString & "-" & anneeSuivante.ToString ,
+								LectureProprietes.GetVariable("repGymAdhésion")
+								)
     End Sub
 
 End Class

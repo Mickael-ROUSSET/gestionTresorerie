@@ -14,9 +14,7 @@ Public Class TypeDocImpl
     ' Implémentation des propriétés de l'interface
     Public Property Libellé As String Implements ITypeDoc.Libellé
     Public Property GabaritRepertoire As String Implements ITypeDoc.GabaritRepertoire
-
     Public Property GabaritNomFichier As String Implements ITypeDoc.GabaritNomFichier
-
     Public Property ClasseTypeDoc As String Implements ITypeDoc.ClasseTypeDoc
     Public Sub New()
 
@@ -48,11 +46,22 @@ Public Class TypeDocImpl
     End Function
 
     ' Constructeur avec paramètres pour initialisation depuis la base de données
-    Public Sub New(prompt As String, gabaritRepertoire As String, gabaritNomFichier As String, classe As String)
+    ''' <summary>
+    ''' Constructeur avec paramètres optionnels
+    ''' </summary>
+    ''' <param name="classe">Paramètre obligatoire</param>
+    ''' <param name="prompt">Facultatif (défaut "")</param>
+    ''' <param name="gabaritRepertoire">Facultatif (défaut "")</param>
+    ''' <param name="gabaritNomFichier">Facultatif (défaut "")</param>
+    Public Sub New(classe As String,
+                  Optional prompt As String = "",
+                  Optional gabaritRepertoire As String = "",
+                  Optional gabaritNomFichier As String = "")
+
+        Me.ClasseTypeDoc = classe
         Me.Prompt = prompt
         Me.GabaritRepertoire = gabaritRepertoire
         Me.GabaritNomFichier = gabaritNomFichier
-        ClasseTypeDoc = classe
     End Sub
 
     Public Property JsonMetaDonnées As String Implements ITypeDoc.JsonMetaDonnées

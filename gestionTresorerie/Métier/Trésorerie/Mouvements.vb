@@ -132,99 +132,77 @@ Public Class Mouvements
             Err.Raise("Erreur dans la création du mouvement : " & mvtValeursConcatenees())
         End If
     End Sub
+    'Public Shared Sub InsererMouvementEnBase(mouvement As Mouvements)
+    '    Try
+    '        Dim db = ConnexionDB.GetInstance(Constantes.bddAgumaaa)
+    '        Using conn As SqlConnection = db.GetConnexion(Constantes.bddAgumaaa)
+
+    '            Dim sql As String = "INSERT INTO [Mouvements] (categorie, montant, sens, tiers, dateMvt, dateCreation, note) " &
+    '                             "VALUES (@cat, @mont, @sens, @tiers, @dMvt, @dCrea, @note)"
+
+    '            Using cmd As New SqlCommand(sql, conn)
+    '                ' Typage explicite pour garantir le plan d'exécution
+    '                cmd.Parameters.Add("@categorie", SqlDbType.Int).Value = 20
+    '                cmd.Parameters.Add("@montant", SqlDbType.Decimal).Value = -263.22
+    '                cmd.Parameters.Add("@sens", SqlDbType.Bit).Value = 0
+    '                cmd.Parameters.Add("@tiers", SqlDbType.Int).Value = 1
+    '                cmd.Parameters.Add("@dateCreation", SqlDbType.Date).Value = New DateTime(Now)
+    '                cmd.Parameters.Add("@dCrea", SqlDbType.Date).Value = DateTime.Now
+    '                cmd.Parameters.Add("@note", SqlDbType.NVarChar, 500).Value = "TEST RESET INSTANCE"
+
+    '                cmd.ExecuteNonQuery()
+    '                MessageBox.Show("L'insertion a fonctionné ! Le moteur est réparé.", "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information)
+    '            End Using
+    '        End Using
+    '    Catch ex As Exception
+    '        Logger.ERR("Erreur après reset : " & ex.Message)
+    '        MessageBox.Show("Détails de l'erreur : " & ex.ToString())
+    '    End Try
+    'End Sub
     Public Shared Sub InsererMouvementEnBase(mouvement As Mouvements)
+        If mouvement Is Nothing Then Throw New ArgumentNullException(NameOf(mouvement))
+
         Try
-            Dim db = ConnexionDB.GetInstance(Constantes.bddAgumaaa)
-            Using conn As SqlConnection = db.GetConnexion(Constantes.bddAgumaaa)
+            Dim paramètres As New Dictionary(Of String, Object) From {
+                {"@note", If(String.IsNullOrWhiteSpace(mouvement.Note), DBNull.Value, mouvement.Note.Trim())},
+                {"@categorie", mouvement.Categorie}, ' C'est un INT NOT NULL, pas besoin de IF si > 0
+                {"@sousCategorie", If(mouvement.SousCategorie = 0, DBNull.Value, mouvement.SousCategorie)},
+                {"@tiers", Convert.ToInt32(mouvement.Tiers)},
+                {"@dateCreation", DateTime.Now.Date}, ' On force le type DATE (sans l'heure)
+                {"@dateMvt", If(mouvement.DateMvt = Date.MinValue, DBNull.Value, mouvement.DateMvt.Date)},
+                {"@montant", Convert.ToDecimal(mouvement.Montant)}, ' Conversion explicite en Decimal
+                {"@sens", If(mouvement.Sens, 1, 0)}, ' BIT attend 0 ou 1
+                {"@etat", If(mouvement.Etat, 1, 0)},
+                {"@evenement", If(String.IsNullOrWhiteSpace(mouvement.Evenement), DBNull.Value, mouvement.Evenement)},
+                {"@typeMouvement", If(String.IsNullOrWhiteSpace(mouvement.TypeMouvement), DBNull.Value, mouvement.TypeMouvement)},
+                {"@modifiable", If(mouvement.Modifiable, 1, 0)},
+                {"@numeroRemise", If(String.IsNullOrWhiteSpace(mouvement.NumeroRemise) OrElse Not IsNumeric(mouvement.NumeroRemise),
+                                    DBNull.Value, Convert.ToInt32(mouvement.NumeroRemise))},
+                {"@reference", If(String.IsNullOrWhiteSpace(mouvement.reference), DBNull.Value, mouvement.reference.Trim())},
+                {"@typeReference", If(String.IsNullOrWhiteSpace(mouvement.typeReference), DBNull.Value, mouvement.typeReference.Trim())},
+                {"@idDoc", If(mouvement.idDoc = 0, DBNull.Value, mouvement.idDoc)}
+            }
+            Dim cmd As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertMvts", paramètres)
+            Utilitaires.LogCommand(cmd)
+            Logger.WARN($"cmd.Connection.State.ToString(1) : {cmd.Connection.State.ToString()}")
 
-                Dim sql As String = "INSERT INTO [Mouvements] (categorie, montant, sens, tiers, dateMvt, dateCreation, note) " &
-                                 "VALUES (@cat, @mont, @sens, @tiers, @dMvt, @dCrea, @note)"
+            Dim lignes = cmd.ExecuteNonQuery()
+            Logger.WARN($"cmd.Connection.State.ToString(2) : {cmd.Connection.State.ToString()}")
 
-                Using cmd As New SqlCommand(sql, conn)
-                    ' Typage explicite pour garantir le plan d'exécution
-                    cmd.Parameters.Add("@cat", SqlDbType.Int).Value = 20
-                    cmd.Parameters.Add("@mont", SqlDbType.Decimal).Value = -263.22
-                    cmd.Parameters.Add("@sens", SqlDbType.Bit).Value = 0
-                    cmd.Parameters.Add("@tiers", SqlDbType.Int).Value = 1
-                    cmd.Parameters.Add("@dMvt", SqlDbType.Date).Value = New DateTime(2025, 2, 13)
-                    cmd.Parameters.Add("@dCrea", SqlDbType.Date).Value = DateTime.Now
-                    cmd.Parameters.Add("@note", SqlDbType.NVarChar, 500).Value = "TEST RESET INSTANCE"
+            If lignes = 1 Then
+                Logger.INFO($"Mouvement inséré")
+            Else
+                Logger.WARN($"Insertion anormale : {lignes} ligne(s) affectée(s). ")
+            End If
 
-                    cmd.ExecuteNonQuery()
-                    MessageBox.Show("L'insertion a fonctionné ! Le moteur est réparé.", "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information)
-                End Using
-            End Using
+        Catch sqlEx As SqlException
+            Logger.ERR($"SQL Error {sqlEx.Number}: {sqlEx.Message}" & vbCrLf & mouvement.mvtValeursConcatenees())
+            Throw
         Catch ex As Exception
-            Logger.ERR("Erreur après reset : " & ex.Message)
-            MessageBox.Show("Détails de l'erreur : " & ex.ToString())
+            Logger.ERR($"Erreur insertion : {ex.Message}" & vbCrLf & mouvement.mvtValeursConcatenees())
+            Throw
         End Try
     End Sub
-    '    Public Shared Sub InsererMouvementEnBase(mouvement As Mouvements)
-    '        If mouvement Is Nothing Then Throw New ArgumentNullException(NameOf(mouvement))
-
-    '        Try
-    '            Dim paramètres As New Dictionary(Of String, Object) From {
-    '    {"@note", If(String.IsNullOrWhiteSpace(mouvement.Note), DBNull.Value, mouvement.Note.Trim())},
-    '    {"@categorie", mouvement.Categorie}, ' C'est un INT NOT NULL, pas besoin de IF si > 0
-    '    {"@sousCategorie", If(mouvement.SousCategorie = 0, DBNull.Value, mouvement.SousCategorie)},
-    '    {"@tiers", Convert.ToInt32(mouvement.Tiers)},
-    '    {"@dateCreation", DateTime.Now.Date}, ' On force le type DATE (sans l'heure)
-    '    {"@dateMvt", If(mouvement.DateMvt = Date.MinValue, DBNull.Value, mouvement.DateMvt.Date)},
-    '    {"@montant", Convert.ToDecimal(mouvement.Montant)}, ' Conversion explicite en Decimal
-    '    {"@sens", If(mouvement.Sens, 1, 0)}, ' BIT attend 0 ou 1
-    '    {"@etat", If(mouvement.Etat, 1, 0)},
-    '    {"@evenement", If(String.IsNullOrWhiteSpace(mouvement.Evenement), DBNull.Value, mouvement.Evenement)},
-    '    {"@typeMouvement", If(String.IsNullOrWhiteSpace(mouvement.TypeMouvement), DBNull.Value, mouvement.TypeMouvement)},
-    '    {"@modifiable", If(mouvement.Modifiable, 1, 0)},
-    '    {"@numeroRemise", If(String.IsNullOrWhiteSpace(mouvement.NumeroRemise) OrElse Not IsNumeric(mouvement.NumeroRemise),
-    '                        DBNull.Value, Convert.ToInt32(mouvement.NumeroRemise))},
-    '    {"@reference", If(String.IsNullOrWhiteSpace(mouvement.reference), DBNull.Value, mouvement.reference.Trim())},
-    '    {"@typeReference", If(String.IsNullOrWhiteSpace(mouvement.typeReference), DBNull.Value, mouvement.typeReference.Trim())},
-    '    {"@idDoc", If(mouvement.idDoc = 0, DBNull.Value, mouvement.idDoc)}
-    '}
-    '            Dim cmd As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertMvts", paramètres)
-    '            Utilitaires.LogCommand(cmd)
-    '            Logger.WARN($"cmd.Connection.State.ToString(1) : {cmd.Connection.State.ToString()}")
-
-    '            'Dim lignes = cmd.ExecuteNonQuery()
-    '            ' TEST DE DÉPANNAGE DIRECT
-    '            'Dim sqlTest As String = "INSERT INTO [Mouvements] (categorie, montant, sens, dateMvt, dateCreation, tiers) " &
-    '            '             "VALUES (20, -263.22, 0, '2025-02-13', '2025-12-18', 1)"
-
-    '            'Dim lignes As Integer
-    '            'Using testCmd As New SqlCommand(sqlTest, cmd.Connection)
-    '            '    lignes = testCmd.ExecuteNonQuery()
-    '            'End Using
-    '            ' Test de survie du moteur SQL
-    '            Dim sqlSimple = "INSERT INTO Mouvements (categorie, montant, sens, tiers, dateMvt, dateCreation) " &
-    '                "VALUES (@cat, @montant, @sens, @tiers, @dmvt, @dcrea)"
-    '            Dim lignes As Integer
-    '            Using cmdTest As New SqlCommand(sqlSimple, cmd.Connection)
-    '                cmdTest.Parameters.Add("@cat", SqlDbType.Int).Value = 20
-    '                cmdTest.Parameters.Add("@montant", SqlDbType.Decimal).Value = -263.22
-    '                cmdTest.Parameters.Add("@sens", SqlDbType.Bit).Value = 0
-    '                cmdTest.Parameters.Add("@tiers", SqlDbType.Int).Value = 1
-    '                cmdTest.Parameters.Add("@dmvt", SqlDbType.Date).Value = DateTime.Now
-    '                cmdTest.Parameters.Add("@dcrea", SqlDbType.Date).Value = DateTime.Now
-
-    '                lignes = cmdTest.ExecuteNonQuery()
-    '            End Using
-    '            Logger.WARN($"cmd.Connection.State.ToString(2) : {cmd.Connection.State.ToString()}")
-
-    '            If lignes = 1 Then
-    '                Logger.INFO($"Mouvement inséré")
-    '            Else
-    '                Logger.WARN($"Insertion anormale : {lignes} ligne(s) affectée(s). ")
-    '            End If
-
-    '        Catch sqlEx As SqlException
-    '            Logger.ERR($"SQL Error {sqlEx.Number}: {sqlEx.Message}" & vbCrLf & mouvement.mvtValeursConcatenees())
-    '            Throw
-    '        Catch ex As Exception
-    '            Logger.ERR($"Erreur insertion : {ex.Message}" & vbCrLf & mouvement.mvtValeursConcatenees())
-    '            Throw
-    '        End Try
-    '    End Sub
     Public Shared Sub MettreAJourIdDoc(idMouvement As Integer, nouvelIdDoc As Integer)
         Try
             Dim rowsAffected As Integer = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "updMvtIdDoc",

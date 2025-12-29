@@ -1,6 +1,7 @@
 ﻿Imports System.Data.SqlClient
 Imports System.Globalization
 Imports System.Text.RegularExpressions
+Imports gestionTresorerie.Agumaaa
 
 Public Class FrmSaisie
     Inherits System.Windows.Forms.Form
@@ -58,15 +59,15 @@ Public Class FrmSaisie
         AjouterSiVide(txtTiers, "Tiers", champsManquants, premierControleNonValide)
         AjouterSiVide(txtCategorie, "Catégorie", champsManquants, premierControleNonValide)
         AjouterSiVide(txtSousCategorie, "Sous-catégorie", champsManquants, premierControleNonValide)
-        AjouterSiVide(txtTypeDoc, "Type de document", champsManquants, premierControleNonValide)
-        AjouterSiVide(txtDocument, "Document", champsManquants, premierControleNonValide)
+        'AjouterSiVide(txtTypeDoc, "Type de document", champsManquants, premierControleNonValide)
+        'AjouterSiVide(txtDocument, "Document", champsManquants, premierControleNonValide)
         AjouterSiVide(txtTypeMvt, "Type de mouvement", champsManquants, premierControleNonValide)
 
         ' 2. Vérification de la sélection des objets métiers (plus fiable que le texte du contrôle)
         If _tiersSelectionne Is Nothing Then objetsManquants.Add("Tiers (non sélectionné)")
         If _categorieSelectionne Is Nothing Then objetsManquants.Add("Catégorie (non sélectionnée)")
         If _sousCategorieSelectionnee Is Nothing Then objetsManquants.Add("Sous-catégorie (non sélectionnée)")
-        If _typeDocSelectionne Is Nothing Then objetsManquants.Add("Type de document (non sélectionné)")
+        'If _typeDocSelectionne Is Nothing Then objetsManquants.Add("Type de document (non sélectionné)")
         If _typeMvtSelectionne Is Nothing Then objetsManquants.Add("Type de mouvement (non sélectionné)")
 
         ' 3. Affichage des erreurs et gestion du focus
@@ -284,7 +285,7 @@ Public Class FrmSaisie
             ' Récupération du type de document sélectionné
             Dim typeDocLibelle As String = If(_typeDocSelectionne Is Nothing, String.Empty, _typeDocSelectionne.Libellé)
 
-            If typeDocLibelle.Equals("Chèque", StringComparison.OrdinalIgnoreCase) Then
+            If typeDocLibelle.Equals(TypeDocumentLibelles.Libelles(TypeDocument.Cheque), StringComparison.OrdinalIgnoreCase) Then
                 Dim numeroCheque As String = Utilitaires.ExtraitNuméroChèque(txtNote.Text)
                 Dim nomTiers As String = txtTiers.Text ' Utilisation du texte du Tiers pour la recherche
 

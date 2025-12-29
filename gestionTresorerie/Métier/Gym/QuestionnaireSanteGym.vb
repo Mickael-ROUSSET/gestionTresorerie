@@ -31,11 +31,12 @@ Public Class QuestionnaireSanteGym
         Dim anneeSuivante As Integer = anneeEnCours + 1
 
         Dim sRepDestination As String
-        sRepDestination = LectureProprietes.GetVariable("repRacineAgumaaa") &
-            LectureProprietes.GetVariable("repRacineDocuments") &
-            LectureProprietes.GetVariable("repFichiersGym") &
-            anneeEnCours.ToString & "-" & anneeSuivante.ToString &
-            LectureProprietes.GetVariable("repGymQuestionnaire")
+        sRepDestination = path.combine(LectureProprietes.GetVariable("repRacineAgumaaa") ,
+										LectureProprietes.GetVariable("repRacineDocuments") ,
+										LectureProprietes.GetVariable("repFichiersGym") ,
+										anneeEnCours.ToString & "-" & anneeSuivante.ToString ,
+										LectureProprietes.GetVariable("repGymQuestionnaire")
+										)
         Utilitaires.RenommerEtDeplacerFichier(sChemin, determineNouveauNom(sRepDestination))
         Return sRepDestination
     End Function

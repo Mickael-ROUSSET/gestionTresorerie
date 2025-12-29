@@ -47,7 +47,7 @@
       <Value Profile="(Default)">https://api.mistral.ai/v1/chat/completions</Value>
     </Setting>
     <Setting Name="repFichierBilan" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">\ressources</Value>
+      <Value Profile="(Default)">ressources</Value>
     </Setting>
     <Setting Name="reqSelectToutMouvements" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT * FROM Mouvements;</Value>
@@ -69,9 +69,6 @@
     </Setting>
     <Setting Name="reqLibelleSousCategorie" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT libelle FROM SousCategorie where idCategorie =</Value>
-    </Setting>
-    <Setting Name="selAleatoire" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">3rD/s9+aP2fG4h5jK7lMnO=</Value>
     </Setting>
     <Setting Name="procMvtsIdentiquesEX" Type="System.String" Scope="Application">
       <Value Profile="(Default)">EXEC dbo.ObtenirMouvementsSimilaires @dateMvt, @montant, @sens</Value>
@@ -152,25 +149,25 @@
       <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Bdd\bddAgumaaaProd2.mdf</Value>
     </Setting>
     <Setting Name="repFichiersDocumentsATrier" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">\A_Trier</Value>
+      <Value Profile="(Default)">A_Trier</Value>
     </Setting>
     <Setting Name="repFichiersDocumentsChèques" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">\Chèques</Value>
+      <Value Profile="(Default)">Chèques</Value>
     </Setting>
     <Setting Name="repFichiersGym" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">\Manifestations récurrentes\Activités\Gym</Value>
+      <Value Profile="(Default)">Manifestations récurrentes\Activités\Gym</Value>
     </Setting>
     <Setting Name="repGymAdhésion" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">\Formulaires d'adhésion</Value>
+      <Value Profile="(Default)">Formulaires d'adhésion</Value>
     </Setting>
     <Setting Name="repGymQuestionnaire" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">\QuestionnairesSanté</Value>
+      <Value Profile="(Default)">QuestionnairesSanté</Value>
     </Setting>
     <Setting Name="repRacineDocuments" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">\Documents</Value>
+      <Value Profile="(Default)">Documents</Value>
     </Setting>
     <Setting Name="repRacineComptabilité" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">\Gestion\Trésorerie\Comptabilité\Eléments comptables</Value>
+      <Value Profile="(Default)">Gestion\Trésorerie\Comptabilité\Eléments comptables</Value>
     </Setting>
     <Setting Name="repRacineMdN" Type="System.String" Scope="Application">
       <Value Profile="(Default)">\Manifestations récurrentes\Marché de Noël</Value>
@@ -179,13 +176,13 @@
       <Value Profile="(Default)">\Administratif\attestationsNonParticipationAutresMarches</Value>
     </Setting>
     <Setting Name="repFichiersDocumentsFactures" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">\Factures</Value>
+      <Value Profile="(Default)">Factures</Value>
     </Setting>
     <Setting Name="repFichiersFacturesEmises" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">\Emises</Value>
+      <Value Profile="(Default)">Emises</Value>
     </Setting>
     <Setting Name="repFichiersFacturesRecues" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">\Recues</Value>
+      <Value Profile="(Default)">Recues</Value>
     </Setting>
     <Setting Name="sqlTypesDocuments" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT prompt, gabaritRepertoire, gabaritNomFichier, classe FROM TypeDoc;</Value>
@@ -354,12 +351,6 @@
     </Setting>
     <Setting Name="SMTP_User" Type="System.String" Scope="Application">
       <Value Profile="(Default)">agumaaa43@gmail.com</Value>
-    </Setting>
-    <Setting Name="SMTP_PASS" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">43GeorgeSand+</Value>
-    </Setting>
-    <Setting Name="SmtpPassword" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">esvyxmvwlxphgjeg</Value>
     </Setting>
     <Setting Name="SmtpUsername" Type="System.String" Scope="Application">
       <Value Profile="(Default)">agumaaa43@gmail.com</Value>

@@ -29,6 +29,8 @@ Public Class FrmPrincipale
             'Lecture du niveau de log demandé
             Logger.SetLogLevel(LectureProprietes.GetVariable(Constantes.paramNiveauLog))
             Logger.DBG("Initialisation de : {lectureProprietes}")
+            'Chargement des secrets de l'application
+            GlobalSettings.Initialize()
             'Récupère le rang des colonnes du datagridview
             initIndiceColDgv()
             'Charger dgvPrincipale avec le contenu de la table mouvements
@@ -39,7 +41,6 @@ Public Class FrmPrincipale
             Logger.ERR($"Une erreur est survenue lors de l'initialisation : {ex.Message}")
         End Try
     End Sub
-
     Private Sub initIndiceColDgv()
 
         'Récupère le rang des colonnes du datagridview
@@ -162,23 +163,24 @@ Public Class FrmPrincipale
         End If
     End Sub
 
-    Private Sub ConsoleToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ConsoleToolStripMenuItem.Click
+    Private Sub ConsoleToolStripMenuItem_Click(sender As Object, e As EventArgs)
 
-        If UtilisateurActif Is Nothing OrElse Not UtilisateurActif.EstAdmin() Then
+        If UtilisateurActif Is Nothing OrElse Not UtilisateurActif.EstAdmin Then
             MessageBox.Show("Accès réservé aux administrateurs.")
         End If
 
-        Dim frm As New FrmGestionUtilisateurs()
+        Dim frm As New FrmGestionUtilisateurs
         frm.ShowDialog()
     End Sub
 
-    Private Sub ChangeMdPToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ChangeMdPToolStripMenuItem.Click
-        Dim frm As New FrmChangePassword()
+    Private Sub ChangeMdPToolStripMenuItem_Click(sender As Object, e As EventArgs)
+        Dim frm As New FrmChangePassword
         frm.ShowDialog()
     End Sub
 
-    Private Sub AnalyseDocumentsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles AnalyseDocumentsToolStripMenuItem.Click
-        Call Lanceur.LanceTrt()
+    Private Async Sub AnalyseDocumentsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles AnalyseDocumentsToolStripMenuItem.Click
+        Dim lanceur As New Lanceur
+        Await lanceur.LanceTrt()
     End Sub
 
     Private Sub GénérerBilanToolStripMenuItem1_Click(sender As Object, e As EventArgs) Handles GénérerBilanToolStripMenuItem1.Click
@@ -234,26 +236,26 @@ Public Class FrmPrincipale
         Call Utilitaires.SauvegarderBaseVersDrive("Drive2C")
     End Sub
 
-    Private Sub ChargerFichierToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ChargerFichierToolStripMenuItem.Click
+    Private Sub ChargerFichierToolStripMenuItem_Click(sender As Object, e As EventArgs)
         'Chargement de la base à partir du fichier Excel des entrées cinéma
         'Les fichiers annuels se trouvent dans G:\Mon Drive\AGUMAAA\Documents\Cinéma\Entrées
         Dim entreeCinema As New EntreeCinema
         entreeCinema.ImporterEntreesDepuisExcel()
     End Sub
 
-    Private Sub GénérerStatsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles GénérerStatsToolStripMenuItem.Click
+    Private Sub GénérerStatsToolStripMenuItem_Click(sender As Object, e As EventArgs)
         frmStatsCinema.Show()
     End Sub
 
-    Private Async Sub GénérerProgrammeToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles GénérerProgrammeToolStripMenuItem.Click
+    Private Async Sub GénérerProgrammeToolStripMenuItem_Click(sender As Object, e As EventArgs)
         ' Crée le programme du cinéma à partir d'un fichier fourni par Hélène
-        Using ofd As New OpenFileDialog()
+        Using ofd As New OpenFileDialog
             ofd.Title = "Sélectionnez le fichier du programme"
             ofd.Filter = "Fichiers TXT|*.txt|Fichiers CSV|*.csv|Tous les fichiers|*.*"
 
             ' Si l'utilisateur choisit un fichier
-            If ofd.ShowDialog() = DialogResult.OK Then
-                Dim sCheminFichier As String = ofd.FileName
+            If ofd.ShowDialog = DialogResult.OK Then
+                Dim sCheminFichier = ofd.FileName
 
                 Dim service As New ProgrammeCinemaCreator
 
@@ -270,42 +272,41 @@ Public Class FrmPrincipale
         End Using
     End Sub
 
-    Private Sub ImporterExcelToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ImporterExcelToolStripMenuItem.Click
+    Private Sub ImporterExcelToolStripMenuItem_Click(sender As Object, e As EventArgs)
         Dim mdn As New GenereAttestationNonParticipation
         mdn.ImporterParticipantsDepuisExcel()
         MsgBox("Import terminé. CR dans les logs")
     End Sub
 
-    Private Sub GénérerAttestationsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles GénérerAttestationsToolStripMenuItem.Click
+    Private Sub GénérerAttestationsToolStripMenuItem_Click(sender As Object, e As EventArgs)
         Dim mdn As New GenereAttestationNonParticipation
         mdn.GenererEtEnvoyerAttestations()
         MsgBox("Génération terminée. CR dans les logs")
     End Sub
 
-    Private Sub EnvironnementToolStripMenuItem_Click(sender As Object, e As EventArgs) _
-    Handles EnvironnementToolStripMenuItem.Click
+    Private Sub EnvironnementToolStripMenuItem_Click(sender As Object, e As EventArgs)
 
         Dim choix = InputBox(
                             "Entrez l'environnement (DEV / TEST / PROD)." & vbCrLf &
-                            "Environnement actuel : " & EnvironmentManager.GetEnvironmentLabel(),
+                            "Environnement actuel : " & GetEnvironmentLabel(),
                             "Changer d'environnement"
                             )
 
         If String.IsNullOrWhiteSpace(choix) Then Exit Sub
 
-        Select Case choix.ToUpper()
+        Select Case choix.ToUpper
             Case "DEV"
-                EnvironmentManager.SetEnvironment(EnvironmentManager.EnvironnementType.DEV)
+                SetEnvironment(EnvironnementType.DEV)
             Case "TEST"
-                EnvironmentManager.SetEnvironment(EnvironmentManager.EnvironnementType.TEST)
+                SetEnvironment(EnvironnementType.TEST)
             Case "PROD"
-                EnvironmentManager.SetEnvironment(EnvironmentManager.EnvironnementType.PROD)
+                SetEnvironment(EnvironnementType.PROD)
             Case Else
                 MessageBox.Show("Valeur non reconnue. Utilisez DEV, TEST ou PROD.")
                 Exit Sub
         End Select
 
-        MessageBox.Show("Nouvel environnement actif : " & EnvironmentManager.GetEnvironmentLabel() &
+        MessageBox.Show("Nouvel environnement actif : " & GetEnvironmentLabel() &
                     vbCrLf &
                     "Redémarrez l'application pour appliquer les changements.",
                     "Environnement modifié",
@@ -313,13 +314,13 @@ Public Class FrmPrincipale
                     MessageBoxIcon.Information)
     End Sub
 
-    Private Async Sub CréerToolStripMenuItem1_Click(sender As Object, e As EventArgs) Handles CréerToolStripMenuItem1.Click
+    Private Async Sub CréerToolStripMenuItem1_Click(sender As Object, e As EventArgs)
         Dim menu = DirectCast(sender, ToolStripMenuItem)
         Dim force = menu.Name = "RecréerToolStripMenuItem" ' ou menu.Tag=True
         Await ExecuterCreationAgentMistral(False)
     End Sub
 
-    Private Async Sub RecréerforçageToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RecréerforçageToolStripMenuItem.Click
+    Private Async Sub RecréerforçageToolStripMenuItem_Click(sender As Object, e As EventArgs)
         Dim menu = DirectCast(sender, ToolStripMenuItem)
         Dim force = menu.Name = "RecréerToolStripMenuItem" ' ou menu.Tag=True
         Await ExecuterCreationAgentMistral(True)
@@ -339,7 +340,7 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub SaisieToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SaisieToolStripMenuItem.Click
-        FrmSaisie.Show()
+        frmSaisie.Show()
     End Sub
 
     Private Sub BatchGénériqueToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles BatchGénériqueToolStripMenuItem.Click
@@ -367,7 +368,7 @@ Public Class FrmPrincipale
 
     End Function
 
-    Private Sub ListeUtilisateursToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ListeUtilisateursToolStripMenuItem.Click
+    Private Sub ListeUtilisateursToolStripMenuItem_Click(sender As Object, e As EventArgs)
         AppelIReseau.TestIReseau()
     End Sub
 
@@ -377,7 +378,24 @@ Public Class FrmPrincipale
 
     Private Sub ExportDesDonnéesToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ExportDesDonnéesToolStripMenuItem.Click
         ' Appel de la procédure
-        ServiceExport.ExecuterExportSQL(LectureProprietes.GetVariable("dossierDestinationExportData"))
+        '_ServiceExport.ExecuterExportSQL(LectureProprietes.GetVariable("dossierDestinationExportData"))
+        DatabaseAutomation.ExportDatabase()
+    End Sub
+
+    Private Sub ImportDesDonnéesToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ImportDesDonnéesToolStripMenuItem.Click
+        Dim confirm = MessageBox.Show("Attention : L'importation écrasera les données actuelles. Continuer ?",
+                                "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Warning)
+        If confirm = DialogResult.Yes Then
+            DatabaseAutomation.ImportDatabase()
+        End If
+    End Sub
+
+    Private Sub FichierToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles FichierToolStripMenuItem.Click
+
+    End Sub
+
+    Private Sub RécupDesPJReçuesParMailToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RécupDesPJReçuesParMailToolStripMenuItem.Click
+        EmailProcessor.ProcessAttachments()
     End Sub
     'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
     '    'Call CreeBilans()

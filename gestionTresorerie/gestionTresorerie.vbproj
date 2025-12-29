@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="My Project\PromptGemini.txt" />
     <None Remove="Resources\client_secret_533498319739-9n7vp1d4vjealj8j7ud2spviq27jgunt.apps.googleusercontent.com.json" />
   </ItemGroup>
 
@@ -55,6 +56,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="My Project\PromptGemini.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Import Include="System.Data" />
     <Import Include="System.Drawing" />
     <Import Include="System.Windows.Forms" />
@@ -68,6 +73,7 @@
     <PackageReference Include="Google.Apis.Auth" Version="1.72.0" />
     <PackageReference Include="Google.Apis.Drive.v3" Version="1.72.0.3944" />
     <PackageReference Include="IronOcr" Version="2025.2.3" />
+    <PackageReference Include="MailKit" Version="4.14.1" />
     <PackageReference Include="Microsoft.Extensions.AI" Version="9.3.0-preview.1.25114.11" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
     <PackageReference Include="Moq" Version="4.20.72" />

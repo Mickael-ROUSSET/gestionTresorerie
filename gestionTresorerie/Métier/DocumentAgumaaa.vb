@@ -59,8 +59,6 @@ Public MustInherit Class DocumentAgumaaa
             _contenuDoc = value
         End Set
     End Property
-
-
     Public Shared Sub InsererDocument(doc As DocumentAgumaaa)
         Try
             Dim unused = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertDocAgumaaa",
@@ -122,4 +120,21 @@ Public MustInherit Class DocumentAgumaaa
         End Try
     End Sub
     Public MustOverride Function RenommerFichier(sNomFichier As String, Optional sNouveauNom As String = "") As String
+    ''' <summary>
+    ''' Retourne un résumé textuel propre du document
+    ''' </summary>
+    Public Overrides Function ToString() As String
+        Try
+            ' On essaie de récupérer le type et une info clé pour le log
+            Dim typeInfo As String = If(Not String.IsNullOrEmpty(CategorieDoc), CategorieDoc, "Document Inconnu")
+            Dim dateInfo As String = DateDoc.ToString("dd/MM/yyyy HH:mm")
+
+            ' Optionnel : Si tu veux extraire une info du JSON pour le ToString
+            ' Dim montant = ExtraireMontantDuJson(metaDonnees) 
+
+            Return $"[{typeInfo}] traité le {dateInfo}"
+        Catch
+            Return "DocumentAgumaaa (Erreur de lecture des propriétés)"
+        End Try
+    End Function
 End Class

@@ -4,6 +4,7 @@
 Imports System.IO
 Imports System.Reflection
 Imports gestionTresorerie.Agumaaa
+Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 
 Public Class batchAnalyse
@@ -19,93 +20,69 @@ Public Class batchAnalyse
     Public Sub New(TypeDoc As ITypeDoc)
         _TypeDoc = TypeDoc
     End Sub
-    Public Sub ParcourirRepertoireEtAnalyser()
-        Dim sRepDoc As String = LectureProprietes.GetVariable("repRacineAgumaaa") &
-            LectureProprietes.GetVariable("repRacineDocuments") &
-            LectureProprietes.GetVariable("repFichiersDocumentsATrier")
-
+    ' <summary>
+    ' Module d'exécution : Gère la boucle de traitement et les logs
+    ' </summary> 
+    Public Async Function DemarrerTraitement(repertoireSource As String) As Task
         Try
-            ' Enregistrer la date et l'heure de début
-            dateHeureDebut = DateTime.Now
+            Logger.INFO("Démarrage du lot d'analyse...")
+            If Not Directory.Exists(repertoireSource) Then Exit Function
 
-            ' Vérifier si le répertoire existe
-            If Directory.Exists(sRepDoc) Then
-                ' Appeler la méthode récursive pour parcourir le répertoire et ses sous-dossiers
-                ParcourirEtAnalyserRecursif(sRepDoc)
-            Else
-                Logger.INFO($"Le répertoire spécifié : '{sRepDoc}' n'existe pas. Penser à se connecter au google drive AGUMAAA")
-            End If
+            ' 1. Récupération de tous les fichiers (Filtre multi-extensions)
+            Dim extensions As String() = {"*.jpg", "*.jpeg", "*.pdf"}
+            Dim tousLesFichiers = extensions.SelectMany(Function(ext) Directory.GetFiles(repertoireSource, ext, SearchOption.AllDirectories))
 
-            ' Enregistrer la date et l'heure de fin
-            dateHeureFin = DateTime.Now
+            Logger.INFO($"Nb fichiers à traiter : {tousLesFichiers.Count}")
+            For Each fichier In tousLesFichiers
+                Await TraiterFichierUnique(fichier).ConfigureAwait(False)
+                Logger.INFO($"Traitement de : {fichier}")
+            Next
 
-            ' Appeler la méthode pour générer le compte rendu de traitement
             GenererCompteRendu()
-
-            ' Message final
-            Logger.INFO($"Analyse terminée pour tous les fichiers du répertoire '{sRepDoc}'.")
-
+            MsgBox("Terminé")
         Catch ex As Exception
-            Logger.ERR($"Erreur lors du parcours du répertoire : '{sRepDoc}' " & ex.Message)
+            Logger.ERR($"Erreur fatale boucle principale : {ex.Message}")
         End Try
-    End Sub
-    Private Sub ParcourirEtAnalyserRecursif(repertoire As String)
+    End Function
+    Private Async Function TraiterFichierUnique(cheminFichier As String) As Task
         Try
-            'Détecter et déplacer les doublons (sur leur contenu)
-            Dim resultatDoublons = GestionDoublons.DeplacerDoublonsAvecProgress(repertoire)
+            ' 2. Appel Gemini (Identification + Extraction)
+            Dim resultatJson As String = Await GeminiAnalyzer.AnalyserDocument(GlobalSettings.GeminiKey, cheminFichier).ConfigureAwait(False)
 
-            ' Log du compte-rendu
-            Logger.INFO("--------- COMPTE-RENDU DES DOUBLONS ---------")
-            Logger.INFO($"Nombre de fichiers déplacés dans Doublons : {resultatDoublons.Count}")
-            Logger.INFO("-------------------------------------------------")
-
-            Dim compteur As (fichiersTraites As Integer, traitementOK As Integer, traitementKO As Integer) = Nothing            ' Initialiser les compteurs pour le répertoire courant
-            If Not compteursParRepertoire.TryGetValue(repertoire, compteur) Then
-                compteur = (0, 0, 0)
-                compteursParRepertoire(repertoire) = compteur
+            If String.IsNullOrEmpty(resultatJson) Then
+                Logger.WARN($"Aucune réponse pour {Path.GetFileName(cheminFichier)}")
+                EnregistrerEchec(cheminFichier)
+                Exit Function
             End If
 
-            ' Obtenir tous les fichiers jpg dans le répertoire courant
-            Dim extensions As String() = {"*.jpg", "*.jpeg", "*.png", "*.bmp", "*.gif"}
-            Dim fichiers As New List(Of String)
+            ' 3. Désérialisation pour connaître le type détecté par l'IA
+            Dim extraction = JsonConvert.DeserializeObject(Of JObject)(resultatJson)
+            Dim typeDetecte As String = extraction("type_document")?.ToString()
 
-            For Each extension In extensions
-                fichiers.AddRange(Directory.GetFiles(repertoire, extension, SearchOption.AllDirectories))
-            Next
+            ' 4. Instanciation dynamique de la classe correspondante
+            Dim typeClasse As Type = Type.GetType("gestionTresorerie." & typeDetecte)
+            If typeClasse IsNot Nothing Then
+                Dim docMetier As DocumentAgumaaa = TryCast(Activator.CreateInstance(typeClasse), DocumentAgumaaa)
 
+                ' Remplissage des données
+                docMetier.metaDonnees = resultatJson
+                docMetier.DateDoc = DateTime.Now
+                docMetier.CheminDoc = docMetier.RenommerFichier(cheminFichier)
 
-            ' Parcourir chaque fichier et appeler analyseChq
-            For Each sNomFichier As String In fichiers
-                'sNomFichier contient le nom du fichier et le chemin
-                Try
-                    'Il faut une instance de classe du bon type
-                    _TypeDoc.ContenuBase64 = TypeDocImpl.EncodeImageToBase64(sNomFichier)
-                    '-----------------------------------
-                    ' Appel Mistral dans analyseDocument
-                    '-----------------------------------
-                    Dim nouveauDoc As DocumentAgumaaa = analyseDocument(_TypeDoc)
-                    ProcessDocument(nouveauDoc, sNomFichier)
-                    Logger.INFO("Insertion en base du document " & nouveauDoc.ToString)
-                    nombreFichiersTraites += 1
-                    nombreTraitementOK += 1
-                    compteursParRepertoire(repertoire) = (compteur.fichiersTraites + 1, compteur.traitementOK + 1, compteur.traitementKO)
-                Catch ex As Exception
-                    Logger.ERR($"Erreur lors de l'analyse du fichier : {sNomFichier} - {ex.Message}")
-                    nombreTraitementKO += 1
-                    compteursParRepertoire(repertoire) = (compteur.fichiersTraites + 1, compteur.traitementOK, compteur.traitementKO + 1)
-                End Try
-            Next
+                ' Insertion SQL
+                docMetier.InsererDocument(docMetier)
 
-            ' Obtenir tous les sous-dossiers dans le répertoire courant
-            Dim sousDossiers As String() = Directory.GetDirectories(repertoire)
+                nombreTraitementOK += 1
+                Logger.INFO($"Succès : {typeDetecte} identifié pour {Path.GetFileName(cheminFichier)}")
+            End If
 
-            ' Parcourir chaque sous-dossier et appeler récursivement la méthode
-            For Each sousDossier As String In sousDossiers
-                ParcourirEtAnalyserRecursif(sousDossier)
-            Next
         Catch ex As Exception
-            Logger.ERR($"Erreur lors du parcours du répertoire : {repertoire} " & ex.Message)
+            EnregistrerEchec(cheminFichier, ex.Message)
         End Try
+    End Function
+    Private Sub EnregistrerEchec(fichier As String, Optional msg As String = "")
+        nombreTraitementKO += 1
+        Logger.ERR($"Echec traitement {fichier} : {msg}")
     End Sub
     Public Sub ProcessDocument(nouveauDoc As DocumentAgumaaa, sNomFichier As String)
         'sNomFichier contient le chemin
@@ -138,7 +115,6 @@ Public Class batchAnalyse
 
             ' Copier les propriétés de nouveauDoc vers derivedDoc
             derivedDoc.DateDoc = nouveauDoc.DateDoc
-            'derivedDoc.ContenuDoc = nouveauDoc.ContenuDoc
             derivedDoc.CategorieDoc = nouveauDoc.CategorieDoc
             derivedDoc.SousCategorieDoc = nouveauDoc.SousCategorieDoc
             derivedDoc.IdMvtDoc = nouveauDoc.IdMvtDoc
@@ -154,8 +130,7 @@ Public Class batchAnalyse
             Logger.ERR($"Erreur lors du traitement du document {sNomFichier} : {ex.Message}")
         End Try
     End Sub
-
-    Public Shared Function analyseDocument(doc As ITypeDoc) As DocumentAgumaaa
+    Public Shared Async Function analyseDocument(doc As ITypeDoc) As Task(Of DocumentAgumaaa)
         Try
             ' Vérifier si l'objet doc est null
             If doc Is Nothing Then
@@ -201,57 +176,28 @@ Public Class batchAnalyse
                 Return Nothing
             End If
 
-            ' Appeler litImage pour analyser l'image et obtenir les métadonnées
-            Dim sMetaDonnees As String = AppelMistral.litImage(doc)
-            If String.IsNullOrEmpty(sMetaDonnees) Then
+            ' Appeler litImage pour analyser l'image et obtenir les métadonnées 
+            Dim resultatJson As String = Await GeminiAnalyzer.AnalyserDocument(GlobalSettings.GeminiKey, doc.ContenuBase64)
+            If String.IsNullOrEmpty(resultatJson) Then
                 Logger.ERR("AppelMistral.litImage a retourné des métadonnées vides ou null.")
                 Return Nothing
             End If
 
-            ' Valider que sMetaDonnees est un JSON valide
-            Try
-                Dim unused = JObject.Parse(sMetaDonnees)
-            Catch ex As Exception
-                Logger.ERR($"Les métadonnées retournées par AppelMistral.litImage ne sont pas un JSON valide : {ex.Message}")
-                Return Nothing
-            End Try
-
-            ' Initialiser les propriétés de DocumentAgumaaa
-            'nouveauDoc.ContenuDoc = doc.ContenuBase64
+            ' Initialiser les propriétés de DocumentAgumaaa 
             nouveauDoc.DateDoc = Date.Now
             nouveauDoc.CategorieDoc = doc.ClasseTypeDoc
             nouveauDoc.SousCategorieDoc = "" ' Peut être ajusté si nécessaire
             'Nettoie le json renvoyé par Mistral
-            nouveauDoc.metaDonnees = Utilitaires.ExtraireJsonValide(sMetaDonnees)
+            nouveauDoc.metaDonnees = resultatJson
             nouveauDoc.IdMvtDoc = 0 ' Valeur par défaut, à ajuster si nécessaire
 
-            Logger.INFO($"Document {nouveauDoc.CategorieDoc} analysé avec succès. metaDonnees : {sMetaDonnees}")
+            Logger.INFO($"Document {nouveauDoc.CategorieDoc} analysé avec succès. metaDonnees : {resultatJson}")
             Return nouveauDoc
         Catch ex As Exception
             Logger.ERR($"Erreur lors de l'analyse du document : {ex.Message}")
-            Return Nothing
+            Throw ' <-- On "re-propage" l'erreur pour que l'appelant sache que ça a échoué
         End Try
     End Function
-
-    ' Méthode dédiée pour générer le compte rendu de traitement
-    'Private Sub GenererCompteRendu()
-    '    ' Log des informations générales
-    '    Logger.INFO($"Compte rendu de traitement :")
-    '    Logger.INFO($"Nombre de fichiers traités : {nombreFichiersTraites}")
-    '    Logger.INFO($"Nombre de traitements OK : {nombreTraitementOK}")
-    '    Logger.INFO($"Nombre de traitements KO : {nombreTraitementKO}")
-    '    Logger.INFO($"Date/Heure de début : {dateHeureDebut}")
-    '    Logger.INFO($"Date/Heure de fin : {dateHeureFin}")
-
-    '    ' Log des compteurs par répertoire
-    '    Logger.INFO($"Compte rendu par répertoire :")
-    '    For Each kvp As KeyValuePair(Of String, (Integer, Integer, Integer)) In compteursParRepertoire
-    '        Logger.INFO($"Répertoire : {kvp.Key}")
-    '        Logger.INFO($"  Fichiers traités : {kvp.Value.Item1}")
-    '        Logger.INFO($"  Traitements OK : {kvp.Value.Item2}")
-    '        Logger.INFO($"  Traitements KO : {kvp.Value.Item3}")
-    '    Next
-    'End Sub
     Private Sub GenererCompteRendu()
         ' Assurer que le rapport est démarré
         RapportTraitement.DemarrerRapport()

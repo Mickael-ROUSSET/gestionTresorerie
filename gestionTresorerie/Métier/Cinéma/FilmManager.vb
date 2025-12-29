@@ -5,8 +5,9 @@ Public Class FilmManager
     Private Shared ReadOnly _tmdbService As TMDbService
 
     Shared Sub New()
-        Dim apiKey = LectureProprietes.GetVariable("cleApiTmdb")
-        _tmdbService = New TMDbService(apiKey)
+        'Dim apiKey = LectureProprietes.GetVariable("cleApiTmdb")
+        '_tmdbService = New TMDbService(apiKey)
+        _tmdbService = New TMDbService(GlobalSettings.GCleTmdb)
     End Sub
 
     ' Recherche d'un film via TMDb

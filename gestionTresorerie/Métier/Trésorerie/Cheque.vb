@@ -150,11 +150,12 @@ Public Class Cheque
 
     Public Overrides Function RenommerFichier(sNomFichier As String, Optional sNouveauNom As String = "") As String
         Dim sRepDestination As String
-        sRepDestination = LectureProprietes.GetVariable("repRacineAgumaaa") _
-            & LectureProprietes.GetVariable("repRacineComptabilité") _
-            & LectureProprietes.GetVariable("repFichiersDocumentsChèques") _
-            & "\" & DateTime.Now.Year.ToString _
-            & "\" & IIf(_emetteur_du_cheque = "AGUMAAA", "Emis", "Reçus")
+        sRepDestination = Path.Combine(LectureProprietes.GetVariable("repRacineAgumaaa"),
+                                        LectureProprietes.GetVariable("repRacineComptabilité"),
+                                        LectureProprietes.GetVariable("repFichiersDocumentsChèques"),
+                                        DateTime.Now.Year.ToString,
+                                        IIf(_emetteur_du_cheque = "AGUMAAA", "Emis", "Reçus")
+                                        )
         ' Vérifier si le répertoire de sortie est valide
         If String.IsNullOrEmpty(sRepDestination) Then
             Logger.ERR($"Le répertoire de sortie {sRepDestination} est vide ou null.")

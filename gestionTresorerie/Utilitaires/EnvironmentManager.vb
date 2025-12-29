@@ -12,10 +12,10 @@
     ''' Lit la variable système et met à jour l'environnement actif.
     ''' </summary>
     Public Sub LoadEnvironment()
-        Dim env As String = Environment.GetEnvironmentVariable("AGUMAAA_ENV", EnvironmentVariableTarget.Machine)
+        Dim env As String = Environment.GetEnvironmentVariable("envAgumaaa", EnvironmentVariableTarget.Machine)
 
         If String.IsNullOrWhiteSpace(env) Then
-            env = Environment.GetEnvironmentVariable("AGUMAAA_ENV", EnvironmentVariableTarget.User)
+            env = Environment.GetEnvironmentVariable("envAgumaaa", EnvironmentVariableTarget.User)
         End If
 
         If String.IsNullOrWhiteSpace(env) Then

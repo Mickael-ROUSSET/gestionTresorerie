@@ -19,10 +19,10 @@ Public Class batchAnalyse
         _TypeDoc = TypeDoc
     End Sub
     Public Sub ParcourirRepertoireEtAnalyser()
-        Dim sRepDoc As String = LectureProprietes.GetVariable("repRacineAgumaaa") &
-            LectureProprietes.GetVariable("repRacineDocuments") &
-            LectureProprietes.GetVariable("repFichiersDocumentsATrier")
-
+        Dim sRepDoc As String = path.combine(LectureProprietes.GetVariable("repRacineAgumaaa") ,
+											LectureProprietes.GetVariable("repRacineDocuments") ,
+											LectureProprietes.GetVariable("repFichiersDocumentsATrier")
+											)
         Try
             ' Enregistrer la date et l'heure de début
             dateHeureDebut = DateTime.Now

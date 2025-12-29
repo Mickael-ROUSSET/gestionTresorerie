@@ -28,11 +28,12 @@ Public Class FactureRecue
 
     Public Overrides Function RenommerFichier(sNomFichier As String, Optional sNouveauNom As String = "") As String
         Dim sRepDestination As String
-        sRepDestination = LectureProprietes.GetVariable("repRacineAgumaaa") _
-            & LectureProprietes.GetVariable("repRacineComptabilité") _
-            & LectureProprietes.GetVariable("repFichiersDocumentsFactures") _
-            & "\" & DateTime.Now.Year.ToString _
-            & LectureProprietes.GetVariable("repFichiersFacturesEmises")
+        sRepDestination = path.combine(LectureProprietes.GetVariable("repRacineAgumaaa") ,
+										LectureProprietes.GetVariable("repRacineComptabilité") ,
+										LectureProprietes.GetVariable("repFichiersDocumentsFactures") ,
+										DateTime.Now.Year.ToString ,
+										LectureProprietes.GetVariable("repFichiersFacturesEmises")
+										)
         'TODO trouver comment orienter vers "Emises" ou "recues"
         '& LectureProprietes.GetVariable("repFichiersFacturesRecues")
         Utilitaires.RenommerEtDeplacerFichier(sNomFichier, determineNouveauNom(sRepDestination))

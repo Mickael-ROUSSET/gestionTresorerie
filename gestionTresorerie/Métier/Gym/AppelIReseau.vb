@@ -1,4 +1,5 @@
 ﻿Imports System.Data.SqlClient
+Imports System.IO
 
 Public Class AppelIReseau
     Public Shared Async Sub TestIReseau()
@@ -101,10 +102,11 @@ Public Class AppelIReseau
         Dim anneeEnCours As Integer = DateTime.Now.Year
         Dim anneeSuivante As Integer = anneeEnCours + 1
 
-        sRepDestination = LectureProprietes.GetVariable("repRacineAgumaaa") &
-            LectureProprietes.GetVariable("repRacineDocuments") &
-            LectureProprietes.GetVariable("repFichiersGym") &
-            IO.Path.Combine(anneeEnCours.ToString & "-" & anneeSuivante.ToString, sTypeDoc)
+        sRepDestination = Path.Combine(LectureProprietes.GetVariable("repRacineAgumaaa"),
+                                LectureProprietes.GetVariable("repRacineDocuments"),
+                                LectureProprietes.GetVariable("repFichiersGym"),
+                                anneeEnCours.ToString & "-" & anneeSuivante.ToString, sTypeDoc
+                                )
         Return sRepDestination
     End Function
 End Class

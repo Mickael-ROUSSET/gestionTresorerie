@@ -25,7 +25,7 @@ Public Class GestionDoublons
             Dim dossierDoublons = Path.Combine(repertoire, "Doublons")
             If Not Directory.Exists(dossierDoublons) Then Directory.CreateDirectory(dossierDoublons)
 
-            ' --- Récupère tous les fichiers ---
+            ' --- Récupère tous les fichiers en parcourant aussi les sous-répertoires ---
             Dim fichiers = Directory.EnumerateFiles(repertoire, "*.*", SearchOption.AllDirectories).
             Where(Function(f) Not Path.GetDirectoryName(f).Equals(dossierDoublons, StringComparison.OrdinalIgnoreCase)).
             ToList()

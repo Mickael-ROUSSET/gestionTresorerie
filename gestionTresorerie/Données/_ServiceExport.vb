@@ -1,6 +1,6 @@
 ﻿Imports System.Data.SqlClient
 
-Public Class ServiceExport
+Public Class _ServiceExport
 
     Public Shared Sub ExecuterExportSQL(cheminDossier As String)
         ' Utilisation de ta classe de connexion existante
@@ -25,11 +25,14 @@ Public Class ServiceExport
                     cmd.ExecuteNonQuery()
                     MessageBox.Show("L'exportation a été générée avec succès dans : " & cheminDossier,
                                     "Export terminé", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                    Logger.ERR("L'exportation a été générée avec succès dans : " & cheminDossier)
                 Catch ex As SqlException
                     ' Gestion spécifique des erreurs SQL (droits xp_cmdshell, etc.)
                     MessageBox.Show("Erreur SQL lors de l'export : " & ex.Message, "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                    Logger.ERR("Erreur SQL lors de l'export : " & ex.Message)
                 Catch ex As Exception
                     MessageBox.Show("Erreur générale : " & ex.Message)
+                    Logger.ERR("Erreur générale : " & ex.Message)
                 End Try
             End Using
         End Using

@@ -57,14 +57,6 @@ Partial Class FrmPrincipale
         AperçuavantimpressionToolStripMenuItem = New ToolStripMenuItem()
         toolStripSeparator2 = New ToolStripSeparator()
         QuitterToolStripMenuItem = New ToolStripMenuItem()
-        FichierToolStripMenuItem = New ToolStripMenuItem()
-        ChargerRelevéToolStripMenuItem = New ToolStripMenuItem()
-        GénérerBilanToolStripMenuItem = New ToolStripMenuItem()
-        FermerToolStripMenuItem = New ToolStripMenuItem()
-        TraiteRelevéToolStripMenuItem = New ToolStripMenuItem()
-        HistogrammeToolStripMenuItem = New ToolStripMenuItem()
-        ConsultationToolStripMenuItem = New ToolStripMenuItem()
-        SaisieToolStripMenuItem = New ToolStripMenuItem()
         ModifierToolStripMenuItem = New ToolStripMenuItem()
         AnnulerToolStripMenuItem = New ToolStripMenuItem()
         RétablirToolStripMenuItem = New ToolStripMenuItem()
@@ -74,6 +66,14 @@ Partial Class FrmPrincipale
         CollerToolStripMenuItem = New ToolStripMenuItem()
         toolStripSeparator4 = New ToolStripSeparator()
         SélectionnertoutToolStripMenuItem = New ToolStripMenuItem()
+        FichierToolStripMenuItem = New ToolStripMenuItem()
+        ChargerRelevéToolStripMenuItem = New ToolStripMenuItem()
+        GénérerBilanToolStripMenuItem = New ToolStripMenuItem()
+        FermerToolStripMenuItem = New ToolStripMenuItem()
+        TraiteRelevéToolStripMenuItem = New ToolStripMenuItem()
+        HistogrammeToolStripMenuItem = New ToolStripMenuItem()
+        ConsultationToolStripMenuItem = New ToolStripMenuItem()
+        SaisieToolStripMenuItem = New ToolStripMenuItem()
         AnalyseToolStripMenuItem = New ToolStripMenuItem()
         ConsulterTrésorerieToolStripMenuItem = New ToolStripMenuItem()
         GénérerBilanToolStripMenuItem1 = New ToolStripMenuItem()
@@ -84,23 +84,26 @@ Partial Class FrmPrincipale
         RestaurerToolStripMenuItem = New ToolStripMenuItem()
         CopierVersLeDriveToolStripMenuItem = New ToolStripMenuItem()
         RécupérerDuDriveToolStripMenuItem = New ToolStripMenuItem()
-        GestionUtilisateurToolStripMenuItem = New ToolStripMenuItem()
-        ConsoleToolStripMenuItem = New ToolStripMenuItem()
-        ChangeMdPToolStripMenuItem = New ToolStripMenuItem()
+        ExportDesDonnéesToolStripMenuItem = New ToolStripMenuItem()
+        ImportDesDonnéesToolStripMenuItem = New ToolStripMenuItem()
         BatchToolStripMenuItem = New ToolStripMenuItem()
         AnalyseDocumentsToolStripMenuItem = New ToolStripMenuItem()
         BatchGénériqueToolStripMenuItem = New ToolStripMenuItem()
-        ToolStripMenuItem1 = New ToolStripMenuItem()
+        ToolStripMenuItem2 = New ToolStripMenuItem()
         ImporterExcelToolStripMenuItem = New ToolStripMenuItem()
         GénérerAttestationsToolStripMenuItem = New ToolStripMenuItem()
-        GymToolStripMenuItem = New ToolStripMenuItem()
-        ListeUtilisateursToolStripMenuItem = New ToolStripMenuItem()
-        LicencesToolStripMenuItem = New ToolStripMenuItem()
-        ReçusFiscauxToolStripMenuItem = New ToolStripMenuItem()
         CinémaToolStripMenuItem = New ToolStripMenuItem()
         ChargerFichierToolStripMenuItem = New ToolStripMenuItem()
         GénérerStatsToolStripMenuItem = New ToolStripMenuItem()
         GénérerProgrammeToolStripMenuItem = New ToolStripMenuItem()
+        GymToolStripMenuItem = New ToolStripMenuItem()
+        ListeUtilisateursToolStripMenuItem = New ToolStripMenuItem()
+        LicencesToolStripMenuItem = New ToolStripMenuItem()
+        ReçusFiscauxToolStripMenuItem = New ToolStripMenuItem()
+        OutilsToolStripMenuItem = New ToolStripMenuItem()
+        PersonnaliserToolStripMenuItem = New ToolStripMenuItem()
+        OptionsToolStripMenuItem = New ToolStripMenuItem()
+        NouveauTiersToolStripMenuItem = New ToolStripMenuItem()
         ParamètresToolStripMenuItem1 = New ToolStripMenuItem()
         FichiersParamètresToolStripMenuItem = New ToolStripMenuItem()
         ParamètresTechniquesToolStripMenuItem1 = New ToolStripMenuItem()
@@ -108,10 +111,9 @@ Partial Class FrmPrincipale
         AgentMistralToolStripMenuItem1 = New ToolStripMenuItem()
         RecréerforçageToolStripMenuItem = New ToolStripMenuItem()
         CréerToolStripMenuItem1 = New ToolStripMenuItem()
-        OutilsToolStripMenuItem = New ToolStripMenuItem()
-        PersonnaliserToolStripMenuItem = New ToolStripMenuItem()
-        OptionsToolStripMenuItem = New ToolStripMenuItem()
-        NouveauTiersToolStripMenuItem = New ToolStripMenuItem()
+        GestionUtilisateurToolStripMenuItem = New ToolStripMenuItem()
+        ConsoleToolStripMenuItem = New ToolStripMenuItem()
+        ChangeMdPToolStripMenuItem = New ToolStripMenuItem()
         AideToolStripMenuItem = New ToolStripMenuItem()
         ContenuToolStripMenuItem = New ToolStripMenuItem()
         IndexToolStripMenuItem = New ToolStripMenuItem()
@@ -121,7 +123,7 @@ Partial Class FrmPrincipale
         FolderBrowserDialog1 = New FolderBrowserDialog()
         pgBar = New ProgressBar()
         StatusLabelEnv = New StatusStrip()
-        ExportDesDonnéesToolStripMenuItem = New ToolStripMenuItem()
+        RécupDesPJReçuesParMailToolStripMenuItem = New ToolStripMenuItem()
         CType(dgvPrincipale, ComponentModel.ISupportInitialize).BeginInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).BeginInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).BeginInit()
@@ -262,7 +264,7 @@ Partial Class FrmPrincipale
         ' MenuStrip1
         ' 
         MenuStrip1.GripStyle = ToolStripGripStyle.Visible
-        MenuStrip1.Items.AddRange(New ToolStripItem() {FichierToolStripMenuItem1, FichierToolStripMenuItem, ModifierToolStripMenuItem, AnalyseToolStripMenuItem, GestionBDDToolStripMenuItem, GestionUtilisateurToolStripMenuItem, BatchToolStripMenuItem, ToolStripMenuItem1, GymToolStripMenuItem, CinémaToolStripMenuItem, ParamètresToolStripMenuItem1, OutilsToolStripMenuItem, AideToolStripMenuItem})
+        MenuStrip1.Items.AddRange(New ToolStripItem() {FichierToolStripMenuItem1, ModifierToolStripMenuItem, FichierToolStripMenuItem, AnalyseToolStripMenuItem, GestionBDDToolStripMenuItem, BatchToolStripMenuItem, OutilsToolStripMenuItem, AideToolStripMenuItem})
         MenuStrip1.Location = New Point(0, 0)
         MenuStrip1.Name = "MenuStrip1"
         MenuStrip1.RenderMode = ToolStripRenderMode.System
@@ -348,55 +350,6 @@ Partial Class FrmPrincipale
         QuitterToolStripMenuItem.Size = New Size(205, 22)
         QuitterToolStripMenuItem.Text = "&Quitter"
         ' 
-        ' FichierToolStripMenuItem
-        ' 
-        FichierToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ChargerRelevéToolStripMenuItem, GénérerBilanToolStripMenuItem, FermerToolStripMenuItem, TraiteRelevéToolStripMenuItem, HistogrammeToolStripMenuItem, ConsultationToolStripMenuItem, SaisieToolStripMenuItem})
-        FichierToolStripMenuItem.Name = "FichierToolStripMenuItem"
-        FichierToolStripMenuItem.Size = New Size(82, 20)
-        FichierToolStripMenuItem.Text = "Traite relevé"
-        ' 
-        ' ChargerRelevéToolStripMenuItem
-        ' 
-        ChargerRelevéToolStripMenuItem.Name = "ChargerRelevéToolStripMenuItem"
-        ChargerRelevéToolStripMenuItem.Size = New Size(153, 22)
-        ChargerRelevéToolStripMenuItem.Text = "Charger &Relevé"
-        ' 
-        ' GénérerBilanToolStripMenuItem
-        ' 
-        GénérerBilanToolStripMenuItem.Name = "GénérerBilanToolStripMenuItem"
-        GénérerBilanToolStripMenuItem.Size = New Size(153, 22)
-        GénérerBilanToolStripMenuItem.Text = "Générer &bilan"
-        ' 
-        ' FermerToolStripMenuItem
-        ' 
-        FermerToolStripMenuItem.Name = "FermerToolStripMenuItem"
-        FermerToolStripMenuItem.Size = New Size(153, 22)
-        FermerToolStripMenuItem.Text = "&Fermer"
-        ' 
-        ' TraiteRelevéToolStripMenuItem
-        ' 
-        TraiteRelevéToolStripMenuItem.Name = "TraiteRelevéToolStripMenuItem"
-        TraiteRelevéToolStripMenuItem.Size = New Size(153, 22)
-        TraiteRelevéToolStripMenuItem.Text = "Traite relevé"
-        ' 
-        ' HistogrammeToolStripMenuItem
-        ' 
-        HistogrammeToolStripMenuItem.Name = "HistogrammeToolStripMenuItem"
-        HistogrammeToolStripMenuItem.Size = New Size(153, 22)
-        HistogrammeToolStripMenuItem.Text = "Histogramme"
-        ' 
-        ' ConsultationToolStripMenuItem
-        ' 
-        ConsultationToolStripMenuItem.Name = "ConsultationToolStripMenuItem"
-        ConsultationToolStripMenuItem.Size = New Size(153, 22)
-        ConsultationToolStripMenuItem.Text = "Consultation"
-        ' 
-        ' SaisieToolStripMenuItem
-        ' 
-        SaisieToolStripMenuItem.Name = "SaisieToolStripMenuItem"
-        SaisieToolStripMenuItem.Size = New Size(153, 22)
-        SaisieToolStripMenuItem.Text = "Saisie"
-        ' 
         ' ModifierToolStripMenuItem
         ' 
         ModifierToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {AnnulerToolStripMenuItem, RétablirToolStripMenuItem, toolStripSeparator3, CouperToolStripMenuItem, CopierToolStripMenuItem, CollerToolStripMenuItem, toolStripSeparator4, SélectionnertoutToolStripMenuItem})
@@ -461,6 +414,55 @@ Partial Class FrmPrincipale
         SélectionnertoutToolStripMenuItem.Size = New Size(164, 22)
         SélectionnertoutToolStripMenuItem.Text = "&Sélectionner tout"
         ' 
+        ' FichierToolStripMenuItem
+        ' 
+        FichierToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ChargerRelevéToolStripMenuItem, GénérerBilanToolStripMenuItem, FermerToolStripMenuItem, TraiteRelevéToolStripMenuItem, HistogrammeToolStripMenuItem, ConsultationToolStripMenuItem, SaisieToolStripMenuItem, RécupDesPJReçuesParMailToolStripMenuItem})
+        FichierToolStripMenuItem.Name = "FichierToolStripMenuItem"
+        FichierToolStripMenuItem.Size = New Size(70, 20)
+        FichierToolStripMenuItem.Text = "Trésorerie"
+        ' 
+        ' ChargerRelevéToolStripMenuItem
+        ' 
+        ChargerRelevéToolStripMenuItem.Name = "ChargerRelevéToolStripMenuItem"
+        ChargerRelevéToolStripMenuItem.Size = New Size(224, 22)
+        ChargerRelevéToolStripMenuItem.Text = "Charger &Relevé"
+        ' 
+        ' GénérerBilanToolStripMenuItem
+        ' 
+        GénérerBilanToolStripMenuItem.Name = "GénérerBilanToolStripMenuItem"
+        GénérerBilanToolStripMenuItem.Size = New Size(224, 22)
+        GénérerBilanToolStripMenuItem.Text = "Générer &bilan"
+        ' 
+        ' FermerToolStripMenuItem
+        ' 
+        FermerToolStripMenuItem.Name = "FermerToolStripMenuItem"
+        FermerToolStripMenuItem.Size = New Size(224, 22)
+        FermerToolStripMenuItem.Text = "&Fermer"
+        ' 
+        ' TraiteRelevéToolStripMenuItem
+        ' 
+        TraiteRelevéToolStripMenuItem.Name = "TraiteRelevéToolStripMenuItem"
+        TraiteRelevéToolStripMenuItem.Size = New Size(224, 22)
+        TraiteRelevéToolStripMenuItem.Text = "Traite relevé"
+        ' 
+        ' HistogrammeToolStripMenuItem
+        ' 
+        HistogrammeToolStripMenuItem.Name = "HistogrammeToolStripMenuItem"
+        HistogrammeToolStripMenuItem.Size = New Size(224, 22)
+        HistogrammeToolStripMenuItem.Text = "Histogramme"
+        ' 
+        ' ConsultationToolStripMenuItem
+        ' 
+        ConsultationToolStripMenuItem.Name = "ConsultationToolStripMenuItem"
+        ConsultationToolStripMenuItem.Size = New Size(224, 22)
+        ConsultationToolStripMenuItem.Text = "Consultation"
+        ' 
+        ' SaisieToolStripMenuItem
+        ' 
+        SaisieToolStripMenuItem.Name = "SaisieToolStripMenuItem"
+        SaisieToolStripMenuItem.Size = New Size(224, 22)
+        SaisieToolStripMenuItem.Text = "Saisie"
+        ' 
         ' AnalyseToolStripMenuItem
         ' 
         AnalyseToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ConsulterTrésorerieToolStripMenuItem, GénérerBilanToolStripMenuItem1, GérerUnMouvementToolStripMenuItem, DocumentsToolStripMenuItem})
@@ -494,7 +496,7 @@ Partial Class FrmPrincipale
         ' 
         ' GestionBDDToolStripMenuItem
         ' 
-        GestionBDDToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {SauvegarderToolStripMenuItem, RestaurerToolStripMenuItem, CopierVersLeDriveToolStripMenuItem, RécupérerDuDriveToolStripMenuItem, ExportDesDonnéesToolStripMenuItem})
+        GestionBDDToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {SauvegarderToolStripMenuItem, RestaurerToolStripMenuItem, CopierVersLeDriveToolStripMenuItem, RécupérerDuDriveToolStripMenuItem, ExportDesDonnéesToolStripMenuItem, ImportDesDonnéesToolStripMenuItem})
         GestionBDDToolStripMenuItem.Name = "GestionBDDToolStripMenuItem"
         GestionBDDToolStripMenuItem.Size = New Size(85, 20)
         GestionBDDToolStripMenuItem.Text = "Gestion BDD"
@@ -502,49 +504,42 @@ Partial Class FrmPrincipale
         ' SauvegarderToolStripMenuItem
         ' 
         SauvegarderToolStripMenuItem.Name = "SauvegarderToolStripMenuItem"
-        SauvegarderToolStripMenuItem.Size = New Size(180, 22)
+        SauvegarderToolStripMenuItem.Size = New Size(179, 22)
         SauvegarderToolStripMenuItem.Text = "Sauvegarder"
         ' 
         ' RestaurerToolStripMenuItem
         ' 
         RestaurerToolStripMenuItem.Name = "RestaurerToolStripMenuItem"
-        RestaurerToolStripMenuItem.Size = New Size(180, 22)
+        RestaurerToolStripMenuItem.Size = New Size(179, 22)
         RestaurerToolStripMenuItem.Text = "Restaurer"
         ' 
         ' CopierVersLeDriveToolStripMenuItem
         ' 
         CopierVersLeDriveToolStripMenuItem.Name = "CopierVersLeDriveToolStripMenuItem"
-        CopierVersLeDriveToolStripMenuItem.Size = New Size(180, 22)
+        CopierVersLeDriveToolStripMenuItem.Size = New Size(179, 22)
         CopierVersLeDriveToolStripMenuItem.Text = "Copier vers le Drive"
         ' 
         ' RécupérerDuDriveToolStripMenuItem
         ' 
         RécupérerDuDriveToolStripMenuItem.Name = "RécupérerDuDriveToolStripMenuItem"
-        RécupérerDuDriveToolStripMenuItem.Size = New Size(180, 22)
+        RécupérerDuDriveToolStripMenuItem.Size = New Size(179, 22)
         RécupérerDuDriveToolStripMenuItem.Text = "Récupérer du Drive"
         ' 
-        ' GestionUtilisateurToolStripMenuItem
+        ' ExportDesDonnéesToolStripMenuItem
         ' 
-        GestionUtilisateurToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ConsoleToolStripMenuItem, ChangeMdPToolStripMenuItem})
-        GestionUtilisateurToolStripMenuItem.Name = "GestionUtilisateurToolStripMenuItem"
-        GestionUtilisateurToolStripMenuItem.Size = New Size(112, 20)
-        GestionUtilisateurToolStripMenuItem.Text = "GestionUtilisateur"
+        ExportDesDonnéesToolStripMenuItem.Name = "ExportDesDonnéesToolStripMenuItem"
+        ExportDesDonnéesToolStripMenuItem.Size = New Size(179, 22)
+        ExportDesDonnéesToolStripMenuItem.Text = "Export des données"
         ' 
-        ' ConsoleToolStripMenuItem
+        ' ImportDesDonnéesToolStripMenuItem
         ' 
-        ConsoleToolStripMenuItem.Name = "ConsoleToolStripMenuItem"
-        ConsoleToolStripMenuItem.Size = New Size(143, 22)
-        ConsoleToolStripMenuItem.Text = "Console"
-        ' 
-        ' ChangeMdPToolStripMenuItem
-        ' 
-        ChangeMdPToolStripMenuItem.Name = "ChangeMdPToolStripMenuItem"
-        ChangeMdPToolStripMenuItem.Size = New Size(143, 22)
-        ChangeMdPToolStripMenuItem.Text = "Change MdP"
+        ImportDesDonnéesToolStripMenuItem.Name = "ImportDesDonnéesToolStripMenuItem"
+        ImportDesDonnéesToolStripMenuItem.Size = New Size(179, 22)
+        ImportDesDonnéesToolStripMenuItem.Text = "Import des données"
         ' 
         ' BatchToolStripMenuItem
         ' 
-        BatchToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {AnalyseDocumentsToolStripMenuItem, BatchGénériqueToolStripMenuItem})
+        BatchToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {AnalyseDocumentsToolStripMenuItem, BatchGénériqueToolStripMenuItem, ToolStripMenuItem2, CinémaToolStripMenuItem, GymToolStripMenuItem})
         BatchToolStripMenuItem.Name = "BatchToolStripMenuItem"
         BatchToolStripMenuItem.Size = New Size(49, 20)
         BatchToolStripMenuItem.Text = "Batch"
@@ -552,21 +547,21 @@ Partial Class FrmPrincipale
         ' AnalyseDocumentsToolStripMenuItem
         ' 
         AnalyseDocumentsToolStripMenuItem.Name = "AnalyseDocumentsToolStripMenuItem"
-        AnalyseDocumentsToolStripMenuItem.Size = New Size(178, 22)
+        AnalyseDocumentsToolStripMenuItem.Size = New Size(180, 22)
         AnalyseDocumentsToolStripMenuItem.Text = "Analyse documents"
         ' 
         ' BatchGénériqueToolStripMenuItem
         ' 
         BatchGénériqueToolStripMenuItem.Name = "BatchGénériqueToolStripMenuItem"
-        BatchGénériqueToolStripMenuItem.Size = New Size(178, 22)
+        BatchGénériqueToolStripMenuItem.Size = New Size(180, 22)
         BatchGénériqueToolStripMenuItem.Text = "Batch ..."
         ' 
-        ' ToolStripMenuItem1
+        ' ToolStripMenuItem2
         ' 
-        ToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {ImporterExcelToolStripMenuItem, GénérerAttestationsToolStripMenuItem})
-        ToolStripMenuItem1.Name = "ToolStripMenuItem1"
-        ToolStripMenuItem1.Size = New Size(98, 20)
-        ToolStripMenuItem1.Text = "MarchéDeNoël"
+        ToolStripMenuItem2.DropDownItems.AddRange(New ToolStripItem() {ImporterExcelToolStripMenuItem, GénérerAttestationsToolStripMenuItem})
+        ToolStripMenuItem2.Name = "ToolStripMenuItem2"
+        ToolStripMenuItem2.Size = New Size(180, 22)
+        ToolStripMenuItem2.Text = "MarchéDeNoël"
         ' 
         ' ImporterExcelToolStripMenuItem
         ' 
@@ -580,36 +575,11 @@ Partial Class FrmPrincipale
         GénérerAttestationsToolStripMenuItem.Size = New Size(178, 22)
         GénérerAttestationsToolStripMenuItem.Text = "GénérerAttestations"
         ' 
-        ' GymToolStripMenuItem
-        ' 
-        GymToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ListeUtilisateursToolStripMenuItem, LicencesToolStripMenuItem, ReçusFiscauxToolStripMenuItem})
-        GymToolStripMenuItem.Name = "GymToolStripMenuItem"
-        GymToolStripMenuItem.Size = New Size(44, 20)
-        GymToolStripMenuItem.Text = "Gym"
-        ' 
-        ' ListeUtilisateursToolStripMenuItem
-        ' 
-        ListeUtilisateursToolStripMenuItem.Name = "ListeUtilisateursToolStripMenuItem"
-        ListeUtilisateursToolStripMenuItem.Size = New Size(156, 22)
-        ListeUtilisateursToolStripMenuItem.Text = "ListeUtilisateurs"
-        ' 
-        ' LicencesToolStripMenuItem
-        ' 
-        LicencesToolStripMenuItem.Name = "LicencesToolStripMenuItem"
-        LicencesToolStripMenuItem.Size = New Size(156, 22)
-        LicencesToolStripMenuItem.Text = "Licences"
-        ' 
-        ' ReçusFiscauxToolStripMenuItem
-        ' 
-        ReçusFiscauxToolStripMenuItem.Name = "ReçusFiscauxToolStripMenuItem"
-        ReçusFiscauxToolStripMenuItem.Size = New Size(156, 22)
-        ReçusFiscauxToolStripMenuItem.Text = "Reçus fiscaux"
-        ' 
         ' CinémaToolStripMenuItem
         ' 
         CinémaToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ChargerFichierToolStripMenuItem, GénérerStatsToolStripMenuItem, GénérerProgrammeToolStripMenuItem})
         CinémaToolStripMenuItem.Name = "CinémaToolStripMenuItem"
-        CinémaToolStripMenuItem.Size = New Size(60, 20)
+        CinémaToolStripMenuItem.Size = New Size(180, 22)
         CinémaToolStripMenuItem.Text = "Cinéma"
         ' 
         ' ChargerFichierToolStripMenuItem
@@ -630,11 +600,61 @@ Partial Class FrmPrincipale
         GénérerProgrammeToolStripMenuItem.Size = New Size(181, 22)
         GénérerProgrammeToolStripMenuItem.Text = "Générer programme"
         ' 
+        ' GymToolStripMenuItem
+        ' 
+        GymToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ListeUtilisateursToolStripMenuItem, LicencesToolStripMenuItem, ReçusFiscauxToolStripMenuItem})
+        GymToolStripMenuItem.Name = "GymToolStripMenuItem"
+        GymToolStripMenuItem.Size = New Size(180, 22)
+        GymToolStripMenuItem.Text = "Gym"
+        ' 
+        ' ListeUtilisateursToolStripMenuItem
+        ' 
+        ListeUtilisateursToolStripMenuItem.Name = "ListeUtilisateursToolStripMenuItem"
+        ListeUtilisateursToolStripMenuItem.Size = New Size(156, 22)
+        ListeUtilisateursToolStripMenuItem.Text = "ListeUtilisateurs"
+        ' 
+        ' LicencesToolStripMenuItem
+        ' 
+        LicencesToolStripMenuItem.Name = "LicencesToolStripMenuItem"
+        LicencesToolStripMenuItem.Size = New Size(156, 22)
+        LicencesToolStripMenuItem.Text = "Licences"
+        ' 
+        ' ReçusFiscauxToolStripMenuItem
+        ' 
+        ReçusFiscauxToolStripMenuItem.Name = "ReçusFiscauxToolStripMenuItem"
+        ReçusFiscauxToolStripMenuItem.Size = New Size(156, 22)
+        ReçusFiscauxToolStripMenuItem.Text = "Reçus fiscaux"
+        ' 
+        ' OutilsToolStripMenuItem
+        ' 
+        OutilsToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {PersonnaliserToolStripMenuItem, OptionsToolStripMenuItem, NouveauTiersToolStripMenuItem, ParamètresToolStripMenuItem1, GestionUtilisateurToolStripMenuItem})
+        OutilsToolStripMenuItem.Name = "OutilsToolStripMenuItem"
+        OutilsToolStripMenuItem.Size = New Size(50, 20)
+        OutilsToolStripMenuItem.Text = "O&utils"
+        ' 
+        ' PersonnaliserToolStripMenuItem
+        ' 
+        PersonnaliserToolStripMenuItem.Name = "PersonnaliserToolStripMenuItem"
+        PersonnaliserToolStripMenuItem.Size = New Size(167, 22)
+        PersonnaliserToolStripMenuItem.Text = "&Personnaliser"
+        ' 
+        ' OptionsToolStripMenuItem
+        ' 
+        OptionsToolStripMenuItem.Name = "OptionsToolStripMenuItem"
+        OptionsToolStripMenuItem.Size = New Size(167, 22)
+        OptionsToolStripMenuItem.Text = "&Options"
+        ' 
+        ' NouveauTiersToolStripMenuItem
+        ' 
+        NouveauTiersToolStripMenuItem.Name = "NouveauTiersToolStripMenuItem"
+        NouveauTiersToolStripMenuItem.Size = New Size(167, 22)
+        NouveauTiersToolStripMenuItem.Text = "Nouveau tiers..."
+        ' 
         ' ParamètresToolStripMenuItem1
         ' 
         ParamètresToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {FichiersParamètresToolStripMenuItem, ParamètresTechniquesToolStripMenuItem1, EnvironnementToolStripMenuItem, AgentMistralToolStripMenuItem1})
         ParamètresToolStripMenuItem1.Name = "ParamètresToolStripMenuItem1"
-        ParamètresToolStripMenuItem1.Size = New Size(78, 20)
+        ParamètresToolStripMenuItem1.Size = New Size(167, 22)
         ParamètresToolStripMenuItem1.Text = "Paramètres"
         ' 
         ' FichiersParamètresToolStripMenuItem
@@ -674,30 +694,24 @@ Partial Class FrmPrincipale
         CréerToolStripMenuItem1.Size = New Size(164, 22)
         CréerToolStripMenuItem1.Text = "Créer"
         ' 
-        ' OutilsToolStripMenuItem
+        ' GestionUtilisateurToolStripMenuItem
         ' 
-        OutilsToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {PersonnaliserToolStripMenuItem, OptionsToolStripMenuItem, NouveauTiersToolStripMenuItem})
-        OutilsToolStripMenuItem.Name = "OutilsToolStripMenuItem"
-        OutilsToolStripMenuItem.Size = New Size(50, 20)
-        OutilsToolStripMenuItem.Text = "O&utils"
+        GestionUtilisateurToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {ConsoleToolStripMenuItem, ChangeMdPToolStripMenuItem})
+        GestionUtilisateurToolStripMenuItem.Name = "GestionUtilisateurToolStripMenuItem"
+        GestionUtilisateurToolStripMenuItem.Size = New Size(167, 22)
+        GestionUtilisateurToolStripMenuItem.Text = "GestionUtilisateur"
         ' 
-        ' PersonnaliserToolStripMenuItem
+        ' ConsoleToolStripMenuItem
         ' 
-        PersonnaliserToolStripMenuItem.Name = "PersonnaliserToolStripMenuItem"
-        PersonnaliserToolStripMenuItem.Size = New Size(156, 22)
-        PersonnaliserToolStripMenuItem.Text = "&Personnaliser"
+        ConsoleToolStripMenuItem.Name = "ConsoleToolStripMenuItem"
+        ConsoleToolStripMenuItem.Size = New Size(143, 22)
+        ConsoleToolStripMenuItem.Text = "Console"
         ' 
-        ' OptionsToolStripMenuItem
+        ' ChangeMdPToolStripMenuItem
         ' 
-        OptionsToolStripMenuItem.Name = "OptionsToolStripMenuItem"
-        OptionsToolStripMenuItem.Size = New Size(156, 22)
-        OptionsToolStripMenuItem.Text = "&Options"
-        ' 
-        ' NouveauTiersToolStripMenuItem
-        ' 
-        NouveauTiersToolStripMenuItem.Name = "NouveauTiersToolStripMenuItem"
-        NouveauTiersToolStripMenuItem.Size = New Size(156, 22)
-        NouveauTiersToolStripMenuItem.Text = "Nouveau tiers..."
+        ChangeMdPToolStripMenuItem.Name = "ChangeMdPToolStripMenuItem"
+        ChangeMdPToolStripMenuItem.Size = New Size(143, 22)
+        ChangeMdPToolStripMenuItem.Text = "Change MdP"
         ' 
         ' AideToolStripMenuItem
         ' 
@@ -750,11 +764,11 @@ Partial Class FrmPrincipale
         StatusLabelEnv.TabIndex = 11
         StatusLabelEnv.Text = "StatusStrip1"
         ' 
-        ' ExportDesDonnéesToolStripMenuItem
+        ' RécupDesPJReçuesParMailToolStripMenuItem
         ' 
-        ExportDesDonnéesToolStripMenuItem.Name = "ExportDesDonnéesToolStripMenuItem"
-        ExportDesDonnéesToolStripMenuItem.Size = New Size(180, 22)
-        ExportDesDonnéesToolStripMenuItem.Text = "Export des données"
+        RécupDesPJReçuesParMailToolStripMenuItem.Name = "RécupDesPJReçuesParMailToolStripMenuItem"
+        RécupDesPJReçuesParMailToolStripMenuItem.Size = New Size(224, 22)
+        RécupDesPJReçuesParMailToolStripMenuItem.Text = "Récup des PJ reçues par mail"
         ' 
         ' FrmPrincipale
         ' 
@@ -767,7 +781,7 @@ Partial Class FrmPrincipale
         Controls.Add(MenuStrip1)
         MainMenuStrip = MenuStrip1
         Name = "FrmPrincipale"
-        Text = "Gestion des la  trésoreire de l'AGUMAAA"
+        Text = "Gestion de la  trésorerie de l'AGUMAAA"
         CType(dgvPrincipale, ComponentModel.ISupportInitialize).EndInit()
         CType(MouvementsBindingSource, ComponentModel.ISupportInitialize).EndInit()
         CType(BindingSource1, ComponentModel.ISupportInitialize).EndInit()
@@ -811,16 +825,10 @@ Partial Class FrmPrincipale
     Friend WithEvents GestionBDDToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents SauvegarderToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents RestaurerToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents GestionUtilisateurToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents ConsoleToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents ChangeMdPToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents BatchToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents AnalyseDocumentsToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents ParamètresToolStripMenuItem1 As ToolStripMenuItem
     Friend WithEvents FolderBrowserDialog1 As FolderBrowserDialog
     Friend WithEvents DocumentsToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents ParamètresTechniquesToolStripMenuItem1 As ToolStripMenuItem
-    Friend WithEvents FichiersParamètresToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents CopierVersLeDriveToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents RécupérerDuDriveToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents FichierToolStripMenuItem1 As ToolStripMenuItem
@@ -853,27 +861,35 @@ Partial Class FrmPrincipale
     Friend WithEvents toolStripSeparator5 As ToolStripSeparator
     Friend WithEvents ÀproposdeToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents pgBar As ProgressBar
-    Friend WithEvents CinémaToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents ChargerFichierToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents GénérerStatsToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents GénérerProgrammeToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents ToolStripMenuItem1 As ToolStripMenuItem
-    Friend WithEvents ImporterExcelToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents GénérerAttestationsToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents EnvironnementToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents StatusLabelEnv As StatusStrip
-    Friend WithEvents AgentMistralToolStripMenuItem1 As ToolStripMenuItem
-    Friend WithEvents RecréerforçageToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents CréerToolStripMenuItem1 As ToolStripMenuItem
     Friend WithEvents TraiteRelevéToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents HistogrammeToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ConsultationToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents SaisieToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents BatchGénériqueToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents NouveauTiersToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ExportDesDonnéesToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ImportDesDonnéesToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ToolStripMenuItem2 As ToolStripMenuItem
+    Friend WithEvents ImporterExcelToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents GénérerAttestationsToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents CinémaToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ChargerFichierToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents GénérerStatsToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents GénérerProgrammeToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents GymToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ListeUtilisateursToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents LicencesToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ReçusFiscauxToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents NouveauTiersToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents ExportDesDonnéesToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ParamètresToolStripMenuItem1 As ToolStripMenuItem
+    Friend WithEvents FichiersParamètresToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ParamètresTechniquesToolStripMenuItem1 As ToolStripMenuItem
+    Friend WithEvents EnvironnementToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents AgentMistralToolStripMenuItem1 As ToolStripMenuItem
+    Friend WithEvents RecréerforçageToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents CréerToolStripMenuItem1 As ToolStripMenuItem
+    Friend WithEvents GestionUtilisateurToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ConsoleToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ChangeMdPToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents RécupDesPJReçuesParMailToolStripMenuItem As ToolStripMenuItem
 End Class

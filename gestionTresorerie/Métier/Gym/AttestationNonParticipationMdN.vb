@@ -22,11 +22,12 @@ Public Class AttestationNonParticipationMdN
 
     Public Overrides Function RenommerFichier(sChemin As String, Optional sNouveauNom As String = "") As String
         Dim sRepDestination As String
-        sRepDestination = LectureProprietes.GetVariable("repRacineAgumaaa") _
-            & LectureProprietes.GetVariable("repRacineDocuments") _
-            & LectureProprietes.GetVariable("repRacineMdN") _
-            & "\" & DateTime.Now.Year.ToString _
-            & LectureProprietes.GetVariable("repAttestationsNonParticipationAutresMarches")
+        sRepDestination = path.combine(LectureProprietes.GetVariable("repRacineAgumaaa") , 
+										LectureProprietes.GetVariable("repRacineDocuments") , 
+										LectureProprietes.GetVariable("repRacineMdN") , 
+										DateTime.Now.Year.ToString , 
+										LectureProprietes.GetVariable("repAttestationsNonParticipationAutresMarches")
+										)
         Utilitaires.RenommerEtDeplacerFichier(sChemin, determineNouveauNom(sRepDestination))
         Return sRepDestination
     End Function
