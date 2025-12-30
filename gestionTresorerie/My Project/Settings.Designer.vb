@@ -1532,6 +1532,15 @@ Namespace My
                 Return CType(Me("dossierDestinationExportData"),String)
             End Get
         End Property
+        
+        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("01237705000")>  _
+        Public ReadOnly Property numCptAgumaaa() As String
+            Get
+                Return CType(Me("numCptAgumaaa"),String)
+            End Get
+        End Property
     End Class
 End Namespace
 

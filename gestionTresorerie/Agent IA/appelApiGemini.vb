@@ -2,13 +2,12 @@
 Imports System.Net.Http
 Imports System.Text
 Imports Newtonsoft.Json
-Imports ZXing.Client
 
 Public Class GeminiAnalyzer
 
     Public Shared Async Function AnalyserDocument(apiKey As String, cheminFichier As String) As Task(Of String)
         ' 1. Construction de l'URL par concaténation simple (SANS $)  chr(58=) = 2 points
-        Dim url As String = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash" & Chr(58) & "generateContent?key=" & apiKey
+        Dim url As String = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash" & Chr(58) & "generateContent?key=" & apiKey
 
         Try
             ' 1. Vérification fichier
@@ -22,21 +21,50 @@ Public Class GeminiAnalyzer
             Dim extension = Path.GetExtension(cheminFichier).ToLower()
             Dim mimeType = If(extension = ".pdf", "application/pdf", "image/jpeg")
             ' Prompt unique qui demande l'identification ET l'extraction
-            Dim prompt As String = LireRessourceTexte("gestionTresorerie.PromptGemini.txt")
+            'Dim prompt As String = LireRessourceTexte("gestionTresorerie.PromptGemini.txt")
+            ' "gestionTresorerie.PromptGemini.txt" est le nom interne (compilé)
+            ' "PromptGemini.txt" est le nom du fichier qui doit être dans votre dossier bin\Debug
+            Dim prompt As String = LirePromptOptimise("gestionTresorerie.PromptGemini.txt", "PromptGemini.txt")
 
-            ' 2. Construction requête : utiliser un dictionnaire au lieu d'un objet anonyme (plus stable pour la sérialisation)
-            Dim parts As New List(Of Object)()
-            parts.Add(New With {.text = prompt})
-            parts.Add(New With {.inline_data = New With {.mime_type = mimeType, .data = base64File}})
+            '' 2. Construction requête : utiliser un dictionnaire au lieu d'un objet anonyme (plus stable pour la sérialisation)
+            'Dim parts As New List(Of Object)()
+            'parts.Add(New With {.text = prompt})
+            'parts.Add(New With {.inline_data = New With {.mime_type = mimeType, .data = base64File}})
 
-            ' On sépare l'étape pour éviter l'erreur BC30205
-            Dim premierContenu = New With {.parts = parts.ToArray()}
+            '' On sépare l'étape pour éviter l'erreur BC30205
+            'Dim premierContenu = New With {.parts = parts.ToArray()}
 
-            ' 3. Créer le corps de la requête (Tableau de contenus)
-            ' Utilisation d'un tableau d'objets classique
-            Dim tableauDeContenus() As Object = {premierContenu}
+            '' 3. Créer le corps de la requête (Tableau de contenus)
+            '' Utilisation d'un tableau d'objets classique
+            'Dim tableauDeContenus() As Object = {premierContenu}
 
-            Dim requestBody = New With {.contents = tableauDeContenus}
+            ' 2. Préparation des composants de la requête
+            Dim parts As New List(Of Object) From {
+                New Dictionary(Of String, Object) From {{"text", prompt}},
+                New Dictionary(Of String, Object) From {
+                    {"inline_data", New Dictionary(Of String, Object) From {
+                        {"mime_type", mimeType},
+                        {"data", base64File}
+                    }}
+                }
+            }
+
+            ' 3. Configuration de la génération (Stabilité + Mode JSON)
+            Dim generationConfig As New Dictionary(Of String, Object) From {
+                {"temperature", 0}, 'Supprime tout hasard. L'IA devient froide et robotique
+                {"topP", 0.1},      'Restreint encore plus le choix aux probabilités de tête
+                {"topK", 1},        'L'IA ne choisit que le meilleur candidat. Idéal pour respecter un schéma JSON
+                {"maxOutputTokens", 2048},
+                {"response_mime_type", "application/json"} ' <--- Force Gemini à répondre en JSON valide
+            }
+
+            '4. Assemblage final du corps de la requête
+            Dim requestBody As New Dictionary(Of String, Object) From {
+                {"contents", New Object() {
+                    New Dictionary(Of String, Object) From {{"parts", parts}}
+                }},
+                {"generationConfig", generationConfig}
+            }
 
             Using client As New HttpClient()
                 ' Timeout de 120 secondes pour éviter l'attente infinie
@@ -49,6 +77,12 @@ Public Class GeminiAnalyzer
                 Debug.WriteLine("Requête envoyée, attente...")
                 Dim maReponse As HttpResponseMessage = Await client.PostAsync(url, content)
                 Debug.WriteLine("Statut reçu : " & maReponse.StatusCode.ToString())
+                If maReponse.StatusCode = Net.HttpStatusCode.BadRequest Then
+                    ' LIRE LE MESSAGE D'ERREUR DÉTAILLÉ DE GOOGLE
+                    Dim errorDetail As String = Await maReponse.Content.ReadAsStringAsync()
+                    Logger.ERR("Détail Erreur 400 : " & errorDetail)
+                    MsgBox("Erreur 400 : " & errorDetail) ' Affiche la raison précise (ex: "Invalid model name")
+                End If
 
                 ' Lire le contenu de la réponse
                 Dim jsonFinal As String = Await maReponse.Content.ReadAsStringAsync()
@@ -100,5 +134,26 @@ Public Class GeminiAnalyzer
                 Return reader.ReadToEnd()
             End Using
         End Using
+    End Function
+    Public Shared Function LirePromptOptimise(nomRessource As String, nomFichierPhysique As String) As String
+        Try
+            ' 1. Tentative de lecture du fichier physique (priorité absolue)
+            ' On cherche dans le dossier de l'EXE (bin\Debug ou bin\Release)
+            Dim cheminPhysique As String = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nomFichierPhysique)
+
+            If File.Exists(cheminPhysique) Then
+                ' Optionnel : On peut ajouter un log pour confirmer qu'on utilise le fichier externe
+                ' Debug.WriteLine("Utilisation du prompt externe : " & cheminPhysique)
+                Return File.ReadAllText(cheminPhysique, System.Text.Encoding.UTF8)
+            End If
+
+            ' 2. Si le fichier physique n'existe pas, on bascule sur la ressource compilée
+            ' Debug.WriteLine("Fichier externe absent, bascule sur la ressource interne.")
+            Return LireRessourceTexte(nomRessource)
+
+        Catch ex As Exception
+            Logger.ERR("Impossible de lire le prompt (Physique ou Ressource) : " & ex.Message)
+            Return ""
+        End Try
     End Function
 End Class

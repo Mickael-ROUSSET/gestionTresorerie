@@ -23,6 +23,7 @@
   <ItemGroup>
     <None Remove="My Project\PromptGemini.txt" />
     <None Remove="Resources\client_secret_533498319739-9n7vp1d4vjealj8j7ud2spviq27jgunt.apps.googleusercontent.com.json" />
+    <None Remove="Resources\PromptGemini.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -57,6 +58,9 @@
 
   <ItemGroup>
     <EmbeddedResource Include="My Project\PromptGemini.txt" />
+    <Content Include="Resources\PromptGemini.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

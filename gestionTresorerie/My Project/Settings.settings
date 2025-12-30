@@ -455,5 +455,8 @@ SELECT SCOPE_IDENTITY();</Value>
     <Setting Name="dossierDestinationExportData" Type="System.String" Scope="Application">
       <Value Profile="(Default)">C:\Users\User\SQLDATA\</Value>
     </Setting>
+    <Setting Name="numCptAgumaaa" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">01237705000</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

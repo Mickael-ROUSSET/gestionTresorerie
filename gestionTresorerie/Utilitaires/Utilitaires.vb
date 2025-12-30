@@ -2,7 +2,6 @@
 Imports System.Globalization
 Imports System.IO
 Imports System.Text.RegularExpressions
-Imports Microsoft.Extensions.Logging
 Imports Newtonsoft.Json.Linq
 Friend Class Utilitaires
     Public Shared Sub selLigneDgvParLibelle(dgv As DataGridView, libelle As String)
@@ -85,10 +84,10 @@ Friend Class Utilitaires
                 montantDecimal = Decimal.Parse(montantStr, Globalization.NumberStyles.Currency Or Globalization.NumberStyles.Float, Globalization.CultureInfo.CurrentCulture)
             Catch ex As FormatException
                 ' Gestion d'erreur si le format n'est pas valide (ex: "abc" au lieu de "123.45")
-                Logger.ERR($"Format invalide pour montant_numerique : {montantStr}. Erreur : {ex.Message}")
+                Logger.ERR($"Format invalide pour montant_chiffres : {montantStr}. Erreur : {ex.Message}")
                 montantDecimal = 0D ' Valeur par défaut en cas d'erreur
             Catch ex As OverflowException
-                Logger.ERR($"Montant trop grand pour montant_numerique : {montantStr}")
+                Logger.ERR($"Montant trop grand pour montant_chiffres : {montantStr}")
                 montantDecimal = 0D
             End Try
         End If
@@ -259,67 +258,103 @@ Friend Class Utilitaires
         End If
     End Sub
 
-    Public Shared Function ParseJson(json As String, fieldMappings As Dictionary(Of String, String)) As String
+    'Public Shared Function ParseJson(json As String, fieldMappings As Dictionary(Of String, String)) As String
+    '    Try
+    '        ' Parse le JSON d'entrée
+    '        Dim objJson As JObject = JObject.Parse(json)
+    '        Dim choix As JArray = objJson("choices")
+    '        Dim referenceMessage As IList(Of JToken) = choix(0).Children().ToList()
+
+    '        ' Créer un objet pour stocker les résultats
+    '        Dim resultat As New JObject()
+
+    '        For Each item As JProperty In referenceMessage
+    '            Dim unused = item.CreateReader()
+
+    '            Select Case item.Name
+    '                Case "message"
+    '                    Dim message As String = item.Value.ToString()
+    '                    Dim objMsg As JObject = JObject.Parse(message)
+    '                    Dim content As String = objMsg("content").ToString()
+    '                    Dim resultatJson As String = Utilitaires.ExtractAndCleanJson(content)
+    '                    Dim objResultat As JObject = JObject.Parse(resultatJson)
+
+    '                    ' Extraire dynamiquement les champs selon les mappages fournis
+    '                    For Each mapping In fieldMappings
+    '                        Dim fieldName As String = mapping.Key
+    '                        Dim fieldType As String = mapping.Value
+    '                        Dim fieldValue As String = objResultat.Item(fieldName)?.ToString()
+
+    '                        If String.IsNullOrEmpty(fieldValue) Then
+    '                            Logger.DBG($"Champ {fieldName} non trouvé dans le JSON")
+    '                            Continue For
+    '                        End If
+
+    '                        Select Case fieldType.ToLower()
+    '                            Case "string"
+    '                                resultat(fieldName) = fieldValue
+    '                            Case "decimal"
+    '                                resultat(fieldName) = Utilitaires.convertStringToDecimal(fieldValue)
+    '                            Case "integer"
+    '                                resultat(fieldName) = CInt(fieldValue)
+    '                            Case "date"
+    '                                resultat(fieldName) = CDate(fieldValue).ToString("yyyy-MM-dd")
+    '                            Case Else
+    '                                Logger.DBG($"TypeMouvement de conversion non reconnu pour le champ {fieldName}: {fieldType}")
+    '                                resultat(fieldName) = fieldValue
+    '                        End Select
+    '                    Next
+
+    '                Case Else
+    '                    Logger.DBG("Propriété non reconnue : " & item.Name)
+    '            End Select
+    '        Next
+
+    '        ' Retourner le JSON sérialisé
+    '        Return resultat.ToString(Newtonsoft.Json.Formatting.None)
+
+    '    Catch ex As Exception
+    '        Logger.ERR("Erreur lors du parsing JSON : " & ex.Message)
+    '        Return "{}" ' Retourner un JSON vide en cas d'erreur
+    '    End Try
+    'End Function
+
+    Public Shared Function ParseJson(jsonBrut As String, fieldMappings As Dictionary(Of String, String)) As String
         Try
-            ' Parse le JSON d'entrée
-            Dim objJson As JObject = JObject.Parse(json)
-            Dim choix As JArray = objJson("choices")
-            Dim referenceMessage As IList(Of JToken) = choix(0).Children().ToList()
+            Dim jsonNettoye As String = jsonBrut.Replace("```json", "").Replace("```", "").Trim()
+            Dim jObj As JObject = JObject.Parse(jsonNettoye)
+            Dim resultats As New JObject()
 
-            ' Créer un objet pour stocker les résultats
-            Dim resultat As New JObject()
+            ' Utilisation de la culture Invariante (point comme séparateur décimal)
+            Dim cultureUS As CultureInfo = CultureInfo.InvariantCulture
 
-            For Each item As JProperty In referenceMessage
-                Dim unused = item.CreateReader()
+            For Each mapping In fieldMappings
+                Dim token As JToken = jObj.SelectToken(mapping.Key)
+                Dim valeur As String = If(token IsNot Nothing, token.ToString(), "")
 
-                Select Case item.Name
-                    Case "message"
-                        Dim message As String = item.Value.ToString()
-                        Dim objMsg As JObject = JObject.Parse(message)
-                        Dim content As String = objMsg("content").ToString()
-                        Dim resultatJson As String = Utilitaires.ExtractAndCleanJson(content)
-                        Dim objResultat As JObject = JObject.Parse(resultatJson)
-
-                        ' Extraire dynamiquement les champs selon les mappages fournis
-                        For Each mapping In fieldMappings
-                            Dim fieldName As String = mapping.Key
-                            Dim fieldType As String = mapping.Value
-                            Dim fieldValue As String = objResultat.Item(fieldName)?.ToString()
-
-                            If String.IsNullOrEmpty(fieldValue) Then
-                                Logger.DBG($"Champ {fieldName} non trouvé dans le JSON")
-                                Continue For
-                            End If
-
-                            Select Case fieldType.ToLower()
-                                Case "string"
-                                    resultat(fieldName) = fieldValue
-                                Case "decimal"
-                                    resultat(fieldName) = Utilitaires.convertStringToDecimal(fieldValue)
-                                Case "integer"
-                                    resultat(fieldName) = CInt(fieldValue)
-                                Case "date"
-                                    resultat(fieldName) = CDate(fieldValue).ToString("yyyy-MM-dd")
-                                Case Else
-                                    Logger.DBG($"TypeMouvement de conversion non reconnu pour le champ {fieldName}: {fieldType}")
-                                    resultat(fieldName) = fieldValue
-                            End Select
-                        Next
-
-                    Case Else
-                        Logger.DBG("Propriété non reconnue : " & item.Name)
-                End Select
+                ' --- Sécurité : Conversion des nombres ---
+                ' Si le champ contient un point et ressemble à un nombre, 
+                ' on s'assure qu'il est convertible dans la culture locale
+                If mapping.Value.Contains("montant") Or mapping.Value.Contains("decimal") Then
+                    Dim montantDecimal As Decimal
+                    ' On tente de parser avec le point (.)
+                    If Decimal.TryParse(valeur.Replace(",", "."), NumberStyles.Any, cultureUS, montantDecimal) Then
+                        resultats(mapping.Value) = montantDecimal
+                    Else
+                        resultats(mapping.Value) = 0
+                    End If
+                Else
+                    ' Pour les textes, on garde la valeur brute
+                    resultats(mapping.Value) = valeur
+                End If
             Next
 
-            ' Retourner le JSON sérialisé
-            Return resultat.ToString(Newtonsoft.Json.Formatting.None)
-
+            Return resultats.ToString()
         Catch ex As Exception
-            Logger.ERR("Erreur lors du parsing JSON : " & ex.Message)
-            Return "{}" ' Retourner un JSON vide en cas d'erreur
+            Logger.ERR("Erreur conversion ParseJson : " & ex.Message)
+            Return ""
         End Try
     End Function
-
     Public Shared Function ExtraitNuméroChèque(libelle As String) As String
         If String.IsNullOrWhiteSpace(libelle) Then
             Return Nothing

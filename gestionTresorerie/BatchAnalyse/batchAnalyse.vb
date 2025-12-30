@@ -46,37 +46,62 @@ Public Class batchAnalyse
     End Function
     Private Async Function TraiterFichierUnique(cheminFichier As String) As Task
         Try
-            ' 2. Appel Gemini (Identification + Extraction)
-            Dim resultatJson As String = Await GeminiAnalyzer.AnalyserDocument(GlobalSettings.GeminiKey, cheminFichier).ConfigureAwait(False)
+            ' 1. Appel Gemini (Identification + Extraction)
+            ' On récupère le JSON brut de l'IA
+            Dim resultatJsonBrut As String = Await GeminiAnalyzer.AnalyserDocument(GlobalSettings.GeminiKey, cheminFichier).ConfigureAwait(False)
 
-            If String.IsNullOrEmpty(resultatJson) Then
+            If String.IsNullOrEmpty(resultatJsonBrut) Then
                 Logger.WARN($"Aucune réponse pour {Path.GetFileName(cheminFichier)}")
                 EnregistrerEchec(cheminFichier)
-                Exit Function
+                Return ' Utiliser Return plutôt que Exit Function dans une Task
             End If
 
-            ' 3. Désérialisation pour connaître le type détecté par l'IA
-            Dim extraction = JsonConvert.DeserializeObject(Of JObject)(resultatJson)
-            Dim typeDetecte As String = extraction("type_document")?.ToString()
+            ' 2. Désérialisation pour connaître le type détecté par l'IA
+            Dim jObjRaw = JsonConvert.DeserializeObject(Of JObject)(resultatJsonBrut)
+            Dim typeDetecte As String = jObjRaw("type_document")?.ToString() ' Ex: "Cheque"
 
-            ' 4. Instanciation dynamique de la classe correspondante
-            Dim typeClasse As Type = Type.GetType("gestionTresorerie." & typeDetecte)
+            ' 3. Instanciation dynamique
+            Dim nomCompletClasse As String = "gestionTresorerie." & typeDetecte
+            Dim typeClasse As Type = Type.GetType(nomCompletClasse)
+
             If typeClasse IsNot Nothing Then
+                ' Création de l'instance (ex: une nouvelle instance de Cheque)
                 Dim docMetier As DocumentAgumaaa = TryCast(Activator.CreateInstance(typeClasse), DocumentAgumaaa)
 
-                ' Remplissage des données
-                docMetier.metaDonnees = resultatJson
+                ' --- ÉTAPE CRUCIALE : Parsing des données structurées ---
+                ' On appelle la méthode de parsing spécifique à la classe (Cheque, Facture, etc.)
+                ' Cela va aplatir le JSON et convertir les montants (via l'Utilitaires mis à jour)
+                Dim jsonAplatit As String = ""
+
+                ' Appel dynamique de la méthode Shared "ParseJson"
+                Dim methodeParse = typeClasse.GetMethod("ParseJson", BindingFlags.Public Or BindingFlags.Static)
+                If methodeParse IsNot Nothing Then
+                    jsonAplatit = methodeParse.Invoke(Nothing, New Object() {resultatJsonBrut}).ToString()
+                End If
+
+                ' 4. Remplissage des propriétés de l'objet
+                ' On peuple l'objet avec le JSON aplati et nettoyé
+                JsonConvert.PopulateObject(jsonAplatit, docMetier)
+
+                ' On garde le JSON aplati dans metaDonnees pour le renommage futur
+                docMetier.metaDonnees = jsonAplatit
                 docMetier.DateDoc = DateTime.Now
+
+                ' 5. Traitement du fichier (Renommer utilise les metaDonnees peuplées)
                 docMetier.CheminDoc = docMetier.RenommerFichier(cheminFichier)
 
-                ' Insertion SQL
+                ' 6. Insertion SQL
                 docMetier.InsererDocument(docMetier)
 
                 nombreTraitementOK += 1
-                Logger.INFO($"Succès : {typeDetecte} identifié pour {Path.GetFileName(cheminFichier)}")
+                Logger.INFO($"Succès : {typeDetecte} traité et inséré pour {Path.GetFileName(cheminFichier)}")
+            Else
+                Logger.ERR($"La classe {nomCompletClasse} n'existe pas dans le projet.")
+                EnregistrerEchec(cheminFichier, "Classe introuvable")
             End If
 
         Catch ex As Exception
+            Logger.ERR($"Erreur fatale sur {Path.GetFileName(cheminFichier)} : {ex.Message}")
             EnregistrerEchec(cheminFichier, ex.Message)
         End Try
     End Function
