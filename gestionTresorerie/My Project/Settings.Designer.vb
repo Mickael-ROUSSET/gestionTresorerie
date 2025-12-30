@@ -658,9 +658,9 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO [dbo].[Documents] (dateDoc, contenuDoc, cheminDoc, categorieDoc, sous"& _ 
-            "CategorieDoc, idMvtDoc, metaDonnees) VALUES (@dateDoc, @contenuDoc, @cheminDoc, "& _ 
-            "@categorieDoc, @sousCategorieDoc, @idMvtDoc, @metaDonnees);")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO [dbo].[Documents] (dateDoc, cheminDoc, categorieDoc, sousCategorieDoc"& _ 
+            ", idMvtDoc, metaDonnees) VALUES (@dateDoc, @cheminDoc, @categorieDoc, @sousCateg"& _ 
+            "orieDoc, @idMvtDoc, @metaDonnees);")>  _
         Public ReadOnly Property insertDocAgumaaa() As String
             Get
                 Return CType(Me("insertDocAgumaaa"),String)

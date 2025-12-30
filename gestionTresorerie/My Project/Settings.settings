@@ -197,7 +197,7 @@
       <Value Profile="(Default)">UPDATE [dbo].[Documents] SET dateDoc = @dateDoc, contenuDoc = @contenuDoc, cheminDoc = @cheminDoc, categorieDoc = @categorieDoc, sousCategorieDoc = @sousCategorieDoc, idMvtDoc=@idMvtDoc, metaDonnees=@metaDonnees WHERE idDoc = @idDoc;</Value>
     </Setting>
     <Setting Name="insertDocAgumaaa" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">INSERT INTO [dbo].[Documents] (dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees) VALUES (@dateDoc, @contenuDoc, @cheminDoc, @categorieDoc, @sousCategorieDoc, @idMvtDoc, @metaDonnees);</Value>
+      <Value Profile="(Default)">INSERT INTO [dbo].[Documents] (dateDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees) VALUES (@dateDoc, @cheminDoc, @categorieDoc, @sousCategorieDoc, @idMvtDoc, @metaDonnees);</Value>
     </Setting>
     <Setting Name="urlRacinedriveAgumaaa" Type="System.String" Scope="Application">
       <Value Profile="(Default)">https://drive.google.com/drive/folders/1yxfwBMp-bwpMHqMZZd5fHWcAhkZnH7F6?usp=drive_link</Value>

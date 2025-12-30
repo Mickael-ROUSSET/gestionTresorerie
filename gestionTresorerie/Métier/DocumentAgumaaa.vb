@@ -62,15 +62,15 @@ Public MustInherit Class DocumentAgumaaa
     Public Shared Sub InsererDocument(doc As DocumentAgumaaa)
         Try
             Dim unused = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertDocAgumaaa",
-                             New Dictionary(Of String, Object) From {{"@dateDoc", doc.DateDoc},
-                                                                     {"@contenuDoc", doc.ContenuDoc},
-                                                                     {"@cheminDoc", doc.CheminDoc},
-                                                                     {"@categorieDoc", doc.CategorieDoc},
-                                                                     {"@sousCategorieDoc", doc.SousCategorieDoc},
-                                                                     {"@idMvtDoc", doc.IdMvtDoc},
-                                                                     {"@metaDonnees", doc.metaDonnees}
-                             }
-                             ).ExecuteNonQuery()
+                        New Dictionary(Of String, Object) From {
+                            {"@dateDoc", doc.DateDoc},
+                            {"@cheminDoc", doc.CheminDoc},
+                            {"@categorieDoc", If(String.IsNullOrEmpty(doc.CategorieDoc), DBNull.Value, doc.CategorieDoc)},
+                            {"@sousCategorieDoc", If(String.IsNullOrEmpty(doc.SousCategorieDoc), DBNull.Value, doc.SousCategorieDoc)},
+                            {"@idMvtDoc", If(doc.IdMvtDoc = 0, DBNull.Value, doc.IdMvtDoc)}, ' Gestion si ID est un Integer
+                            {"@metaDonnees", doc.metaDonnees}
+                        }
+                    ).ExecuteNonQuery()
             Logger.INFO($"Document {doc.IdMvtDoc} inséré avec succès.")
         Catch ex As Exception
             Logger.INFO($"Erreur lors de l'insertion du document : {ex.Message}")
