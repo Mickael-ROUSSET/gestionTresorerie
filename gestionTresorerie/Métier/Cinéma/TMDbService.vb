@@ -65,7 +65,7 @@ Public Class TMDbService
     End Function
 
     ' Télécharge l'affiche
-    Public Async Function DownloadPosterAsync(posterUrl As String) As Task(Of Byte())
+    Public Shared Async Function DownloadPosterAsync(posterUrl As String) As Task(Of Byte())
         Try
             If String.IsNullOrWhiteSpace(posterUrl) Then Return Nothing
             Return Await _http.GetByteArrayAsync(posterUrl)

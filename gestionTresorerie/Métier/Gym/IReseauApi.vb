@@ -109,11 +109,27 @@ Public Module IReseauApi
         Return JsonConvert.DeserializeObject(Of List(Of LicenceDetail))(json)
     End Function
     Public Async Function GetLicencesAsync(user As UserContext) As Task(Of List(Of LicenceDetail))
+        ' 1. Validation des entrées (Fail-fast)
+        If user Is Nothing OrElse String.IsNullOrWhiteSpace(user.Ref) Then
+            Logger.WARN("GetLicencesAsync: UserContext ou Référence utilisateur invalide.")
+            Return New List(Of LicenceDetail)()
+        End If
 
-        Dim result As New List(Of LicenceDetail)
+        Try
+            ' 2. Appel API direct (évite l'instanciation inutile d'une liste intermédiaire)
+            ' .ConfigureAwait(False) est recommandé pour les tâches de bibliothèque/backend
+            Dim licences = Await IReseauApi.GetLicencesForUserAsync(user.Ref).ConfigureAwait(False)
 
-        result = Await IReseauApi.GetLicencesForUserAsync(user.Ref)
-        Return result
+            ' 3. Retourne le résultat ou une liste vide si l'API renvoie Nothing
+            Return If(licences, New List(Of LicenceDetail)())
+
+        Catch ex As Exception
+            ' 4. Gestion centralisée des erreurs
+            Logger.ERR($"Erreur lors de la récupération des licences pour {user.Ref} : {ex.Message}")
+
+            ' On retourne une liste vide pour éviter de faire planter l'UI avec un Nothing
+            Return New List(Of LicenceDetail)()
+        End Try
     End Function
     Public Async Function DownloadPdfAsync(url As String, outputFile As String) As Task(Of String)
 

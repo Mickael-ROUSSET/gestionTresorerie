@@ -5,58 +5,41 @@ Public Class StatsCinema
 
     ' --- Récupère les stats par film depuis la base ---
     Public Shared Function GetStatsParFilm() As List(Of StatFilm)
-        Dim result As New List(Of StatFilm)
+        Dim filmsDict As New Dictionary(Of Integer, StatFilm)
 
         Try
-            ' 1. Récupérer tous les tarifs valides
-            Dim tarifs As New Dictionary(Of String, Decimal)
-            Using cmdTarifs = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "selTarifsValides")
-                Using rdr = cmdTarifs.ExecuteReader()
-                    While rdr.Read()
-                        Dim nom As String = rdr("NomTarif").ToString()
-                        Dim montant As Decimal = CDec(rdr("Montant"))
-                        tarifs(nom) = montant
-                    End While
-                End Using
-            End Using
+            ' 1. Chargement des tarifs (Modularisé)
+            Dim tarifs = ChargerDicoTarifsValides()
 
-            ' 2. Récupérer toutes les séances avec les infos de film
+            ' 2. Traitement des séances
             Using cmdSeances = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "selSeancesAvecFilm")
                 Using rdr = cmdSeances.ExecuteReader()
-                    Dim filmsDict As New Dictionary(Of Integer, StatFilm)
-
                     While rdr.Read()
-                        Dim idFilm As Integer = CInt(rdr("IdFilm"))
-                        Dim titre As String = rdr("TitreFilm").ToString()
+                        ' Extraction propre des données
+                        Dim idFilm = rdr.GetValueOrDefault(Of Integer)("IdFilm")
+                        Dim titre = rdr.GetValueOrDefault(Of String)("TitreFilm")
 
-                        ' Crée le StatFilm si inexistant
-                        If Not filmsDict.ContainsKey(idFilm) Then
-                            filmsDict(idFilm) = New StatFilm With {.IdFilm = idFilm, .Titre = titre}
+                        ' Gestion de l'instance StatFilm (Utilisation de TryGetValue pour éviter CA1854 ici aussi)
+                        Dim stat As StatFilm = Nothing
+                        If Not filmsDict.TryGetValue(idFilm, stat) Then
+                            stat = New StatFilm With {.IdFilm = idFilm, .Titre = titre}
+                            filmsDict.Add(idFilm, stat)
                         End If
 
-                        ' Nombre d'entrées (valeurs par défaut si NULL)
-                        Dim nbAdultes As Integer = If(IsDBNull(rdr("NbEntreesAdultes")), 0, CInt(rdr("NbEntreesAdultes")))
-                        Dim nbEnfants As Integer = If(IsDBNull(rdr("NbEntreesEnfants")), 0, CInt(rdr("NbEntreesEnfants")))
-                        Dim nbGroupe As Integer = If(IsDBNull(rdr("NbEntreesGroupeEnfants")), 0, CInt(rdr("NbEntreesGroupeEnfants")))
-
-                        ' Crée une séance avec calcul automatique du CA
+                        ' Création de la séance avec calcul CA (Utilisation des utilitaires de tarifs)
                         Dim seance As New Seance(
-                            idFilm:=idFilm,
-                            dateHeureDebut:=CDate(rdr("DateHeureDebut")),
-                            nbAdultes:=nbAdultes,
-                            nbEnfants:=nbEnfants,
-                            nbGroupeEnfants:=nbGroupe,
-                            tarifAdulte:=If(tarifs.ContainsKey("Adulte"), tarifs("Adulte"), 0D),
-                            tarifEnfant:=If(tarifs.ContainsKey("Enfant"), tarifs("Enfant"), 0D),
-                            tarifGroupeEnfant:=If(tarifs.ContainsKey("GroupeEnfant"), tarifs("GroupeEnfant"), 0D)
-                        )
+                        idFilm:=idFilm,
+                        dateHeureDebut:=rdr.GetValueOrDefault(Of DateTime)("DateHeureDebut"),
+                        nbAdultes:=rdr.GetValueOrDefault(Of Integer)("NbEntreesAdultes", 0),
+                        nbEnfants:=rdr.GetValueOrDefault(Of Integer)("NbEntreesEnfants", 0),
+                        nbGroupeEnfants:=rdr.GetValueOrDefault(Of Integer)("NbEntreesGroupeEnfants", 0),
+                        tarifAdulte:=GetTarifOrDefault(tarifs, "Adulte"),
+                        tarifEnfant:=GetTarifOrDefault(tarifs, "Enfant"),
+                        tarifGroupeEnfant:=GetTarifOrDefault(tarifs, "GroupeEnfant")
+                    )
 
-                        ' Ajoute la séance au film correspondant
-                        filmsDict(idFilm).Seances.Add(seance)
+                        stat.Seances.Add(seance)
                     End While
-
-                    ' Ajoute tous les StatFilm à la liste de résultat
-                    result.AddRange(filmsDict.Values)
                 End Using
             End Using
 
@@ -64,8 +47,22 @@ Public Class StatsCinema
             Logger.ERR($"Erreur GetStatsParFilm : {ex.Message}")
         End Try
 
-        Return result
+        Return filmsDict.Values.ToList()
     End Function
+
+    ' Fonction d'aide pour isoler la requête des tarifs
+    Private Shared Function ChargerDicoTarifsValides() As Dictionary(Of String, Decimal)
+        Dim dico As New Dictionary(Of String, Decimal)
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "selTarifsValides")
+            Using rdr = cmd.ExecuteReader()
+                While rdr.Read()
+                    dico(rdr("NomTarif").ToString()) = CDec(rdr("Montant"))
+                End While
+            End Using
+        End Using
+        Return dico
+    End Function
+
 
     ' --- Génère un graphique de type barre par film ---
     Public Shared Function GenererGraphiqueCAParFilm(stats As List(Of StatFilm)) As Chart

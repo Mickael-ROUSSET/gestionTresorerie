@@ -33,7 +33,7 @@ Public Class FrmNouveauTiers
             Try
                 _pendingCoordonnees.IdTiers = newId
                 SaveCoordonnees(_pendingCoordonnees)
-                Logger.INFO($"Coordonnées sauvegardées pour IdTiers={newId} : {_pendingCoordonnees.ToString}")
+                Logger.INFO($"Coordonnées sauvegardées pour IdTiers={newId} : {_pendingCoordonnees}")
             Catch ex As Exception
                 Logger.ERR($"Erreur lors de la sauvegarde des coordonnées pour IdTiers={newId} : {ex.Message}")
             End Try
@@ -85,21 +85,34 @@ Public Class FrmNouveauTiers
     ' Retourne l'Id du tiers inséré (suppose que insertTiers renvoie SCOPE_IDENTITY())
     Public Shared Function insereNouveauTiers(sRaisonSociale As String, sPrenom As String, sNom As String, iCategorie As Integer?, iSousCategorie As Integer?) As Integer
         Try
-            Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertTiers",
-                             New Dictionary(Of String, Object) From {{"@nom", sNom.Trim()},
-                                                                     {"@prenom", sPrenom.Trim()},
-                                                                     {"@raisonSociale", sRaisonSociale},
-                                                                     {"@categorieDefaut", iCategorie},
-                                                                     {"@sousCategorieDefaut", iSousCategorie},
-                                                                     {"@dateCreation", DateTime.Now},
-                                                                     {"@dateModification", DateTime.Now}}
-                             )
+            ' Utilisation de variables locales pour gérer les Nothing/Strings vides proprement
+            Dim params As New Dictionary(Of String, Object) From {
+                        {"@nom", If(String.IsNullOrWhiteSpace(sNom), DBNull.Value, sNom.Trim())},
+                        {"@prenom", If(String.IsNullOrWhiteSpace(sPrenom), DBNull.Value, sPrenom.Trim())},
+                        {"@raisonSociale", If(String.IsNullOrWhiteSpace(sRaisonSociale), DBNull.Value, sRaisonSociale.Trim())},
+                        {"@categorieDefaut", If(iCategorie, DBNull.Value)},
+                        {"@sousCategorieDefaut", If(iSousCategorie, DBNull.Value)},
+                        {"@dateCreation", DateTime.Now},
+                        {"@dateModification", DateTime.Now}
+                    }
+
+            Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertTiers", params)
                 Dim result = cmd.ExecuteScalar()
                 Dim newId As Integer = 0
+
+                ' Correction CA1806 : On vérifie le résultat du TryParse
                 If result IsNot Nothing AndAlso result IsNot DBNull.Value Then
-                    Integer.TryParse(result.ToString(), newId)
+                    If Not Integer.TryParse(result.ToString(), newId) Then
+                        Logger.WARN($"L'ID retourné ({result}) n'est pas un entier valide.")
+                    End If
                 End If
-                Logger.INFO("Nouveau tiers inséré avec succès. Id=" & newId)
+
+                If newId > 0 Then
+                    Logger.INFO($"Nouveau tiers inséré avec succès. Id={newId}")
+                Else
+                    Logger.WARN("L'insertion a eu lieu mais aucun ID n'a été récupéré.")
+                End If
+
                 Return newId
             End Using
         Catch ex As Exception
@@ -166,12 +179,13 @@ Public Class FrmNouveauTiers
         initChamps()
         ' Initialiser le tooltip pour btnCreerTiers
         Try
-            ttCoordonnes = New ToolTip()
-            ttCoordonnes.IsBalloon = False
-            ttCoordonnes.ToolTipIcon = ToolTipIcon.Info
-            ttCoordonnes.AutoPopDelay = 5000
-            ttCoordonnes.InitialDelay = 500
-            ttCoordonnes.ReshowDelay = 250
+            ttCoordonnes = New ToolTip With {
+                .IsBalloon = False,
+                .ToolTipIcon = ToolTipIcon.Info,
+                .AutoPopDelay = 5000,
+                .InitialDelay = 500,
+                .ReshowDelay = 250
+            }
             ttCoordonnes.SetToolTip(btnCreerTiers, "Téléphone et e‑mail sont saisis dans la fenêtre 'Coordonnées'.")
         Catch ex As Exception
             Logger.ERR($"Erreur lors de l'initialisation du tooltip : {ex.Message}")

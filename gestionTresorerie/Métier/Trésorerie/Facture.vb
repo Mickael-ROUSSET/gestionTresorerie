@@ -70,7 +70,7 @@ Public Class Facture
         ' Organisation par année et par fournisseur
         Dim annee As String = If(Not String.IsNullOrEmpty(Me.date_facture), Me.date_facture.Substring(0, 4), DateTime.Now.Year.ToString())
         Dim nomFournisseur As String = UtilitairesIdentite.NettoyerNomFichier(Me.fournisseur_nom)
-        Dim sens As String = IIf(nomFournisseur.ToUpper().Contains("AGUMAAA"), LectureProprietes.GetVariable("repFichiersFacturesEmises"), LectureProprietes.GetVariable("repFichiersFacturesRecues"))
+        Dim sens As String = IIf(nomFournisseur.Contains("AGUMAAA", StringComparison.CurrentCultureIgnoreCase), LectureProprietes.GetVariable("repFichiersFacturesEmises"), LectureProprietes.GetVariable("repFichiersFacturesRecues"))
 
         Dim sRepDestination As String = Path.Combine(
             LectureProprietes.GetVariable("repRacineAgumaaa"),

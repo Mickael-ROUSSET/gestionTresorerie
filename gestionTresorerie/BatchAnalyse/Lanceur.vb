@@ -2,49 +2,69 @@
 Imports System.IO
 
 Public Class Lanceur
-    Private Shared iTypeDocument As String
+    'Private Shared iTypeDocument As String
     ' Propriétés pour stocker les états  
     Private Property RepertoireSource As String
-
     Public Async Function LanceTrt() As Task
-        ' Vérifie si le fichier lstTiers.csv existe, sinon le génère.
-        VerifierOuGenererLstTiers()
+        Try
+            ' 1. Préparation (Données Tiers et Confirmation Utilisateur)
+            VerifierOuGenererLstTiers()
 
+            If Not DemanderConfirmationRepertoire() Then
+                Logger.INFO("Analyse annulée par l'utilisateur.")
+                Return ' Utiliser Return dans une Task au lieu de Exit Function
+            End If
 
-        ' Demander confirmation/choix à l'utilisateur
-        If Not DemanderConfirmationRepertoire() Then
-            Logger.INFO("Analyse annulée par l'utilisateur.")
-            Exit Function
-        End If
+            ' 2. Lancement du traitement
+            Dim repertoireSource = ConstruireCheminParDefaut()
+            Dim batch = New BatchAnalyse()
 
-        ' Sélectionner les types de document (classes) avec GetTypesDocument
-        For Each typeDoc In GetTypesDocument()
-            Try
-                Dim batchAnalyse = New batchAnalyse(typeDoc)
+            Logger.INFO($"Démarrage de l'analyse dans : {repertoireSource}")
+            Await batch.DemarrerTraitement(repertoireSource)
 
-                ' Appel de l'analyse des fichiers avec le type d'analyse défini dans le constructeur
-                Await ParcourirRepertoireEtAnalyser(batchAnalyse)
-            Catch ex As Exception
-                Logger.ERR("Erreur lors de l'instanciation ou de l'analyse pour la classe " & "gestionTresorerie." & typeDoc.ClasseTypeDoc & " : " & ex.Message)
-            End Try
-        Next typeDoc
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors du traitement global : {ex.Message}")
+        End Try
     End Function
+    '    Public Async Function LanceTrt() As Task
+    '        ' Vérifie si le fichier lstTiers.csv existe, sinon le génère.
+    '        VerifierOuGenererLstTiers()
 
-    ' <summary>
-    ' Point d'entrée principal : Orchestre le processus
-    ' </summary>
-    Public Async Function ParcourirRepertoireEtAnalyser(batchAnalyse As batchAnalyse) As Task
-        ' 1. Préparer le chemin
-        Me.RepertoireSource = ConstruireCheminParDefaut()
+    '        ' Demander confirmation/choix à l'utilisateur
+    '        If Not DemanderConfirmationRepertoire() Then
+    '            Logger.INFO("Analyse annulée par l'utilisateur.")
+    '            Exit Function
+    '        End If
 
-        ' 2. Lancer le traitement
-        Await batchAnalyse.DemarrerTraitement(Me.RepertoireSource)
-    End Function
+    '        ' Sélectionner les types de document (classes) avec GetTypesDocument
+    '#69 ; suppression de la table typeDoc
+    '        For Each typeDoc In GetTypesDocument()
+    '            Try
+    '                Dim batchAnalyse = New BatchAnalyse(typeDoc)
+
+    '                ' Appel de l'analyse des fichiers avec le type d'analyse défini dans le constructeur
+    '                Await ParcourirRepertoireEtAnalyser(batchAnalyse)
+    '            Catch ex As Exception
+    '                Logger.ERR("Erreur lors de l'instanciation ou de l'analyse pour la classe " & "gestionTresorerie." & typeDoc.ClasseTypeDoc & " : " & ex.Message)
+    '            End Try
+    '        Next typeDoc
+    '    End Function
+
+    '    ' <summary>
+    '    ' Point d'entrée principal : Orchestre le processus
+    '    ' </summary>
+    '    Public Async Function ParcourirRepertoireEtAnalyser(batchAnalyse As BatchAnalyse) As Task
+    '        ' 1. Préparer le chemin
+    '        Me.RepertoireSource = ConstruireCheminParDefaut()
+
+    '        ' 2. Lancer le traitement
+    '        Await batchAnalyse.DemarrerTraitement(Me.RepertoireSource)
+    '    End Function
 
     ''' <summary>
     ''' Module de configuration : Construit le chemin à partir des propriétés
     ''' </summary>
-    Private Function ConstruireCheminParDefaut() As String
+    Private Shared Function ConstruireCheminParDefaut() As String
         Return Path.Combine(
             LectureProprietes.GetVariable("repRacineAgumaaa"),
             LectureProprietes.GetVariable("repRacineDocuments"),
@@ -72,26 +92,26 @@ Public Class Lanceur
         End Using
         Return False
     End Function
-    Private Shared Function GetTypesDocument() As List(Of ITypeDoc)
-        Dim listTypeDoc As New List(Of ITypeDoc)
+    'Private Shared Function GetTypesDocument() As List(Of ITypeDoc)
+    '    Dim listTypeDoc As New List(Of ITypeDoc)
 
-        Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "sqlTypesDocuments").ExecuteReader()
-            ' Vérifier si le reader contient des lignes
-            If reader.HasRows Then
-                While reader.Read()
-                    ' Créer une instance concrète implémentant ITypeDoc avec seulement la classe
-                    Dim typeDoc As New TypeDocImpl(reader.GetString(3))
-                    listTypeDoc.Add(typeDoc)
-                End While
-                Logger.INFO($"{reader.RecordsAffected} types de documents récupérés avec succès.")
-            Else
-                ' Gérer le cas où le reader est vide
-                Logger.WARN("Aucun type de document trouvé.")
-            End If
-        End Using
+    '    Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "sqlTypesDocuments").ExecuteReader()
+    '        ' Vérifier si le reader contient des lignes
+    '        If reader.HasRows Then
+    '            While reader.Read()
+    '                ' Créer une instance concrète implémentant ITypeDoc avec seulement la classe
+    '                Dim typeDoc As New TypeDocImpl(reader.GetString(3))
+    '                listTypeDoc.Add(typeDoc)
+    '            End While
+    '            Logger.INFO($"{reader.RecordsAffected} types de documents récupérés avec succès.")
+    '        Else
+    '            ' Gérer le cas où le reader est vide
+    '            Logger.WARN("Aucun type de document trouvé.")
+    '        End If
+    '    End Using
 
-        Return listTypeDoc
-    End Function
+    '    Return listTypeDoc
+    'End Function
 
     Private Shared Sub VerifierOuGenererLstTiers()
         ' Vérifie si le fichier lstTiers.csv existe, sinon exécute la requête reqIdentiteTiers pour le générer.

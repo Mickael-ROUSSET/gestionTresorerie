@@ -187,9 +187,6 @@
     <Setting Name="sqlTypesDocuments" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT prompt, gabaritRepertoire, gabaritNomFichier, classe FROM TypeDoc;</Value>
     </Setting>
-    <Setting Name="reqLibellesTypesDocuments" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">SELECT libellé FROM TypeDoc;</Value>
-    </Setting>
     <Setting Name="reqDocs" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees FROM [dbo].[Documents];</Value>
     </Setting>
@@ -210,9 +207,6 @@
     </Setting>
     <Setting Name="ficLstTiers" Type="System.String" Scope="Application">
       <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\BacASable\lstTiers.csv</Value>
-    </Setting>
-    <Setting Name="sqlLibellesTypesDocuments" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">SELECT libellé FROM TypeDoc;</Value>
     </Setting>
     <Setting Name="reqChq" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT id, numero, date, emetteur, destinataire FROM Cheque WHERE montant = @montant;</Value>

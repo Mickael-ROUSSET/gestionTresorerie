@@ -7,19 +7,19 @@ Imports gestionTresorerie.Agumaaa
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 
-Public Class batchAnalyse
+Public Class BatchAnalyse
     Private nombreFichiersTraites As Integer = 0
     Private nombreTraitementOK As Integer = 0
     Private nombreTraitementKO As Integer = 0
-    Private dateHeureDebut As DateTime
-    Private dateHeureFin As DateTime
-    Private _TypeDoc As ITypeDoc
+    Private ReadOnly dateHeureDebut As DateTime
+    Private ReadOnly dateHeureFin As DateTime
+    'Private _TypeDoc As ITypeDoc
 
     Private compteursParRepertoire As New Dictionary(Of String, (fichiersTraites As Integer, traitementOK As Integer, traitementKO As Integer))
 
-    Public Sub New(TypeDoc As ITypeDoc)
-        _TypeDoc = TypeDoc
-    End Sub
+    'Public Sub New(TypeDoc As ITypeDoc)
+    '    _TypeDoc = TypeDoc
+    'End Sub
     ' <summary>
     ' Module d'exécution : Gère la boucle de traitement et les logs
     ' </summary> 
@@ -53,7 +53,7 @@ Public Class batchAnalyse
             If String.IsNullOrEmpty(resultatJsonBrut) Then
                 Logger.WARN($"Aucune réponse pour {Path.GetFileName(cheminFichier)}")
                 EnregistrerEchec(cheminFichier)
-                Return ' Utiliser Return plutôt que Exit Function dans une Task
+                Return ' Return préférable à Exit Function dans une Task
             End If
 
             ' 2. Désérialisation pour connaître le type détecté par l'IA
@@ -91,7 +91,7 @@ Public Class batchAnalyse
                 docMetier.CheminDoc = docMetier.RenommerFichier(cheminFichier)
 
                 ' 6. Insertion SQL
-                docMetier.InsererDocument(docMetier)
+                DocumentAgumaaa.InsererDocument(docMetier)
 
                 nombreTraitementOK += 1
                 Logger.INFO($"Succès : {typeDetecte} traité et inséré pour {Path.GetFileName(cheminFichier)}")
@@ -109,52 +109,52 @@ Public Class batchAnalyse
         nombreTraitementKO += 1
         Logger.ERR($"Echec traitement {fichier} : {msg}")
     End Sub
-    Public Sub ProcessDocument(nouveauDoc As DocumentAgumaaa, sNomFichier As String)
-        'sNomFichier contient le chemin
-        Try
-            ' Analyser le document pour obtenir une instance de DocumentAgumaaa 
-            If nouveauDoc Is Nothing Then
-                Logger.ERR("analyseDocument a retourné un document null.")
-                Return
-            End If
+    'Public Sub ProcessDocument(nouveauDoc As DocumentAgumaaa, sNomFichier As String)
+    '    'sNomFichier contient le chemin
+    '    Try
+    '        ' Analyser le document pour obtenir une instance de DocumentAgumaaa 
+    '        If nouveauDoc Is Nothing Then
+    '            Logger.ERR("analyseDocument a retourné un document null.")
+    '            Return
+    '        End If
 
-            ' Vérifier si ClasseTypeDoc est valide
-            If String.IsNullOrEmpty(_TypeDoc.ClasseTypeDoc) Then
-                Logger.ERR($"ClasseTypeDoc est vide ou null : {_TypeDoc.ClasseTypeDoc}")
-                Return
-            End If
+    '        ' Vérifier si ClasseTypeDoc est valide
+    '        If String.IsNullOrEmpty(_TypeDoc.ClasseTypeDoc) Then
+    '            Logger.ERR($"ClasseTypeDoc est vide ou null : {_TypeDoc.ClasseTypeDoc}")
+    '            Return
+    '        End If
 
-            ' Obtenir le type de la classe dérivée
-            Dim typeClasse As Type = Type.GetType("gestionTresorerie." & _TypeDoc.ClasseTypeDoc)
-            If typeClasse Is Nothing OrElse Not GetType(DocumentAgumaaa).IsAssignableFrom(typeClasse) Then
-                Logger.ERR($"TypeMouvement non trouvé ou non dérivé de DocumentAgumaaa : {"gestionTresorerie." & _TypeDoc.ClasseTypeDoc}")
-                Return
-            End If
+    '        ' Obtenir le type de la classe dérivée
+    '        Dim typeClasse As Type = Type.GetType("gestionTresorerie." & _TypeDoc.ClasseTypeDoc)
+    '        If typeClasse Is Nothing OrElse Not GetType(DocumentAgumaaa).IsAssignableFrom(typeClasse) Then
+    '            Logger.ERR($"TypeMouvement non trouvé ou non dérivé de DocumentAgumaaa : {"gestionTresorerie." & _TypeDoc.ClasseTypeDoc}")
+    '            Return
+    '        End If
 
-            ' Instancier la classe dérivée
-            Dim derivedDoc As DocumentAgumaaa = TryCast(Activator.CreateInstance(typeClasse), DocumentAgumaaa)
-            If derivedDoc Is Nothing Then
-                Logger.ERR($"Impossible d'instancier la classe {"gestionTresorerie." & _TypeDoc.ClasseTypeDoc}")
-                Return
-            End If
+    '        ' Instancier la classe dérivée
+    '        Dim derivedDoc As DocumentAgumaaa = TryCast(Activator.CreateInstance(typeClasse), DocumentAgumaaa)
+    '        If derivedDoc Is Nothing Then
+    '            Logger.ERR($"Impossible d'instancier la classe {"gestionTresorerie." & _TypeDoc.ClasseTypeDoc}")
+    '            Return
+    '        End If
 
-            ' Copier les propriétés de nouveauDoc vers derivedDoc
-            derivedDoc.DateDoc = nouveauDoc.DateDoc
-            derivedDoc.CategorieDoc = nouveauDoc.CategorieDoc
-            derivedDoc.SousCategorieDoc = nouveauDoc.SousCategorieDoc
-            derivedDoc.IdMvtDoc = nouveauDoc.IdMvtDoc
-            derivedDoc.metaDonnees = nouveauDoc.metaDonnees
+    '        ' Copier les propriétés de nouveauDoc vers derivedDoc
+    '        derivedDoc.DateDoc = nouveauDoc.DateDoc
+    '        derivedDoc.CategorieDoc = nouveauDoc.CategorieDoc
+    '        derivedDoc.SousCategorieDoc = nouveauDoc.SousCategorieDoc
+    '        derivedDoc.IdMvtDoc = nouveauDoc.IdMvtDoc
+    '        derivedDoc.metaDonnees = nouveauDoc.metaDonnees
 
-            ' Appeler renommerFichier et récupérer le nouveau chemin après renommage 
-            derivedDoc.CheminDoc = derivedDoc.RenommerFichier(sNomFichier)
+    '        ' Appeler renommerFichier et récupérer le nouveau chemin après renommage 
+    '        derivedDoc.CheminDoc = derivedDoc.RenommerFichier(sNomFichier)
 
-            ' Insérer le document (version non statique)
-            derivedDoc.InsererDocument(derivedDoc)
+    '        ' Insérer le document (version non statique)
+    '        derivedDoc.InsererDocument(derivedDoc)
 
-        Catch ex As Exception
-            Logger.ERR($"Erreur lors du traitement du document {sNomFichier} : {ex.Message}")
-        End Try
-    End Sub
+    '    Catch ex As Exception
+    '        Logger.ERR($"Erreur lors du traitement du document {sNomFichier} : {ex.Message}")
+    '    End Try
+    'End Sub
     Public Shared Async Function analyseDocument(doc As ITypeDoc) As Task(Of DocumentAgumaaa)
         Try
             ' Vérifier si l'objet doc est null
@@ -235,10 +235,8 @@ Public Class batchAnalyse
             Select Case kvp.Key.ToLower()
                 Case TypeDocument.Cheque
                     typeDoc = RapportTraitement.TypeDocument.Cheque
-                Case TypeDocument.FormulaireAdhesion
-                    typeDoc = RapportTraitement.TypeDocument.FormulaireAdhesion
-                Case TypeDocument.QuestionnaireMedical
-                    typeDoc = RapportTraitement.TypeDocument.QuestionnaireMedical
+                Case TypeDocument.Facture
+                    typeDoc = RapportTraitement.TypeDocument.Facture
                 Case Else
                     RapportTraitement.WriteToLog($"Répertoire inconnu : {kvp.Key}", "WARN")
                     Continue For

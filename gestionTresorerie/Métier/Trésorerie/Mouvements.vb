@@ -160,7 +160,7 @@ Public Class Mouvements
     '    End Try
     'End Sub
     Public Shared Sub InsererMouvementEnBase(mouvement As Mouvements)
-        If mouvement Is Nothing Then Throw New ArgumentNullException(NameOf(mouvement))
+        ArgumentNullException.ThrowIfNull(mouvement)
 
         Try
             Dim paramètres As New Dictionary(Of String, Object) From {
@@ -184,10 +184,10 @@ Public Class Mouvements
             }
             Dim cmd As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertMvts", paramètres)
             Utilitaires.LogCommand(cmd)
-            Logger.WARN($"cmd.Connection.State.ToString(1) : {cmd.Connection.State.ToString()}")
+            Logger.WARN($"cmd.Connection.State.ToString(1) : {cmd.Connection.State()}")
 
             Dim lignes = cmd.ExecuteNonQuery()
-            Logger.WARN($"cmd.Connection.State.ToString(2) : {cmd.Connection.State.ToString()}")
+            Logger.WARN($"cmd.Connection.State.ToString(2) : {cmd.Connection.State()}")
 
             If lignes = 1 Then
                 Logger.INFO($"Mouvement inséré")
@@ -401,7 +401,7 @@ Public Class Mouvements
     ''' <summary>
     ''' Ajoute un champ au StringBuilder avec formatage et gestion des valeurs nulles.
     ''' </summary>
-    Private Sub AjouterChamp(sb As Text.StringBuilder, nom As String, valeur As Object, Optional format As String = Nothing)
+    Private Shared Sub AjouterChamp(sb As Text.StringBuilder, nom As String, valeur As Object, Optional format As String = Nothing)
         Dim valeurStr As String
 
         If valeur Is Nothing OrElse IsDBNull(valeur) Then

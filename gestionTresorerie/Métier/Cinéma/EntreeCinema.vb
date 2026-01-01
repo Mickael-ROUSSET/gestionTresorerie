@@ -16,7 +16,7 @@ Public Class EntreeCinema
     ' --------------------------------------------------------------------
     ' IMPORT PRINCIPAL
     ' --------------------------------------------------------------------
-    Public Function ImporterEntreesDepuisExcel() As List(Of EntreeCinema)
+    Public Shared Function ImporterEntreesDepuisExcel() As List(Of EntreeCinema)
         Dim entrees As New List(Of EntreeCinema)
 
         Try
@@ -52,7 +52,7 @@ Public Class EntreeCinema
                                     .NbAdultes = If(row.Cell("D").IsEmpty(), 0, row.Cell("D").GetValue(Of Integer)()),
                                     .NbEnfants = If(row.Cell("E").IsEmpty(), 0, row.Cell("E").GetValue(Of Integer)()),
                                     .NbGroupeEnfants = If(row.Cell("F").IsEmpty(), 0, row.Cell("F").GetValue(Of Integer)()),
-                                    .Payant = If(row.Cell("J").IsEmpty(), False, row.Cell("J").GetValue(Of Boolean)())
+                                    .Payant = Not row.Cell("J").IsEmpty() AndAlso row.Cell("J").GetValue(Of Boolean)()
                                 }
 
 
@@ -85,7 +85,7 @@ Public Class EntreeCinema
     ''' Ouvre une fenêtre pour sélectionner un fichier Excel et retourne le chemin.
     ''' </summary>
     ''' <returns>Chemin complet du fichier Excel choisi, ou Nothing si annulation</returns>
-    Private Function SelectionnerFichierExcel() As String
+    Private Shared Function SelectionnerFichierExcel() As String
         Using ofd As New OpenFileDialog()
             ofd.Filter = "Fichiers Excel|*.xlsx;*.xls"
             ofd.Title = "Sélectionner le fichier des entrées cinéma"
@@ -103,7 +103,7 @@ Public Class EntreeCinema
     ' --------------------------------------------------------------------
     ' INSERTION AUTOMATIQUE DES FILMS + SEANCES
     ' --------------------------------------------------------------------
-    Private Sub InsererFilmEtSeance(entree As EntreeCinema)
+    Private Shared Sub InsererFilmEtSeance(entree As EntreeCinema)
         Try
             Dim idFilm = ObtenirIdFilm(entree.TitreFilm)
 
@@ -134,7 +134,7 @@ Public Class EntreeCinema
     ' --------------------------------------------------------------------
     ' FILMS
     ' --------------------------------------------------------------------
-    Private Function ObtenirIdFilm(titre As String) As Integer
+    Private Shared Function ObtenirIdFilm(titre As String) As Integer
         Try
             Dim parametres As New Dictionary(Of String, Object) From {
                         {"@titre", titre}
@@ -154,14 +154,16 @@ Public Class EntreeCinema
         Return -1
     End Function
 
-    Public Function InsererFilm(film As Film) As Integer
+    Public Shared Function InsererFilm(film As Film) As Integer
         ' ✅ Validation
-        If String.IsNullOrWhiteSpace(film.Titre) Then
-            Throw New ArgumentException("Le titre du film est obligatoire.", NameOf(film.Titre))
+        If film Is Nothing Then
+            Throw New ArgumentNullException(NameOf(film), "L'objet film ne peut pas être null.")
         End If
 
-        If film.DureeMinutes < 0 Then
-            Throw New ArgumentException("La durée du film doit être positive.", NameOf(film.DureeMinutes))
+        ' ✅ Validation du Titre (CA2208 corrigé)
+        If String.IsNullOrWhiteSpace(film.Titre) Then
+            ' Pour ArgumentException : le message d'abord, le nom du paramètre ensuite
+            Throw New ArgumentException("Le titre du film est obligatoire.", NameOf(film))
         End If
 
         ' ✅ Préparation des paramètres SQL
@@ -191,7 +193,7 @@ Public Class EntreeCinema
     ' --------------------------------------------------------------------
     ' SEANCES
     ' --------------------------------------------------------------------
-    Private Function ObtenirIdSeance(idFilm As Integer, dateDebut As DateTime) As Integer
+    Private Shared Function ObtenirIdSeance(idFilm As Integer, dateDebut As DateTime) As Integer
         Try
             Dim parametres As New Dictionary(Of String, Object) From {
                         {"@idFilm", idFilm},
@@ -212,7 +214,7 @@ Public Class EntreeCinema
         Return -1
     End Function
 
-    Private Function InsererSeance(seance As Seance) As Integer
+    Private Shared Function InsererSeance(seance As Seance) As Integer
         Try
             Logger.INFO($"📌 Insertion séance film={seance.IdFilm} - {seance.DateHeureDebut}")
 

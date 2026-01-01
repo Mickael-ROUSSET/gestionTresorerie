@@ -628,15 +628,6 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT libellé FROM TypeDoc;")>  _
-        Public ReadOnly Property reqLibellesTypesDocuments() As String
-            Get
-                Return CType(Me("reqLibellesTypesDocuments"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idM"& _ 
             "vtDoc, metaDonnees FROM [dbo].[Documents];")>  _
         Public ReadOnly Property reqDocs() As String
@@ -702,15 +693,6 @@ Namespace My
         Public ReadOnly Property ficLstTiers() As String
             Get
                 Return CType(Me("ficLstTiers"),String)
-            End Get
-        End Property
-        
-        <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("SELECT libellé FROM TypeDoc;")>  _
-        Public ReadOnly Property sqlLibellesTypesDocuments() As String
-            Get
-                Return CType(Me("sqlLibellesTypesDocuments"),String)
             End Get
         End Property
         

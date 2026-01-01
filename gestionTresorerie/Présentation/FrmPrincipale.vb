@@ -273,14 +273,14 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub ImporterExcelToolStripMenuItem_Click(sender As Object, e As EventArgs)
-        Dim mdn As New GenereAttestationNonParticipation
-        mdn.ImporterParticipantsDepuisExcel()
+        GenereAttestationNonParticipation.ImporterParticipantsDepuisExcel()
         MsgBox("Import terminé. CR dans les logs")
     End Sub
 
     Private Sub GénérerAttestationsToolStripMenuItem_Click(sender As Object, e As EventArgs)
-        Dim mdn As New GenereAttestationNonParticipation
-        mdn.GenererEtEnvoyerAttestations()
+        ' Appel direct via la classe (plus besoin de Dim mdn As New...)
+        GenereAttestationNonParticipation.GenererEtEnvoyerAttestations()
+
         MsgBox("Génération terminée. CR dans les logs")
     End Sub
 
@@ -352,11 +352,12 @@ Public Class FrmPrincipale
 
     End Sub
     Private Function selectionneJson() As String
-        Dim dlg As New OpenFileDialog()
-        dlg.Title = "Sélectionnez le fichier de configuration JSON"
-        dlg.Filter = "Fichiers JSON (*.json)|*.json|Tous les fichiers|*.*"
-        dlg.InitialDirectory = "G:\Mon Drive\AGUMAAA\Documents"
-        dlg.Multiselect = False
+        Dim dlg As New OpenFileDialog With {
+            .Title = "Sélectionnez le fichier de configuration JSON",
+            .Filter = "Fichiers JSON (*.json)|*.json|Tous les fichiers|*.*",
+            .InitialDirectory = "G:\Mon Drive\AGUMAAA\Documents",
+            .Multiselect = False
+        }
 
         If dlg.ShowDialog() = DialogResult.OK Then
             Return dlg.FileName

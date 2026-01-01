@@ -1,7 +1,5 @@
 ﻿' ProgrammeCinemaCreator.vb
 Imports System.IO
-Imports System.Threading.Tasks
-Imports DocumentFormat.OpenXml
 Imports DocumentFormat.OpenXml.Packaging
 Imports DocumentFormat.OpenXml.Wordprocessing
 Imports Drawing = DocumentFormat.OpenXml.Drawing
@@ -63,24 +61,6 @@ Public Class ProgrammeCinemaCreator
         Dim sem As New Threading.SemaphoreSlim(4)
         Dim tasks As New List(Of Task)()
 
-        'For Each s In seances
-        '    Await sem.WaitAsync()
-        '    Dim t = Task.Run(Async Function()
-        '                         Try
-        '                             Dim f = Await _tmdb.GetMovieDetailsAsync((Await _tmdb.SearchMovieIdByTitleAsync(s.Titre)).Value)
-        '                             If f Is Nothing Then Return
-        '                             s.Synopsis = f.Synopsis
-        '                             s.DureeMinutes = f.DureeMinutes
-        '                             s.Genre = f.Genre
-        '                             s.Realisateur = f.Realisateur
-        '                             s.Casting = f.Casting
-        '                             s.UrlAffiche = f.UrlAffiche
-        '                         Finally
-        '                             sem.Release()
-        '                         End Try
-        '                     End Function)
-        '    tasks.Add(t)
-        'Next
         For Each s In seances
             Dim movieId = Await _tmdb.SearchMovieIdByTitleAsync(s.Titre)
 

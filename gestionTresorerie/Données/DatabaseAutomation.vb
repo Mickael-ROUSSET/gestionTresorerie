@@ -13,9 +13,10 @@ Public Module DatabaseAutomation
     ''' Procédure d'exportation (Backup)
     ''' </summary>
     Public Sub ExportDatabase()
-        Dim saveDialog As New SaveFileDialog()
-        saveDialog.Filter = "Sauvegarde SQL (*.bak)|*.bak"
-        saveDialog.FileName = $"{DatabaseName}_{DateTime.Now:yyyyMMdd}.bak"
+        Dim saveDialog As New SaveFileDialog With {
+            .Filter = "Sauvegarde SQL (*.bak)|*.bak",
+            .FileName = $"{DatabaseName}_{DateTime.Now:yyyyMMdd}.bak"
+        }
 
         'Call attacheBase()
         If saveDialog.ShowDialog() = DialogResult.OK Then
@@ -44,8 +45,9 @@ Public Module DatabaseAutomation
     ''' Importation d'un fichier .bak avec création automatique de la base
     ''' </summary>
     Public Sub ImportDatabase()
-        Dim openDialog As New OpenFileDialog()
-        openDialog.Filter = "Fichier Sauvegarde SQL (*.bak)|*.bak"
+        Dim openDialog As New OpenFileDialog With {
+            .Filter = "Fichier Sauvegarde SQL (*.bak)|*.bak"
+        }
 
         'Call attacheBase()
 
@@ -71,8 +73,9 @@ Public Module DatabaseAutomation
 
                 Using conn As New SqlConnection(MasterConnString)
                     conn.Open()
-                    Dim cmd As New SqlCommand(query, conn)
-                    cmd.CommandTimeout = 0 ' Illimité pour les grosses restaurations
+                    Dim cmd As New SqlCommand(query, conn) With {
+                        .CommandTimeout = 0 ' Illimité pour les grosses restaurations
+                        }
                     cmd.ExecuteNonQuery()
                     MessageBox.Show("La base bddAgumaaa a été importée et activée !", "Succès")
                 End Using

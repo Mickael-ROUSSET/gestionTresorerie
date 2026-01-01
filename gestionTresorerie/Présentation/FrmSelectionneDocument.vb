@@ -331,11 +331,11 @@ Public Class FrmSelectionneDocument
 
             ' TextBox (aligne à droite du label)
             Dim txtChemin As New TextBox With {
-        .Location = New System.Drawing.Point(lblChemin.Right + 6, 5),
-        .Width = panelChemin.Width - lblChemin.Width - 20,
-        .ReadOnly = True
-    }
-            txtChemin.Text = lstDocuments.SelectedItems(0).SubItems(2).Text
+                .Location = New System.Drawing.Point(lblChemin.Right + 6, 5),
+                .Width = panelChemin.Width - lblChemin.Width - 20,
+                .ReadOnly = True,
+                .Text = lstDocuments.SelectedItems(0).SubItems(2).Text
+            }
 
             ' Bouton
             Dim btnChanger As New Button With {
@@ -487,9 +487,12 @@ Public Class FrmSelectionneDocument
         Dim nomChamp As String = txt.Tag.ToString()
         Dim nouvelleValeur As String = txt.Text.Trim()
 
-        Dim ancienneValeur As String = ""
-        If anciennesValeurs.ContainsKey(nomChamp) Then
-            ancienneValeur = anciennesValeurs(nomChamp)
+        Dim ancienneValeur As String
+
+        Dim value As String = Nothing
+
+        If anciennesValeurs.TryGetValue(nomChamp, value) Then
+            ancienneValeur = value
         Else
             anciennesValeurs(nomChamp) = nouvelleValeur
             Return
@@ -790,8 +793,9 @@ Public Class FrmSelectionneDocument
                                 parametres:=Nothing,                ' Paramètres si nécessaires
                                 multiSelect:=False,                 ' Sélection unique
                                 lectureSeule:=True                  ' Lecture seule
-                                )
-            frmTiers.Text = "Sélection du tiers"
+                                ) With {
+                .Text = "Sélection du tiers"
+                                }
 
             ' --- Si un tiers est sélectionné ---
             If frmTiers.ShowDialog() = DialogResult.OK AndAlso

@@ -59,11 +59,13 @@ Public Class GestionDoublons
                     End If
                     If String.IsNullOrEmpty(hash) Then Continue For
 
-                    If Not fichiersParHash.ContainsKey(hash) Then
-                        fichiersParHash(hash) = New List(Of String)
+                    Dim value As List(Of String) = Nothing
+                    If Not fichiersParHash.TryGetValue(hash, value) Then
+                        value = New List(Of String)
+                        fichiersParHash(hash) = value
                     End If
 
-                    fichiersParHash(hash).Add(fichier)
+                    value.Add(fichier)
                     Logger.DBG($"hash {hash} pour {fichier}")
 
                 Catch ex As Exception

@@ -65,7 +65,7 @@ Public Module DataRowUtils
             Dim row = dt.NewRow()
             For Each prop As PropertyInfo In props
                 Dim value = prop.GetValue(item, Nothing)
-                row(prop.Name) = If(value Is Nothing, DBNull.Value, value)
+                row(prop.Name) = If(value, DBNull.Value)
             Next
             dt.Rows.Add(row)
         Next

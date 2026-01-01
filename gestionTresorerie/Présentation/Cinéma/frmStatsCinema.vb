@@ -82,7 +82,7 @@ Public Class FrmStatsCinema
 
         ' Calcul par mois
         Dim caParMois = stats.SelectMany(Function(f) f.Seances) _
-                             .GroupBy(Function(s) New With {.Year = s.DateHeureDebut.Year, .Month = s.DateHeureDebut.Month}) _
+                             .GroupBy(Function(s) New With {s.DateHeureDebut.Year, s.DateHeureDebut.Month}) _
                              .Select(Function(g) New With {
                                  .Mois = New Date(g.Key.Year, g.Key.Month, 1),
                                  .TotalCA = g.Sum(Function(s) s.CA_Total)

@@ -60,7 +60,7 @@ Public Class GenereAttestationNonParticipation
         Logger.INFO("Nombre de lignes insérées : " & (ligne - 1))
     End Sub
 
-    Public Sub GenererEtEnvoyerAttestations()
+    Public Shared Sub GenererEtEnvoyerAttestations()
         'Générer les attestations de non participations à d'autres marchés de Noël pour les particuiliers non commerçants   
         Dim participants As List(Of Participant) = ChargerParticipantsDepuisSQL()
         Dim dossierSortie = LectureProprietes.GetVariable("repAttNonParticipation")
@@ -70,12 +70,13 @@ Public Class GenereAttestationNonParticipation
             Directory.CreateDirectory(dossierSortie)
         End If
 
-        Dim compteur As New CompteurTraitement
-        compteur.NbParticipantsExtraits = participants.Count
+        Dim compteur As New CompteurTraitement With {
+            .NbParticipantsExtraits = participants.Count
+        }
         For Each p In participants
 
             ' --- On ignore les commerçants ---
-            If p.Type IsNot Nothing AndAlso p.Type.Trim.ToUpper().Contains("COMMERÇANT") Then
+            If p.Type IsNot Nothing AndAlso p.Type.Trim.Contains("COMMERÇANT", StringComparison.CurrentCultureIgnoreCase) Then
                 compteur.NbCommercants += 1
                 Continue For
             End If
@@ -117,14 +118,14 @@ Public Class GenereAttestationNonParticipation
         Next
         Logger.INFO(compteur.ToString)
     End Sub
-    Private Function ValeurOuBlanc(obj As Object, Optional nbEspaces As Integer = 1) As String
+    Private Shared Function ValeurOuBlanc(obj As Object, Optional nbEspaces As Integer = 1) As String
         If obj Is Nothing OrElse String.IsNullOrWhiteSpace(obj.ToString()) Then
             Return New String(" "c, nbEspaces)
         Else
             Return obj.ToString()
         End If
     End Function
-    Private Sub RemplaceTexte(body As OpenXml.Wordprocessing.Body,
+    Private Shared Sub RemplaceTexte(body As OpenXml.Wordprocessing.Body,
                             search As String,
                             replace As String)
 
@@ -163,7 +164,7 @@ Public Class GenereAttestationNonParticipation
         Next
 
     End Sub
-    Public Function ChargerParticipantsDepuisSQL() As List(Of Participant)
+    Public Shared Function ChargerParticipantsDepuisSQL() As List(Of Participant)
         Dim liste As New List(Of Participant)
 
         Using reader As SqlDataReader =
@@ -175,7 +176,7 @@ Public Class GenereAttestationNonParticipation
         Return liste
     End Function
 
-    Private Sub EnvoyerMailAvecPJ_FromRessource(destinataire As String, sujet As String, p As Participant, piecesJointes As List(Of String))
+    Private Shared Sub EnvoyerMailAvecPJ_FromRessource(destinataire As String, sujet As String, p As Participant, piecesJointes As List(Of String))
         ' Lecture du HTML 
         Dim corpsHtml As String = LireModeleMailAttestation(LectureProprietes.GetVariable("repModeleBodyAttHtml"))
 
@@ -200,8 +201,8 @@ Public Class GenereAttestationNonParticipation
         End If
     End Sub
 
-    Public Function LireModeleMailAttestation(cheminFichier As String) As String
-        Dim contenuHtml As String = String.Empty
+    Public Shared Function LireModeleMailAttestation(cheminFichier As String) As String
+        Dim contenuHtml As String
 
         Try
             ' 1. Vérifier le chemin d'accès au fichier 

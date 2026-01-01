@@ -131,21 +131,49 @@ Public Class Tiers
     '    Return sb.ToString()
     'End Function
     ' --- Méthode Shared pour convertir un DataRow en Tiers ---
-    Public Shared Function FromDataRow(dr As DataRow) As Tiers
+    'Public Shared Function FromDataRow(dr As DataRow) As Tiers
+    '    If dr Is Nothing Then Return Nothing
+
+    '    Dim id As Integer = If(dr.Table.Columns.Contains("Id") AndAlso dr("Id") IsNot DBNull.Value, Convert.ToInt32(dr("Id")), 0)
+    '    Dim categorie As Integer = If(dr.Table.Columns.Contains("categorie") AndAlso dr("categorie") IsNot DBNull.Value, Convert.ToInt32(dr("categorie")), 0)
+    '    Dim sousCategorie As Integer = If(dr.Table.Columns.Contains("sousCategorie") AndAlso dr("sousCategorie") IsNot DBNull.Value, Convert.ToInt32(dr("sousCategorie")), 0)
+
+    '    ' Priorité à la Raison sociale si disponible
+    '    If dr.Table.Columns.Contains("raisonSociale") AndAlso Not String.IsNullOrWhiteSpace(dr("raisonSociale").ToString()) Then
+    '        Return New Tiers(id, dr("raisonSociale").ToString(), categorie, sousCategorie)
+    '    Else
+    '        Dim nom As String = If(dr.Table.Columns.Contains("nom"), dr("nom").ToString(), "")
+    '        Dim prenom As String = If(dr.Table.Columns.Contains("prenom"), dr("prenom").ToString(), "")
+    '        Return New Tiers(id, nom, prenom, categorie, sousCategorie)
+    '    End If
+    'End Function
+    Public Overloads Shared Function FromDataRow(dr As DataRow) As Tiers
         If dr Is Nothing Then Return Nothing
 
-        Dim id As Integer = If(dr.Table.Columns.Contains("Id") AndAlso dr("Id") IsNot DBNull.Value, Convert.ToInt32(dr("Id")), 0)
-        Dim categorie As Integer = If(dr.Table.Columns.Contains("categorie") AndAlso dr("categorie") IsNot DBNull.Value, Convert.ToInt32(dr("categorie")), 0)
-        Dim sousCategorie As Integer = If(dr.Table.Columns.Contains("sousCategorie") AndAlso dr("sousCategorie") IsNot DBNull.Value, Convert.ToInt32(dr("sousCategorie")), 0)
+        ' Récupération des IDs et Catégories (0 par défaut si NULL)
+        Dim id = dr.GetSafe(Of Integer)("Id")
+        Dim cat = dr.GetSafe(Of Integer)("categorie")
+        Dim sCat = dr.GetSafe(Of Integer)("sousCategorie")
 
-        ' Priorité à la Raison sociale si disponible
-        If dr.Table.Columns.Contains("raisonSociale") AndAlso Not String.IsNullOrWhiteSpace(dr("raisonSociale").ToString()) Then
-            Return New Tiers(id, dr("raisonSociale").ToString(), categorie, sousCategorie)
+        ' Récupération de la raison sociale
+        Dim rs = dr.GetSafe(Of String)("raisonSociale")
+
+        If Not String.IsNullOrWhiteSpace(rs) Then
+            Return New Tiers(id, rs, cat, sCat)
         Else
-            Dim nom As String = If(dr.Table.Columns.Contains("nom"), dr("nom").ToString(), "")
-            Dim prenom As String = If(dr.Table.Columns.Contains("prenom"), dr("prenom").ToString(), "")
-            Return New Tiers(id, nom, prenom, categorie, sousCategorie)
+            ' Récupération Nom/Prénom
+            Dim nom = dr.GetSafe(Of String)("nom", "")
+            Dim prenom = dr.GetSafe(Of String)("prenom", "")
+            Return New Tiers(id, nom, prenom, cat, sCat)
         End If
+    End Function
+
+    ' Fonction utilitaire générique pour extraire proprement les données
+    Private Shared Function GetField(Of T)(dr As DataRow, columnName As String) As T
+        If dr.Table.Columns.Contains(columnName) AndAlso dr(columnName) IsNot DBNull.Value Then
+            Return DirectCast(Convert.ChangeType(dr(columnName), GetType(T)), T)
+        End If
+        Return Nothing ' Retourne 0 pour Integer, "" pour String, etc.
     End Function
     ''' <summary>
     ''' Récupère l'idTiers à partir du nom, prénom et date de naissance du user.
@@ -153,30 +181,29 @@ Public Class Tiers
     ''' </summary>
     Public Shared Function GetIdTiersByUser(nom As String, prenom As String, Optional dateNaissance As Date? = Nothing) As Integer
         Try
-            ' Date optionnelle
-            Dim dateNaissanceParam As Object = If(dateNaissance.HasValue, CType(dateNaissance.Value, Object), DBNull.Value)
-
+            ' Simplification de la gestion du DBNull
             Dim param As New Dictionary(Of String, Object) From {
-                {"@nom", If(String.IsNullOrWhiteSpace(nom), DBNull.Value, CType(nom, Object))},
-                {"@prenom", If(String.IsNullOrWhiteSpace(prenom), DBNull.Value, CType(prenom, Object))},
-                {"@dateNaissance", dateNaissanceParam}
-            }
+            {"@nom", If(String.IsNullOrWhiteSpace(nom), DBNull.Value, nom)},
+            {"@prenom", If(String.IsNullOrWhiteSpace(prenom), DBNull.Value, prenom)},
+            {"@dateNaissance", If(dateNaissance, DBNull.Value)}
+        }
 
             Using Reader As SqlDataReader = SqlCommandBuilder.
-                CreateSqlCommand(Constantes.bddAgumaaa, "getIdTiersByNomPrenomDate", param).
-                ExecuteReader
-                Dim IdTiers As Integer
-                If Reader.HasRows Then
-                    While Reader.Read()
-                        ' Créer une instance concrète implémentant ITypeDoc
-                        IdTiers = Reader.GetInt32(0)
-                    End While
-                    Return IdTiers
+            CreateSqlCommand(Constantes.bddAgumaaa, "getIdTiersByNomPrenomDate", param).
+            ExecuteReader()
+
+                If Reader.Read() Then
+                    ' Utilisation de votre extension GetValueOrDefault pour plus de sécurité
+                    Return Reader.GetValueOrDefault(Of Integer)(0, 0)
                 End If
             End Using
+
+            ' Retour par défaut si aucun enregistrement n'est trouvé (Règle BC42353)
+            Return 0
+
         Catch ex As Exception
-            Logger.ERR($"GetIdTiersByUser({prenom} {nom} {dateNaissance}) : {ex.Message}")
-            Return Nothing
+            Logger.ERR($"GetIdTiersByUser({prenom} {nom}) : {ex.Message}")
+            Return 0 ' Un Integer ne peut pas être Nothing, on retourne 0
         End Try
     End Function
 
