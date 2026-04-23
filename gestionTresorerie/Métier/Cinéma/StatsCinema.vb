@@ -1,59 +1,90 @@
 ﻿Imports System.Data.SqlClient
 Imports System.Windows.Forms.DataVisualization.Charting
+Imports System.Drawing
 
-Public Class StatsCinema
+''' <summary>
+''' Classe centralisée pour l'analyse des données et la génération de graphiques.
+''' </summary>
+<DebuggerDisplay("Gestionnaire de Statistiques")>
+Public NotInheritable Class StatsCinema
+    ''' <summary>
+    ''' Génère le graphique du Chiffre d'Affaires réparti par type de public.
+    ''' </summary>
+    Public Shared Function GenererGraphiqueCAParPublic(stats As List(Of StatFilm)) As Chart
+        Dim donnees = New List(Of Object) From {
+        New With {Key .Label = "Adultes", Key .Valeur = CDbl(stats.Sum(Function(s) s.CA_Adultes))},
+        New With {Key .Label = "Enfants", Key .Valeur = CDbl(stats.Sum(Function(s) s.CA_Enfants))},
+        New With {Key .Label = "Groupes", Key .Valeur = CDbl(stats.Sum(Function(s) s.CA_GroupeEnfants))}
+    }
 
-    ' --- Récupère les stats par film depuis la base ---
-    Public Shared Function GetStatsParFilm() As List(Of StatFilm)
-        Dim filmsDict As New Dictionary(Of Integer, StatFilm)
+        Return ConstruireGraphiqueDeBase("CA par type de public", "Public", donnees)
+    End Function
+
+    ''' <summary>
+    ''' Génère le graphique du Chiffre d'Affaires par période mensuelle.
+    ''' </summary>
+    Public Shared Function GenererGraphiqueCAParMois() As Chart
+        Dim dictMois As New Dictionary(Of String, Decimal)
 
         Try
-            ' 1. Chargement des tarifs (Modularisé)
-            Dim tarifs = ChargerDicoTarifsValides()
-
-            ' 2. Traitement des séances
-            Using cmdSeances = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "selSeancesAvecFilm")
-                Using rdr = cmdSeances.ExecuteReader()
+            ' On utilise la constante SQL définie dans ton référentiel
+            Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, "selStatsParMois")
+                Using rdr = cmd.ExecuteReader()
                     While rdr.Read()
-                        ' Extraction propre des données
-                        Dim idFilm = rdr.GetValueOrDefault(Of Integer)("IdFilm")
-                        Dim titre = rdr.GetValueOrDefault(Of String)("TitreFilm")
-
-                        ' Gestion de l'instance StatFilm (Utilisation de TryGetValue pour éviter CA1854 ici aussi)
-                        Dim stat As StatFilm = Nothing
-                        If Not filmsDict.TryGetValue(idFilm, stat) Then
-                            stat = New StatFilm With {.IdFilm = idFilm, .Titre = titre}
-                            filmsDict.Add(idFilm, stat)
-                        End If
-
-                        ' Création de la séance avec calcul CA (Utilisation des utilitaires de tarifs)
-                        Dim seance As New Seance(
-                        idFilm:=idFilm,
-                        dateHeureDebut:=rdr.GetValueOrDefault(Of DateTime)("DateHeureDebut"),
-                        nbAdultes:=rdr.GetValueOrDefault(Of Integer)("NbEntreesAdultes", 0),
-                        nbEnfants:=rdr.GetValueOrDefault(Of Integer)("NbEntreesEnfants", 0),
-                        nbGroupeEnfants:=rdr.GetValueOrDefault(Of Integer)("NbEntreesGroupeEnfants", 0),
-                        tarifAdulte:=GetTarifOrDefault(tarifs, "Adulte"),
-                        tarifEnfant:=GetTarifOrDefault(tarifs, "Enfant"),
-                        tarifGroupeEnfant:=GetTarifOrDefault(tarifs, "GroupeEnfant")
-                    )
-
-                        stat.Seances.Add(seance)
+                        Dim mois = rdr("Mois").ToString()
+                        dictMois(mois) = CDec(rdr("CA_Total"))
                     End While
                 End Using
             End Using
-
         Catch ex As Exception
-            Logger.ERR($"Erreur GetStatsParFilm : {ex.Message}")
+            Logger.ERR($"Erreur récupération mois : {ex.Message}")
         End Try
 
-        Return filmsDict.Values.ToList()
+        Dim donnees = dictMois.OrderBy(Function(kvp) kvp.Key).
+                           Select(Function(kvp) New With {Key .Label = kvp.Key, Key .Valeur = CDbl(kvp.Value)}).
+                           ToList()
+
+        Return ConstruireGraphiqueDeBase("Chiffre d'affaires par mois", "Période", donnees)
     End Function
 
-    ' Fonction d'aide pour isoler la requête des tarifs
+    ' --- MOTEUR DE RENDU PRIVÉ (CENTRALISATION DU DESIGN) ---
+
+    Private Shared Function ConstruireGraphiqueDeBase(titre As String, titreAxeX As String, donnees As IEnumerable(Of Object)) As Chart
+        Dim chart As New Chart() With {.Width = 800, .Height = 600}
+
+        Dim area As New ChartArea("MainArea")
+        area.AxisX.Title = titreAxeX
+        area.AxisX.Interval = 1
+        area.AxisY.Title = "Montant (€)"
+        area.AxisY.MajorGrid.LineColor = Color.LightGray
+        chart.ChartAreas.Add(area)
+
+        Dim series As New Series("CA") With {
+        .ChartType = SeriesChartType.Column,
+        .IsValueShownAsLabel = True,
+        .XValueType = ChartValueType.String
+    }
+
+        Dim palette() As Color = {Color.Blue, Color.Orange, Color.Green, Color.Purple, Color.Red, Color.Cyan, Color.Magenta}
+        Dim i As Integer = 0
+
+        For Each d In donnees
+            Dim pIndex = series.Points.AddXY(d.Label, d.Valeur)
+            series.Points(pIndex).Color = palette(i Mod palette.Length)
+            i += 1
+        Next
+
+        chart.Series.Add(series)
+        chart.Titles.Add(titre)
+        chart.Legends.Add(New Legend("Légende"))
+        Return chart
+    End Function
+
+    ' --- UTILITAIRES DE DONNÉES PRIVÉS ---
+
     Private Shared Function ChargerDicoTarifsValides() As Dictionary(Of String, Decimal)
-        Dim dico As New Dictionary(Of String, Decimal)
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "selTarifsValides")
+        Dim dico As New Dictionary(Of String, Decimal)(StringComparer.OrdinalIgnoreCase)
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, "selTarifsValides")
             Using rdr = cmd.ExecuteReader()
                 While rdr.Read()
                     dico(rdr("NomTarif").ToString()) = CDec(rdr("Montant"))
@@ -63,147 +94,54 @@ Public Class StatsCinema
         Return dico
     End Function
 
+    Private Shared Sub TraiterLigneSeance(rdr As SqlDataReader, dico As Dictionary(Of Integer, StatFilm), tarifs As Dictionary(Of String, Decimal))
+        Dim idFilm = rdr.GetValueOrDefault(Of Integer)("IdFilm")
+        Dim stat As StatFilm = Nothing
 
-    ' --- Génère un graphique de type barre par film ---
-    Public Shared Function GenererGraphiqueCAParFilm(stats As List(Of StatFilm)) As Chart
-        Dim chart As New Chart()
-        chart.Width = 800
-        chart.Height = 600
+        If Not dico.TryGetValue(idFilm, stat) Then
+            stat = New StatFilm With {.IdFilm = idFilm, .Titre = rdr.GetValueOrDefault(Of String)("TitreFilm")}
+            dico.Add(idFilm, stat)
+        End If
 
-        Dim area As New ChartArea("CA")
-        chart.ChartAreas.Add(area)
+        ' Le calcul du CA se fait souvent dans le constructeur de Seance
+        stat.Seances.Add(New Seance(idFilm, rdr.GetValueOrDefault(Of DateTime)("DateHeureDebut"),
+                         rdr.GetValueOrDefault(Of Integer)("NbEntreesAdultes", 0),
+                         rdr.GetValueOrDefault(Of Integer)("NbEntreesEnfants", 0),
+                         rdr.GetValueOrDefault(Of Integer)("NbEntreesGroupeEnfants", 0),
+                         tarifs("Adulte"), tarifs("Enfant"), tarifs("GroupeEnfant")))
+    End Sub
+    ' --- MÉTHODES PUBLIQUES (ACCESSIBLES DEPUIS L'EXTÉRIEUR) ---
 
-        Dim series As New Series("Chiffre d'affaires")
-        series.ChartType = SeriesChartType.Column
-        series.IsValueShownAsLabel = True ' affiche les valeurs sur les colonnes
-        chart.Series.Add(series)
-
-        ' Assure l'unicité X en utilisant IdFilm si nécessaire
-        series.XValueType = ChartValueType.String
-        series.YValueType = ChartValueType.Double
-        For Each s In stats
-            Dim p = series.Points.AddXY(s.IdFilm, CDbl(s.CA_Total))
-            series.Points(p).AxisLabel = s.Titre  ' label visible sous la colonne
-        Next
-        ' Palette de couleurs automatiques (cycle si nécessaire)
-        Dim palette() As Color = {Color.Blue, Color.Orange, Color.Green, Color.Purple, Color.Red, Color.Cyan, Color.Magenta}
-        For index = 0 To series.Points.Count - 1
-            series.Points(index).Color = palette(index Mod palette.Length)
-        Next
-        chart.ChartAreas(0).AxisX.Interval = 1
-        chart.Titles.Add("Chiffre d'affaires par film")
-        chart.ChartAreas(0).AxisX.Title = "Film"
-        chart.ChartAreas(0).AxisX.IsLabelAutoFit = True
-        chart.ChartAreas(0).AxisY.Title = "Montant (€)"
-        chart.Legends.Add(New Legend("Légende"))
-
-        Return chart
-    End Function
-
-
-    ' --- Génère un graphique par type de public (Adulte, Enfant, Groupe) ---
-    Public Shared Function GenererGraphiqueCAParPublic(stats As List(Of StatFilm)) As Chart
-        Dim chart As New Chart()
-        chart.Width = 800
-        chart.Height = 600
-
-        Dim area As New ChartArea("CA_Public")
-        chart.ChartAreas.Add(area)
-
-        Dim series As New Series("CA Public")
-        series.ChartType = SeriesChartType.Column
-        series.IsValueShownAsLabel = True
-        series.XValueType = ChartValueType.String
-        series.YValueType = ChartValueType.Double
-        series.Points.Clear()
-        chart.Series.Add(series)
-
-        ' Sommes
-        Dim totalAdultes = stats.Sum(Function(s) s.CA_Adultes)
-        Dim totalEnfants = stats.Sum(Function(s) s.CA_Enfants)
-        Dim totalGroupe = stats.Sum(Function(s) s.CA_GroupeEnfants)
-
-        ' Ajout des points 
-        Dim p = series.Points.AddXY(1, CDbl(totalAdultes))
-        series.Points(p).AxisLabel = "Adultes"  ' label visible sous la colonne
-        Dim q = series.Points.AddXY(2, CDbl(totalEnfants))
-        series.Points(q).AxisLabel = "Enfants"  ' label visible sous la colonne
-        Dim r = series.Points.AddXY(3, CDbl(totalGroupe))
-        series.Points(r).AxisLabel = "Groupe enfants"  ' label visible sous la colonne 
-
-        ' Palette de couleurs automatiques (cycle si nécessaire)
-        Dim palette() As Color = {Color.Blue, Color.Orange, Color.Green, Color.Purple, Color.Red, Color.Cyan, Color.Magenta}
-        For index = 0 To series.Points.Count - 1
-            series.Points(index).Color = palette(index Mod palette.Length)
-        Next
-
-        ' Fixe l'axe X pour qu'il soit discret et affiche chaque label
-        chart.ChartAreas(0).AxisX.Interval = 1
-        chart.ChartAreas(0).AxisX.MajorGrid.Enabled = False
-        chart.ChartAreas(0).AxisY.MajorGrid.LineColor = System.Drawing.Color.LightGray
-
-        ' Titres et légende
-        chart.Titles.Add("Chiffre d'affaires par type de public")
-        chart.ChartAreas(0).AxisX.Title = "Public"
-        chart.ChartAreas(0).AxisY.Title = "Montant (€)"
-        chart.Legends.Add(New Legend("Légende"))
-
-        Return chart
-    End Function
-
-    ' --- Génère un graphique par période ---
-    Public Shared Function GenererGraphiqueCAParMois() As Chart
-        Dim chart As New Chart()
-        chart.Width = 800
-        chart.Height = 600
-
-        Dim area As New ChartArea("CA_Mois")
-        chart.ChartAreas.Add(area)
-
-        Dim series As New Series("CA Mensuel")
-        series.ChartType = SeriesChartType.Column
-        series.IsValueShownAsLabel = True
-        chart.Series.Add(series)
-
+    ''' <summary>
+    ''' Récupère les statistiques par film depuis la base de données.
+    ''' </summary>
+    Public Shared Function GetStatsParFilm() As List(Of StatFilm)
+        Dim filmsDict As New Dictionary(Of Integer, StatFilm)
         Try
-            ' Regrouper par mois pour sommer le CA total
-            Dim dictMois As New Dictionary(Of String, Decimal)
-
-            Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "selStatsParMois")
-                Using rdr = cmd.ExecuteReader()
+            Dim tarifs = ChargerDicoTarifsValides()
+            Using cmdSeances = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, Constantes.Sql.Selection.SeancesAvecFilm)
+                Using rdr = cmdSeances.ExecuteReader()
                     While rdr.Read()
-                        Dim mois = rdr("Mois").ToString() ' Format "2025-11" ou "Nov 2025"
-                        Dim montant = CDec(rdr("CA_Total"))
-
-                        If dictMois.ContainsKey(mois) Then
-                            dictMois(mois) += montant
-                        Else
-                            dictMois(mois) = montant
-                        End If
+                        TraiterLigneSeance(rdr, filmsDict, tarifs)
                     End While
                 End Using
             End Using
-
-            ' Ajouter les points triés par mois
-            Dim index As Integer
-            For Each kvp In dictMois.OrderBy(Function(d) d.Key)
-                series.Points.AddXY(CDbl(kvp.Key), kvp.Value)
-            Next
-            ' Palette de couleurs automatiques (cycle si nécessaire)
-            Dim palette() As Color = {Color.Blue, Color.Orange, Color.Green, Color.Purple, Color.Red, Color.Cyan, Color.Magenta}
-            For index = 0 To series.Points.Count - 1
-                series.Points(index).Color = palette(index Mod palette.Length)
-            Next
         Catch ex As Exception
-            Logger.ERR($"Erreur GenererGraphiqueCAParMois : {ex.Message}")
+            Logger.ERR($"Erreur GetStatsParFilm : {ex.Message}")
         End Try
+        Return filmsDict.Values.ToList()
+    End Function
 
-        chart.Titles.Add("Chiffre d'affaires par mois")
-        chart.ChartAreas(0).AxisX.Title = "Mois"
-        'chart.ChartAreas(0).AxisX.LabelStyle.Angle = -45
-        chart.ChartAreas(0).AxisY.Title = "Montant (€)"
-        chart.Legends.Add(New Legend("Légende"))
+    ''' <summary>
+    ''' Génère le graphique du Chiffre d'Affaires par film.
+    ''' </summary>
+    Public Shared Function GenererGraphiqueCAParFilm(stats As List(Of StatFilm)) As Chart
+        ' Préparation des données simplifiée pour le moteur de rendu
+        Dim donnees = stats.Select(Function(s) New With {
+            Key .Label = s.Titre,
+            Key .Valeur = CDbl(s.CA_Total)
+        }).ToList()
 
-        Return chart
+        Return ConstruireGraphiqueDeBase("Chiffre d'affaires par film", "Films", donnees)
     End Function
 End Class

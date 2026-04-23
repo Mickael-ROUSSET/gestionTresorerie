@@ -257,68 +257,6 @@ Friend Class Utilitaires
             End Try
         End If
     End Sub
-
-    'Public Shared Function ParseJson(json As String, fieldMappings As Dictionary(Of String, String)) As String
-    '    Try
-    '        ' Parse le JSON d'entrée
-    '        Dim objJson As JObject = JObject.Parse(json)
-    '        Dim choix As JArray = objJson("choices")
-    '        Dim referenceMessage As IList(Of JToken) = choix(0).Children().ToList()
-
-    '        ' Créer un objet pour stocker les résultats
-    '        Dim resultat As New JObject()
-
-    '        For Each item As JProperty In referenceMessage
-    '            Dim unused = item.CreateReader()
-
-    '            Select Case item.Name
-    '                Case "message"
-    '                    Dim message As String = item.Value.ToString()
-    '                    Dim objMsg As JObject = JObject.Parse(message)
-    '                    Dim content As String = objMsg("content").ToString()
-    '                    Dim resultatJson As String = Utilitaires.ExtractAndCleanJson(content)
-    '                    Dim objResultat As JObject = JObject.Parse(resultatJson)
-
-    '                    ' Extraire dynamiquement les champs selon les mappages fournis
-    '                    For Each mapping In fieldMappings
-    '                        Dim fieldName As String = mapping.Key
-    '                        Dim fieldType As String = mapping.Value
-    '                        Dim fieldValue As String = objResultat.Item(fieldName)?.ToString()
-
-    '                        If String.IsNullOrEmpty(fieldValue) Then
-    '                            Logger.DBG($"Champ {fieldName} non trouvé dans le JSON")
-    '                            Continue For
-    '                        End If
-
-    '                        Select Case fieldType.ToLower()
-    '                            Case "string"
-    '                                resultat(fieldName) = fieldValue
-    '                            Case "decimal"
-    '                                resultat(fieldName) = Utilitaires.convertStringToDecimal(fieldValue)
-    '                            Case "integer"
-    '                                resultat(fieldName) = CInt(fieldValue)
-    '                            Case "date"
-    '                                resultat(fieldName) = CDate(fieldValue).ToString("yyyy-MM-dd")
-    '                            Case Else
-    '                                Logger.DBG($"TypeMouvement de conversion non reconnu pour le champ {fieldName}: {fieldType}")
-    '                                resultat(fieldName) = fieldValue
-    '                        End Select
-    '                    Next
-
-    '                Case Else
-    '                    Logger.DBG("Propriété non reconnue : " & item.Name)
-    '            End Select
-    '        Next
-
-    '        ' Retourner le JSON sérialisé
-    '        Return resultat.ToString(Newtonsoft.Json.Formatting.None)
-
-    '    Catch ex As Exception
-    '        Logger.ERR("Erreur lors du parsing JSON : " & ex.Message)
-    '        Return "{}" ' Retourner un JSON vide en cas d'erreur
-    '    End Try
-    'End Function
-
     Public Shared Function ParseJson(jsonBrut As String, fieldMappings As Dictionary(Of String, String)) As String
         Try
             Dim jsonNettoye As String = jsonBrut.Replace("```json", "").Replace("```", "").Trim()

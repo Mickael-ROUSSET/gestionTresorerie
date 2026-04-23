@@ -1,85 +1,72 @@
 ﻿Imports System.Net.Mail
 Imports System.Net
-Imports System.IO ' Nécessaire pour vérifier les fichiers
-
-
-' Données du compte d'envoi
-'Private Const SmtpServer As String = "smtp.gmail.com"
-'Private Const SmtpPort As Integer = 587 ' Port standard pour TLS/STARTTLS
-'Private Const SmtpUsername As String = "agumaaa43@gmail.com"
-
-'' ATTENTION : REMPLACER "VOTRE_MOT_DE_PASSE_APP" par le mot de passe d'application généré par Google
-'Private Const SmtpPassword As String = "VOTRE_MOT_DE_PASSE_APP"
+Imports System.IO
 
 ''' <summary>
-''' Envoie un e-mail via le serveur Gmail.
+''' Gère l'expédition de courriels de manière asynchrone.
 ''' </summary>
-''' <param name="destinataire">Coordonnees e-mail du destinataire.</param>
-''' <param name="sujet">Sujet de l'e-mail.</param>
-''' <param name="corps">Contenu de l'e-mail (peut être HTML).</param>
-''' <returns>Vrai si l'envoi a réussi, Faux sinon.</returns> 
-
-Public Class MailManager
-
-    ' Données du compte d'envoi
-    Private Const SmtpServer As String = "smtp.gmail.com"
-    Private Const SmtpPort As Integer = 587
-    Private Const SmtpUsername As String = "agumaaa43@gmail.com"
-
-    ' ATTENTION : Utiliser le MOT DE PASSE D'APPLICATION généré par Google
-    Private Const SmtpPassword As String = "VOTRE_MOT_DE_PASSE_APP"
+Public NotInheritable Class MailManager
 
     ''' <summary>
-    ''' Envoie un e-mail via le serveur Gmail, avec support pour les pièces jointes.
+    ''' Envoie un e-mail avec gestion optionnelle de pièces jointes.
     ''' </summary>
-    ''' <param name="destinataire">Coordonnees e-mail du destinataire.</param>
-    ''' <param name="sujet">Sujet de l'e-mail.</param>
-    ''' <param name="corps">Contenu de l'e-mail.</param>
-    ''' <param name="cheminsFichiers">Liste optionnelle des chemins complets vers les fichiers à joindre.</param>
-    ''' <returns>Vrai si l'envoi a réussi, Faux sinon.</returns>
-    Public Function EnvoyerEmail(ByVal destinataire As String, ByVal sujet As String, ByVal corps As String, Optional ByVal cheminsFichiers As List(Of String) = Nothing) As Boolean
+    ''' <returns>True si l'envoi est confirmé, sinon False.</returns>
+    Public Async Function EnvoyerEmailAsync(destinataire As String, sujet As String, corps As String, Optional cheminsFichiers As List(Of String) = Nothing) As Task(Of Boolean)
         Try
-            ' 1. Créer le message
-            Using mail As New MailMessage()
-                mail.From = New MailAddress(LectureProprietes.GetVariable("SmtpUsername"))
-                mail.To.Add(destinataire)
-                mail.Subject = sujet
-                mail.Body = corps
-                mail.IsBodyHtml = True
-
-                ' 2. Gérer les pièces jointes
-                If cheminsFichiers IsNot Nothing Then
-                    For Each chemin As String In cheminsFichiers
-                        If File.Exists(chemin) Then
-                            ' Ajouter la pièce jointe à la collection Attachments
-                            mail.Attachments.Add(New Attachment(chemin))
-                        Else
-                            ' Journaliser une erreur si le fichier est introuvable
-                            Logger.ERR($"Pièce jointe introuvable et ignorée : {chemin}")
-                        End If
-                    Next
-                End If
-
-                ' 3. Créer et configurer le client SMTP
-                Using smtp As New SmtpClient(LectureProprietes.GetVariable("SmtpServer"), LectureProprietes.GetVariable("SmtpPort"))
-                    smtp.EnableSsl = True
-                    smtp.UseDefaultCredentials = False
-                    smtp.Credentials = New NetworkCredential(LectureProprietes.GetVariable("SmtpUsername"), LectureProprietes.GetVariable("SmtpPassword"))
-
-                    ' 4. Envoyer le message
-                    smtp.Send(mail)
-                End Using
+            Using mail = PreparerMessage(destinataire, sujet, corps, cheminsFichiers)
+                Return Await EnvoyerViaSmtpAsync(mail)
             End Using
-
-            Return True
-
-        Catch ex As SmtpException
-            Logger.ERR($"Erreur SMTP lors de l'envoi de l'e-mail : {ex.StatusCode} - {ex.Message}")
-            Return False
         Catch ex As Exception
-            Logger.ERR($"Erreur inattendue lors de l'envoi de l'e-mail : {ex.Message}")
+            Logger.ERR($"Echec de la procédure d'envoi : {ex.Message}")
             Return False
         End Try
+    End Function
+
+    ''' <summary>
+    ''' Construit l'objet MailMessage et attache les fichiers valides.
+    ''' </summary>
+    Private Function PreparerMessage(destinataire As String, sujet As String, corps As String, chemins As List(Of String)) As MailMessage
+        Dim mail As New MailMessage()
+
+        mail.From = New MailAddress(LectureProprietes.GetVariable("SmtpUsername"))
+        mail.To.Add(destinataire)
+        mail.Subject = sujet
+        mail.Body = corps
+        mail.IsBodyHtml = True
+
+        ' Ajout des pièces jointes avec vérification d'existence
+        If chemins IsNot Nothing Then
+            For Each chemin In chemins
+                If File.Exists(chemin) Then
+                    mail.Attachments.Add(New Attachment(chemin))
+                Else
+                    Logger.ERR($"Fichier manquant ignoré : {chemin}")
+                End If
+            Next
+        End If
+
+        Return mail
+    End Function
+
+    ''' <summary>
+    ''' Configure le client SMTP et procède à l'envoi asynchrone.
+    ''' </summary>
+    Private Async Function EnvoyerViaSmtpAsync(mail As MailMessage) As Task(Of Boolean)
+        ' Récupération des paramètres via ton utilitaire de propriétés
+        Dim host = LectureProprietes.GetVariable("SmtpServer")
+        Dim port = CInt(LectureProprietes.GetVariable("SmtpPort"))
+        Dim user = LectureProprietes.GetVariable("SmtpUsername")
+        Dim pass = LectureProprietes.GetVariable("SmtpPassword")
+
+        Using smtp As New SmtpClient(host, port)
+            smtp.EnableSsl = True
+            smtp.UseDefaultCredentials = False
+            smtp.Credentials = New NetworkCredential(user, pass)
+
+            ' Envoi asynchrone pour ne pas geler l'application
+            Await smtp.SendMailAsync(mail)
+            Return True
+        End Using
     End Function
 
 End Class

@@ -207,14 +207,6 @@ Friend Module CreeOpenXml
         root.Save(part)
         Return part
     End Function
-    ' Add a StylesDefinitionsPart to the document.  Returns a reference to it.
-    'Public Function AddStylesPartToPackage(ByVal doc As WordprocessingDocument) As StyleDefinitionsPart
-    '    Dim part As StyleDefinitionsPart
-    '    part = doc.MainDocumentPart.AddNewPart(Of StyleDefinitionsPart)()
-    '    Dim root As New Styles()
-    '    root.Save(part)
-    '    Return part
-    'End Function
     Public Sub ajouteImage(ByVal document As String, ByVal fileName As String)
 
         Using wordprocessingDocument As WordprocessingDocument = WordprocessingDocument.Open(document, True)

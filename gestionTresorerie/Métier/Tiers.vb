@@ -64,7 +64,7 @@ Public Class Tiers
     Public Shared Function getCategorieTiers(idTiers As Double) As Integer
         ' Renvoie la catégorie et la sous catégorie d'un tiers  
         Dim iCategorie As Integer
-        Dim monReader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqCategoriesDefautMouvements",
+        Dim monReader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "reqCategoriesDefautMouvements",
                              New Dictionary(Of String, Object) From {{"@Id", idTiers}}
                              ).ExecuteReader()
         Do While monReader.Read()
@@ -82,7 +82,7 @@ Public Class Tiers
         ' Renvoie la sous catégorie d'un tiers  
         Dim iSousCategorie As Integer
         Dim monReader As SqlDataReader = SqlCommandBuilder.
-            CreateSqlCommand(Constantes.bddAgumaaa, "reqSousCategoriesDefautMouvements",
+            CreateSqlCommand(Constantes.DataBases.Agumaaa, "reqSousCategoriesDefautMouvements",
                              New Dictionary(Of String, Object) From {{"@Id", idTiers}}
                              ).ExecuteReader()
         Do While monReader.Read()
@@ -189,7 +189,7 @@ Public Class Tiers
         }
 
             Using Reader As SqlDataReader = SqlCommandBuilder.
-            CreateSqlCommand(Constantes.bddAgumaaa, "getIdTiersByNomPrenomDate", param).
+            CreateSqlCommand(Constantes.DataBases.Agumaaa, "getIdTiersByNomPrenomDate", param).
             ExecuteReader()
 
                 If Reader.Read() Then

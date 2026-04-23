@@ -1,70 +1,80 @@
 ﻿<DebuggerDisplay("{GetDebuggerDisplay(),nq}")>
-Public Class Constantes
-    Public Const regExMontant As String = "^[0-9]+(,[0-9]{0,2})*$"
-    Public Const regDateReleve As String = "^[0-3][0-9]/[0-9]{2}/[0-9]{4}"
-    Public Const formatTimestampTrace As String = "yyyy-MM-dd HH:mm:ss"
-    Public Const pointVirgule As String = ";"
-    Public Const virgule As String = ","
-    Public Const espace As String = " "
-    Public Const point As String = "."
-    Public Const tiret As String = "-"
-    Public Const euro As String = " €"
-    Public Const plus As String = "+"
+Public NotInheritable Class Constantes
 
-    'Bases de données
-    '-----------------
-    'Base de gestion de la trésorerie de l'Agumaaa
-    Public Const bddAgumaaa As String = "bddAgumaaa"
-    'Base du cinéma
-    Public Const cinemaDB As String = "cinemaDB"
-    'Base du cinéma
-    Public Const MarcheDeNoelDB As String = "MarcheDeNoelDB"
+    ''' <summary>
+    ''' Formats et Expressions régulières pour la validation des données.
+    ''' </summary>
+    Public NotInheritable Class Formats
+        Public Const RegExMontant As String = "^[0-9]+(,[0-9]{0,2})*$"
+        Public Const RegDateReleve As String = "^[0-3][0-9]/[0-9]{2}/[0-9]{4}"
+        Public Const TimestampTrace As String = "yyyy-MM-dd HH:mm:ss"
+    End Class
 
-    'Requêtes SQL
-    '------------
-    'Suppressions
-    Public Const sqlCptTiers As String = "cptTiers"
-    Public Const sqlDelCompte As String = "delCompte"
-    Public Const sqlDelDocs As String = "delDocs"
-    Public Const sqlDelMvt As String = "delMvt"
-    'Insertions 
-    Public Const sqlInsertCompte As String = "insertCompte"
-    Public Const sqlInsertDocAgumaaa As String = "insertDocAgumaaa"
-    Public Const sqlInsertMvts As String = "insertMvts"
-    Public Const sqlinsertTiers As String = "insertTiers"
-    'Sélections
-    Public Const sqlProcMvtsIdentiques As String = "procMvtsIdentiques"
-    Public Const sqlSelCategoriesDefautMouvements As String = "reqCategoriesDefautMouvements"
-    Public Const sqlSelCategoriesMouvements As String = "reqCategoriesMouvements"
-    Public Const sqlSelSousCategories As String = "reqSousCategorie"
-    Public Const sqlSelSousCategoriesDefautMouvements As String = "reqSousCategoriesDefautMouvements"
-    Public Const sqlSelSousCategoriesTout As String = "sqlSelSousCategoriesTout"
-    Public Const sqlSelCategoriesTout As String = "reqCategorieTout"
-    Public Const sqlSelChq As String = "reqChq"
-    Public Const sqlSelDocs As String = "reqDocs"
-    Public Const sqlSelIdentiteCatTiers As String = "reqIdentiteCatTiers"
-    Public Const sqlSelIdentiteTiers As String = "reqIdentiteTiers"
-    Public Const sqlSelImagesChq As String = "reqImagesChq"
-    Public Const sqlSelNbMouvements As String = "reqNbMouvements"
-    Public Const sqlSelSommeCatMouvements As String = "reqSommeCatMouvements"
-    Public Const sqlSelTiersMorale As String = "selTiersMorale"
-    Public Const sqlSelTiersPhysique As String = "selTiersPhysique"
-    Public Const sqlSelSelectMouvementsLibelles As String = "sqlSelectMouvementsLibelles"
-    Public Const sqlSelLibCat As String = "reqLibCat"
-    Public Const sqlSelTypes As String = "reqTypesMouvement"
-    Public Const sqlSelEvenement As String = "reqEvenement"
-    Public Const sqlSelTypesDocuments As String = "reqLibellesTypesDocuments"
-    'Mises à jour
-    Public Const sqlUpdCompte As String = "updCompte"
-    Public Const sqlUpdDocs As String = "updDocs"
-    Public Const sqlUpdMvt As String = "updMvt"
-    Public Const sqlUpdMvtIdDoc As String = "updMvtIdDoc"
+    ''' <summary>
+    ''' Caractères et symboles typographiques utilisés dans l'application.
+    ''' </summary>
+    Public NotInheritable Class Symboles
+        Public Const PointVirgule As String = ";"
+        Public Const Virgule As String = ","
+        Public Const Espace As String = " "
+        Public Const Point As String = "."
+        Public Const Tiret As String = "-"
+        Public Const Euro As String = " €"
+        Public Const Plus As String = "+"
+    End Class
 
-    'Environnement
-    Public Const paramNiveauLog As String = "niveauLog"
-    Public Const dicoTypeMvt As String = "dicoTypeMvt"
+    ''' <summary>
+    ''' Identifiants des Bases de Données.
+    ''' </summary>
+    Public NotInheritable Class DataBases
+        Public Const Agumaaa As String = "bddAgumaaa"
+        Public Const Cinema As String = "cinemaDB"
+        Public Const MarcheDeNoel As String = "MarcheDeNoelDB"
+    End Class
 
-    Private Function GetDebuggerDisplay() As String
-        Return ToString()
+    ''' <summary>
+    ''' Noms des procédures ou requêtes SQL classées par action.
+    ''' </summary>
+    Public NotInheritable Class Sql
+        Public NotInheritable Class Deletion
+            Public Const CptTiers As String = "cptTiers"
+            Public Const Compte As String = "delCompte"
+            Public Const Docs As String = "delDocs"
+            Public Const Mvt As String = "delMvt"
+        End Class
+
+        Public NotInheritable Class Insertion
+            Public Const Compte As String = "insertCompte"
+            Public Const DocAgumaaa As String = "insertDocAgumaaa"
+            Public Const Mvts As String = "insertMvts"
+            Public Const Tiers As String = "insertTiers"
+        End Class
+
+        Public NotInheritable Class Selection
+            Public Const MvtsIdentiques As String = "procMvtsIdentiques"
+            Public Const CategoriesDefautMouvements As String = "reqCategoriesDefautMouvements"
+            ' ... Ajoute les autres ici de la même manière ...
+            Public Const TypesDocuments As String = "reqLibellesTypesDocuments"
+            Public Const SeancesAvecFilm As String = "SeancesAvecFilm"
+        End Class
+
+        Public NotInheritable Class Update
+            Public Const Compate As String = "updCompte"
+            Public Const Docs As String = "updDocs"
+            Public Const Mvt As String = "updMvt"
+            Public Const MvtIdDoc As String = "updMvtIdDoc"
+        End Class
+    End Class
+
+    ''' <summary>
+    ''' Paramètres liés à l'environnement de l'application.
+    ''' </summary>
+    Public NotInheritable Class Environnement
+        Public Const NiveauLog As String = "niveauLog"
+        Public Const DicoTypeMvt As String = "dicoTypeMvt"
+    End Class
+
+    Private Shared Function GetDebuggerDisplay() As String
+        Return "Conteneur de Constantes Globales"
     End Function
 End Class

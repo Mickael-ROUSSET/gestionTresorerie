@@ -23,7 +23,7 @@ Public Class FilmManager
         If film Is Nothing Then Exit Sub
         Try
             Dim paramCheck As New Dictionary(Of String, Object) From {{"@Titre", film.Titre}}
-            Using cmdCheck = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "selFilmByTitre", paramCheck)
+            Using cmdCheck = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, "selFilmByTitre", paramCheck)
                 Using rdr = cmdCheck.ExecuteReader()
                     If rdr.HasRows Then
                         Logger.INFO($"Film '{film.Titre}' existe déjà en base.")
@@ -42,7 +42,7 @@ Public Class FilmManager
                 {"@AfficheUrl", If(String.IsNullOrWhiteSpace(film.UrlAffiche), DBNull.Value, CType(film.UrlAffiche, Object))}
             }
 
-            Using cmdInsert = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "insertFilm", paramInsert)
+            Using cmdInsert = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, "insertFilm", paramInsert)
                 cmdInsert.ExecuteNonQuery()
             End Using
 

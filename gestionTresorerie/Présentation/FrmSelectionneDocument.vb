@@ -111,11 +111,11 @@ Public Class FrmSelectionneDocument
         For Each doc As DocumentAgumaaa In docs
             Dim item As New ListViewItem(doc.IdMvtDoc)
             With item.SubItems
-                Dim unused4 = .Add(doc.CategorieDoc)
+                .Add(doc.CategorieDoc)
                 'Eventuellement limiter l'affichage
-                Dim unused3 = .Add(doc.CheminDoc)
-                Dim unused2 = .Add(doc.DateDoc.ToString("yyyy-MM-dd"))
-                Dim unused1 = .Add(doc.SousCategorieDoc)
+                .Add(doc.CheminDoc)
+                .Add(doc.DateDoc.ToString("yyyy-MM-dd"))
+                .Add(doc.SousCategorieDoc)
                 '.Add(doc.ContenuDoc)
             End With
             Dim unused = lstDocuments.Items.Add(item)
@@ -139,7 +139,6 @@ Public Class FrmSelectionneDocument
         MsgBox("Fonction fictive ObtenirIdDocSelectionne appelée")
         Return 123 ' Exemple d'idDoc
     End Function
-
 
     Public Sub chargeListeDoc()
         ' Appelle la version générique avec la requête "selDocPagination" qui ramène tous les documents 
@@ -166,7 +165,7 @@ Public Class FrmSelectionneDocument
 
         Try
             Using readerDocuments As SqlDataReader =
-            SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, nomRequete, parametres).ExecuteReader()
+            SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, nomRequete, parametres).ExecuteReader()
 
                 While readerDocuments.Read()
                     Try
@@ -202,15 +201,15 @@ Public Class FrmSelectionneDocument
         ' Configurer le ListView
         With lstDocuments
             .View = View.Details
-            Dim unused15 = .Columns.Add("IdDoc", 50, HorizontalAlignment.Left)
-            Dim unused14 = .Columns.Add("dateDoc", 100, HorizontalAlignment.Left)
+            .Columns.Add("IdDoc", 50, HorizontalAlignment.Left)
+            .Columns.Add("dateDoc", 100, HorizontalAlignment.Left)
             '.Columns.Add("contenuDoc", 100, HorizontalAlignment.Left)
-            Dim unused13 = .Columns.Add("cheminDoc", 150, HorizontalAlignment.Left)
-            Dim unused12 = .Columns.Add("categorieDoc", 150, HorizontalAlignment.Left)
-            Dim unused11 = .Columns.Add("sousCategorieDoc", 150, HorizontalAlignment.Left)
-            Dim unused10 = .Columns.Add("idMvtDoc", 150, HorizontalAlignment.Left)
-            Dim unused9 = .Columns.Add("metaDonnees", 150, HorizontalAlignment.Left)
-            Dim unused8 = .Columns.Add("dateModif", 150, HorizontalAlignment.Left)
+            .Columns.Add("cheminDoc", 150, HorizontalAlignment.Left)
+            .Columns.Add("categorieDoc", 150, HorizontalAlignment.Left)
+            .Columns.Add("sousCategorieDoc", 150, HorizontalAlignment.Left)
+            .Columns.Add("idMvtDoc", 150, HorizontalAlignment.Left)
+            .Columns.Add("metaDonnees", 150, HorizontalAlignment.Left)
+            .Columns.Add("dateModif", 150, HorizontalAlignment.Left)
             .FullRowSelect = True
         End With
 
@@ -218,14 +217,14 @@ Public Class FrmSelectionneDocument
         For Each document As DocumentAgumaaa In tabDocuments
             ' Créer une nouvelle ligne pour le ListView
             Dim item As New ListViewItem(document.IdDoc)
-            Dim unused7 = item.SubItems.Add(document.DateDoc)
+            item.SubItems.Add(document.DateDoc)
             'item.SubItems.Add(document.ContenuDoc)
-            Dim unused6 = item.SubItems.Add(document.CheminDoc)
-            Dim unused5 = item.SubItems.Add(document.CategorieDoc)
-            Dim unused4 = item.SubItems.Add(document.SousCategorieDoc)
-            Dim unused3 = item.SubItems.Add(document.IdMvtDoc)
-            Dim unused2 = item.SubItems.Add(document.metaDonnees)
-            Dim unused1 = item.SubItems.Add(document.dateModif)
+            item.SubItems.Add(document.CheminDoc)
+            item.SubItems.Add(document.CategorieDoc)
+            item.SubItems.Add(document.SousCategorieDoc)
+            item.SubItems.Add(document.IdMvtDoc)
+            item.SubItems.Add(document.metaDonnees)
+            item.SubItems.Add(document.dateModif)
             ' Ajouter la ligne au ListView
             Dim unused = lstDocuments.Items.Add(item)
         Next
@@ -431,7 +430,7 @@ Public Class FrmSelectionneDocument
     Private Sub majCheminDoc(nouveauChemin As String, idDoc As Integer)
         ' 🧠 Mise à jour de la base via CreateSqlCommand
         Dim cmd As SqlCommand =
-                SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "updCheminDoc",
+                SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "updCheminDoc",
                                                    New Dictionary(Of String, Object) From {{"@cheminDoc", nouveauChemin},
                                                                                           {"@idDoc", idDoc}
                                                    })
@@ -468,7 +467,7 @@ Public Class FrmSelectionneDocument
 
             ' 🧠 Mise à jour de la base via CreateSqlCommand
             Dim cmd As SqlCommand =
-                SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "updateDocumentMetaDonnees",
+                SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "updateDocumentMetaDonnees",
                                                     New Dictionary(Of String, Object) From {
                                                         {"@idDocument", currentDocId},
                                                         {"@metaDonnees", nouveauJson}
@@ -553,7 +552,7 @@ Public Class FrmSelectionneDocument
         Try
             ' Vérifie qu’un élément est bien sélectionné
             If lstDocuments.SelectedItems.Count = 0 Then
-                Dim unused2 = MessageBox.Show("Veuillez sélectionner un document dans la liste.",
+                MessageBox.Show("Veuillez sélectionner un document dans la liste.",
                                 "Aucune sélection", MessageBoxButtons.OK, MessageBoxIcon.Information)
             End If
 
@@ -563,7 +562,7 @@ Public Class FrmSelectionneDocument
             ' Conversion sécurisée en entier
             Dim id As Integer
             If Not Integer.TryParse(idText, id) Then
-                Dim unused1 = MessageBox.Show("Identifiant de document invalide.",
+                MessageBox.Show("Identifiant de document invalide.",
                                 "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
             End If
 
@@ -654,12 +653,12 @@ Public Class FrmSelectionneDocument
         '    SqlCommandBuilder.CreateSqlCommand("cptDocPagination",
         '                     New Dictionary(Of String, Object) From {{"@whereClause", sWhereClause}}).ExecuteScalar()
         Dim nbDoc As Integer =
-            SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "cptDocPagination").ExecuteScalar()
+            SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "cptDocPagination").ExecuteScalar()
         Return CInt(nbDoc)
     End Function
     Private Shared Function GetDocumentsPagines(sOffset As Integer, sTaillePage As Integer, sColonneTri As String, sOrdreTri As String) As SqlDataReader
         Dim cmd As SqlCommand =
-            SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "selDocPagination",
+            SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "selDocPagination",
                              New Dictionary(Of String, Object) From {{"@Offset", sOffset},
                                                                      {"@TaillePage", sTaillePage},
                                                                      {"@ColonneTri", sColonneTri},
