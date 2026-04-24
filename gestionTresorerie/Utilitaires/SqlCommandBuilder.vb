@@ -59,8 +59,8 @@ Public Class SqlCommandBuilder
             cmd.Parameters.AddWithValue(param.Key, If(param.Value, DBNull.Value))
         Next
     End Sub
-    Public Shared Function CreateSqlCommand(queryName As String,
-                                        sBase As String,
+    Public Shared Function CreateSqlCommand(sBase As String,
+                                        queryName As String,
                                         Optional params As Dictionary(Of String, Object) = Nothing) As SqlCommand
 
         Dim sqlTextProvider As ISqlTextProvider = New LegacySqlTextProvider()

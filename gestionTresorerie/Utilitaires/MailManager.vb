@@ -21,6 +21,15 @@ Public NotInheritable Class MailManager
             Return False
         End Try
     End Function
+    Public Function EnvoyerEmail(destinataire As String,
+                             sujet As String,
+                             corps As String,
+                             Optional cheminsFichiers As List(Of String) = Nothing) As Boolean
+
+        Return EnvoyerEmailAsync(destinataire, sujet, corps, cheminsFichiers).
+        GetAwaiter().
+        GetResult()
+    End Function
 
     ''' <summary>
     ''' Construit l'objet MailMessage et attache les fichiers valides.
