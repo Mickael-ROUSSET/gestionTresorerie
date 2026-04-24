@@ -188,5 +188,44 @@ Public Class ProgrammeCinemaCreator
         ' 5. Espacement
         cell.Append(New Paragraph(New Run(New Text(""))))
     End Sub
+    Public Async Function ChargerProgramme(cheminFichier As String) As Task
+        Dim liste As New List(Of FilmSeance)()
+        If Not File.Exists(cheminFichier) Then Exit Function
 
+        For Each ligne In File.ReadAllLines(cheminFichier)
+            Dim f = ParseLigne(ligne)
+            If f IsNot Nothing Then liste.Add(f)
+        Next
+        Await EnrichirListeAsync(liste)
+        Dim sNomProgramme As String = LectureProprietes.GetVariable("cheminProgramme")
+        Utilitaires.supprimeSiExiste(sNomProgramme)
+        Await GenererDocxAsync(liste, sNomProgramme)
+    End Function
+    Private Function ParseLigne(ligne As String) As FilmSeance
+        Dim sep() As Char = {";"c, "|"c}
+        Dim tokens = ligne.Split(sep, StringSplitOptions.RemoveEmptyEntries).Select(Function(s) s.Trim()).ToArray()
+        If tokens.Length < 3 Then
+            Logger.ERR($"Ligne ignorée (moins de 3 tokens) : '{ligne}'")
+            Return Nothing
+        End If
+
+        Dim titre = tokens(0)
+        Dim datePart = tokens(1)
+        Dim timePart = tokens(2)
+
+        Dim d As Date
+        If Not Date.TryParse(datePart, d) Then
+            Logger.ERR($"Erreur parsing date : '{datePart}' dans la ligne '{ligne}'")
+            Return Nothing
+        End If
+
+        Dim ts As TimeSpan
+        Dim normalizedTime = timePart.Replace("h", ":")
+        If Not TimeSpan.TryParse(normalizedTime, ts) Then
+            Logger.ERR($"Erreur parsing heure : '{timePart}' (converti en '{normalizedTime}') dans la ligne '{ligne}'")
+            Return Nothing
+        End If
+
+        Return New FilmSeance With {.Titre = titre, .DateDiffusion = d, .HeureDiffusion = ts}
+    End Function
 End Class

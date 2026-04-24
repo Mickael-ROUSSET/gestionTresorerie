@@ -25,6 +25,17 @@ Public Class FrmSelectionneDocument
     ' --- Variables de tri ---
     Private colonneTri As String = "dateDoc"
     Private triAscendant As Boolean = False
+
+    ' Pagination
+    Private _offset As Integer = 0
+    Private _taillePage As Integer = 50
+
+    ' Tri
+    Private _colonneTri As String = "dateCreation"
+    Private _ordreTri As String = "DESC"
+
+    ' Filtre
+    Private _whereClause As String = ""
     Public Property idDocSel() As Integer
         Get
             Return _idDocSel
@@ -146,57 +157,89 @@ Public Class FrmSelectionneDocument
     End Sub
     Public Sub chargeListeDoc(montant As Decimal)
         ' Appelle la version générique avec la requête "reqDocMontant"
-        chargeListeDocInterne("reqDocMontant", New Dictionary(Of String, Object) From {
-        {"@montant", montant.ToString("0.00", CultureInfo.InvariantCulture).Replace("."c, ","c)}
-    })
+        chargeListeDocInterne()
     End Sub
     Public Sub chargeListeDoc(numero As Decimal, montant As Decimal, emetteur As String)
         ' Appelle la version générique avec la requête "reqDoc" pour les chèques
-        chargeListeDocInterne("reqDoc", New Dictionary(Of String, Object) From {
-        {"@numero", numero},
-        {"@montant", montant.ToString("0.00", CultureInfo.InvariantCulture).Replace("."c, ","c)},
-        {"@emetteur", emetteur}
-    })
+        chargeListeDocInterne()
     End Sub
 
     ' 🔧 Méthode factorisée interne
-    Private Sub chargeListeDocInterne(nomRequete As String, parametres As Dictionary(Of String, Object))
-        Dim tabDocuments As New List(Of DocumentAgumaaa)()
-
+    Private Sub chargeListeDocInterne()
         Try
-            Using readerDocuments As SqlDataReader =
-            SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, nomRequete, parametres).ExecuteReader()
+            Dim params As New Dictionary(Of String, Object)
 
-                While readerDocuments.Read()
-                    Try
-                        ' Création d’un DocumentAgumaaaImpl à partir du DataReader
-                        Dim docSel As New DocumentAgumaaaImpl(
-                        Utilitaires.SafeGetInt(readerDocuments, 0),
-                        Utilitaires.SafeGetDate(readerDocuments, 1),
-                        Utilitaires.SafeGetString(readerDocuments, 2),
-                        Utilitaires.SafeGetString(readerDocuments, 3),
-                        Utilitaires.SafeGetString(readerDocuments, 4),
-                        Utilitaires.SafeGetString(readerDocuments, 5),
-                        Utilitaires.SafeGetInt(readerDocuments, 6),
-                        Utilitaires.SafeGetString(readerDocuments, 7),
-                        Utilitaires.SafeGetDate(readerDocuments, 8)
-                    )
-                        tabDocuments.Add(docSel)
+            params.Add("@Offset", _offset)
+            params.Add("@TaillePage", _taillePage)
+            params.Add("@ColonneTri", _colonneTri)
+            params.Add("@OrdreTri", _ordreTri)
 
-                    Catch ex As Exception
-                        Logger.ERR($"Erreur lecture document (ligne {tabDocuments.Count}): {ex.Message}")
-                    End Try
-                End While
-            End Using
+            If Not String.IsNullOrWhiteSpace(_whereClause) Then
+                params.Add("@WhereClause", _whereClause)
+            End If
+
+            Dim dt As DataTable =
+            SqlCommandBuilder.ExecuteDataTable(
+                Constantes.DataBases.Agumaaa,
+                "selDocPagination",
+                params
+            )
+
+            lstDocuments.Items.Clear()
+
+            If dt Is Nothing OrElse dt.Rows.Count = 0 Then
+                Exit Sub
+            End If
+
+            For Each row As DataRow In dt.Rows
+                Dim item As New ListViewItem(GetSafeString(row, "idDoc"))
+
+                item.SubItems.Add(GetSafeString(row, "libDoc"))
+                item.SubItems.Add(GetSafeString(row, "categorie"))
+                item.SubItems.Add(GetSafeDateString(row, "dateCreation"))
+                item.SubItems.Add(GetSafeDateString(row, "dateModif"))
+
+                item.Tag = row
+
+                lstDocuments.Items.Add(item)
+            Next
 
         Catch ex As Exception
-            Dim unused = MessageBox.Show("Erreur SQL : " & ex.Message, "Erreur de chargement", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Logger.ERR("Erreur dans chargeListeDocInterne : " & ex.Message)
+            MessageBox.Show("Erreur lors du chargement des documents : " & ex.Message,
+                        "Erreur",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error)
         End Try
-
-        ' Alimente la liste
-        alimListeDoc(tabDocuments)
     End Sub
+    Private Shared Function GetSafeString(row As DataRow, columnName As String) As String
+        If row Is Nothing OrElse row.Table Is Nothing OrElse Not row.Table.Columns.Contains(columnName) Then
+            Return String.Empty
+        End If
 
+        If row(columnName) Is DBNull.Value Then
+            Return String.Empty
+        End If
+
+        Return row(columnName).ToString()
+    End Function
+
+    Private Shared Function GetSafeDateString(row As DataRow, columnName As String) As String
+        If row Is Nothing OrElse row.Table Is Nothing OrElse Not row.Table.Columns.Contains(columnName) Then
+            Return String.Empty
+        End If
+
+        If row(columnName) Is DBNull.Value Then
+            Return String.Empty
+        End If
+
+        Dim dt As DateTime
+        If DateTime.TryParse(row(columnName).ToString(), dt) Then
+            Return dt.ToString("dd/MM/yyyy")
+        End If
+
+        Return row(columnName).ToString()
+    End Function
     Public Sub alimListeDoc(tabDocuments As List(Of DocumentAgumaaa))
         ' Configurer le ListView
         With lstDocuments

@@ -77,4 +77,7 @@ Public NotInheritable Class Constantes
     Private Shared Function GetDebuggerDisplay() As String
         Return "Conteneur de Constantes Globales"
     End Function
+    Public Class Dossiers
+        Public Const Sauvegardes As String = "D:\Sauvegardes"
+    End Class
 End Class

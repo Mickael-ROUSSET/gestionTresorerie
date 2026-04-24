@@ -27,7 +27,7 @@ Public Class FrmPrincipale
             'Initialisation de la lecture des propriétés
             Dim lectureProprietes As New LectureProprietes()
             'Lecture du niveau de log demandé
-            Logger.SetLogLevel(LectureProprietes.GetVariable(Constantes.paramNiveauLog))
+            Logger.SetLogLevel(LectureProprietes.GetVariable(Constantes.Environnement.NiveauLog))
             Logger.DBG("Initialisation de : {lectureProprietes}")
             'Chargement des secrets de l'application
             GlobalSettings.Initialize()
@@ -63,7 +63,7 @@ Public Class FrmPrincipale
     Private Sub ChargerDgvPrincipale()
         Try
             ' Créer une commande SQL 
-            Dim cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "sqlSelectMouvementsLibelles")
+            Dim cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "sqlSelectMouvementsLibelles")
             ' Créer un DataAdapter pour remplir le DataTable
             Using adapter As New SqlDataAdapter(cmd)
                 ' Créer un DataTable pour stocker les données
@@ -110,7 +110,7 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub FrmMain_Closing(sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
-        ConnexionDB.GetInstance(Constantes.bddAgumaaa).Dispose()
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).Dispose()
     End Sub
     Private Sub BtnConsultation_Click(sender As Object, e As EventArgs)
         ChargerDgvPrincipale()
@@ -150,17 +150,54 @@ Public Class FrmPrincipale
         End Try
     End Sub
     Private Sub SauvegarderToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SauvegarderToolStripMenuItem.Click
-        GestionBDD.SauvegarderBase()
+        Dim dbName As String = "AGUMAAA"
+        Dim dossier As String = "D:\Sauvegardes"
+        Dim connectionString As String = ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).GetConnexion(Constantes.DataBases.Agumaaa).ConnectionString
+
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim sqlAdmin As New SqlAdminService(factory)
+        Dim maintenance As New DatabaseMaintenanceService(sqlAdmin)
+
+        Dim chemin = maintenance.Sauvegarder(dbName, dossier)
     End Sub
 
     Private Sub RestaurerToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RestaurerToolStripMenuItem.Click
+        Dim dossierSauvegarde As String = Constantes.Dossiers.Sauvegardes
+
         Dim ofd As New OpenFileDialog With {
-    .Filter = "Sauvegardes SQL (*.bak)|*.bak",
-    .InitialDirectory = GestionBDD.DossierSauvegarde
-}
-        If ofd.ShowDialog() = DialogResult.OK Then
-            GestionBDD.RestaurerBase(ofd.FileName)
+        .Filter = "Sauvegardes SQL (*.bak)|*.bak",
+        .InitialDirectory = dossierSauvegarde
+    }
+
+        If ofd.ShowDialog() <> DialogResult.OK Then
+            Exit Sub
         End If
+
+        Try
+            Dim dbName As String = Constantes.DataBases.Agumaaa
+            Dim connectionString As String =
+            ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                        GetConnexion(Constantes.DataBases.Agumaaa).
+                        ConnectionString
+
+            Dim factory As New AgumaaaConnectionFactory(connectionString)
+            Dim sqlAdmin As New SqlAdminService(factory)
+
+            sqlAdmin.RestaurerBase(dbName, ofd.FileName)
+
+            MessageBox.Show("Restauration terminée avec succès.",
+                        "Restauration",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information)
+
+        Catch ex As Exception
+            Logger.ERR("Erreur lors de la restauration : " & ex.Message)
+
+            MessageBox.Show("Erreur lors de la restauration : " & ex.Message,
+                        "Erreur",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error)
+        End Try
     End Sub
 
     Private Sub ConsoleToolStripMenuItem_Click(sender As Object, e As EventArgs)
