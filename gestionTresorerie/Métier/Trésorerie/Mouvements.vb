@@ -48,7 +48,18 @@ Public Class Mouvements
             End If
         End Set
     End Property
+    Private Shared Function CreateRepository() As MouvementRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
 
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New MouvementRepository(executor, factory, provider)
+    End Function
     Public Shared Sub InsereMouvement(mouvement)
         Try
             'Les infos de création du mouvement sont récupérées sur la fenêtre de saisie 
@@ -134,8 +145,8 @@ Public Class Mouvements
     End Sub
     'Public Shared Sub InsererMouvementEnBase(mouvement As Mouvements)
     '    Try
-    '        Dim db = ConnexionDB.GetInstance(Constantes.bddAgumaaa)
-    '        Using conn As SqlConnection = db.GetConnexion(Constantes.bddAgumaaa)
+    '        Dim db = ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa)
+    '        Using conn As SqlConnection = db.GetConnexion(Constantes.DataBases.Agumaaa)
 
     '            Dim sql As String = "INSERT INTO [Mouvements] (categorie, montant, sens, tiers, dateMvt, dateCreation, note) " &
     '                             "VALUES (@cat, @mont, @sens, @tiers, @dMvt, @dCrea, @note)"
@@ -163,36 +174,12 @@ Public Class Mouvements
         ArgumentNullException.ThrowIfNull(mouvement)
 
         Try
-            Dim paramètres As New Dictionary(Of String, Object) From {
-                {"@note", If(String.IsNullOrWhiteSpace(mouvement.Note), DBNull.Value, mouvement.Note.Trim())},
-                {"@categorie", mouvement.Categorie}, ' C'est un INT NOT NULL, pas besoin de IF si > 0
-                {"@sousCategorie", If(mouvement.SousCategorie = 0, DBNull.Value, mouvement.SousCategorie)},
-                {"@tiers", Convert.ToInt32(mouvement.Tiers)},
-                {"@dateCreation", DateTime.Now.Date}, ' On force le type DATE (sans l'heure)
-                {"@dateMvt", If(mouvement.DateMvt = Date.MinValue, DBNull.Value, mouvement.DateMvt.Date)},
-                {"@montant", Convert.ToDecimal(mouvement.Montant)}, ' Conversion explicite en Decimal
-                {"@sens", If(mouvement.Sens, 1, 0)}, ' BIT attend 0 ou 1
-                {"@etat", If(mouvement.Etat, 1, 0)},
-                {"@evenement", If(String.IsNullOrWhiteSpace(mouvement.Evenement), DBNull.Value, mouvement.Evenement)},
-                {"@typeMouvement", If(String.IsNullOrWhiteSpace(mouvement.TypeMouvement), DBNull.Value, mouvement.TypeMouvement)},
-                {"@modifiable", If(mouvement.Modifiable, 1, 0)},
-                {"@numeroRemise", If(String.IsNullOrWhiteSpace(mouvement.NumeroRemise) OrElse Not IsNumeric(mouvement.NumeroRemise),
-                                    DBNull.Value, Convert.ToInt32(mouvement.NumeroRemise))},
-                {"@reference", If(String.IsNullOrWhiteSpace(mouvement.reference), DBNull.Value, mouvement.reference.Trim())},
-                {"@typeReference", If(String.IsNullOrWhiteSpace(mouvement.typeReference), DBNull.Value, mouvement.typeReference.Trim())},
-                {"@idDoc", If(mouvement.idDoc = 0, DBNull.Value, mouvement.idDoc)}
-            }
-            Dim cmd As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertMvts", paramètres)
-            Utilitaires.LogCommand(cmd)
-            Logger.WARN($"cmd.Connection.State.ToString(1) : {cmd.Connection.State()}")
-
-            Dim lignes = cmd.ExecuteNonQuery()
-            Logger.WARN($"cmd.Connection.State.ToString(2) : {cmd.Connection.State()}")
+            Dim lignes As Integer = CreateRepository().Inserer(mouvement)
 
             If lignes = 1 Then
-                Logger.INFO($"Mouvement inséré")
+                Logger.INFO("Mouvement inséré")
             Else
-                Logger.WARN($"Insertion anormale : {lignes} ligne(s) affectée(s). ")
+                Logger.WARN($"Insertion anormale : {lignes} ligne(s) affectée(s).")
             End If
 
         Catch sqlEx As SqlException
@@ -205,45 +192,31 @@ Public Class Mouvements
     End Sub
     Public Shared Sub MettreAJourIdDoc(idMouvement As Integer, nouvelIdDoc As Integer)
         Try
-            Dim rowsAffected As Integer = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "updMvtIdDoc",
-                                      New Dictionary(Of String, Object) From {
-                                      {"@nouvelIdDoc", nouvelIdDoc},
-                                      {"@idMouvement", idMouvement}}).ExecuteNonQuery
+            Dim rowsAffected As Integer = CreateRepository().MettreAJourIdDoc(idMouvement, nouvelIdDoc)
+
             If rowsAffected > 0 Then
                 Logger.INFO($"Mise à jour réussie de idDoc pour le mouvement avec Id = {idMouvement}")
             Else
                 Logger.WARN($"Aucune ligne n'a été mise à jour pour le mouvement avec Id = {idMouvement}")
             End If
+
         Catch ex As Exception
             Logger.ERR($"Erreur inattendue lors de la mise à jour de idDoc. Message: {ex.Message}")
             Throw
         End Try
     End Sub
     Public Shared Function Existe(mouvement As Mouvements) As Boolean
-        ' Vérifie si le mouvement existe déjà
-        Dim bExiste As Boolean = False
-
         Try
-            Using reader As SqlDataReader =
-                SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqNbMouvements",
-                                           New Dictionary(Of String, Object) From {{"@dateMvt", mouvement.DateMvt.ToString("yyyy-MM-dd")},
-                                           {"@montant", CDec(mouvement.Montant)},
-                                           {"@sens", mouvement.Sens}
-                                            }).ExecuteReader()
-                If reader.Read() Then
-                    bExiste = reader.GetInt32(0) > 0
-                End If
-            End Using
-            ' Écrire un log d'information
-            Logger.DBG($"Vérification de l'existence du mouvement réussie. Date: {mouvement.DateMvt}, Montant: {mouvement.Montant}, Sens:  {mouvement.Sens}")
+            Dim bExiste As Boolean = CreateRepository().Existe(mouvement)
+
+            Logger.DBG($"Vérification de l'existence du mouvement réussie. Date: {mouvement.DateMvt}, Montant: {mouvement.Montant}, Sens: {mouvement.Sens}")
+
+            Return bExiste
 
         Catch ex As Exception
-            ' Écrire un log d'erreur
-            Logger.ERR($"Erreur lors de la vérification de l'existence du mouvement. Message: {ex.Message} " & mouvement.mvtValeursConcatenees)
-            Throw ' Re-lancer l'exception après l'avoir loggée
+            Logger.ERR($"Erreur lors de la vérification de l'existence du mouvement. Message: {ex.Message} " & mouvement.mvtValeursConcatenees())
+            Throw
         End Try
-
-        Return bExiste
     End Function
     ' Surcharge de la méthode Existe pour vérifier l'existence d'un mouvement avec les paramètres date, montant et sens 
     Public Shared Function Existe(dateMvt As Date, montant As Decimal, sens As Boolean) As Boolean
@@ -258,85 +231,71 @@ Public Class Mouvements
         Return Existe(mouvement)
     End Function
     Public Shared Function ChargerMouvementsSimilaires(mouvement As Mouvements) As DataTable
-        Dim dataTable As New DataTable()
-
         Try
-            ' Définir la commande SQL pour appeler la requête
-            Dim cmd As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqMouvementsSimilaires",
-                                           New Dictionary(Of String, Object) From {{"@dateMvt", mouvement.DateMvt},
-                                           {"@montant", CDec(mouvement.Montant)},
-                                           {"@sens", mouvement.Sens}})
-            ' Créer un DataAdapter pour remplir le DataTable
-            Using adapter As New SqlDataAdapter(cmd)
-                ' Remplir le DataTable avec les données de la base de données
-                adapter.Fill(dataTable)
-            End Using
+            Dim dataTable As DataTable = CreateRepository().ChargerMouvementsSimilaires(mouvement)
 
-            ' Écrire un log d'information
-            Logger.INFO($"Chargement des mouvements similaires réussi : {mouvement.mvtValeursConcatenees}")
+            Logger.INFO($"Chargement des mouvements similaires réussi : {mouvement.mvtValeursConcatenees()}")
+
+            Return dataTable
+
         Catch ex As Exception
-            ' Écrire un log d'erreur en cas d'exception générale
             Logger.ERR($"Erreur lors du chargement des mouvements similaires : {ex.Message}")
+            Return New DataTable()
         End Try
-
-        Return dataTable
     End Function
-    Public Shared Function MettreAJourMouvement(Id As Integer, categorie As Integer, sousCategorie As Integer, montant As Decimal, sens As Boolean, tiers As Integer, note As String, dateMvt As Date, etat As Boolean, evenement As String, type As String, modifiable As Boolean, numeroRemise As Integer?, reference As String, typeReference As String, idDoc As Integer) As Integer
+    Public Shared Function MettreAJourMouvement(Id As Integer,
+                                            categorie As Integer,
+                                            sousCategorie As Integer,
+                                            montant As Decimal,
+                                            sens As Boolean,
+                                            tiers As Integer,
+                                            note As String,
+                                            dateMvt As Date,
+                                            etat As Boolean,
+                                            evenement As String,
+                                            type As String,
+                                            modifiable As Boolean,
+                                            numeroRemise As Integer?,
+                                            reference As String,
+                                            typeReference As String,
+                                            idDoc As Integer) As Integer
         Try
-            Return SqlCommandBuilder.
-            CreateSqlCommand(Constantes.bddAgumaaa, "updMvt",
-                             New Dictionary(Of String, Object) From {{"@Id", Id},
-                                                                     {"@Categorie", categorie},
-                                                                     {"@SousCategorie", sousCategorie},
-                                                                     {"@Montant", montant},
-                                                                     {"@Sens", sens},
-                                                                     {"@Tiers", tiers},
-                                                                     {"@Note", If(note, DBNull.Value)},
-                                                                     {"@DateMvt", dateMvt},
-                                                                     {"@Etat", etat},
-                                                                     {"@Evenement", If(evenement, DBNull.Value)},
-                                                                     {"@TypeMouvement", If(type, DBNull.Value)},
-                                                                     {"@Modifiable", modifiable},
-                                                                     {"@NumeroRemise", If(numeroRemise, DBNull.Value)},
-                                                                     {"@reference", If(reference, DBNull.Value)},
-                                                                     {"@typeReference", If(typeReference, DBNull.Value)},
-                                                                     {"@idDoc", idDoc}}
-                             ).
-                             ExecuteNonQuery()
-            ' Trace indiquant les valeurs mises à jour
+            Dim rowsAffected As Integer =
+            CreateRepository().MettreAJour(Id,
+                                           categorie,
+                                           sousCategorie,
+                                           montant,
+                                           sens,
+                                           tiers,
+                                           note,
+                                           dateMvt,
+                                           etat,
+                                           evenement,
+                                           type,
+                                           modifiable,
+                                           numeroRemise,
+                                           reference,
+                                           typeReference,
+                                           idDoc)
+
             Logger.INFO($"Valeurs mises à jour - Catégorie: {categorie}, Sous-Catégorie: {sousCategorie}, Montant: {montant}, Sens: {sens}, Tiers: {tiers}, Note: {note}, DateMvt: {dateMvt}, Etat: {etat}, Evénement: {evenement}, TypeMouvement: {type}, Modifiable: {modifiable}, Numéro Remise: {numeroRemise}, reference: {reference}, typeReference: {typeReference}, idDoc: {idDoc}")
+
+            Return rowsAffected
+
         Catch ex As Exception
-            ' Trace en cas d'erreur
             Logger.ERR($"Erreur lors de la mise à jour du mouvement : {ex.Message}")
-            ' Retourner -1 en cas d'erreur
             Return -1
         End Try
     End Function
     Public Shared Sub SupprimerMouvement(id As Integer)
-        Dim sqlConnexion As SqlConnection = Nothing
-
         Try
-            Dim command = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "delMvt")
-            ' Ajouter le paramètre Id à la requête
-            command.Parameters.AddWithValue("@Id", id)
+            Dim rowsAffected As Integer = CreateRepository().Supprimer(id)
 
-            ' Exécuter la requête et obtenir le nombre de lignes affectées
-            Dim rowsAffected As Integer = command.ExecuteNonQuery()
-
-            ' Trace indiquant le nombre de lignes supprimées
             Logger.INFO($"Nombre de lignes supprimées : {rowsAffected}")
-
-            ' Trace indiquant l'Id supprimé
             Logger.INFO($"Enregistrement supprimé - Id: {id}")
 
         Catch ex As Exception
-            ' Trace en cas d'erreur
             Logger.ERR($"Erreur lors de la suppression du mouvement : {ex.Message}")
-        Finally
-            ' Fermer la connexion si elle est ouverte
-            If sqlConnexion IsNot Nothing AndAlso sqlConnexion.State = ConnectionState.Open Then
-                sqlConnexion.Close()
-            End If
         End Try
     End Sub
     Public Shared Function VerifParam(categorie As String, sousCategorie As String, tiers As Integer, dateMvt As Date, montant As String, sens As String, etat As String, type As String) As Boolean
