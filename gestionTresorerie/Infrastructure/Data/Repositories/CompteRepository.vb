@@ -36,10 +36,8 @@ Public Class CompteRepository
             p.Add(New SqlParameter("@Id", compte.Id))
         End If
 
-        p.Add(New SqlParameter("@Libelle", If(compte.Libelle, DBNull.Value)))
-        p.Add(New SqlParameter("@Iban", If(compte.Iban, DBNull.Value)))
-        p.Add(New SqlParameter("@Bic", If(compte.Bic, DBNull.Value)))
-        p.Add(New SqlParameter("@Actif", compte.Actif))
+        p.Add(New SqlParameter("@Login", If(compte.Login, DBNull.Value)))
+        p.Add(New SqlParameter("@TypeAcces", If(compte.TypeAcces, DBNull.Value)))
 
         Return p
     End Function
