@@ -53,6 +53,8 @@ Public NotInheritable Class Constantes
         Public NotInheritable Class Selection
             Public Const MvtsIdentiques As String = "procMvtsIdentiques"
             Public Const CategoriesDefautMouvements As String = "reqCategoriesDefautMouvements"
+            Public Const TiersPhysique As String = "sqlSelTiersPhysique"
+            Public Const TiersMorale As String = "sqlSelTiersMorale"
             ' ... Ajoute les autres ici de la même manière ...
             Public Const TypesDocuments As String = "reqLibellesTypesDocuments"
             Public Const SeancesAvecFilm As String = "SeancesAvecFilm"
@@ -63,6 +65,11 @@ Public NotInheritable Class Constantes
             Public Const Docs As String = "updDocs"
             Public Const Mvt As String = "updMvt"
             Public Const MvtIdDoc As String = "updMvtIdDoc"
+            'Mises à jour
+            Public Const sqlUpdCompte As String = "updCompte"
+            Public Const sqlUpdDocs As String = "updDocs"
+            Public Const sqlUpdMvt As String = "updMvt"
+            Public Const sqlUpdMvtIdDoc As String = "updMvtIdDoc"
         End Class
     End Class
 

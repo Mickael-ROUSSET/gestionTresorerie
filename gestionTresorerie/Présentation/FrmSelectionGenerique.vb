@@ -72,7 +72,7 @@ Public Class FrmSelectionGenerique
             Dim methodGeneric = mi.MakeGenericMethod(_typeEntity)
 
             ' 🔹 Appel et récupération de la liste
-            _listeEntites = CType(methodGeneric.Invoke(Nothing, New Object() {Constantes.bddAgumaaa, _nomRequete, _parametres}), IList)
+            _listeEntites = CType(methodGeneric.Invoke(Nothing, New Object() {Constantes.DataBases.Agumaaa, _nomRequete, _parametres}), IList)
 
             ' 🔹 Binding sur la grille
             dgvResultats.DataSource = Nothing

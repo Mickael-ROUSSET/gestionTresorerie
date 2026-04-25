@@ -40,7 +40,7 @@ Public Class Logger
             End If
 
             ' Obtenir l'heure actuelle
-            Dim heureActuelle As String = DateTime.Now.ToString(Constantes.formatTimestampTrace)
+            Dim heureActuelle As String = DateTime.Now.ToString(Constantes.Formats.TimestampTrace)
 
             ' Obtenir le nom de la fonction appelante
             Dim stackTrace As New System.Diagnostics.StackTrace()

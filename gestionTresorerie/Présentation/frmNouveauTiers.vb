@@ -67,7 +67,7 @@ Public Class FrmNouveauTiers
 
         Try
             count = CInt(SqlCommandBuilder.
-                     CreateSqlCommand(Constantes.bddAgumaaa, "cptTiers",
+                     CreateSqlCommand(Constantes.DataBases.Agumaaa, "cptTiers",
                      New Dictionary(Of String, Object) From {{"@nom", txtNom.Text.Trim()},
                                                              {"@prenom", txtPrenom.Text.Trim()},
                                                              {"@raisonSociale", txtRaisonSociale.Text.Trim()}}
@@ -96,7 +96,7 @@ Public Class FrmNouveauTiers
                         {"@dateModification", DateTime.Now}
                     }
 
-            Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertTiers", params)
+            Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "insertTiers", params)
                 Dim result = cmd.ExecuteScalar()
                 Dim newId As Integer = 0
 
@@ -135,7 +135,7 @@ Public Class FrmNouveauTiers
             {"@Telephone", If(String.IsNullOrWhiteSpace(coordonnee.Telephone), DBNull.Value, coordonnee.Telephone)}
         }
         Dim reqSqlCoord As String = If(coordonnee.Id = 0, "insertCoordonnees", "updateCoordonnees")
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, reqSqlCoord, parametres)
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, reqSqlCoord, parametres)
             If coordonnee.Id = 0 Then
                 coordonnee.Id = Convert.ToInt32(cmd.ExecuteScalar())
             Else

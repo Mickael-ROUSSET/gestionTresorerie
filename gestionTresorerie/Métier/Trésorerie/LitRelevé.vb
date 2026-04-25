@@ -56,7 +56,7 @@ Friend Module LitRelevé
                     Dim ligne As String = monStreamReader.ReadLine()
                     While ligne IsNot Nothing
                         ' Match ignoring case of letters.
-                        Dim match As Match = Regex.Match(ligne, Constantes.regDateReleve & ";", RegexOptions.IgnoreCase)
+                        Dim match As Match = Regex.Match(ligne, Constantes.Formats.RegDateReleve & ";", RegexOptions.IgnoreCase)
                         If match.Success Then
                             ' On est au début d'une ligne => on écrit la ligne en cours et on en commence une autre
                             ' Mais pas sur la 1ère qui contient des entêtes
@@ -92,7 +92,7 @@ Friend Module LitRelevé
                     ligne = monStreamReader.ReadLine
                     While ligne IsNot Nothing
                         ' Détection de la date du mouvement qui est le début d'une ligne => déclenche l'écriture
-                        Dim match As Match = Regex.Match(ligne, Constantes.regDateReleve, RegexOptions.IgnoreCase)
+                        Dim match As Match = Regex.Match(ligne, Constantes.Formats.RegDateReleve, RegexOptions.IgnoreCase)
                         If match.Success Then
                             ' On est au début d'une ligne => on écrit la ligne en cours et on en commence une autre
                             file.WriteLine(sLigneEntiere.ToString())
@@ -117,14 +117,14 @@ Friend Module LitRelevé
         Dim sLigneFormattee As String = String.Empty, sTmp As String
 
         'Il faut alimenter séparément les débits et les crédits et enlever les signes et la monnaie
-        If InStr(sLigne, Constantes.tiret, CompareMethod.Text) > 0 Then
-            sTmp = sLigne.Replace(Constantes.euro, String.Empty)
-            sLigneFormattee = sLigneFormattee & Constantes.pointVirgule & sTmp.Replace(Constantes.tiret, String.Empty) & Constantes.pointVirgule
-        ElseIf InStr(sLigne, Constantes.plus, CompareMethod.Text) > 0 Then
-            sTmp = sLigne.Replace(Constantes.euro, String.Empty)
-            sLigneFormattee = sLigneFormattee & Constantes.pointVirgule & Constantes.pointVirgule & sTmp.Replace("+", String.Empty)
+        If InStr(sLigne, Constantes.Symboles.Tiret, CompareMethod.Text) > 0 Then
+            sTmp = sLigne.Replace(Constantes.Symboles.Euro, String.Empty)
+            sLigneFormattee = sLigneFormattee & Constantes.Symboles.PointVirgule & sTmp.Replace(Constantes.Symboles.Tiret, String.Empty) & Constantes.Symboles.PointVirgule
+        ElseIf InStr(sLigne, Constantes.Symboles.Plus, CompareMethod.Text) > 0 Then
+            sTmp = sLigne.Replace(Constantes.Symboles.Euro, String.Empty)
+            sLigneFormattee = sLigneFormattee & Constantes.Symboles.PointVirgule & Constantes.Symboles.PointVirgule & sTmp.Replace("+", String.Empty)
         Else
-            sLigneFormattee = If(bPresenceDate, sLigneFormattee & sLigne & Constantes.pointVirgule, sLigneFormattee & sLigne & Constantes.espace)
+            sLigneFormattee = If(bPresenceDate, sLigneFormattee & sLigne & Constantes.Symboles.PointVirgule, sLigneFormattee & sLigne & Constantes.Symboles.Espace)
         End If
         Return sLigneFormattee
     End Function

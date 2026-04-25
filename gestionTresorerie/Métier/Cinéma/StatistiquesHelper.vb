@@ -20,7 +20,7 @@
 
 '        Dim liste As New List(Of T)
 
-'        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, $"SELECT * FROM {nomVue}")
+'        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.databases.cinema, $"SELECT * FROM {nomVue}")
 '            Using rdr = cmd.ExecuteReader()
 '                While rdr.Read()
 '                    liste.Add(creator(rdr))
@@ -35,7 +35,7 @@
 '        Dim result As New List(Of StatFilm)
 
 '        Try
-'            Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "selStatsParFilm")
+'            Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.databases.cinema, "selStatsParFilm")
 '                Using rdr = cmd.ExecuteReader()
 
 '                    While rdr.Read()
@@ -86,7 +86,7 @@
 '            {"@DateFin", dateFin}
 '        }
 
-'        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "selSeancesParFilmPeriode", param)
+'        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.databases.cinema, "selSeancesParFilmPeriode", param)
 '            Using rdr = cmd.ExecuteReader()
 '                While rdr.Read()
 

@@ -19,7 +19,7 @@ Public Class ConnexionDB
     ' Accès aux instances singleton
     Public Shared Function GetInstance(sBase As String) As ConnexionDB
         Select Case sBase
-            Case Constantes.bddAgumaaa
+            Case Constantes.DataBases.Agumaaa
                 If _instanceBddAgumaaa Is Nothing Then
                     SyncLock _lockBddAgumaaa
                         If _instanceBddAgumaaa Is Nothing Then
@@ -44,7 +44,7 @@ Public Class ConnexionDB
             End If
 
             Select Case sBase
-                Case Constantes.bddAgumaaa
+                Case Constantes.DataBases.Agumaaa
                     SyncLock _lockBddAgumaaa
                         If _connexionBddAgumaaa Is Nothing OrElse _connexionBddAgumaaa.State = ConnectionState.Closed Then
                             _connexionBddAgumaaa = CreeConnexion(LectureProprietes.connexionString(sBase))
@@ -88,7 +88,7 @@ Public Class ConnexionDB
     ''' </summary>
     Public Sub FermerConnexion(sBase As String)
         Select Case sBase
-            Case Constantes.bddAgumaaa
+            Case Constantes.DataBases.Agumaaa
                 SyncLock _lockBddAgumaaa
                     FermerConnexion(_connexionBddAgumaaa)
                     _connexionBddAgumaaa = Nothing

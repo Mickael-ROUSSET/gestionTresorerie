@@ -40,7 +40,7 @@ Public Class Compte
     End Function
     Public Sub AjouterCompte()
         Dim unused = SqlCommandBuilder.
-            CreateSqlCommand(Constantes.bddAgumaaa, Constantes.sqlInsertCompte,
+            CreateSqlCommand(Constantes.DataBases.Agumaaa, Constantes.Sql.Insertion.Compte,
                              New Dictionary(Of String, Object) From {{"@login", Login},
                                                                      {"@motDePasse", motDePasse},
                                                                      {"@typeAcces", TypeAcces}}
@@ -49,7 +49,7 @@ Public Class Compte
     End Sub
     Public Sub ReinitialiserMotDePasse(nouveauMotDePasse As String)
         Dim unused = SqlCommandBuilder.
-            CreateSqlCommand(Constantes.bddAgumaaa, Constantes.sqlUpdCompte,
+            CreateSqlCommand(Constantes.DataBases.Agumaaa, Constantes.Sql.Update.sqlUpdCompte,
                              New Dictionary(Of String, Object) From {{"@login", Login},
                                                                      {"@motDePasse", nouveauMotDePasse}}
                              ).
@@ -57,7 +57,7 @@ Public Class Compte
     End Sub
     Public Sub SupprimerCompte()
         Dim unused = SqlCommandBuilder.
-            CreateSqlCommand(Constantes.bddAgumaaa, Constantes.sqlDelCompte,
+            CreateSqlCommand(Constantes.DataBases.Agumaaa, Constantes.Sql.Deletion.Compte,
                              New Dictionary(Of String, Object) From {{"@login", Login}}
                              ).
                              ExecuteNonQuery()

@@ -100,7 +100,7 @@ Public Class Tiers
     'Public Shared Function ExtraireTiers() As List(Of (nom As String, prenom As String, raisonSociale As String))
     '    Dim ListeTiers As List(Of (nom As String, prenom As String, raisonSociale As String))
     '    Try
-    '        Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqIdentiteTiers"
+    '        Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "reqIdentiteTiers"
     '                         ).ExecuteReader()
     '            ' Parcourir les résultats et ajouter chaque enregistrement à la liste
     '            While reader.Read()

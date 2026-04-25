@@ -65,7 +65,7 @@ Public Class Categorie
         Dim sLib As String
         Try
             sLib = SqlCommandBuilder.
-            CreateSqlCommand(Constantes.bddAgumaaa, "reqLibCat",
+            CreateSqlCommand(Constantes.DataBases.Agumaaa, "reqLibCat",
                              New Dictionary(Of String, Object) From {{"@Id", Id}}
                              ).
                              ExecuteScalar

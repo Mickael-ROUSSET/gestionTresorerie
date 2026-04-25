@@ -82,7 +82,7 @@ Public Class AppelIReseau
             {"@licenceId", licenceId},
             {"@idTiers", idTiers.Value}
         }
-            Using cmdUpdate = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "updDateMajLicence", param)
+            Using cmdUpdate = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "updDateMajLicence", param)
                 Dim rowsAffected = cmdUpdate.ExecuteNonQuery()
                 If rowsAffected = 0 Then
                     Logger.WARN($"Aucune ligne mise à jour pour LicenceId={licenceId} dans AdherantsGym.")

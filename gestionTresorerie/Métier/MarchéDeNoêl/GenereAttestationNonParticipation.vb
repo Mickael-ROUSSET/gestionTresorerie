@@ -53,7 +53,7 @@ Public Class GenereAttestationNonParticipation
             }
 
                 ' ---- Insertion en base ----
-                SqlCommandBuilder.CreateSqlCommand(Constantes.MarcheDeNoelDB, "insertParticipantMdN", parametres).ExecuteNonQuery()
+                SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.MarcheDeNoel, "insertParticipantMdN", parametres).ExecuteNonQuery()
                 ligne += 1
             End While
         End Using
@@ -168,7 +168,7 @@ Public Class GenereAttestationNonParticipation
         Dim liste As New List(Of Participant)
 
         Using reader As SqlDataReader =
-        SqlCommandBuilder.CreateSqlCommand(Constantes.MarcheDeNoelDB, "selParticipant").ExecuteReader()
+        SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.MarcheDeNoel, "selParticipant").ExecuteReader()
             While reader.Read()
                 liste.Add(New Participant(reader))
             End While

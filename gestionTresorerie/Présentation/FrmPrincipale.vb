@@ -150,7 +150,7 @@ Public Class FrmPrincipale
         End Try
     End Sub
     Private Sub SauvegarderToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SauvegarderToolStripMenuItem.Click
-        Dim dbName As String = "AGUMAAA"
+        Dim dbName As String = Constantes.DataBases.Agumaaa
         Dim dossier As String = "D:\Sauvegardes"
         Dim connectionString As String = ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).GetConnexion(Constantes.DataBases.Agumaaa).ConnectionString
 

@@ -82,7 +82,7 @@ Public Class Seance
         Dim parametres As New Dictionary(Of String, Object) From {
         {"@IdFilm", idFilm}
     }
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "selSeanceIdFilm", parametres)
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.databases.cinema, "selSeanceIdFilm", parametres)
             cmd.Parameters.AddWithValue("@IdFilm", idFilm)
             Using rdr = cmd.ExecuteReader()
                 While rdr.Read()
@@ -163,7 +163,7 @@ Public Class Seance
 
         ' ==== EXÉCUTION ====
 
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "insertSeance", parametres)
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.databases.cinema, "insertSeance", parametres)
             Dim lignes = cmd.ExecuteNonQuery()
 
             If lignes = 0 Then
@@ -180,7 +180,7 @@ Public Class Seance
         Dim parametres As New Dictionary(Of String, Object) From {
                         {"@Id", IdSeance}
                     }
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "delSeance", parametres)
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.databases.cinema, "delSeance", parametres)
             cmd.Parameters.AddWithValue("@Id", IdSeance)
             cmd.ExecuteNonQuery()
         End Using

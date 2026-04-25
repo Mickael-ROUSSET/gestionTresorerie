@@ -42,7 +42,7 @@
         {"@DateCible", dateRef.Date}
     }
 
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "selTarifActifAdate", param)
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, "selTarifActifAdate", param)
             Using rdr = cmd.ExecuteReader()
                 If rdr.Read() Then
                     Return New Tarif With {

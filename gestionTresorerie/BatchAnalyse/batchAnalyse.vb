@@ -230,13 +230,13 @@ Public Class BatchAnalyse
         ' Mettre à jour les compteurs globaux dans RapportTraitement
         For Each kvp As KeyValuePair(Of String, (Integer, Integer, Integer)) In compteursParRepertoire
             ' Mapper le répertoire à un TypeDocument (ajustez selon votre logique)
-            Dim typeDoc As RapportTraitement.TypeDocument
+            Dim typeDoc As Agumaaa.TypeDocument
 
             Select Case kvp.Key.ToLower()
                 Case TypeDocument.Cheque
-                    typeDoc = RapportTraitement.TypeDocument.Cheque
+                    typeDoc = Agumaaa.TypeDocument.Cheque
                 Case TypeDocument.Facture
-                    typeDoc = RapportTraitement.TypeDocument.Facture
+                    typeDoc = Agumaaa.TypeDocument.Facture
                 Case Else
                     RapportTraitement.WriteToLog($"Répertoire inconnu : {kvp.Key}", "WARN")
                     Continue For

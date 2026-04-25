@@ -6,7 +6,7 @@ Public Class BatchMailSender
                                           params As Dictionary(Of String, Object)) As DataTable
 
         Dim dt As New DataTable()
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, nomRequete, params)
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, nomRequete, params)
             Using rdr = cmd.ExecuteReader()
                 dt.Load(rdr)
             End Using

@@ -98,7 +98,7 @@ Public Class Coordonnees
         ' Vérifie si la coordonnée existe
         Dim existe As Boolean
         Using cmdCheck As SqlCommand = SqlCommandBuilder.CreateSqlCommand(
-            Constantes.bddAgumaaa, "existeCoordonnee", New Dictionary(Of String, Object) From {
+            Constantes.DataBases.Agumaaa, "existeCoordonnee", New Dictionary(Of String, Object) From {
             {"@IdTiers", Me.IdTiers}
             })
             Using rdr = cmdCheck.ExecuteReader()
@@ -119,13 +119,13 @@ Public Class Coordonnees
 
         If existe Then
             ' Mise à jour
-            Using cmdUpdate = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "updateCoordonnees", param)
+            Using cmdUpdate = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "updateCoordonnees", param)
                 Dim nb = cmdUpdate.ExecuteNonQuery()
                 Logger.INFO($"Coordonnée mise à jour pour IdTiers={IdTiers}, lignes affectées={nb}")
             End Using
         Else
             ' Insertion
-            Using cmdInsert = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "insertCoordonnees", param)
+            Using cmdInsert = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "insertCoordonnees", param)
                 Dim nb = cmdInsert.ExecuteNonQuery()
                 Logger.INFO($"Coordonnée insérée pour IdTiers={IdTiers}, lignes affectées={nb}")
             End Using

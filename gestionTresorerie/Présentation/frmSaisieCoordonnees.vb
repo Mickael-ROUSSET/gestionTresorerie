@@ -32,7 +32,7 @@ Public Class FrmSaisieCoordonnees
             }
             ' Récupérer les coordonnées du tiers (renvoie Nothing si aucune)
             Dim lstCoord As List(Of Coordonnees) = SqlCommandBuilder.
-                GetEntities(Of Coordonnees)(Constantes.bddAgumaaa, "selCoordonneesByIdTiers", parametres)
+                GetEntities(Of Coordonnees)(Constantes.DataBases.Agumaaa, "selCoordonneesByIdTiers", parametres)
 
             ' Sécurité : vérifier que la liste contient au moins une entrée
             If lstCoord Is Nothing OrElse lstCoord.Count = 0 Then
@@ -163,7 +163,7 @@ Public Class FrmSaisieCoordonnees
 
         Dim reqSqlCoord As String = If(_coord.Id = 0, "insertCoordonnees", "updateCoordonnees")
 
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, reqSqlCoord, parametres)
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, reqSqlCoord, parametres)
             ' INSERT uniquement → récupère SCOPE_IDENTITY()
             If coordonnee.Id = 0 Then
                 coordonnee.Id = Convert.ToInt32(cmd.ExecuteScalar())
@@ -182,7 +182,7 @@ Public Class FrmSaisieCoordonnees
 
         Try
             Using reader = SqlCommandBuilder.
-                CreateSqlCommand(Constantes.bddAgumaaa, "selVillesParCP",
+                CreateSqlCommand(Constantes.DataBases.Agumaaa, "selVillesParCP",
                 New Dictionary(Of String, Object) From {{"@CodePostal", cp}}
             ).ExecuteReader()
                 While reader.Read()

@@ -4,9 +4,9 @@ Public Class _ServiceExport
 
     Public Shared Sub ExecuterExportSQL(cheminDossier As String)
         ' Utilisation de ta classe de connexion existante
-        Dim db = ConnexionDB.GetInstance(Constantes.bddAgumaaa)
+        Dim db = ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa)
 
-        Using conn As SqlConnection = db.GetConnexion(Constantes.bddAgumaaa)
+        Using conn As SqlConnection = db.GetConnexion(Constantes.DataBases.Agumaaa)
             ' S'assurer que la connexion est ouverte
             If conn.State = ConnectionState.Closed Then conn.Open()
 

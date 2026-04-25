@@ -139,7 +139,7 @@ Public Class EntreeCinema
             Dim parametres As New Dictionary(Of String, Object) From {
                         {"@titre", titre}
                     }
-            Dim cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "selFilmParTitre", parametres)
+            Dim cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, "selFilmParTitre", parametres)
             Dim result = cmd.ExecuteScalar()
 
             If result IsNot Nothing AndAlso Not DBNull.Value.Equals(result) Then
@@ -179,7 +179,7 @@ Public Class EntreeCinema
     }
 
         ' ✅ Exécution de la commande
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "insertFilm", parametres)
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, "insertFilm", parametres)
             ' ExecuteScalar retourne le SCOPE_IDENTITY()
             Dim idObj = cmd.ExecuteScalar()
             Dim id As Integer = Convert.ToInt32(idObj)
@@ -199,7 +199,7 @@ Public Class EntreeCinema
                         {"@idFilm", idFilm},
                         {"@dateDebut", dateDebut}
                     }
-            Dim cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "selSeanceIdFilm", parametres)
+            Dim cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, "selSeanceIdFilm", parametres)
             Dim result = cmd.ExecuteScalar()
 
             If result IsNot Nothing AndAlso Not DBNull.Value.Equals(result) Then
@@ -229,7 +229,7 @@ Public Class EntreeCinema
                 {"@nbEntreesGroupeEnfants", seance.NbEntreesGroupeEnfants}
             }
 
-            Dim id = SqlCommandBuilder.CreateSqlCommand(Constantes.cinemaDB, "insertSeance", parametres).ExecuteScalar()
+            Dim id = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, "insertSeance", parametres).ExecuteScalar()
 
             Return Convert.ToInt32(id)
 

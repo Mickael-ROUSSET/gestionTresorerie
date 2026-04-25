@@ -28,7 +28,7 @@ Public Class CreePresentation
     Private Shared Function GetCategories() As List(Of Integer)
         Dim categories As New List(Of Integer)
 
-        Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "reqCategoriesMouvements").ExecuteReader()
+        Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "reqCategoriesMouvements").ExecuteReader()
             While reader.Read()
                 categories.Add(reader.GetSqlInt32(0))
             End While
@@ -81,7 +81,7 @@ Public Class CreePresentation
 
         Using reader As SqlDataReader =
             SqlCommandBuilder.
-            CreateSqlCommand(Constantes.bddAgumaaa, "reqSommeCatMouvements",
+            CreateSqlCommand(Constantes.DataBases.Agumaaa, "reqSommeCatMouvements",
                              New Dictionary(Of String, Object) From {{"@categorie", category}}
                              ).
             ExecuteReader()

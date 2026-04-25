@@ -27,7 +27,7 @@ Public MustInherit Class BaseDataRow
 
         Dim liste As New List(Of T)
 
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, nomRequete, params)
+        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, nomRequete, params)
             Using reader = cmd.ExecuteReader()
                 While reader.Read()
                     Dim obj As New T()

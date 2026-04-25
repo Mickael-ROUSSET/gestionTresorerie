@@ -38,7 +38,7 @@ Public Class FrmChargeRelevé
             Dim sLigne As String = monStreamReader.ReadLine
             While sLigne IsNot Nothing
                 ' Ajouter une zone vide pour la première colonne
-                Dim valeurs As String() = Split(sLigne, Constantes.pointVirgule)
+                Dim valeurs As String() = Split(sLigne, Constantes.Symboles.PointVirgule)
                 Dim nouvelleLigne As Object() = New Object(valeurs.Length) {}
                 nouvelleLigne(0) = String.Empty ' Ajouter une zone vide pour la première colonne
                 Array.Copy(valeurs, 0, nouvelleLigne, 1, valeurs.Length)

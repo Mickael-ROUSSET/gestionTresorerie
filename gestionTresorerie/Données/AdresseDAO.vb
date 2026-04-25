@@ -2,7 +2,7 @@
 
 Public Class AdresseDAO
 
-    Private ReadOnly ConnectionStringConstant As String = Constantes.bddAgumaaa
+    Private ReadOnly ConnectionStringConstant As String = Constantes.DataBases.Agumaaa
 
     '-------------------------------------------------------------------------
     ' Méthode d'aide pour l'exécution simple (Update/Delete)

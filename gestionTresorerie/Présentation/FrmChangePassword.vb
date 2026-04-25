@@ -32,7 +32,7 @@ Public Class FrmChangePassword
 
             ' Mise à jour du mot de passe
             Dim hash = HacherMotDePasse(txtNouveau.Text)
-            Dim unused2 = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "updateMotDePasse",
+            Dim unused2 = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "updateMotDePasse",
                              New Dictionary(Of String, Object) From {
                                  {"@Id", UtilisateurActif.Id},
                                  {"@pwd", hash}
@@ -60,7 +60,7 @@ Public Class FrmChangePassword
     End Function
 
     Private Function VerifierAncienMotDePasse(nomUtilisateur As String, ancienMdp As String) As Boolean
-        Using cn As New SqlConnection(LectureProprietes.connexionString(Constantes.bddAgumaaa))
+        Using cn As New SqlConnection(LectureProprietes.connexionString(Constantes.DataBases.Agumaaa))
             cn.Open()
 
             Dim cmd As New SqlCommand("

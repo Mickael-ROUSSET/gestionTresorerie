@@ -109,7 +109,7 @@ Public Class FrmSaisie
     Private Sub TxtMontant_Leave(sender As Object, e As EventArgs) Handles txtMontant.Leave
         ' Utilisation de Handles TxtMontant.Leave plutôt que TextChanged pour la validation
         ' après que l'utilisateur ait quitté le champ.
-        If Not Regex.Match(txtMontant.Text, Constantes.regExMontant, RegexOptions.IgnoreCase).Success Then
+        If Not Regex.Match(txtMontant.Text, Constantes.Formats.RegExMontant, RegexOptions.IgnoreCase).Success Then
             MessageBox.Show($"Le montant '{txtMontant.Text}' doit être numérique ou respecter le format attendu!")
             ' Remet le focus sur la zone de saisie du montant
             txtMontant.Focus()
@@ -202,7 +202,7 @@ Public Class FrmSaisie
     ''' </summary>
     Private Function GetMontantValue(montantTexte As String, isCredit As Boolean) As Decimal
         Dim montantDecimal As Decimal
-        montantTexte = montantTexte.Trim().Replace(Constantes.espace, String.Empty)
+        montantTexte = montantTexte.Trim().Replace(Constantes.Symboles.Espace, String.Empty)
 
         If Not Decimal.TryParse(montantTexte, NumberStyles.Any, CultureInfo.CurrentCulture, montantDecimal) Then
             Throw New FormatException($"Montant invalide : « {montantTexte} »")
@@ -356,7 +356,7 @@ Public Class FrmSaisie
             }
 
             ' --- Exécuter la requête selIdLibCat --- 
-            Using Reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.bddAgumaaa, "selIdLibCat", parametres).ExecuteReader
+            Using Reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "selIdLibCat", parametres).ExecuteReader
                 If Reader.HasRows Then
                     While Reader.Read()
                         ' Créer une instance concrète implémentant ITypeDoc
