@@ -1,6 +1,5 @@
 ﻿Imports System.Data
 Imports System.Data.SqlClient
-Imports DocumentFormat.OpenXml.Office2010.Excel
 
 Public MustInherit Class BaseDataRow
     ' 🔹 Clé primaire commune à tous les objets métiers
@@ -25,42 +24,40 @@ Public MustInherit Class BaseDataRow
     Optional params As Dictionary(Of String, Object) = Nothing
 ) As List(Of T)
 
-        Dim liste As New List(Of T)
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
 
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, nomRequete, params)
-            Using reader = cmd.ExecuteReader()
-                While reader.Read()
-                    Dim obj As New T()
-                    CType(obj, BaseDataRow).LoadFromReader(reader)
-                    liste.Add(obj)
-                End While
-            End Using
-        End Using
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
 
-        Return liste
+        Dim sqlParams As List(Of SqlParameter) = ConvertParameters(params)
 
+        Return executor.ExecuteNamedReader(
+        nomRequete,
+        sqlParams,
+        Function(reader As SqlDataReader)
+            Dim obj As New T()
+            obj.LoadFromReader(reader)
+            Return obj
+        End Function
+    )
     End Function
+    Private Shared Function ConvertParameters(params As Dictionary(Of String, Object)) As List(Of SqlParameter)
+        Dim result As New List(Of SqlParameter)
 
-    ''' <summary>
-    ''' Initialise cette instance depuis un DataRow (version non partagée).
-    ''' </summary>
-    'Public Overridable Sub LoadFromDataRow(dr As DataRow)
-    '    Dim entity = DataRowUtils.FromDataRowGeneric(Of BaseDataRow)(dr)
-    '    ' Copie des propriétés dans l'instance courante
-    '    For Each prop In entity.GetType().GetProperties()
-    '        Dim currentProp = Me.GetType().GetProperty(prop.Name)
-    '        If currentProp IsNot Nothing AndAlso currentProp.CanWrite Then
-    '            currentProp.SetValue(Me, prop.GetValue(entity))
-    '        End If
-    '    Next
-    'End Sub
-    'Public Shared Function FromDataTable(Of T As {BaseDataRow, New})(dt As DataTable) As List(Of T)
-    '    Dim result As New List(Of T)
-    '    For Each dr As DataRow In dt.Rows
-    '        result.Add(DataRowUtils.FromDataRowGeneric(Of T)(dr))
-    '    Next
-    '    Return result
-    'End Function 
+        If params Is Nothing Then
+            Return result
+        End If
+
+        For Each kvp In params
+            result.Add(New SqlParameter(kvp.Key, If(kvp.Value, DBNull.Value)))
+        Next
+
+        Return result
+    End Function
 
     ''' <summary>
     ''' Fabrique une instance d’une classe dérivée à partir d’une DataRow
