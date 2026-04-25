@@ -3,19 +3,34 @@
 Public Class UtilitairesDgv
     Implements IDataService
 
-    Public Function ExecuterRequete(query As String, Optional parameters As Dictionary(Of String, Object) = Nothing) As DataTable Implements IDataService.ExecuterRequete
-        Dim dt As New DataTable
-        Try
-            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, query, parameters)
-            Using adpt As New SqlDataAdapter(command)
-                Dim unused = adpt.Fill(dt)
-            End Using
+    Public Function ExecuterRequete(query As String,
+                                Optional parameters As Dictionary(Of String, Object) = Nothing) As DataTable _
+                                Implements IDataService.ExecuterRequete
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
 
-            Logger.INFO($"Requête exécutée avec succès : {query}. {dt.Rows.Count} lignes extraites")
-        Catch ex As Exception
-            Logger.ERR($"Erreur lors de l'exécution de la requête {query}. Message: {ex.Message}")
-            Throw
-        End Try
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim sqlText As String = provider.GetSql(query)
+
+        Dim dt As New DataTable()
+
+        Using conn = factory.CreateConnection()
+            Using cmd As New SqlCommand(sqlText, conn)
+                If parameters IsNot Nothing Then
+                    For Each kvp In parameters
+                        cmd.Parameters.Add(New SqlParameter(kvp.Key, If(kvp.Value, DBNull.Value)))
+                    Next
+                End If
+
+                Using adapter As New SqlDataAdapter(cmd)
+                    adapter.Fill(dt)
+                End Using
+            End Using
+        End Using
+
         Return dt
     End Function
     Public Shared Sub selectionneIndiceDvg(indiceCherche As Integer, dgv As DataGridView)
