@@ -7,23 +7,24 @@ Public Class ListeTiers
             extraitListeTiers()
         End If
     End Sub
+    Private Shared Function CreateRepository() As TiersRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
+
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New TiersRepository(executor)
+    End Function
     Public Sub extraitListeTiers()
         Try
-            ' Requête pour récupérer les tiers avec nom et prénom
-            Dim lstTiersPhysique = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, Constantes.Sql.Selection.TiersPhysique)
-            Using monReaderTiers As SqlDataReader = lstTiersPhysique.ExecuteReader()
-                While monReaderTiers.Read()
-                    _listeTiers.Add(New Tiers(monReaderTiers.GetInt32(0), monReaderTiers.GetString(1), monReaderTiers.GetString(2)))
-                End While
-            End Using
+            Dim repo As TiersRepository = CreateRepository()
 
-            ' Requête pour récupérer les tiers avec raison sociale
-            Dim lstTiersMorale = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, Constantes.Sql.Selection.TiersMorale)
-            Using monReaderTiers As SqlDataReader = lstTiersMorale.ExecuteReader()
-                While monReaderTiers.Read()
-                    _listeTiers.Add(New Tiers(monReaderTiers.GetInt32(0), monReaderTiers.GetString(1)))
-                End While
-            End Using
+            _listeTiers.AddRange(repo.LireTiersPhysiques())
+            _listeTiers.AddRange(repo.LireTiersMoraux())
 
             Logger.INFO($"Extraction de {_listeTiers.Count} tiers réussie")
         Catch ex As Exception

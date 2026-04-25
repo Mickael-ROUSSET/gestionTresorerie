@@ -52,6 +52,18 @@ Public Class Tiers
             SousCategorieDefaut = sSousCategorie
         End If
     End Sub
+    Private Shared Function CreateRepository() As TiersRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
+
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New TiersRepository(executor)
+    End Function
 
     Public Overrides Sub LoadFromReader(reader As SqlDataReader)
         'Id = If(reader("Id") Is DBNull.Value, 0, CInt(reader("Id")))
@@ -62,91 +74,21 @@ Public Class Tiers
         SousCategorieDefaut = If(reader("sousCategorieDefaut") Is DBNull.Value, 0, CInt(reader("sousCategorieDefaut")))
     End Sub
     Public Shared Function getCategorieTiers(idTiers As Double) As Integer
-        ' Renvoie la catégorie et la sous catégorie d'un tiers  
-        Dim iCategorie As Integer
-        Dim monReader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "reqCategoriesDefautMouvements",
-                             New Dictionary(Of String, Object) From {{"@Id", idTiers}}
-                             ).ExecuteReader()
-        Do While monReader.Read()
-            Try
-                iCategorie = monReader.GetInt32(0)
-            Catch ex As Exception
-                Dim unused = MsgBox(ex.Message)
-            End Try
-        Loop
-        'TODO : gérer les réponses multiples éventuelles
-        monReader.Close()
-        Return iCategorie
+        Try
+            Return CreateRepository().GetCategorieDefaut(CInt(idTiers))
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors de la récupération de la catégorie du tiers {idTiers} : {ex.Message}")
+            Throw
+        End Try
     End Function
     Public Shared Function getSousCategorieTiers(idTiers As Double) As Integer
-        ' Renvoie la sous catégorie d'un tiers  
-        Dim iSousCategorie As Integer
-        Dim monReader As SqlDataReader = SqlCommandBuilder.
-            CreateSqlCommand(Constantes.DataBases.Agumaaa, "reqSousCategoriesDefautMouvements",
-                             New Dictionary(Of String, Object) From {{"@Id", idTiers}}
-                             ).ExecuteReader()
-        Do While monReader.Read()
-            Try
-                iSousCategorie = monReader.GetInt32(0)
-            Catch ex As Exception
-                Dim unused = MsgBox(ex.Message)
-            End Try
-        Loop
-        'TODO : gérer les réponses multiples éventuelles
-        monReader.Close()
-        Return iSousCategorie
+        Try
+            Return CreateRepository().GetSousCategorieDefaut(CInt(idTiers))
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors de la récupération de la sous-catégorie du tiers {idTiers} : {ex.Message}")
+            Throw
+        End Try
     End Function
-
-    'Public Shared Function ExtraireTiers() As List(Of (nom As String, prenom As String, raisonSociale As String))
-    '    Dim ListeTiers As List(Of (nom As String, prenom As String, raisonSociale As String))
-    '    Try
-    '        Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "reqIdentiteTiers"
-    '                         ).ExecuteReader()
-    '            ' Parcourir les résultats et ajouter chaque enregistrement à la liste
-    '            While reader.Read()
-    '                Dim nom As String = reader("nom").ToString()
-    '                Dim prenom As String = reader("prenom").ToString()
-    '                Dim raisonSociale As String = reader("raisonSociale").ToString()
-
-    '                ' Ajouter les données à la liste
-    '                ListeTiers.Add((nom, prenom, raisonSociale))
-    '            End While
-    '        End Using
-    '        'End Using
-    '    Catch ex As Exception
-    '        Logger.ERR("Erreur lors de l'extraction des données de la table Tiers : " & ex.Message)
-    '    End Try
-    '    Return ListeTiers
-    'End Function
-    'Public Shared Function ConvertirListeTiersEnChaine(listeTiers As List(Of (nom As String, prenom As String, raisonSociale As String))) As String
-    '    ' Utiliser un StringBuilder pour construire la chaîne de caractères efficacement
-    '    Dim sb As New System.Text.StringBuilder()
-
-    '    ' Parcourir chaque élément de la liste et ajouter une ligne pour chaque occurrence
-    '    For Each tiers In listeTiers
-    '        Dim unused = sb.AppendLine($"Nom: {tiers.nom}, Prenom: {tiers.prenom}, Raison Sociale: {tiers.raisonSociale}")
-    '    Next
-
-    '    ' Retourner la chaîne de caractères complète
-    '    Return sb.ToString()
-    'End Function
-    ' --- Méthode Shared pour convertir un DataRow en Tiers ---
-    'Public Shared Function FromDataRow(dr As DataRow) As Tiers
-    '    If dr Is Nothing Then Return Nothing
-
-    '    Dim id As Integer = If(dr.Table.Columns.Contains("Id") AndAlso dr("Id") IsNot DBNull.Value, Convert.ToInt32(dr("Id")), 0)
-    '    Dim categorie As Integer = If(dr.Table.Columns.Contains("categorie") AndAlso dr("categorie") IsNot DBNull.Value, Convert.ToInt32(dr("categorie")), 0)
-    '    Dim sousCategorie As Integer = If(dr.Table.Columns.Contains("sousCategorie") AndAlso dr("sousCategorie") IsNot DBNull.Value, Convert.ToInt32(dr("sousCategorie")), 0)
-
-    '    ' Priorité à la Raison sociale si disponible
-    '    If dr.Table.Columns.Contains("raisonSociale") AndAlso Not String.IsNullOrWhiteSpace(dr("raisonSociale").ToString()) Then
-    '        Return New Tiers(id, dr("raisonSociale").ToString(), categorie, sousCategorie)
-    '    Else
-    '        Dim nom As String = If(dr.Table.Columns.Contains("nom"), dr("nom").ToString(), "")
-    '        Dim prenom As String = If(dr.Table.Columns.Contains("prenom"), dr("prenom").ToString(), "")
-    '        Return New Tiers(id, nom, prenom, categorie, sousCategorie)
-    '    End If
-    'End Function
     Public Overloads Shared Function FromDataRow(dr As DataRow) As Tiers
         If dr Is Nothing Then Return Nothing
 
@@ -179,31 +121,14 @@ Public Class Tiers
     ''' Récupère l'idTiers à partir du nom, prénom et date de naissance du user.
     ''' Utilise la requête/procédure nommée "getIdTiersByNomPrenomDate" (à créer côté base).
     ''' </summary>
-    Public Shared Function GetIdTiersByUser(nom As String, prenom As String, Optional dateNaissance As Date? = Nothing) As Integer
+    Public Shared Function GetIdTiersByUser(nom As String,
+                                        prenom As String,
+                                        Optional dateNaissance As Date? = Nothing) As Integer
         Try
-            ' Simplification de la gestion du DBNull
-            Dim param As New Dictionary(Of String, Object) From {
-            {"@nom", If(String.IsNullOrWhiteSpace(nom), DBNull.Value, nom)},
-            {"@prenom", If(String.IsNullOrWhiteSpace(prenom), DBNull.Value, prenom)},
-            {"@dateNaissance", If(dateNaissance, DBNull.Value)}
-        }
-
-            Using Reader As SqlDataReader = SqlCommandBuilder.
-            CreateSqlCommand(Constantes.DataBases.Agumaaa, "getIdTiersByNomPrenomDate", param).
-            ExecuteReader()
-
-                If Reader.Read() Then
-                    ' Utilisation de votre extension GetValueOrDefault pour plus de sécurité
-                    Return Reader.GetValueOrDefault(Of Integer)(0, 0)
-                End If
-            End Using
-
-            ' Retour par défaut si aucun enregistrement n'est trouvé (Règle BC42353)
-            Return 0
-
+            Return CreateRepository().GetIdTiersByUser(nom, prenom, dateNaissance)
         Catch ex As Exception
             Logger.ERR($"GetIdTiersByUser({prenom} {nom}) : {ex.Message}")
-            Return 0 ' Un Integer ne peut pas être Nothing, on retourne 0
+            Return 0
         End Try
     End Function
 

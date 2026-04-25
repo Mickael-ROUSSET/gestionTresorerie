@@ -6,7 +6,18 @@ Public Class FrmNouveauTiers
     Private _sousCategorieSelectionne As SousCategorie
     Private _pendingCoordonnees As Coordonnees
     Private toolTip1 As ToolTip
+    Private Shared Function CreateTiersRepository() As TiersRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
 
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New TiersRepository(executor)
+    End Function
     Private Sub btnCreerTiers_Click(sender As Object, e As EventArgs) Handles btnCreerTiers.Click
         If String.IsNullOrWhiteSpace(txtNom.Text) AndAlso String.IsNullOrWhiteSpace(txtPrenom.Text) AndAlso String.IsNullOrWhiteSpace(txtRaisonSociale.Text) Then
             MessageBox.Show($"Veuillez remplir le nom : {txtNom.Text} et le prénom {txtPrenom.Text} ou la raison sociale {txtRaisonSociale.Text}", "Champs obligatoires", MessageBoxButtons.OK, MessageBoxIcon.Warning)
@@ -63,58 +74,39 @@ Public Class FrmNouveauTiers
     End Function
 
     Private Function TiersExisteDeJa() As Boolean
-        Dim count As Integer
-
         Try
-            count = CInt(SqlCommandBuilder.
-                     CreateSqlCommand(Constantes.DataBases.Agumaaa, "cptTiers",
-                     New Dictionary(Of String, Object) From {{"@nom", txtNom.Text.Trim()},
-                                                             {"@prenom", txtPrenom.Text.Trim()},
-                                                             {"@raisonSociale", txtRaisonSociale.Text.Trim()}}
-                     ).
-                     ExecuteScalar()
-                     )
+            Return CreateTiersRepository().TiersExiste(
+            txtNom.Text,
+            txtPrenom.Text,
+            txtRaisonSociale.Text)
         Catch ex As Exception
             Logger.ERR($"Erreur lors de la vérification de l'existence du tiers : {ex.Message}")
             Throw
         End Try
-
-        Return count > 0
     End Function
 
     ' Retourne l'Id du tiers inséré (suppose que insertTiers renvoie SCOPE_IDENTITY())
-    Public Shared Function insereNouveauTiers(sRaisonSociale As String, sPrenom As String, sNom As String, iCategorie As Integer?, iSousCategorie As Integer?) As Integer
+    Public Shared Function insereNouveauTiers(sRaisonSociale As String,
+                                          sPrenom As String,
+                                          sNom As String,
+                                          iCategorie As Integer?,
+                                          iSousCategorie As Integer?) As Integer
         Try
-            ' Utilisation de variables locales pour gérer les Nothing/Strings vides proprement
-            Dim params As New Dictionary(Of String, Object) From {
-                        {"@nom", If(String.IsNullOrWhiteSpace(sNom), DBNull.Value, sNom.Trim())},
-                        {"@prenom", If(String.IsNullOrWhiteSpace(sPrenom), DBNull.Value, sPrenom.Trim())},
-                        {"@raisonSociale", If(String.IsNullOrWhiteSpace(sRaisonSociale), DBNull.Value, sRaisonSociale.Trim())},
-                        {"@categorieDefaut", If(iCategorie, DBNull.Value)},
-                        {"@sousCategorieDefaut", If(iSousCategorie, DBNull.Value)},
-                        {"@dateCreation", DateTime.Now},
-                        {"@dateModification", DateTime.Now}
-                    }
+            Dim newId As Integer =
+            CreateTiersRepository().Inserer(sRaisonSociale,
+                                            sPrenom,
+                                            sNom,
+                                            iCategorie,
+                                            iSousCategorie)
 
-            Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "insertTiers", params)
-                Dim result = cmd.ExecuteScalar()
-                Dim newId As Integer = 0
+            If newId > 0 Then
+                Logger.INFO($"Nouveau tiers inséré avec succès. Id={newId}")
+            Else
+                Logger.WARN("L'insertion a eu lieu mais aucun ID n'a été récupéré.")
+            End If
 
-                ' Correction CA1806 : On vérifie le résultat du TryParse
-                If result IsNot Nothing AndAlso result IsNot DBNull.Value Then
-                    If Not Integer.TryParse(result.ToString(), newId) Then
-                        Logger.WARN($"L'ID retourné ({result}) n'est pas un entier valide.")
-                    End If
-                End If
+            Return newId
 
-                If newId > 0 Then
-                    Logger.INFO($"Nouveau tiers inséré avec succès. Id={newId}")
-                Else
-                    Logger.WARN("L'insertion a eu lieu mais aucun ID n'a été récupéré.")
-                End If
-
-                Return newId
-            End Using
         Catch ex As Exception
             Logger.ERR($"Erreur lors de l'insertion du nouveau tiers : {ex.Message}")
             Throw
