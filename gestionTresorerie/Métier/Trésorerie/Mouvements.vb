@@ -254,13 +254,18 @@ Public Class Mouvements
     End Function
     Public Shared Sub SupprimerMouvement(id As Integer)
         Try
-            Dim rowsAffected As Integer = CreateRepository().Supprimer(id)
+            Dim rowsAffected As Integer =
+            CreateRepository().Supprimer(id)
 
-            Logger.INFO($"Nombre de lignes supprimées : {rowsAffected}")
-            Logger.INFO($"Enregistrement supprimé - Id: {id}")
+            If rowsAffected > 0 Then
+                Logger.INFO($"Mouvement supprimé - Id: {id}")
+            Else
+                Logger.WARN($"Aucun mouvement supprimé pour Id: {id}")
+            End If
 
         Catch ex As Exception
-            Logger.ERR($"Erreur lors de la suppression du mouvement : {ex.Message}")
+            Logger.ERR($"Erreur lors de la suppression du mouvement {id} : {ex.Message}")
+            Throw
         End Try
     End Sub
     Public Shared Function VerifParam(categorie As String, sousCategorie As String, tiers As Integer, dateMvt As Date, montant As String, sens As String, etat As String, type As String) As Boolean
