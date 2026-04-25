@@ -25,17 +25,6 @@ Public Class FrmSelectionneDocument
     ' --- Variables de tri ---
     Private colonneTri As String = "dateDoc"
     Private triAscendant As Boolean = False
-
-    ' Pagination
-    Private _offset As Integer = 0
-    Private _taillePage As Integer = 50
-
-    ' Tri
-    Private _colonneTri As String = "dateCreation"
-    Private _ordreTri As String = "DESC"
-
-    ' Filtre
-    Private _whereClause As String = ""
     Public Property idDocSel() As Integer
         Get
             Return _idDocSel
@@ -155,62 +144,18 @@ Public Class FrmSelectionneDocument
         ' Appelle la version générique avec la requête "selDocPagination" qui ramène tous les documents 
         ChargerDocuments()
     End Sub
-    Public Sub chargeListeDoc(montant As Decimal)
-        ' Appelle la version générique avec la requête "reqDocMontant"
-        chargeListeDocInterne()
-    End Sub
-    Public Sub chargeListeDoc(numero As Decimal, montant As Decimal, emetteur As String)
-        ' Appelle la version générique avec la requête "reqDoc" pour les chèques
-        chargeListeDocInterne()
-    End Sub
 
     ' 🔧 Méthode factorisée interne
-    Private Sub chargeListeDocInterne()
-        Try
-            Dim params As New Dictionary(Of String, Object)
+    Public Sub chargeListeDoc(montant As Decimal)
+        filtreRecherche = montant.ToString()
+        pageCourante = 1
+        ChargerDocuments()
+    End Sub
 
-            params.Add("@Offset", _offset)
-            params.Add("@TaillePage", _taillePage)
-            params.Add("@ColonneTri", _colonneTri)
-            params.Add("@OrdreTri", _ordreTri)
-
-            If Not String.IsNullOrWhiteSpace(_whereClause) Then
-                params.Add("@WhereClause", _whereClause)
-            End If
-
-            Dim dt As DataTable =
-            SqlCommandBuilder.ExecuteDataTable(
-                Constantes.DataBases.Agumaaa,
-                "selDocPagination",
-                params
-            )
-
-            lstDocuments.Items.Clear()
-
-            If dt Is Nothing OrElse dt.Rows.Count = 0 Then
-                Exit Sub
-            End If
-
-            For Each row As DataRow In dt.Rows
-                Dim item As New ListViewItem(GetSafeString(row, "idDoc"))
-
-                item.SubItems.Add(GetSafeString(row, "libDoc"))
-                item.SubItems.Add(GetSafeString(row, "categorie"))
-                item.SubItems.Add(GetSafeDateString(row, "dateCreation"))
-                item.SubItems.Add(GetSafeDateString(row, "dateModif"))
-
-                item.Tag = row
-
-                lstDocuments.Items.Add(item)
-            Next
-
-        Catch ex As Exception
-            Logger.ERR("Erreur dans chargeListeDocInterne : " & ex.Message)
-            MessageBox.Show("Erreur lors du chargement des documents : " & ex.Message,
-                        "Erreur",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error)
-        End Try
+    Public Sub chargeListeDoc(numero As Decimal, montant As Decimal, emetteur As String)
+        filtreRecherche = emetteur
+        pageCourante = 1
+        ChargerDocuments()
     End Sub
     Private Shared Function GetSafeString(row As DataRow, columnName As String) As String
         If row Is Nothing OrElse row.Table Is Nothing OrElse Not row.Table.Columns.Contains(columnName) Then

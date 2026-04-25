@@ -5,7 +5,7 @@ Namespace Agumaaa
         Aucun = 0
         <Description("Cheque")>
         Cheque = 1
-        <Description("Cheque")>
+        <Description("FormulaireAdhesion")>
         FormulaireAdhesion = 2
         <Description("QuestionnaireMedical")>
         QuestionnaireMedical = 3
@@ -18,7 +18,7 @@ Namespace Agumaaa
         Public ReadOnly Libelles As New Dictionary(Of TypeDocument, String) From {
             {TypeDocument.Aucun, "Aucun"},
             {TypeDocument.Cheque, "Cheque"},
-            {TypeDocument.FormulaireAdhesion, "Cheque"},
+            {TypeDocument.FormulaireAdhesion, "FormulaireAdhesion"},
             {TypeDocument.QuestionnaireMedical, "QuestionnaireMedical"},
             {TypeDocument.Facture, "Facture"},
             {TypeDocument.Recu, "Recu"}
