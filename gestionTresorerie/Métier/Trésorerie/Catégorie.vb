@@ -21,6 +21,18 @@ Public Class Categorie
         Me.DateFin = dateFin
         Me.Debit = debit
     End Sub
+    Private Shared Function CreateRepository() As CategorieRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
+
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New CategorieRepository(executor)
+    End Function
     Public Overrides Sub LoadFromReader(reader As SqlDataReader)
 
         If reader Is Nothing Then Exit Sub
@@ -62,20 +74,17 @@ Public Class Categorie
         Return $"{Id} - {Libelle}" & If(Debit, " (Débit)", "")
     End Function
     Public Shared Function libelleParId(Id As Integer) As String
-        Dim sLib As String
         Try
-            sLib = SqlCommandBuilder.
-            CreateSqlCommand(Constantes.DataBases.Agumaaa, "reqLibCat",
-                             New Dictionary(Of String, Object) From {{"@Id", Id}}
-                             ).
-                             ExecuteScalar
+            Dim libelle As String = CreateRepository().LibelleParId(Id)
 
-            Logger.INFO($"Requête exécutée avec succès : reqLibCat pour le param {Id} => {sLib}")
+            Logger.INFO($"Requête exécutée avec succès : reqLibCat pour le param {Id} => {libelle}")
+
+            Return libelle
+
         Catch ex As Exception
-            Logger.ERR($"Erreur inattendue lors de l'exécution de la requête. Message: {ex.Message}")
+            Logger.ERR($"Erreur lors de la récupération du libellé de catégorie {Id}. Message: {ex.Message}")
             Throw
         End Try
-        Return sLib
     End Function
 End Class
 
