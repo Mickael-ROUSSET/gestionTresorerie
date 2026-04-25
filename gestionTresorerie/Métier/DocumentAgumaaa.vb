@@ -41,7 +41,18 @@ Public MustInherit Class DocumentAgumaaa
         Me.metaDonnees = metaDonnees
         Me.dateModif = dateModif
     End Sub
+    Private Shared Function CreateRepository() As DocumentRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
 
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New DocumentRepository(executor, factory, provider)
+    End Function
     Public Property ContenuDoc As String
         Get
             Return _contenuDoc
@@ -61,62 +72,43 @@ Public MustInherit Class DocumentAgumaaa
     End Property
     Public Shared Sub InsererDocument(doc As DocumentAgumaaa)
         Try
-            Dim unused = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "insertDocAgumaaa",
-                        New Dictionary(Of String, Object) From {
-                            {"@dateDoc", doc.DateDoc},
-                            {"@cheminDoc", doc.CheminDoc},
-                            {"@categorieDoc", If(String.IsNullOrEmpty(doc.CategorieDoc), DBNull.Value, doc.CategorieDoc)},
-                            {"@sousCategorieDoc", If(String.IsNullOrEmpty(doc.SousCategorieDoc), DBNull.Value, doc.SousCategorieDoc)},
-                            {"@idMvtDoc", If(doc.IdMvtDoc = 0, DBNull.Value, doc.IdMvtDoc)}, ' Gestion si ID est un Integer
-                            {"@metaDonnees", doc.metaDonnees}
-                        }
-                    ).ExecuteNonQuery()
+            CreateRepository().Inserer(doc)
             Logger.INFO($"Document {doc.IdMvtDoc} inséré avec succès.")
         Catch ex As Exception
-            Logger.INFO($"Erreur lors de l'insertion du document : {ex.Message}")
+            Logger.ERR($"Erreur lors de l'insertion du document : {ex.Message}")
+            Throw
         End Try
     End Sub
     Public Shared Function LireDocuments() As DataTable
-        Dim table As New DataTable()
         Try
-            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "reqDocs")
-
-            Using adapter As New SqlDataAdapter(command)
-                Dim unused = adapter.Fill(table)
-            End Using
-            'End Using
+            Return CreateRepository().LireTous()
         Catch ex As Exception
-            Logger.INFO($"Erreur lors de la lecture des documents : {ex.Message}")
+            Logger.ERR($"Erreur lors de la lecture des documents : {ex.Message}")
+            Return New DataTable()
         End Try
-
-        Return table
     End Function
-    Public Shared Sub MettreAJourDocument(idDoc As Integer, dateDoc As Date, contenuDoc As String, cheminDoc As String, categorieDoc As String, sousCategorieDoc As String, idMvtDoc As Integer)
+    Public Shared Sub MettreAJourDocument(idDoc As Integer,
+                                      dateDoc As Date,
+                                      contenuDoc As String,
+                                      cheminDoc As String,
+                                      categorieDoc As String,
+                                      sousCategorieDoc As String,
+                                      idMvtDoc As Integer)
         Try
-            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "updDocs",
-                             New Dictionary(Of String, Object) From {{"@idDoc", idDoc},
-                                                                     {"@dateDoc", dateDoc},
-                                                                     {"@contenuDoc", contenuDoc},
-                                                                     {"@cheminDoc", cheminDoc},
-                                                                     {"@categorieDoc", categorieDoc},
-                                                                     {"@sousCategorieDoc", sousCategorieDoc},
-                                                                     {"@idMvtDoc", idMvtDoc}}
-                             )
-            Dim unused = command.ExecuteNonQuery()
+            CreateRepository().MettreAJour(idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc)
             Logger.INFO($"Document {idDoc} mis à jour avec succès.")
         Catch ex As Exception
-            Logger.INFO($"Erreur lors de la mise à jour du document : {ex.Message}")
+            Logger.ERR($"Erreur lors de la mise à jour du document : {ex.Message}")
+            Throw
         End Try
     End Sub
     Public Shared Sub SupprimerDocument(idDoc As Integer)
         Try
-            Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "delDocs",
-                             New Dictionary(Of String, Object) From {{"@idDoc", idDoc}}
-                             )
-            Dim unused = command.ExecuteNonQuery()
+            CreateRepository().Supprimer(idDoc)
             Logger.INFO($"Document {idDoc} supprimé avec succès.")
         Catch ex As Exception
-            Logger.INFO($"Erreur lors de la suppression du document : {ex.Message}")
+            Logger.ERR($"Erreur lors de la suppression du document : {ex.Message}")
+            Throw
         End Try
     End Sub
     Public MustOverride Function RenommerFichier(sNomFichier As String, Optional sNouveauNom As String = "") As String

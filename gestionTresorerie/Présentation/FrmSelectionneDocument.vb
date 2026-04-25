@@ -54,7 +54,18 @@ Public Class FrmSelectionneDocument
     End Sub
     Private lastTooltipItem As ListViewItem = Nothing
     Private lastTooltipSubItemIndex As Integer = -1
+    Private Shared Function CreateDocumentRepository() As DocumentRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
 
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New DocumentRepository(executor, factory, provider)
+    End Function
     Private Sub lstDocuments_MouseMove(sender As Object, e As MouseEventArgs)
         Dim info As ListViewHitTestInfo = lstDocuments.HitTest(e.Location)
 
@@ -474,15 +485,8 @@ Public Class FrmSelectionneDocument
     End Sub
     'Mise à jour du chemin du document
     Private Sub majCheminDoc(nouveauChemin As String, idDoc As Integer)
-        ' 🧠 Mise à jour de la base via CreateSqlCommand
-        Dim cmd As SqlCommand =
-                SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "updCheminDoc",
-                                                   New Dictionary(Of String, Object) From {{"@cheminDoc", nouveauChemin},
-                                                                                          {"@idDoc", idDoc}
-                                                   })
-        ' Exécuter la requête et obtenir le nombre de lignes affectées
-        Dim rowsAffected As Integer = cmd.ExecuteNonQuery()
-        Logger.INFO($"Nombre de lignes mises à jour : {rowsAffected}")
+        CreateDocumentRepository().MettreAJourChemin(idDoc, nouveauChemin)
+        Logger.INFO($"Chemin du document {idDoc} mis à jour.")
     End Sub
 
     ' 🔹 Lorsqu’une zone de saisie perd le focus → mise à jour du JSON et de la base
@@ -512,16 +516,8 @@ Public Class FrmSelectionneDocument
             renommeFichier(sender, e)
 
             ' 🧠 Mise à jour de la base via CreateSqlCommand
-            Dim cmd As SqlCommand =
-                SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "updateDocumentMetaDonnees",
-                                                    New Dictionary(Of String, Object) From {
-                                                        {"@idDocument", currentDocId},
-                                                        {"@metaDonnees", nouveauJson}
-                                                    }
-                                                )
-            ' Exécuter la requête et obtenir le nombre de lignes affectées
-            Dim rowsAffected As Integer = cmd.ExecuteNonQuery()
-            Logger.INFO($"Nombre de lignes mises à jour : {rowsAffected}")
+            CreateDocumentRepository().MettreAJourMetaDonnees(currentDocId.Value, jsonObj.ToString(Formatting.None))
+
         Catch ex As Exception
             Logger.ERR($"Erreur lors de la mise à jour de la base : {ex.Message}")
         End Try
