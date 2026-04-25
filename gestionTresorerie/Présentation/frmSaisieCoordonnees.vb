@@ -15,8 +15,20 @@ Public Class FrmSaisieCoordonnees
     Public Sub New(idTiers As Integer, Optional enregistrerOnValidate As Boolean = True)
         InitializeComponent()
         _idTiers = idTiers
-        enregistrerOnValidate = enregistrerOnValidate
+        Me.EnregistrerOnValidate = enregistrerOnValidate
     End Sub
+    Private Shared Function CreateAdresseRepository() As AdresseRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
+
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New AdresseRepository(executor)
+    End Function
 
     Private Sub frmSaisieCoordonnees_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If _idTiers > 0 Then
@@ -26,15 +38,9 @@ Public Class FrmSaisieCoordonnees
 
     Private Sub ChargerCoordonnees()
         Try
-            ' --- Préparer le paramètre pour la requête ---
-            Dim parametres As New Dictionary(Of String, Object) From {
-                {"@IdTiers", _idTiers}
-            }
-            ' Récupérer les coordonnées du tiers (renvoie Nothing si aucune)
-            Dim lstCoord As List(Of Coordonnees) = SqlCommandBuilder.
-                GetEntities(Of Coordonnees)(Constantes.DataBases.Agumaaa, "selCoordonneesByIdTiers", parametres)
+            Dim lstCoord As List(Of Coordonnees) =
+            CreateAdresseRepository().LireParTiers(_idTiers)
 
-            ' Sécurité : vérifier que la liste contient au moins une entrée
             If lstCoord Is Nothing OrElse lstCoord.Count = 0 Then
                 _coord = New Coordonnees() With {.IdTiers = _idTiers}
             Else
@@ -145,55 +151,36 @@ Public Class FrmSaisieCoordonnees
 
     ' ─────────── INSERTION EN BASE ───────────
     Public Sub Save(coordonnee As Coordonnees)
-        Validate()
+        If coordonnee Is Nothing Then
+            Throw New ArgumentNullException(NameOf(coordonnee))
+        End If
 
-        Dim parametres As New Dictionary(Of String, Object)
+        coordonnee.Validate()
 
-        With coordonnee
-            parametres.Add("@Id", _coord.Id)
-            parametres.Add("@IdTiers", _coord.IdTiers)
-            parametres.Add("@Rue1", .Rue1)
-            parametres.Add("@Rue2", .Rue2)
-            parametres.Add("@CodePostal", .CodePostal)
-            parametres.Add("@Ville", .Ville)
-            parametres.Add("@Pays", .Pays)
-            parametres.Add("@Email", If(String.IsNullOrWhiteSpace(.Email), DBNull.Value, .Email))
-            parametres.Add("@Telephone", If(String.IsNullOrWhiteSpace(.Telephone), DBNull.Value, .Telephone))
-        End With
+        Dim repo As AdresseRepository = CreateAdresseRepository()
 
-        Dim reqSqlCoord As String = If(_coord.Id = 0, "insertCoordonnees", "updateCoordonnees")
+        If coordonnee.Id = 0 Then
+            coordonnee.Id = repo.Inserer(coordonnee)
+            Logger.INFO($"Coordonnée insérée pour IdTiers={coordonnee.IdTiers}, Id={coordonnee.Id}")
+        Else
+            Dim nb As Integer = repo.MettreAJour(coordonnee)
+            Logger.INFO($"Coordonnée mise à jour pour IdTiers={coordonnee.IdTiers}, lignes affectées={nb}")
+        End If
 
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, reqSqlCoord, parametres)
-            ' INSERT uniquement → récupère SCOPE_IDENTITY()
-            If coordonnee.Id = 0 Then
-                coordonnee.Id = Convert.ToInt32(cmd.ExecuteScalar())
-            Else
-                cmd.ExecuteNonQuery()
-            End If
-        End Using
+        _coord = coordonnee
     End Sub
 
     Public Function GetVillesByCodePostal(cp As String) As List(Of String)
-        Dim result As New List(Of String)
-
         If String.IsNullOrWhiteSpace(cp) OrElse cp.Length < 4 Then
-            Return result
+            Return New List(Of String)
         End If
 
         Try
-            Using reader = SqlCommandBuilder.
-                CreateSqlCommand(Constantes.DataBases.Agumaaa, "selVillesParCP",
-                New Dictionary(Of String, Object) From {{"@CodePostal", cp}}
-            ).ExecuteReader()
-                While reader.Read()
-                    result.Add(reader.GetString(0))
-                End While
-            End Using
+            Return CreateAdresseRepository().LireVillesParCodePostal(cp)
         Catch ex As Exception
             Logger.ERR($"Erreur GetVillesByCodePostal {ex.Message}")
+            Return New List(Of String)
         End Try
-
-        Return result
     End Function
 
     Private Sub ChargeNomsCommunes(codePostal As String)

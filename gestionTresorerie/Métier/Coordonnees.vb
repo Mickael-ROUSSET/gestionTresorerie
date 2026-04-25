@@ -40,6 +40,18 @@ Public Class Coordonnees
 
         Validate()
     End Sub
+    Private Shared Function CreateRepository() As AdresseRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
+
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New AdresseRepository(executor)
+    End Function
 
     ''' <summary>
     ''' Valide l'email et le téléphone si fournis
@@ -93,43 +105,16 @@ Public Class Coordonnees
     ''' </summary>
     Public Sub InsererOuMettreAJour()
         If IdTiers = 0 Then Throw New InvalidOperationException("IdTiers doit être renseigné.")
+
         Validate()
 
-        ' Vérifie si la coordonnée existe
-        Dim existe As Boolean
-        Using cmdCheck As SqlCommand = SqlCommandBuilder.CreateSqlCommand(
-            Constantes.DataBases.Agumaaa, "existeCoordonnee", New Dictionary(Of String, Object) From {
-            {"@IdTiers", Me.IdTiers}
-            })
-            Using rdr = cmdCheck.ExecuteReader()
-                existe = rdr.HasRows
-            End Using
-        End Using
-
-        Dim param As New Dictionary(Of String, Object) From {
-            {"@IdTiers", Me.IdTiers},
-            {"@Rue1", If(String.IsNullOrWhiteSpace(Me.Rue1), DBNull.Value, Me.Rue1)},
-            {"@Rue2", If(String.IsNullOrWhiteSpace(Me.Rue2), DBNull.Value, Me.Rue2)},
-            {"@CodePostal", If(String.IsNullOrWhiteSpace(Me.CodePostal), DBNull.Value, Me.CodePostal)},
-            {"@Ville", If(String.IsNullOrWhiteSpace(Me.Ville), DBNull.Value, Me.Ville)},
-            {"@Pays", If(String.IsNullOrWhiteSpace(Me.Pays), DBNull.Value, Me.Pays)},
-            {"@Email", If(String.IsNullOrWhiteSpace(Me.Email), DBNull.Value, Me.Email)},
-            {"@Telephone", If(String.IsNullOrWhiteSpace(Me.Telephone), DBNull.Value, Me.Telephone)}
-        }
-
-        If existe Then
-            ' Mise à jour
-            Using cmdUpdate = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "updateCoordonnees", param)
-                Dim nb = cmdUpdate.ExecuteNonQuery()
-                Logger.INFO($"Coordonnée mise à jour pour IdTiers={IdTiers}, lignes affectées={nb}")
-            End Using
-        Else
-            ' Insertion
-            Using cmdInsert = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "insertCoordonnees", param)
-                Dim nb = cmdInsert.ExecuteNonQuery()
-                Logger.INFO($"Coordonnée insérée pour IdTiers={IdTiers}, lignes affectées={nb}")
-            End Using
-        End If
+        Try
+            Dim nb As Integer = CreateRepository().InsererOuMettreAJour(Me)
+            Logger.INFO($"Coordonnée insérée/mise à jour pour IdTiers={IdTiers}, résultat={nb}")
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors de l'insertion/mise à jour des coordonnées IdTiers={IdTiers} : {ex.Message}")
+            Throw
+        End Try
     End Sub
 
     ' --- Retourne une chaîne descriptive ---
