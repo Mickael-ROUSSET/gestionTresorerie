@@ -60,6 +60,7 @@ Public Class Mouvements
 
         Return New MouvementRepository(executor, factory, provider)
     End Function
+
     Public Shared Sub InsereMouvement(mouvement)
         Try
             'Les infos de création du mouvement sont récupérées sur la fenêtre de saisie 
@@ -206,15 +207,17 @@ Public Class Mouvements
         End Try
     End Sub
     Public Shared Function Existe(mouvement As Mouvements) As Boolean
+        If mouvement Is Nothing Then Throw New ArgumentNullException(NameOf(mouvement))
+
         Try
             Dim bExiste As Boolean = CreateRepository().Existe(mouvement)
 
-            Logger.DBG($"Vérification de l'existence du mouvement réussie. Date: {mouvement.DateMvt}, Montant: {mouvement.Montant}, Sens: {mouvement.Sens}")
+            Logger.DBG($"Vérification existence OK - Date: {mouvement.DateMvt}, Montant: {mouvement.Montant}, Sens: {mouvement.Sens}")
 
             Return bExiste
 
         Catch ex As Exception
-            Logger.ERR($"Erreur lors de la vérification de l'existence du mouvement. Message: {ex.Message} " & mouvement.mvtValeursConcatenees())
+            Logger.ERR($"Erreur lors de la vérification d'existence : {ex.Message} {mouvement.mvtValeursConcatenees()}")
             Throw
         End Try
     End Function
