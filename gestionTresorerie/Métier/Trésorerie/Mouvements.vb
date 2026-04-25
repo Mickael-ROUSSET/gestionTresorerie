@@ -61,21 +61,25 @@ Public Class Mouvements
         Return New MouvementRepository(executor, factory, provider)
     End Function
 
-    Public Shared Sub InsereMouvement(mouvement)
+    Public Shared Sub InsererMouvementEnBase(mouvement As Mouvements)
+        ArgumentNullException.ThrowIfNull(mouvement)
+
         Try
-            'Les infos de création du mouvement sont récupérées sur la fenêtre de saisie 
-            Dim dtMvtsIdentiques As DataTable = Mouvements.ChargerMouvementsSimilaires(mouvement)
-            If dtMvtsIdentiques.Rows.Count > 0 Then
-                'Un mouvement identique existe déjà
-                Logger.WARN($"Le mouvement existe déjà : {mouvement.ObtenirValeursConcatenees}")
+            Dim lignes As Integer = CreateRepository().Inserer(mouvement)
+
+            If lignes = 1 Then
+                Logger.INFO("Mouvement inséré")
             Else
-                Mouvements.InsererMouvementEnBase(mouvement)
-                'Logger.INFO($"Insertion du mouvement pour : {mouvement.mvtValeursConcatenees}")
-                Logger.INFO($"Insertion du mouvement pour  ")
+                Logger.WARN($"Insertion anormale : {lignes} ligne(s) affectée(s).")
             End If
+
+        Catch sqlEx As SqlException
+            Logger.ERR($"SQL Error {sqlEx.Number}: {sqlEx.Message}" & vbCrLf & mouvement.mvtValeursConcatenees())
+            Throw
+
         Catch ex As Exception
-            Dim unused = MsgBox($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
-            Logger.ERR($"Erreur {ex.Message} lors de l'insertion des données {mouvement.ObtenirValeursConcatenees}")
+            Logger.ERR($"Erreur insertion : {ex.Message}" & vbCrLf & mouvement.mvtValeursConcatenees())
+            Throw
         End Try
     End Sub
 
@@ -143,53 +147,6 @@ Public Class Mouvements
         If Not IsDate(DateMvt) AndAlso Sens = String.Empty AndAlso Montant = String.Empty Then
             Err.Raise("Erreur dans la création du mouvement : " & mvtValeursConcatenees())
         End If
-    End Sub
-    'Public Shared Sub InsererMouvementEnBase(mouvement As Mouvements)
-    '    Try
-    '        Dim db = ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa)
-    '        Using conn As SqlConnection = db.GetConnexion(Constantes.DataBases.Agumaaa)
-
-    '            Dim sql As String = "INSERT INTO [Mouvements] (categorie, montant, sens, tiers, dateMvt, dateCreation, note) " &
-    '                             "VALUES (@cat, @mont, @sens, @tiers, @dMvt, @dCrea, @note)"
-
-    '            Using cmd As New SqlCommand(sql, conn)
-    '                ' Typage explicite pour garantir le plan d'exécution
-    '                cmd.Parameters.Add("@categorie", SqlDbType.Int).Value = 20
-    '                cmd.Parameters.Add("@montant", SqlDbType.Decimal).Value = -263.22
-    '                cmd.Parameters.Add("@sens", SqlDbType.Bit).Value = 0
-    '                cmd.Parameters.Add("@tiers", SqlDbType.Int).Value = 1
-    '                cmd.Parameters.Add("@dateCreation", SqlDbType.Date).Value = New DateTime(Now)
-    '                cmd.Parameters.Add("@dCrea", SqlDbType.Date).Value = DateTime.Now
-    '                cmd.Parameters.Add("@note", SqlDbType.NVarChar, 500).Value = "TEST RESET INSTANCE"
-
-    '                cmd.ExecuteNonQuery()
-    '                MessageBox.Show("L'insertion a fonctionné ! Le moteur est réparé.", "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information)
-    '            End Using
-    '        End Using
-    '    Catch ex As Exception
-    '        Logger.ERR("Erreur après reset : " & ex.Message)
-    '        MessageBox.Show("Détails de l'erreur : " & ex.ToString())
-    '    End Try
-    'End Sub
-    Public Shared Sub InsererMouvementEnBase(mouvement As Mouvements)
-        ArgumentNullException.ThrowIfNull(mouvement)
-
-        Try
-            Dim lignes As Integer = CreateRepository().Inserer(mouvement)
-
-            If lignes = 1 Then
-                Logger.INFO("Mouvement inséré")
-            Else
-                Logger.WARN($"Insertion anormale : {lignes} ligne(s) affectée(s).")
-            End If
-
-        Catch sqlEx As SqlException
-            Logger.ERR($"SQL Error {sqlEx.Number}: {sqlEx.Message}" & vbCrLf & mouvement.mvtValeursConcatenees())
-            Throw
-        Catch ex As Exception
-            Logger.ERR($"Erreur insertion : {ex.Message}" & vbCrLf & mouvement.mvtValeursConcatenees())
-            Throw
-        End Try
     End Sub
     Public Shared Sub MettreAJourIdDoc(idMouvement As Integer, nouvelIdDoc As Integer)
         Try
