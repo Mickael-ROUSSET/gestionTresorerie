@@ -1,17 +1,21 @@
 ﻿Imports System.IO
 
 Public Class BatchMailSender
+    Private Shared Function CreateRepository() As BatchAnalyseRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
 
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+
+        Return New BatchAnalyseRepository(factory, provider)
+    End Function
     Private Function ExtractDestinataires(nomRequete As String,
-                                          params As Dictionary(Of String, Object)) As DataTable
+                                      params As Dictionary(Of String, Object)) As DataTable
 
-        Dim dt As New DataTable()
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, nomRequete, params)
-            Using rdr = cmd.ExecuteReader()
-                dt.Load(rdr)
-            End Using
-        End Using
-        Return dt
+        Return CreateRepository().ExtraireDataTable(nomRequete, params)
     End Function
 
     Private Shared Function ApplyReplacements(template As String, dr As DataRow, mapping As Dictionary(Of String, String)) As String
