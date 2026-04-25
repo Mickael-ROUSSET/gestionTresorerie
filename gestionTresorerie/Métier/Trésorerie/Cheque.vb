@@ -28,7 +28,18 @@ Public Class Cheque
 
     Public Sub New()
     End Sub
+    Private Shared Function CreateRepository() As ChequeRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
 
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New ChequeRepository(executor)
+    End Function
     ''' <summary>
     ''' Analyse le JSON complexe renvoyé par Gemini et mappe les champs vers les propriétés de l'objet.
     ''' </summary>
@@ -62,25 +73,22 @@ Public Class Cheque
 
     Public Shared Sub AfficherImage(idDoc As Integer, pbBox As PictureBox)
         Try
-            ' Effacer l'image précédemment affichée
             pbBox.Image = Nothing
-            Dim imageData As Object = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "reqImagesChq",
-                                           New Dictionary(Of String, Object) From {{"@Id", idDoc}
-                                            }).
-                                            ExecuteScalar()
-            If imageData IsNot Nothing AndAlso TypeOf imageData Is Byte() Then
-                ' Convertir les données binaires en objet Image
-                Dim imageBytes As Byte() = DirectCast(imageData, Byte())
-                Using ms As New IO.MemoryStream(imageBytes)
-                    Dim image As Image = Image.FromStream(ms)
-                    ' Afficher l'image dans le PictureBox
+
+            Dim imageBytes As Byte() = CreateRepository().LireImageCheque(idDoc)
+
+            If imageBytes Is Nothing OrElse imageBytes.Length = 0 Then
+                Logger.INFO($"Aucune image trouvée pour cet enregistrement : {idDoc}.")
+                Exit Sub
+            End If
+
+            Using ms As New IO.MemoryStream(imageBytes)
+                Using image As Image = Image.FromStream(ms)
                     pbBox.SizeMode = PictureBoxSizeMode.Zoom
                     pbBox.Image = AfficherTiersSuperieurImage(image, 0.33)
                 End Using
-            Else
-                Logger.INFO($"Aucune image trouvée pour cet enregistrement : {idDoc}.")
-            End If
-            'End Using
+            End Using
+
         Catch ex As Exception
             Logger.ERR($"Erreur lors de la récupération de l'image : {idDoc}, {ex.Message}")
         End Try
