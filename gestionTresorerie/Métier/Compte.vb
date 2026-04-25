@@ -10,6 +10,18 @@ Public Class Compte
         Me.motDePasse = HashPasswordWithSalt(motDePasse)
         Me.TypeAcces = typeAcces
     End Sub
+    Private Shared Function CreateRepository() As CompteRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
+
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New CompteRepository(executor)
+    End Function
     Private Shared Function HashPasswordWithSalt(password As String, Optional sel As String = "") As String
         ' Vérifier si le mot de passe ou le sel est nul ou vide
         If String.IsNullOrEmpty(password) OrElse String.IsNullOrEmpty(sel) Then
@@ -39,27 +51,14 @@ Public Class Compte
         Return builder.ToString()
     End Function
     Public Sub AjouterCompte()
-        Dim unused = SqlCommandBuilder.
-            CreateSqlCommand(Constantes.DataBases.Agumaaa, Constantes.Sql.Insertion.Compte,
-                             New Dictionary(Of String, Object) From {{"@login", Login},
-                                                                     {"@motDePasse", motDePasse},
-                                                                     {"@typeAcces", TypeAcces}}
-                             ).
-                             ExecuteNonQuery()
+        CreateRepository().Inserer(Me)
     End Sub
-    Public Sub ReinitialiserMotDePasse(nouveauMotDePasse As String)
-        Dim unused = SqlCommandBuilder.
-            CreateSqlCommand(Constantes.DataBases.Agumaaa, Constantes.Sql.Update.sqlUpdCompte,
-                             New Dictionary(Of String, Object) From {{"@login", Login},
-                                                                     {"@motDePasse", nouveauMotDePasse}}
-                             ).
-                             ExecuteNonQuery()
+
+    Public Sub ReinitialiserMotDePasse()
+        CreateRepository().MettreAJour(Me)
     End Sub
+
     Public Sub SupprimerCompte()
-        Dim unused = SqlCommandBuilder.
-            CreateSqlCommand(Constantes.DataBases.Agumaaa, Constantes.Sql.Deletion.Compte,
-                             New Dictionary(Of String, Object) From {{"@login", Login}}
-                             ).
-                             ExecuteNonQuery()
+        CreateRepository().Supprimer(Me.Id)
     End Sub
 End Class
