@@ -21,6 +21,35 @@ Public Class SousCategorie
         Me.DateFin = dateFin
         Me.idCategorie = idCategorie
     End Sub
+    Private Shared Function CreateRepository() As SousCategorieRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
+
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New SousCategorieRepository(executor)
+    End Function
+    Public Shared Function LireToutes() As List(Of SousCategorie)
+        Try
+            Return CreateRepository().LireToutes()
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors de la lecture des sous-catégories : {ex.Message}")
+            Throw
+        End Try
+    End Function
+
+    Public Shared Function LireParCategorie(idCategorie As Integer) As List(Of SousCategorie)
+        Try
+            Return CreateRepository().LireParCategorie(idCategorie)
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors de la lecture des sous-catégories de la catégorie {idCategorie} : {ex.Message}")
+            Throw
+        End Try
+    End Function
     Public Overrides Sub LoadFromReader(reader As SqlDataReader)
 
         If reader Is Nothing Then Exit Sub
@@ -36,19 +65,33 @@ Public Class SousCategorie
         End If
 
         ' DateDebut (nullable)
-        If Not reader.IsDBNull(reader.GetOrdinal("DateDebut")) Then
+        If HasColumn(reader, "DateDebut") AndAlso Not reader.IsDBNull(reader.GetOrdinal("DateDebut")) Then
             DateDebut = reader.GetDateTime(reader.GetOrdinal("DateDebut"))
         Else
             DateDebut = Nothing
         End If
 
-        ' DateFin (nullable)
-        If Not reader.IsDBNull(reader.GetOrdinal("DateFin")) Then
+        ' DateFin (nullable) 
+        If HasColumn(reader, "DateFin") AndAlso Not reader.IsDBNull(reader.GetOrdinal("DateFin")) Then
             DateFin = reader.GetDateTime(reader.GetOrdinal("DateFin"))
         Else
             DateFin = Nothing
         End If
 
+        'Id Catégorie
+        If HasColumn(reader, "idCategorie") AndAlso Not reader.IsDBNull(reader.GetOrdinal("idCategorie")) Then
+            idCategorie = reader.GetInt32(reader.GetOrdinal("idCategorie"))
+        Else
+            idCategorie = Nothing
+        End If
     End Sub
+    Private Shared Function HasColumn(reader As SqlDataReader, columnName As String) As Boolean
+        For i As Integer = 0 To reader.FieldCount - 1
+            If String.Equals(reader.GetName(i), columnName, StringComparison.OrdinalIgnoreCase) Then
+                Return True
+            End If
+        Next
 
+        Return False
+    End Function
 End Class
