@@ -141,49 +141,107 @@ Public Class FrmSelectionneDocument
     End Function
 
     Public Sub chargeListeDoc()
-        ' Appelle la version générique avec la requête "selDocPagination" qui ramène tous les documents 
+        filtreRecherche = ""
+        pageCourante = 1
         ChargerDocuments()
     End Sub
 
-    ' 🔧 Méthode factorisée interne
     Public Sub chargeListeDoc(montant As Decimal)
-        filtreRecherche = montant.ToString()
         pageCourante = 1
-        ChargerDocuments()
+        ChargerDocumentsParMontant(montant)
     End Sub
 
     Public Sub chargeListeDoc(numero As Decimal, montant As Decimal, emetteur As String)
-        filtreRecherche = emetteur
         pageCourante = 1
-        ChargerDocuments()
+        ChargerDocumentsCheque(numero, montant, emetteur)
     End Sub
-    Private Shared Function GetSafeString(row As DataRow, columnName As String) As String
-        If row Is Nothing OrElse row.Table Is Nothing OrElse Not row.Table.Columns.Contains(columnName) Then
+    Private Sub ChargerDocumentsParMontant(montant As Decimal)
+        Try
+            Dim cmd As SqlCommand =
+            SqlCommandBuilder.CreateSqlCommand(
+                Constantes.DataBases.Agumaaa,
+                "reqDocMontant",
+                New Dictionary(Of String, Object) From {
+                    {"@montant", montant}
+                })
+
+            ChargerListViewDepuisReader(cmd.ExecuteReader())
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors du chargement des documents par montant : {ex.Message}")
+            MessageBox.Show("Erreur lors du chargement des documents par montant : " & ex.Message,
+                        "Erreur",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error)
+        End Try
+    End Sub
+
+    Private Sub ChargerDocumentsCheque(numero As Decimal, montant As Decimal, emetteur As String)
+        Try
+            Dim cmd As SqlCommand =
+            SqlCommandBuilder.CreateSqlCommand(
+                Constantes.DataBases.Agumaaa,
+                "reqDoc",
+                New Dictionary(Of String, Object) From {
+                    {"@numero", numero},
+                    {"@montant", montant},
+                    {"@emetteur", "%" & emetteur & "%"}
+                })
+
+            ChargerListViewDepuisReader(cmd.ExecuteReader())
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors du chargement des documents chèque : {ex.Message}")
+            MessageBox.Show("Erreur lors du chargement des documents chèque : " & ex.Message,
+                        "Erreur",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error)
+        End Try
+    End Sub
+    Private Sub ChargerListViewDepuisReader(reader As SqlDataReader)
+        lstDocuments.Items.Clear()
+
+        Using reader
+            While reader.Read()
+                AjouterDocumentDansListe(reader)
+            End While
+        End Using
+
+        MajBoutonsPagination()
+    End Sub
+
+    Private Sub AjouterDocumentDansListe(r As SqlDataReader)
+        Dim it As New ListViewItem(GetReaderString(r, "idDoc"))
+
+        it.SubItems.Add(GetReaderDateString(r, "dateDoc"))
+        it.SubItems.Add(GetReaderString(r, "cheminDoc"))
+        it.SubItems.Add(GetReaderString(r, "categorieDoc"))
+        it.SubItems.Add(GetReaderString(r, "sousCategorieDoc"))
+        it.SubItems.Add(GetReaderString(r, "idMvtDoc"))
+        it.SubItems.Add(GetReaderString(r, "metaDonnees"))
+        it.SubItems.Add(GetReaderDateString(r, "dateModif"))
+
+        lstDocuments.Items.Add(it)
+    End Sub
+
+    Private Shared Function GetReaderString(reader As SqlDataReader, columnName As String) As String
+        Dim ordinal As Integer = reader.GetOrdinal(columnName)
+
+        If reader.IsDBNull(ordinal) Then
             Return String.Empty
         End If
 
-        If row(columnName) Is DBNull.Value Then
-            Return String.Empty
-        End If
-
-        Return row(columnName).ToString()
+        Return reader.GetValue(ordinal).ToString()
     End Function
 
-    Private Shared Function GetSafeDateString(row As DataRow, columnName As String) As String
-        If row Is Nothing OrElse row.Table Is Nothing OrElse Not row.Table.Columns.Contains(columnName) Then
+    Private Shared Function GetReaderDateString(reader As SqlDataReader, columnName As String) As String
+        Dim ordinal As Integer = reader.GetOrdinal(columnName)
+
+        If reader.IsDBNull(ordinal) Then
             Return String.Empty
         End If
 
-        If row(columnName) Is DBNull.Value Then
-            Return String.Empty
-        End If
-
-        Dim dt As DateTime
-        If DateTime.TryParse(row(columnName).ToString(), dt) Then
-            Return dt.ToString("dd/MM/yyyy")
-        End If
-
-        Return row(columnName).ToString()
+        Return Convert.ToDateTime(reader.GetValue(ordinal)).ToString("dd/MM/yyyy HH:mm")
     End Function
     Public Sub alimListeDoc(tabDocuments As List(Of DocumentAgumaaa))
         ' Configurer le ListView
@@ -596,35 +654,16 @@ Public Class FrmSelectionneDocument
     ' ============================================
     Private Sub ChargerDocuments()
         Try
-            ' --- Clause WHERE pour la recherche ---
-            'Dim whereClause As String = filtreRecherche
-
-            ' --- Comptage total ---  
-            'totalDocuments = cptDocumentsPagines("%" & filtreRecherche & "%")
             totalDocuments = cptDocumentsPagines()
 
-            ' --- Pagination + Tri dynamique ---
             Dim offset As Integer = (pageCourante - 1) * taillePage
             Dim ordreTri As String = If(triAscendant, "ASC", "DESC")
 
-            Using r = GetDocumentsPagines(offset, taillePage, colonneTri, ordreTri)
+            Using reader = GetDocumentsPagines(offset, taillePage, colonneTri, ordreTri)
                 lstDocuments.Items.Clear()
-                While r.Read()
-                    'La requête ramène : idDoc, dateDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees, dateModif
-                    Dim it As New ListViewItem(r("idDoc").ToString())
-                    it.SubItems.Add(Convert.ToDateTime(r("dateDoc")).ToString("dd/MM/yyyy HH:mm"))
-                    it.SubItems.Add(r("cheminDoc").ToString())
-                    it.SubItems.Add(r("categorieDoc").ToString())
-                    it.SubItems.Add(r("sousCategorieDoc").ToString())
-                    it.SubItems.Add(r("idMvtDoc").ToString())
-                    it.SubItems.Add(r("metaDonnees").ToString())
-                    Dim dateModifText As String = ""
-                    If Not Convert.IsDBNull(r("dateModif")) Then
-                        dateModifText = Convert.ToDateTime(r("dateModif")).ToString("dd/MM/yyyy HH:mm")
-                    End If
-                    it.SubItems.Add(dateModifText)
 
-                    lstDocuments.Items.Add(it)
+                While reader.Read()
+                    AjouterDocumentDansListe(reader)
                 End While
             End Using
 
@@ -632,6 +671,10 @@ Public Class FrmSelectionneDocument
 
         Catch ex As Exception
             Logger.ERR($"Erreur lors du chargement des documents : {ex.Message}")
+            MessageBox.Show("Erreur lors du chargement des documents : " & ex.Message,
+                        "Erreur",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -715,29 +758,37 @@ Public Class FrmSelectionneDocument
     ' ====== TRI PAR COLONNE =====================
     ' ============================================
     Private Sub lstDocuments_ColumnClick(sender As Object, e As ColumnClickEventArgs) Handles lstDocuments.ColumnClick
-        Dim nomColonne As String = lstDocuments.Columns(e.Column).Text
+        Dim nouvelleColonne As String
 
-        ' Adapter au nom réel de la colonne SQL
-        Select Case nomColonne
-            Case "idDoc" : nomColonne = "idDoc"
-            Case "DateCreation" : nomColonne = "DateCreation"
-            Case "cheminDoc" : nomColonne = "cheminDoc"
-            Case "categorieDoc" : nomColonne = "categorieDoc"
-            Case "sousCategorieDoc" : nomColonne = "sousCategorieDoc"
-            Case "idMvtDoc" : nomColonne = "idMvtDoc"
-            Case "metaDonnees" : nomColonne = "metaDonnees"
-            Case "dateModif" : nomColonne = "dateModif"
+        Select Case e.Column
+            Case 0
+                nouvelleColonne = "idDoc"
+            Case 1
+                nouvelleColonne = "dateDoc"
+            Case 2
+                nouvelleColonne = "cheminDoc"
+            Case 3
+                nouvelleColonne = "categorieDoc"
+            Case 4
+                nouvelleColonne = "sousCategorieDoc"
+            Case 5
+                nouvelleColonne = "idMvtDoc"
+            Case 6
+                nouvelleColonne = "metaDonnees"
+            Case 7
+                nouvelleColonne = "dateModif"
+            Case Else
+                nouvelleColonne = "dateDoc"
         End Select
 
-        ' Si on clique sur la même colonne -> inversion du tri
-        If nomColonne = colonneTri Then
+        If nouvelleColonne = colonneTri Then
             triAscendant = Not triAscendant
         Else
-            colonneTri = nomColonne
+            colonneTri = nouvelleColonne
             triAscendant = True
         End If
 
-        ' Recharger la liste
+        pageCourante = 1
         ChargerDocuments()
     End Sub
 
