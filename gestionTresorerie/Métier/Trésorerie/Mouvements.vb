@@ -234,10 +234,15 @@ Public Class Mouvements
         Return Existe(mouvement)
     End Function
     Public Shared Function ChargerMouvementsSimilaires(mouvement As Mouvements) As DataTable
-        Try
-            Dim dataTable As DataTable = CreateRepository().ChargerMouvementsSimilaires(mouvement)
+        If mouvement Is Nothing Then
+            Throw New ArgumentNullException(NameOf(mouvement))
+        End If
 
-            Logger.INFO($"Chargement des mouvements similaires réussi : {mouvement.mvtValeursConcatenees()}")
+        Try
+            Dim dataTable As DataTable =
+            CreateRepository().ChargerMouvementsSimilaires(mouvement)
+
+            Logger.INFO($"Chargement des mouvements similaires réussi : {mouvement.mvtValeursConcatenees}")
 
             Return dataTable
 

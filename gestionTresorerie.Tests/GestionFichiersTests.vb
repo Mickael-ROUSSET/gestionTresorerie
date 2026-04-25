@@ -1,7 +1,7 @@
 ﻿Imports System.IO
-Imports Xunit
 Imports gestionTresorerie
-
+Imports Microsoft.VisualStudio.TestTools.UnitTesting
+<TestClass>
 Public Class GestionFichiersTests
 
     Private ReadOnly _testDir As String = Path.Combine(Path.GetTempPath(), "gestionTresorerieTests")
@@ -11,7 +11,7 @@ Public Class GestionFichiersTests
         If Not Directory.Exists(_testDir) Then Directory.CreateDirectory(_testDir)
     End Sub
 
-    <Fact>
+    <TestMethod>
     Public Sub CalculerHashPerceptuel_SameImage_ShouldReturnSameHash()
         ' Préparer deux copies identiques d'une image
         Dim imgPath1 As String = Path.Combine(_testDir, "img1.jpg")
@@ -25,22 +25,31 @@ Public Class GestionFichiersTests
         Dim hash1 = UtilitairesHash.CalculerHashPerceptuel(imgPath1)
         Dim hash2 = UtilitairesHash.CalculerHashPerceptuel(imgPath2)
 
-        Assert.Equal(hash1, hash2)
+        Assert.AreEqual(hash1, hash2)
     End Sub
 
-    <Fact>
-    Public Sub DeplacerDoublons_ShouldMoveDuplicateFiles()
-        ' Préparer des fichiers doublons
-        Dim file1 = Path.Combine(_testDir, "fichierA.txt")
-        Dim file2 = Path.Combine(_testDir, "fichierB.txt")
-        File.WriteAllText(file1, "Contenu identique")
-        File.WriteAllText(file2, "Contenu identique")
+    <TestMethod>
+    Public Async Function DeplacerDoublons_ShouldMoveDuplicateFiles() As Task
+        ' Arrange
+        Dim repertoireTest As String = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())
+        Directory.CreateDirectory(repertoireTest)
 
-        ' Appel à la méthode de détection/déplacement
-        Dim deplaces = GestionDoublons.DeplacerDoublonsAvecProgress(_testDir)
+        Dim fichier1 As String = Path.Combine(repertoireTest, "fichier1.txt")
+        Dim fichier2 As String = Path.Combine(repertoireTest, "fichier2.txt")
 
-        ' Vérifie que l'un des fichiers a été déplacé
-        Assert.Contains(deplaces, Function(f) Path.GetFileName(f) = "fichierB.txt" Or Path.GetFileName(f) = "fichierA.txt")
-    End Sub
+        File.WriteAllText(fichier1, "contenu identique")
+        File.WriteAllText(fichier2, "contenu identique")
+
+        ' Act
+        Dim fichiersDeplaces As List(Of String) =
+        Await GestionDoublons.ExecuterTraitementAsync(repertoireTest)
+
+        ' Assert
+        Dim dossierDoublons As String = Path.Combine(repertoireTest, "Doublons")
+
+        Assert.IsTrue(Directory.Exists(dossierDoublons))
+        Assert.AreEqual(1, fichiersDeplaces.Count)
+        Assert.AreEqual(1, Directory.GetFiles(dossierDoublons).Length)
+    End Function
 End Class
 
