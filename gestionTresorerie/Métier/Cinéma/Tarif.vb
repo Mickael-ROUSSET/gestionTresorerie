@@ -36,28 +36,24 @@
         Me.DateDebutValidite = If(debut = Nothing, New Date(1901, 1, 1), debut)
         Me.DateFinValidite = fin
     End Sub
-    Public Shared Function GetTarifActif(nomTarif As String, dateRef As Date) As Tarif
-        Dim param As New Dictionary(Of String, Object) From {
-        {"@NomTarif", nomTarif},
-        {"@DateCible", dateRef.Date}
-    }
+    Private Shared Function CreateRepository() As TarifRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Cinema).
+                    GetConnexion(Constantes.DataBases.Cinema).
+                    ConnectionString
 
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, "selTarifActifAdate", param)
-            Using rdr = cmd.ExecuteReader()
-                If rdr.Read() Then
-                    Return New Tarif With {
-                    .IdTarif = rdr("IdTarif"),
-                    .NomTarif = rdr("NomTarif"),
-                    .ReductionPourcent = rdr("ReductionPourcent"),
-                    .Montant = rdr("Montant"),
-                    .Conditions = rdr("Conditions").ToString(),
-                    .DateDebutValidite = rdr("DateDebutValidite"),
-                    .DateFinValidite = If(IsDBNull(rdr("DateFinValidite")), Nothing, rdr("DateFinValidite"))
-                }
-                End If
-            End Using
-        End Using
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
 
-        Return Nothing
+        Return New TarifRepository(executor)
+    End Function
+    Public Shared Function GetTarifActifAdate(dateReference As Date) As Tarif
+        Try
+            Return CreateRepository().LireTarifActifAdate(dateReference)
+        Catch ex As Exception
+            Logger.ERR($"Erreur GetTarifActifAdate : {ex.Message}")
+            Return Nothing
+        End Try
     End Function
 End Class
