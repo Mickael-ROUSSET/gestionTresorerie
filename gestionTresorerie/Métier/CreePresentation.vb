@@ -3,12 +3,24 @@ Imports DocumentFormat.OpenXml.Packaging
 Imports DocumentFormat.OpenXml.Wordprocessing
 
 Public Class CreePresentation
+    Private Shared Function CreateRepository() As PresentationRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
+
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New PresentationRepository(executor)
+    End Function
     Public Shared Sub LectureBase()
         Dim sFicBilan As String = LectureProprietes.GetCheminEtVariable("ficBilan")
         Dim document As WordprocessingDocument = OpenDocument(sFicBilan)
         Dim categories As List(Of Integer) = GetCategories()
 
-        For Each category As String In categories
+        For Each category As Integer In categories
             ProcessCategory(document, category)
         Next
         document.Save()
@@ -26,17 +38,10 @@ Public Class CreePresentation
     End Function
 
     Private Shared Function GetCategories() As List(Of Integer)
-        Dim categories As New List(Of Integer)
-
-        Using reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "reqCategoriesMouvements").ExecuteReader()
-            While reader.Read()
-                categories.Add(reader.GetSqlInt32(0))
-            End While
-        End Using
-        Return categories
+        Return CreateRepository().LireCategoriesMouvements()
     End Function
 
-    Private Shared Sub ProcessCategory(document As WordprocessingDocument, category As String)
+    Private Shared Sub ProcessCategory(document As WordprocessingDocument, category As Integer)
         Dim subCategories As List(Of (Legend As String, Value As Decimal)) = GetSubCategories(category)
 
         'Récupérer le libellé de la catégorie
@@ -76,29 +81,17 @@ Public Class CreePresentation
         Return $"Peux-tu me donner un résumé de la catégorie {Categorie.libelleParId(iCategorie)} : dont la répartition des montants par sous-catégorie est {subCategoriesString} ? N'invente pas de valeurs non présentes dans la liste. Renvoie chaque phrase à la ligne"
     End Function
 
-    Private Shared Function GetSubCategories(category As String) As List(Of (Legend As String, Value As Decimal))
-        Dim subCategories As New List(Of (Legend As String, Value As Decimal))
+    Private Shared Function GetSubCategories(category As Integer) As List(Of (Legend As String, Value As Decimal))
+        Dim subCategories As List(Of (Legend As String, Value As Decimal)) =
+        CreateRepository().LireSommesParSousCategorie(category)
 
-        Using reader As SqlDataReader =
-            SqlCommandBuilder.
-            CreateSqlCommand(Constantes.DataBases.Agumaaa, "reqSommeCatMouvements",
-                             New Dictionary(Of String, Object) From {{"@categorie", category}}
-                             ).
-            ExecuteReader()
+        If subCategories.Count > 0 Then
+            Logger.INFO($"Sous-catégories chargées pour la catégorie '{category}'.")
+        Else
+            Logger.WARN($"Aucune sous-catégorie trouvée pour la catégorie '{category}'.")
+        End If
 
-            ' Vérifier si le reader contient des lignes
-            If reader.HasRows Then
-                While reader.Read()
-                    subCategories.Add((reader.GetString(0), reader.GetDecimal(1)))
-                End While
-                Logger.INFO($"Sous-catégories chargées pour la catégorie '{category}'.")
-            Else
-                ' Gérer le cas où le reader est vide
-                Logger.WARN($"Aucune sous-catégorie trouvée pour la catégorie '{category}'.")
-            End If
-        End Using
-
-        Return subcategories
+        Return subCategories
     End Function
 
     Private Shared Sub CreateChartAndAddToDocument(document As WordprocessingDocument, category As String, subCategories As List(Of (Legend As String, Value As Decimal)))
