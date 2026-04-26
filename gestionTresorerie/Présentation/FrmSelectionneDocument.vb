@@ -1,9 +1,5 @@
 ﻿Imports System.Data.SqlClient
-Imports System.Globalization
 Imports System.IO
-Imports System.Runtime.Intrinsics
-Imports System.Windows.Forms
-Imports DocumentFormat.OpenXml.Drawing
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 
@@ -168,15 +164,8 @@ Public Class FrmSelectionneDocument
     End Sub
     Private Sub ChargerDocumentsParMontant(montant As Decimal)
         Try
-            Dim cmd As SqlCommand =
-            SqlCommandBuilder.CreateSqlCommand(
-                Constantes.DataBases.Agumaaa,
-                "reqDocMontant",
-                New Dictionary(Of String, Object) From {
-                    {"@montant", montant}
-                })
-
-            ChargerListViewDepuisReader(cmd.ExecuteReader())
+            Dim dt As DataTable = CreateDocumentRepository().LireParMontant(montant)
+            ChargerListViewDepuisDataTable(dt)
 
         Catch ex As Exception
             Logger.ERR($"Erreur lors du chargement des documents par montant : {ex.Message}")
@@ -189,17 +178,8 @@ Public Class FrmSelectionneDocument
 
     Private Sub ChargerDocumentsCheque(numero As Decimal, montant As Decimal, emetteur As String)
         Try
-            Dim cmd As SqlCommand =
-            SqlCommandBuilder.CreateSqlCommand(
-                Constantes.DataBases.Agumaaa,
-                "reqDoc",
-                New Dictionary(Of String, Object) From {
-                    {"@numero", numero},
-                    {"@montant", montant},
-                    {"@emetteur", "%" & emetteur & "%"}
-                })
-
-            ChargerListViewDepuisReader(cmd.ExecuteReader())
+            Dim dt As DataTable = CreateDocumentRepository().LireCheque(numero, montant, emetteur)
+            ChargerListViewDepuisDataTable(dt)
 
         Catch ex As Exception
             Logger.ERR($"Erreur lors du chargement des documents chèque : {ex.Message}")
@@ -209,50 +189,57 @@ Public Class FrmSelectionneDocument
                         MessageBoxIcon.Error)
         End Try
     End Sub
-    Private Sub ChargerListViewDepuisReader(reader As SqlDataReader)
+    Private Sub ChargerListViewDepuisDataTable(dt As DataTable)
         lstDocuments.Items.Clear()
 
-        Using reader
-            While reader.Read()
-                AjouterDocumentDansListe(reader)
-            End While
-        End Using
+        If dt Is Nothing Then
+            MajBoutonsPagination()
+            Exit Sub
+        End If
+
+        For Each row As DataRow In dt.Rows
+            AjouterDocumentDansListe(row)
+        Next
 
         MajBoutonsPagination()
     End Sub
 
-    Private Sub AjouterDocumentDansListe(r As SqlDataReader)
-        Dim it As New ListViewItem(GetReaderString(r, "idDoc"))
+    Private Sub AjouterDocumentDansListe(row As DataRow)
+        Dim it As New ListViewItem(GetRowString(row, "idDoc"))
 
-        it.SubItems.Add(GetReaderDateString(r, "dateDoc"))
-        it.SubItems.Add(GetReaderString(r, "cheminDoc"))
-        it.SubItems.Add(GetReaderString(r, "categorieDoc"))
-        it.SubItems.Add(GetReaderString(r, "sousCategorieDoc"))
-        it.SubItems.Add(GetReaderString(r, "idMvtDoc"))
-        it.SubItems.Add(GetReaderString(r, "metaDonnees"))
-        it.SubItems.Add(GetReaderDateString(r, "dateModif"))
+        it.SubItems.Add(GetRowDateString(row, "dateDoc"))
+        it.SubItems.Add(GetRowString(row, "cheminDoc"))
+        it.SubItems.Add(GetRowString(row, "categorieDoc"))
+        it.SubItems.Add(GetRowString(row, "sousCategorieDoc"))
+        it.SubItems.Add(GetRowString(row, "idMvtDoc"))
+        it.SubItems.Add(GetRowString(row, "metaDonnees"))
+        it.SubItems.Add(GetRowDateString(row, "dateModif"))
 
         lstDocuments.Items.Add(it)
     End Sub
 
-    Private Shared Function GetReaderString(reader As SqlDataReader, columnName As String) As String
-        Dim ordinal As Integer = reader.GetOrdinal(columnName)
-
-        If reader.IsDBNull(ordinal) Then
+    Private Shared Function GetRowString(row As DataRow, columnName As String) As String
+        If row Is Nothing OrElse row.Table Is Nothing OrElse Not row.Table.Columns.Contains(columnName) Then
             Return String.Empty
         End If
 
-        Return reader.GetValue(ordinal).ToString()
+        If row(columnName) Is DBNull.Value Then
+            Return String.Empty
+        End If
+
+        Return row(columnName).ToString()
     End Function
 
-    Private Shared Function GetReaderDateString(reader As SqlDataReader, columnName As String) As String
-        Dim ordinal As Integer = reader.GetOrdinal(columnName)
-
-        If reader.IsDBNull(ordinal) Then
+    Private Shared Function GetRowDateString(row As DataRow, columnName As String) As String
+        If row Is Nothing OrElse row.Table Is Nothing OrElse Not row.Table.Columns.Contains(columnName) Then
             Return String.Empty
         End If
 
-        Return Convert.ToDateTime(reader.GetValue(ordinal)).ToString("dd/MM/yyyy HH:mm")
+        If row(columnName) Is DBNull.Value Then
+            Return String.Empty
+        End If
+
+        Return Convert.ToDateTime(row(columnName)).ToString("dd/MM/yyyy HH:mm")
     End Function
     Public Sub alimListeDoc(tabDocuments As List(Of DocumentAgumaaa))
         ' Configurer le ListView
@@ -653,17 +640,11 @@ Public Class FrmSelectionneDocument
             totalDocuments = cptDocumentsPagines()
 
             Dim offset As Integer = (pageCourante - 1) * taillePage
-            Dim ordreTri As String = If(triAscendant, "ASC", "DESC")
 
-            Using reader = GetDocumentsPagines(offset, taillePage, colonneTri, ordreTri)
-                lstDocuments.Items.Clear()
+            Dim dt As DataTable =
+            CreateDocumentRepository().LireDocumentsPagines(offset, taillePage)
 
-                While reader.Read()
-                    AjouterDocumentDansListe(reader)
-                End While
-            End Using
-
-            MajBoutonsPagination()
+            ChargerListViewDepuisDataTable(dt)
 
         Catch ex As Exception
             Logger.ERR($"Erreur lors du chargement des documents : {ex.Message}")
@@ -676,25 +657,7 @@ Public Class FrmSelectionneDocument
 
     'Private Shared Function cptDocumentsPagines(sWhereClause As String) As Integer
     Private Shared Function cptDocumentsPagines() As Integer
-        'Dim nbDoc As Integer =
-        '    SqlCommandBuilder.CreateSqlCommand("cptDocPagination",
-        '                     New Dictionary(Of String, Object) From {{"@whereClause", sWhereClause}}).ExecuteScalar()
-        Dim nbDoc As Integer =
-            SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "cptDocPagination").ExecuteScalar()
-        Return CInt(nbDoc)
-    End Function
-    Private Shared Function GetDocumentsPagines(sOffset As Integer, sTaillePage As Integer, sColonneTri As String, sOrdreTri As String) As SqlDataReader
-        Dim cmd As SqlCommand =
-            SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "selDocPagination",
-                             New Dictionary(Of String, Object) From {{"@Offset", sOffset},
-                                                                     {"@TaillePage", sTaillePage},
-                                                                     {"@ColonneTri", sColonneTri},
-                                                                     {"@OrdreTri", sOrdreTri}
-                                                                    }
-                             )
-        Utilitaires.LogCommand(cmd)
-        Dim reader As SqlDataReader = cmd.ExecuteReader()
-        Return reader
+        Return CreateDocumentRepository().CompterDocuments()
     End Function
     ' ============================================
     ' ====== MISE À JOUR DES BOUTONS ============
