@@ -1,5 +1,4 @@
-﻿Imports System.Data.SqlClient
-Imports System.Windows.Forms.DataVisualization.Charting
+﻿Imports System.Windows.Forms.DataVisualization.Charting
 Imports System.Drawing
 
 ''' <summary>
@@ -7,6 +6,19 @@ Imports System.Drawing
 ''' </summary>
 <DebuggerDisplay("Gestionnaire de Statistiques")>
 Public NotInheritable Class StatsCinema
+    Private Shared Function CreateRepository() As StatsCinemaRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Cinema).
+                    GetConnexion(Constantes.DataBases.Cinema).
+                    ConnectionString
+
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New StatsCinemaRepository(executor)
+    End Function
+
     ''' <summary>
     ''' Génère le graphique du Chiffre d'Affaires réparti par type de public.
     ''' </summary>
@@ -27,22 +39,14 @@ Public NotInheritable Class StatsCinema
         Dim dictMois As New Dictionary(Of String, Decimal)
 
         Try
-            ' On utilise la constante SQL définie dans ton référentiel
-            Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, "selStatsParMois")
-                Using rdr = cmd.ExecuteReader()
-                    While rdr.Read()
-                        Dim mois = rdr("Mois").ToString()
-                        dictMois(mois) = CDec(rdr("CA_Total"))
-                    End While
-                End Using
-            End Using
+            dictMois = CreateRepository().LireStatsParMois()
         Catch ex As Exception
             Logger.ERR($"Erreur récupération mois : {ex.Message}")
         End Try
 
         Dim donnees = dictMois.OrderBy(Function(kvp) kvp.Key).
-                           Select(Function(kvp) New With {Key .Label = kvp.Key, Key .Valeur = CDbl(kvp.Value)}).
-                           ToList()
+                       Select(Function(kvp) New With {Key .Label = kvp.Key, Key .Valeur = CDbl(kvp.Value)}).
+                       ToList()
 
         Return ConstruireGraphiqueDeBase("Chiffre d'affaires par mois", "Période", donnees)
     End Function
@@ -83,32 +87,28 @@ Public NotInheritable Class StatsCinema
     ' --- UTILITAIRES DE DONNÉES PRIVÉS ---
 
     Private Shared Function ChargerDicoTarifsValides() As Dictionary(Of String, Decimal)
-        Dim dico As New Dictionary(Of String, Decimal)(StringComparer.OrdinalIgnoreCase)
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, "selTarifsValides")
-            Using rdr = cmd.ExecuteReader()
-                While rdr.Read()
-                    dico(rdr("NomTarif").ToString()) = CDec(rdr("Montant"))
-                End While
-            End Using
-        End Using
-        Return dico
+        Return CreateRepository().LireTarifsValides()
     End Function
 
-    Private Shared Sub TraiterLigneSeance(rdr As SqlDataReader, dico As Dictionary(Of Integer, StatFilm), tarifs As Dictionary(Of String, Decimal))
-        Dim idFilm = rdr.GetValueOrDefault(Of Integer)("IdFilm")
+    Private Shared Sub TraiterLigneSeance(row As SeanceFilmStatRow,
+                                      dico As Dictionary(Of Integer, StatFilm),
+                                      tarifs As Dictionary(Of String, Decimal))
+        Dim idFilm = row.IdFilm
         Dim stat As StatFilm = Nothing
 
         If Not dico.TryGetValue(idFilm, stat) Then
-            stat = New StatFilm With {.IdFilm = idFilm, .Titre = rdr.GetValueOrDefault(Of String)("TitreFilm")}
+            stat = New StatFilm With {.IdFilm = idFilm, .Titre = row.TitreFilm}
             dico.Add(idFilm, stat)
         End If
 
-        ' Le calcul du CA se fait souvent dans le constructeur de Seance
-        stat.Seances.Add(New Seance(idFilm, rdr.GetValueOrDefault(Of DateTime)("DateHeureDebut"),
-                         rdr.GetValueOrDefault(Of Integer)("NbEntreesAdultes", 0),
-                         rdr.GetValueOrDefault(Of Integer)("NbEntreesEnfants", 0),
-                         rdr.GetValueOrDefault(Of Integer)("NbEntreesGroupeEnfants", 0),
-                         tarifs("Adulte"), tarifs("Enfant"), tarifs("GroupeEnfant")))
+        stat.Seances.Add(New Seance(idFilm,
+                                row.DateHeureDebut,
+                                row.NbEntreesAdultes,
+                                row.NbEntreesEnfants,
+                                row.NbEntreesGroupeEnfants,
+                                tarifs("Adulte"),
+                                tarifs("Enfant"),
+                                tarifs("GroupeEnfant")))
     End Sub
     ' --- MÉTHODES PUBLIQUES (ACCESSIBLES DEPUIS L'EXTÉRIEUR) ---
 
@@ -117,18 +117,19 @@ Public NotInheritable Class StatsCinema
     ''' </summary>
     Public Shared Function GetStatsParFilm() As List(Of StatFilm)
         Dim filmsDict As New Dictionary(Of Integer, StatFilm)
+
         Try
             Dim tarifs = ChargerDicoTarifsValides()
-            Using cmdSeances = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, Constantes.Sql.Selection.SeancesAvecFilm)
-                Using rdr = cmdSeances.ExecuteReader()
-                    While rdr.Read()
-                        TraiterLigneSeance(rdr, filmsDict, tarifs)
-                    End While
-                End Using
-            End Using
+            Dim lignes = CreateRepository().LireSeancesAvecFilm()
+
+            For Each ligne As SeanceFilmStatRow In lignes
+                TraiterLigneSeance(ligne, filmsDict, tarifs)
+            Next
+
         Catch ex As Exception
             Logger.ERR($"Erreur GetStatsParFilm : {ex.Message}")
         End Try
+
         Return filmsDict.Values.ToList()
     End Function
 
