@@ -1,7 +1,6 @@
 ﻿Imports DocumentFormat.OpenXml.Spreadsheet
 Imports ClosedXML.Excel
 Imports System.IO
-Imports System.Data.SqlClient
 Imports OpenCvSharp.Aruco
 
 Public Class EntreeCinema
@@ -12,6 +11,32 @@ Public Class EntreeCinema
     Public Property NbEnfants As Integer
     Public Property NbGroupeEnfants As Integer
     Public Property Payant As Boolean
+
+    Private Shared Function CreateFilmRepository() As FilmRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Cinema).
+                    GetConnexion(Constantes.DataBases.Cinema).
+                    ConnectionString
+
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New FilmRepository(executor)
+    End Function
+
+    Private Shared Function CreateSeanceRepository() As SeanceRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Cinema).
+                    GetConnexion(Constantes.DataBases.Cinema).
+                    ConnectionString
+
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New SeanceRepository(executor)
+    End Function
 
     ' --------------------------------------------------------------------
     ' IMPORT PRINCIPAL
@@ -136,102 +161,68 @@ Public Class EntreeCinema
     ' --------------------------------------------------------------------
     Private Shared Function ObtenirIdFilm(titre As String) As Integer
         Try
-            Dim parametres As New Dictionary(Of String, Object) From {
-                        {"@titre", titre}
-                    }
-            Dim cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, "selFilmParTitre", parametres)
-            Dim result = cmd.ExecuteScalar()
+            Dim id As Integer = CreateFilmRepository().LireIdParTitre(titre)
 
-            If result IsNot Nothing AndAlso Not DBNull.Value.Equals(result) Then
-                Logger.INFO($"TitreFilm trouvé : {titre} (Id={result})")
-                Return Convert.ToInt32(result)
+            If id <> -1 Then
+                Logger.INFO($"Film trouvé : {titre} (Id={id})")
             End If
+
+            Return id
 
         Catch ex As Exception
             Logger.ERR($"Erreur ObtenirIdFilm : {ex.Message}")
+            Return -1
         End Try
-
-        Return -1
     End Function
 
     Public Shared Function InsererFilm(film As Film) As Integer
-        ' ✅ Validation
         If film Is Nothing Then
             Throw New ArgumentNullException(NameOf(film), "L'objet film ne peut pas être null.")
         End If
 
-        ' ✅ Validation du Titre (CA2208 corrigé)
         If String.IsNullOrWhiteSpace(film.Titre) Then
-            ' Pour ArgumentException : le message d'abord, le nom du paramètre ensuite
             Throw New ArgumentException("Le titre du film est obligatoire.", NameOf(film))
         End If
 
-        ' ✅ Préparation des paramètres SQL
-        Dim parametres As New Dictionary(Of String, Object) From {
-        {"@Titre", film.Titre},
-        {"@DureeMinutes", film.DureeMinutes},
-        {"@Genre", If(film.Genre, DBNull.Value)},
-        {"@Realisateur", If(film.Realisateur, DBNull.Value)},
-        {"@DateSortie", If(film.DateSortie, DBNull.Value)},
-        {"@Synopsis", If(film.Synopsis, DBNull.Value)},
-        {"@AgeMinimum", If(film.AgeMinimum, DBNull.Value)},
-        {"@AfficheUrl", If(film.AfficheUrl, DBNull.Value)}
-    }
-
-        ' ✅ Exécution de la commande
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, "insertFilm", parametres)
-            ' ExecuteScalar retourne le SCOPE_IDENTITY()
-            Dim idObj = cmd.ExecuteScalar()
-            Dim id As Integer = Convert.ToInt32(idObj)
+        Try
+            Dim id As Integer = CreateFilmRepository().InsererEtRetournerId(film)
             Logger.INFO($"Film inséré : {film.Titre} (IdFilm = {id})")
             Return id
-        End Using
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur InsererFilm : {ex.Message}")
+            Return -1
+        End Try
     End Function
-
-
 
     ' --------------------------------------------------------------------
     ' SEANCES
     ' --------------------------------------------------------------------
     Private Shared Function ObtenirIdSeance(idFilm As Integer, dateDebut As DateTime) As Integer
         Try
-            Dim parametres As New Dictionary(Of String, Object) From {
-                        {"@idFilm", idFilm},
-                        {"@dateDebut", dateDebut}
-                    }
-            Dim cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, "selSeanceIdFilm", parametres)
-            Dim result = cmd.ExecuteScalar()
+            Dim id As Integer =
+            CreateSeanceRepository().LireIdParFilmEtDate(idFilm, dateDebut)
 
-            If result IsNot Nothing AndAlso Not DBNull.Value.Equals(result) Then
+            If id <> -1 Then
                 Logger.INFO($"Séance déjà existante pour film={idFilm} à {dateDebut}.")
-                Return Convert.ToInt32(result)
             End If
+
+            Return id
 
         Catch ex As Exception
             Logger.ERR($"Erreur ObtenirIdSeance : {ex.Message}")
+            Return -1
         End Try
-
-        Return -1
     End Function
 
     Private Shared Function InsererSeance(seance As Seance) As Integer
         Try
-            Logger.INFO($"📌 Insertion séance film={seance.IdFilm} - {seance.DateHeureDebut}")
+            Logger.INFO($"Insertion séance film={seance.IdFilm} - {seance.DateHeureDebut}")
 
-            Dim parametres As New Dictionary(Of String, Object) From {
-                {"@idFilm", seance.IdFilm},
-                {"@DateHeureDebut", seance.DateHeureDebut},
-                {"@TarifBase", 0D},
-                {"@langue", DBNull.Value},
-                {"@format", DBNull.Value},
-                {"@nbEntreesAdultes", seance.NbEntreesAdultes},
-                {"@nbEntreesEnfants", seance.NbEntreesEnfants},
-                {"@nbEntreesGroupeEnfants", seance.NbEntreesGroupeEnfants}
-            }
+            Dim id As Integer =
+            CreateSeanceRepository().InsererEtRetournerId(seance)
 
-            Dim id = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Cinema, "insertSeance", parametres).ExecuteScalar()
-
-            Return Convert.ToInt32(id)
+            Return id
 
         Catch ex As Exception
             Logger.ERR($"Erreur InsererSeance : {ex.Message}")

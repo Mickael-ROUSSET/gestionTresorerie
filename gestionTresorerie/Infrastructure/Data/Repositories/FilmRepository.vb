@@ -97,5 +97,31 @@ Public Class FilmRepository
 
         Return p
     End Function
+    Public Function LireIdParTitre(titre As String) As Integer
+        Dim result As Object =
+            _executor.ExecuteNamedScalar(Of Object)(
+                "selFilmParTitre",
+                New List(Of SqlParameter) From {
+                    New SqlParameter("@titre", titre)
+                })
 
+        If result Is Nothing OrElse result Is DBNull.Value Then
+            Return -1
+        End If
+
+        Return Convert.ToInt32(result)
+    End Function
+
+    Public Function InsererEtRetournerId(film As Film) As Integer
+        Dim result As Object =
+            _executor.ExecuteNamedScalar(Of Object)(
+                "insertFilm",
+                BuildParams(film, includeAgeMinimum:=True))
+
+        If result Is Nothing OrElse result Is DBNull.Value Then
+            Return -1
+        End If
+
+        Return Convert.ToInt32(result)
+    End Function
 End Class
