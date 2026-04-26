@@ -1,5 +1,4 @@
-﻿Imports System.Data.SqlClient
-Imports System.IO
+﻿Imports System.IO
 Imports System.Net
 Imports System.Net.Mail
 Imports ClosedXML.Excel
@@ -7,7 +6,18 @@ Imports DocumentFormat
 Imports DocumentFormat.OpenXml.Packaging
 Imports Microsoft.VisualBasic.Devices
 Public Class GenereAttestationNonParticipation
+    Private Shared Function CreateRepository() As MarcheDeNoelRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.MarcheDeNoel).
+                    GetConnexion(Constantes.DataBases.MarcheDeNoel).
+                    ConnectionString
 
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New MarcheDeNoelRepository(executor)
+    End Function
     Public Shared Sub ImporterParticipantsDepuisExcel()
         ' --- Sélection du fichier Excel par utilisateur ---
         Dim dlg As New OpenFileDialog With {
@@ -53,7 +63,7 @@ Public Class GenereAttestationNonParticipation
             }
 
                 ' ---- Insertion en base ----
-                SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.MarcheDeNoel, "insertParticipantMdN", parametres).ExecuteNonQuery()
+                CreateRepository().InsererParticipant(parametres)
                 ligne += 1
             End While
         End Using
@@ -165,15 +175,12 @@ Public Class GenereAttestationNonParticipation
 
     End Sub
     Public Shared Function ChargerParticipantsDepuisSQL() As List(Of Participant)
-        Dim liste As New List(Of Participant)
-
-        Using reader As SqlDataReader =
-        SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.MarcheDeNoel, "selParticipant").ExecuteReader()
-            While reader.Read()
-                liste.Add(New Participant(reader))
-            End While
-        End Using
-        Return liste
+        Try
+            Return CreateRepository().ChargerParticipants()
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors du chargement des participants Marché de Noël : {ex.Message}")
+            Return New List(Of Participant)()
+        End Try
     End Function
 
     Private Shared Sub EnvoyerMailAvecPJ_FromRessource(destinataire As String, sujet As String, p As Participant, piecesJointes As List(Of String))
