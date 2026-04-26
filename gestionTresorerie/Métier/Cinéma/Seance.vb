@@ -1,5 +1,4 @@
-﻿Imports System.Data.SqlClient
-
+﻿
 Public Class Seance
     Public Property IdSeance As Integer
     Public Property IdFilm As Integer
@@ -76,58 +75,23 @@ Public Class Seance
     ' --- Constructeur vide si nécessaire par EF, Sérialisation, etc. ---
     Public Sub New()
     End Sub
+    Private Shared Function CreateRepository() As SeanceRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Cinema).
+                    GetConnexion(Constantes.DataBases.Cinema).
+                    ConnectionString
+
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New SeanceRepository(executor)
+    End Function
     Public Shared Function GetByFilm(idFilm As Integer) As List(Of Seance)
-        Dim result As New List(Of Seance)
-        ' ✅ 2. Préparation des paramètres SQL
-        Dim parametres As New Dictionary(Of String, Object) From {
-        {"@IdFilm", idFilm}
-    }
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.databases.cinema, "selSeanceIdFilm", parametres)
-            cmd.Parameters.AddWithValue("@IdFilm", idFilm)
-            Using rdr = cmd.ExecuteReader()
-                While rdr.Read()
-                    result.Add(New Seance With {
-                            .IdSeance = rdr("IdSeance"),
-                            .IdFilm = rdr("IdFilm"),
-                            .DateHeureDebut = rdr("DateHeureDebut"),
-                            .TarifBase = rdr("TarifBase"),
-                            .Langue = rdr("Langue").ToString(),
-                            .Format = rdr("Format").ToString()
-                        })
-                End While
-            End Using
-        End Using
-        Return result
+        Return CreateRepository().LireParFilm(idFilm)
     End Function
 
-    'Public Sub Save()
-    '    Using cn = GetConnection()
-    '        cn.Open()
-    '        Dim sql As String = If(IdSeance = 0,
-    '            "INSERT INTO Seances (IdFilm, DateHeureDebut, TarifBase, Langue, Format)
-    '             VALUES (@IdFilm, @DateHeure, @Tarif, @Langue, @Format);
-    '             SELECT SCOPE_IDENTITY();",
-    '            "UPDATE Seances SET IdFilm=@IdFilm, DateHeureDebut=@DateHeure, TarifBase=@Tarif, Langue=@Langue, Format=@Format WHERE IdSeance=@IdSeance")
-
-    '        Using cmd As New SqlCommand(sql, cn)
-    '            cmd.Parameters.AddWithValue("@IdSeance", IdSeance)
-    '            cmd.Parameters.AddWithValue("@IdFilm", IdFilm)
-    '            cmd.Parameters.AddWithValue("@DateHeure", DateHeureDebut)
-    '            cmd.Parameters.AddWithValue("@Tarif", TarifBase)
-    '            cmd.Parameters.AddWithValue("@Langue", Langue)
-    '            cmd.Parameters.AddWithValue("@Format", Format)
-
-    '            If IdSeance = 0 Then
-    '                IdSeance = Convert.ToInt32(cmd.ExecuteScalar())
-    '            Else
-    '                cmd.ExecuteNonQuery()
-    '            End If
-    '        End Using
-    '    End Using
-    'End Sub
     Public Sub InsererSeance(seance As Seance)
-
-        ' ==== VALIDATIONS ====
 
         If seance.IdFilm <= 0 Then
             Throw New ArgumentException("L'identifiant du film (IdFilm) doit être valide.")
@@ -142,48 +106,26 @@ Public Class Seance
         End If
 
         If seance.NbEntreesAdultes < 0 OrElse
-           seance.NbEntreesEnfants < 0 OrElse
-           seance.NbEntreesGroupeEnfants < 0 Then
+       seance.NbEntreesEnfants < 0 OrElse
+       seance.NbEntreesGroupeEnfants < 0 Then
 
             Throw New ArgumentException("Les nombres d’entrées ne peuvent pas être négatifs.")
         End If
 
-        ' ==== PRÉPARATION PARAMÈTRES SQL ====
+        Dim lignes As Integer = CreateRepository().Inserer(seance)
 
-        Dim parametres As New Dictionary(Of String, Object) From {
-            {"@IdFilm", seance.IdFilm},
-            {"@DateHeureDebut", seance.DateHeureDebut},
-            {"@TarifBase", seance.TarifBase},
-            {"@Langue", If(seance.Langue, DBNull.Value)},
-            {"@Format", If(seance.Format, DBNull.Value)},
-            {"@NbEntreesAdultes", seance.NbEntreesAdultes},
-            {"@NbEntreesEnfants", seance.NbEntreesEnfants},
-            {"@NbEntreesGroupeEnfants", seance.NbEntreesGroupeEnfants}
-        }
+        If lignes = 0 Then
+            Throw New Exception("Aucune ligne insérée dans Seances.")
+        End If
 
-        ' ==== EXÉCUTION ====
-
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.databases.cinema, "insertSeance", parametres)
-            Dim lignes = cmd.ExecuteNonQuery()
-
-            If lignes = 0 Then
-                Throw New Exception("Aucune ligne insérée dans Seances.")
-            End If
-
-            Logger.INFO($"Séance insérée : film #{seance.IdFilm}, {seance.DateHeureDebut:dd/MM/yyyy HH:mm}")
-        End Using
-
+        Logger.INFO($"Séance insérée : film #{seance.IdFilm}, {seance.DateHeureDebut:dd/MM/yyyy HH:mm}")
     End Sub
 
     Public Sub Delete()
         If IdSeance = 0 Then Exit Sub
-        Dim parametres As New Dictionary(Of String, Object) From {
-                        {"@Id", IdSeance}
-                    }
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.databases.cinema, "delSeance", parametres)
-            cmd.Parameters.AddWithValue("@Id", IdSeance)
-            cmd.ExecuteNonQuery()
-        End Using
+
+        Dim nb As Integer = CreateRepository().Supprimer(IdSeance)
+        Logger.INFO($"Séance supprimée IdSeance={IdSeance}, lignes={nb}")
     End Sub
     ' Méthode Clone
     Public Function Clone() As Seance
