@@ -9,7 +9,18 @@ Public Class FrmChangePassword
         AcceptButton = btnValider
         CancelButton = btnAnnuler
     End Sub
+    Private Shared Function CreateUtilisateurRepository() As UtilisateurRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
 
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New UtilisateurRepository(executor)
+    End Function
     Private Sub btnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
         If String.IsNullOrWhiteSpace(txtAncien.Text) OrElse
            String.IsNullOrWhiteSpace(txtNouveau.Text) OrElse
@@ -32,11 +43,14 @@ Public Class FrmChangePassword
 
             ' Mise à jour du mot de passe
             Dim hash = HacherMotDePasse(txtNouveau.Text)
-            Dim unused2 = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "updateMotDePasse",
-                             New Dictionary(Of String, Object) From {
-                                 {"@Id", UtilisateurActif.Id},
-                                 {"@pwd", hash}
-                             }).ExecuteNonQuery()
+            Dim nb As Integer = CreateUtilisateurRepository().ModifierMotDePasse(UtilisateurActif.Id, hash)
+            If nb <= 0 Then
+                MessageBox.Show("Aucun mot de passe n'a été mis à jour.",
+                    "Avertissement",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning)
+                Exit Sub
+            End If
 
             Dim unused1 = MessageBox.Show("Mot de passe mis à jour avec succès !", "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information)
             DialogResult = DialogResult.OK

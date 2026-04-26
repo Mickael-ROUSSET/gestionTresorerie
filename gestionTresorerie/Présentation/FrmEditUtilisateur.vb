@@ -19,7 +19,18 @@ Public Class FrmEditUtilisateur
         cboRole.Text = role
         chkActif.Checked = actif
     End Sub
+    Private Shared Function CreateUtilisateurRepository() As UtilisateurRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
 
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New UtilisateurRepository(executor)
+    End Function
     Private Sub FrmEditUtilisateur_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         cboRole.Items.Clear()
         cboRole.Items.AddRange({"lecteur", "ecrivain", "admin"})
