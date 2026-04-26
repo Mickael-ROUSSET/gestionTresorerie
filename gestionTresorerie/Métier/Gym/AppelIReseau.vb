@@ -2,6 +2,18 @@
 Imports System.IO
 
 Public Class AppelIReseau
+    Private Shared Function CreateRepository() As GymRepository
+        Dim connectionString As String =
+        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
+                    GetConnexion(Constantes.DataBases.Agumaaa).
+                    ConnectionString
+
+        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+
+        Return New GymRepository(executor)
+    End Function
     Public Shared Async Sub TestIReseau()
         ' Initialisation auth
         IReseauApi.SetAuth()
@@ -82,14 +94,14 @@ Public Class AppelIReseau
             {"@licenceId", licenceId},
             {"@idTiers", idTiers.Value}
         }
-            Using cmdUpdate = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "updDateMajLicence", param)
-                Dim rowsAffected = cmdUpdate.ExecuteNonQuery()
-                If rowsAffected = 0 Then
+            Dim rowsAffected As Integer = CreateRepository().MettreAJourDateMajLicence(idTiers, Date.Now)
+
+            Logger.INFO($"Date de mise à jour licence mise à jour pour IdTiers={idTiers}, lignes={rowsAffected}")
+            If rowsAffected = 0 Then
                     Logger.WARN($"Aucune ligne mise à jour pour LicenceId={licenceId} dans AdherantsGym.")
                 End If
 
-                Return rowsAffected > 0
-            End Using
+            Return rowsAffected > 0
         Catch ex As Exception
             Logger.ERR($"MettreAJourDateLicenceAsync({licenceId}) : {ex.Message}")
             Return False
