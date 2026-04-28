@@ -6,13 +6,11 @@ Public Class Lanceur
     Private Property RepertoireSource As String
 
     Private Shared Function CreateRepository() As BatchAnalyseRepository
-        Dim connectionString As String =
-        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
-                    GetConnexion(Constantes.DataBases.Agumaaa).
-                    ConnectionString
+        Dim factory As IConnectionFactory =
+        RepositoryFactory.CreateConnectionFactory(Constantes.DataBases.Agumaaa)
 
-        Dim factory As New AgumaaaConnectionFactory(connectionString)
-        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim provider As ISqlTextProvider =
+        RepositoryFactory.CreateSqlTextProvider()
 
         Return New BatchAnalyseRepository(factory, provider)
     End Function

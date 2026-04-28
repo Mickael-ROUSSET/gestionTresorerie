@@ -57,33 +57,4 @@ Public MustInherit Class BaseTypeDoc
         ' Retourner la chaîne inchangée si aucun motif n'est trouvé
         Return sRepertoire
     End Function
-
-    ' Méthode abstraite pour InsereEnbase (doit être implémentée par les classes dérivées) 
-    'Public Sub InsereEnBase(doc As BaseTypeDoc) Implements ITypeDoc.InsereEnbase
-    '    Try
-    '        ' Lire l'image en tant que tableau d'octets  
-    '        '<Value Profile = "(Default)" > INSERT INTO [dbo].[Documents] (
-    '        'dateDoc,
-    '        'contenuDoc,
-    '        'cheminDoc,
-    '        'categorieDoc,
-    '        'sousCategorieDoc,
-    '        'idMvtDoc,
-    '        'metaDonnees) VALUES (@dateDoc, @contenuDoc, @cheminDoc, @categorieDoc, @sousCategorieDoc, @idMvtDoc, @metaDonnees);</Value>
-    '        Dim command As SqlCommand = SqlCommandBuilder.CreateSqlCommand("insertDocAgumaaa",
-    '                         New Dictionary(Of String, Object) From {{"@dateDoc", Now.Date & Now.Hour},
-    '                                                                 {"@contenuDoc", doc},
-    '                                                                 {"@cheminDoc", """"},
-    '                                                                 {"@categorieDoc", ""},
-    '                                                                 {"@sousCategorieDoc", ""},
-    '                                                                 {"@metaDonnees", ""}}
-    '                         )
-    '        command.ExecuteNonQuery()
-    '        command.ExecuteNonQuery()
-    '        'End Using
-    '        Logger.INFO("Données insérées avec succès." & command.ToString)
-    '    Catch ex As Exception
-    '        Logger.ERR("Erreur lors de l'insertion des données : " & ex.Message)
-    '    End Try
-    'End Sub
 End Class

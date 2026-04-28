@@ -7,14 +7,8 @@ Public Class FrmNouveauTiers
     Private _pendingCoordonnees As Coordonnees
     Private toolTip1 As ToolTip
     Private Shared Function CreateTiersRepository() As TiersRepository
-        Dim connectionString As String =
-        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
-                    GetConnexion(Constantes.DataBases.Agumaaa).
-                    ConnectionString
-
-        Dim factory As New AgumaaaConnectionFactory(connectionString)
-        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
-        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+        Dim executor As ISqlExecutor =
+    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New TiersRepository(executor)
     End Function

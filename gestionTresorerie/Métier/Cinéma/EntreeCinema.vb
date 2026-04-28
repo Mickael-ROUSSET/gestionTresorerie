@@ -13,27 +13,15 @@ Public Class EntreeCinema
     Public Property Payant As Boolean
 
     Private Shared Function CreateFilmRepository() As FilmRepository
-        Dim connectionString As String =
-        ConnexionDB.GetInstance(Constantes.DataBases.Cinema).
-                    GetConnexion(Constantes.DataBases.Cinema).
-                    ConnectionString
-
-        Dim factory As New AgumaaaConnectionFactory(connectionString)
-        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
-        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+        Dim executor As ISqlExecutor =
+    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New FilmRepository(executor)
     End Function
 
     Private Shared Function CreateSeanceRepository() As SeanceRepository
-        Dim connectionString As String =
-        ConnexionDB.GetInstance(Constantes.DataBases.Cinema).
-                    GetConnexion(Constantes.DataBases.Cinema).
-                    ConnectionString
-
-        Dim factory As New AgumaaaConnectionFactory(connectionString)
-        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
-        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+        Dim executor As ISqlExecutor =
+    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New SeanceRepository(executor)
     End Function

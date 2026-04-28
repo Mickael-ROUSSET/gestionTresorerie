@@ -7,14 +7,8 @@ Imports System.Drawing
 <DebuggerDisplay("Gestionnaire de Statistiques")>
 Public NotInheritable Class StatsCinema
     Private Shared Function CreateRepository() As StatsCinemaRepository
-        Dim connectionString As String =
-        ConnexionDB.GetInstance(Constantes.DataBases.Cinema).
-                    GetConnexion(Constantes.DataBases.Cinema).
-                    ConnectionString
-
-        Dim factory As New AgumaaaConnectionFactory(connectionString)
-        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
-        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+        Dim executor As ISqlExecutor =
+    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New StatsCinemaRepository(executor)
     End Function

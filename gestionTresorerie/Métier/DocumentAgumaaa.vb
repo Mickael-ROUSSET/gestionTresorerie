@@ -41,15 +41,15 @@ Public MustInherit Class DocumentAgumaaa
         Me.metaDonnees = metaDonnees
         Me.dateModif = dateModif
     End Sub
-    Private Shared Function CreateRepository() As DocumentRepository
-        Dim connectionString As String =
-        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
-                    GetConnexion(Constantes.DataBases.Agumaaa).
-                    ConnectionString
+    Private Shared Function CreateDocumentRepository() As DocumentRepository
+        Dim factory As IConnectionFactory =
+        RepositoryFactory.CreateConnectionFactory(Constantes.DataBases.Agumaaa)
 
-        Dim factory As New AgumaaaConnectionFactory(connectionString)
-        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
-        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+        Dim provider As ISqlTextProvider =
+        RepositoryFactory.CreateSqlTextProvider()
+
+        Dim executor As ISqlExecutor =
+        RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New DocumentRepository(executor, factory, provider)
     End Function

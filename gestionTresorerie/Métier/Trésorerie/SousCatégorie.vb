@@ -22,14 +22,8 @@ Public Class SousCategorie
         Me.idCategorie = idCategorie
     End Sub
     Private Shared Function CreateRepository() As SousCategorieRepository
-        Dim connectionString As String =
-        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
-                    GetConnexion(Constantes.DataBases.Agumaaa).
-                    ConnectionString
-
-        Dim factory As New AgumaaaConnectionFactory(connectionString)
-        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
-        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+        Dim executor As ISqlExecutor =
+    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New SousCategorieRepository(executor)
     End Function

@@ -7,14 +7,8 @@ Imports DocumentFormat.OpenXml.Packaging
 Imports Microsoft.VisualBasic.Devices
 Public Class GenereAttestationNonParticipation
     Private Shared Function CreateRepository() As MarcheDeNoelRepository
-        Dim connectionString As String =
-        ConnexionDB.GetInstance(Constantes.DataBases.MarcheDeNoel).
-                    GetConnexion(Constantes.DataBases.MarcheDeNoel).
-                    ConnectionString
-
-        Dim factory As New AgumaaaConnectionFactory(connectionString)
-        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
-        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+        Dim executor As ISqlExecutor =
+    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New MarcheDeNoelRepository(executor)
     End Function

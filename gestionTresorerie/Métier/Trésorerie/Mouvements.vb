@@ -49,14 +49,14 @@ Public Class Mouvements
         End Set
     End Property
     Private Shared Function CreateRepository() As MouvementRepository
-        Dim connectionString As String =
-        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
-                    GetConnexion(Constantes.DataBases.Agumaaa).
-                    ConnectionString
+        Dim factory As IConnectionFactory =
+        RepositoryFactory.CreateConnectionFactory(Constantes.DataBases.Agumaaa)
 
-        Dim factory As New AgumaaaConnectionFactory(connectionString)
-        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
-        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+        Dim provider As ISqlTextProvider =
+        RepositoryFactory.CreateSqlTextProvider()
+
+        Dim executor As ISqlExecutor =
+        RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New MouvementRepository(executor, factory, provider)
     End Function

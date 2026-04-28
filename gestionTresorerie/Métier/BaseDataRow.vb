@@ -1,4 +1,5 @@
-﻿Imports System.Data
+﻿Imports System.CodeDom.Compiler
+Imports System.Data
 Imports System.Data.SqlClient
 
 Public MustInherit Class BaseDataRow
@@ -24,14 +25,7 @@ Public MustInherit Class BaseDataRow
     Optional params As Dictionary(Of String, Object) = Nothing
 ) As List(Of T)
 
-        Dim connectionString As String =
-        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
-                    GetConnexion(Constantes.DataBases.Agumaaa).
-                    ConnectionString
-
-        Dim factory As New AgumaaaConnectionFactory(connectionString)
-        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
-        Dim executor As ISqlExecutor = New SqlExecutor(factory, provider)
+        Dim executor As ISqlExecutor = RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Dim sqlParams As List(Of SqlParameter) = ConvertParameters(params)
 

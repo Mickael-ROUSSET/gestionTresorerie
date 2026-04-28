@@ -60,7 +60,7 @@ Public Class SqlCommandBuilder
         Next
     End Sub
 
-    <Obsolete("Utiliser SqlExecutor ou un Repository dédié.", False)>
+    <Obsolete("Utiliser SqlExecutor ou un Repository dédié.", True)>
     Public Shared Function CreateSqlCommand(sBase As String,
                                         queryName As String,
                                         Optional params As Dictionary(Of String, Object) = Nothing) As SqlCommand
