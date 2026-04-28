@@ -75,14 +75,14 @@ Public Class FrmGestionUtilisateurs
         Dim nom = dgvUtilisateurs.SelectedRows(0).Cells("NomUtilisateur").Value.ToString()
 
         If MessageBox.Show($"Désactiver l'utilisateur {nom} ?", "Confirmation",
-                           MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.Yes Then
+                       MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.Yes Then
             Try
-                Dim unused1 = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "updateUtilisateurActif",
-                                 New Dictionary(Of String, Object) From {
-                                     {"@Id", id},
-                                     {"@actif", 0}
-                                 }).ExecuteNonQuery()
+                Dim nb As Integer =
+                CreateUtilisateurRepository().MettreAJourActif(id, False)
+
+                Logger.INFO($"Utilisateur désactivé Id={id}, lignes={nb}")
                 ChargerUtilisateurs()
+
             Catch ex As Exception
                 Dim unused = MessageBox.Show("Erreur lors de la suppression : " & ex.Message)
             End Try

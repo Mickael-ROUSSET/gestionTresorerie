@@ -335,44 +335,49 @@ Public Class FrmSaisie
     End Sub
     Private Sub txtTiers_TextChanged(sender As Object, e As EventArgs) Handles txtTiers.TextChanged
         Try
-            ' On suppose que tu as stocké le Tiers sélectionné dans une variable ou propriété
             If _tiersSelectionne Is Nothing Then
-                Logger.INFO("Aucun typeDoc sélectionné, impossible de charger la catégorie.")
+                Logger.INFO("Aucun tiers sélectionné, impossible de charger la catégorie.")
                 txtCategorie.Clear()
+                txtSousCategorie.Clear()
                 Exit Sub
             End If
 
-            ' Récupération de la catégorie par défaut du typeDoc
             Dim idCategorieDefaut As Integer = _tiersSelectionne.CategorieDefaut
             If idCategorieDefaut <= 0 Then
-                Logger.INFO($"Le typeDoc '{_tiersSelectionne.Nom}' n’a pas de catégorie par défaut.")
+                Logger.INFO($"Le tiers '{_tiersSelectionne.Nom}' n’a pas de catégorie par défaut.")
                 txtCategorie.Clear()
+                txtSousCategorie.Clear()
                 Exit Sub
             End If
 
-            ' --- Préparer le paramètre pour la requête ---
             Dim parametres As New Dictionary(Of String, Object) From {
-                {"@idCategorie", idCategorieDefaut}
-            }
+            {"@idCategorie", idCategorieDefaut}
+        }
 
-            ' --- Exécuter la requête selIdLibCat --- 
-            Using Reader As SqlDataReader = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "selIdLibCat", parametres).ExecuteReader
-                If Reader.HasRows Then
-                    While Reader.Read()
-                        ' Créer une instance concrète implémentant ITypeDoc
-                        _categorieSelectionne = New Categorie(Reader.GetInt32(0), Reader.GetString(1))
-                        _sousCategorieSelectionnee = New SousCategorie(Reader.GetInt32(0), Reader.GetString(1))
+            Dim dt As DataTable =
+            SqlCommandBuilder.ExecuteDataTable(
+                Constantes.DataBases.Agumaaa,
+                "selIdLibCat",
+                parametres)
 
-                        txtCategorie.Text = $"{_categorieSelectionne.Id} - {_categorieSelectionne.Libelle}"
-                        txtSousCategorie.Text = $"{_sousCategorieSelectionnee.Id} - {_sousCategorieSelectionnee.Libelle}"
-                    End While
-                Else
-                    ' Gérer le cas où le reader est vide
-                    Logger.WARN("Aucune catégorie trouvée.")
-                End If
-            End Using
+            If dt.Rows.Count = 0 Then
+                Logger.WARN("Aucune catégorie trouvée.")
+                Exit Sub
+            End If
+
+            For Each row As DataRow In dt.Rows
+                _categorieSelectionne =
+                New Categorie(Convert.ToInt32(row(0)), row(1).ToString())
+
+                _sousCategorieSelectionnee =
+                New SousCategorie(Convert.ToInt32(row(0)), row(1).ToString())
+
+                txtCategorie.Text = $"{_categorieSelectionne.Id} - {_categorieSelectionne.Libelle}"
+                txtSousCategorie.Text = $"{_sousCategorieSelectionnee.Id} - {_sousCategorieSelectionnee.Libelle}"
+            Next
+
         Catch ex As Exception
-            Logger.ERR($"Erreur lors du chargement de la catégorie du typeDoc '{txtTiers.Text}' : {ex.Message}")
+            Logger.ERR($"Erreur lors du chargement de la catégorie du tiers '{txtTiers.Text}' : {ex.Message}")
         End Try
     End Sub
 

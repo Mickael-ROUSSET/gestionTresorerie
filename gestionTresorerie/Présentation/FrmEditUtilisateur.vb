@@ -1,5 +1,6 @@
 ﻿Imports System.Security.Cryptography
 Imports System.Text
+Imports DocumentFormat.OpenXml.Wordprocessing
 
 Public Class FrmEditUtilisateur
     Private _id As Integer? = Nothing
@@ -50,31 +51,31 @@ Public Class FrmEditUtilisateur
 
         Try
             If _id Is Nothing Then
-                ' Insertion
-                Dim unused2 = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "insertUtilisateur",
-                                 New Dictionary(Of String, Object) From {
-                                     {"@nom", txtNom.Text.Trim()},
-                                     {"@pwd", hashMdp},
-                                     {"@role", cboRole.Text},
-                                     {"@actif", chkActif.Checked}
-                                 }).ExecuteNonQuery()
+                Dim nb As Integer =
+                CreateUtilisateurRepository().InsererUtilisateur(
+                    txtNom.Text.Trim(),
+                    hashMdp,
+                    cboRole.Text,
+                    chkActif.Checked)
+
+                Logger.INFO($"Utilisateur inséré, lignes={nb}")
             Else
-                ' Mise à jour
-                Dim unused1 = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "updateUtilisateur",
-                                 New Dictionary(Of String, Object) From {
-                                     {"@Id", _id},
-                                     {"@nom", txtNom.Text.Trim()},
-                                     {"@pwd", hashMdp},
-                                     {"@role", cboRole.Text},
-                                     {"@actif", chkActif.Checked}
-                                 }).ExecuteNonQuery()
+                Dim nb As Integer =
+                CreateUtilisateurRepository().MettreAJourUtilisateur(
+                    CInt(_id),
+                    txtNom.Text.Trim(),
+                    hashMdp,
+                    cboRole.Text,
+                    chkActif.Checked)
+
+                Logger.INFO($"Utilisateur mis à jour Id={_id}, lignes={nb}")
             End If
 
             DialogResult = DialogResult.OK
             Close()
 
         Catch ex As Exception
-            Dim unused = MessageBox.Show("Erreur SQL : " & ex.Message)
+            Dim unused = MessageBox.Show("Erreur lors de l'enregistrement : " & ex.Message)
         End Try
     End Sub
 

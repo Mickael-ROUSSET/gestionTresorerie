@@ -43,7 +43,7 @@ Public Class FrmNouveauTiers
         If _pendingCoordonnees IsNot Nothing Then
             Try
                 _pendingCoordonnees.IdTiers = newId
-                SaveCoordonnees(_pendingCoordonnees)
+                Save(_pendingCoordonnees)
                 Logger.INFO($"Coordonnées sauvegardées pour IdTiers={newId} : {_pendingCoordonnees}")
             Catch ex As Exception
                 Logger.ERR($"Erreur lors de la sauvegarde des coordonnées pour IdTiers={newId} : {ex.Message}")
@@ -76,9 +76,10 @@ Public Class FrmNouveauTiers
     Private Function TiersExisteDeJa() As Boolean
         Try
             Return CreateTiersRepository().TiersExiste(
-            txtNom.Text,
-            txtPrenom.Text,
-            txtRaisonSociale.Text)
+            txtNom.Text.Trim(),
+            txtPrenom.Text.Trim(),
+            txtRaisonSociale.Text.Trim())
+
         Catch ex As Exception
             Logger.ERR($"Erreur lors de la vérification de l'existence du tiers : {ex.Message}")
             Throw
@@ -93,11 +94,12 @@ Public Class FrmNouveauTiers
                                           iSousCategorie As Integer?) As Integer
         Try
             Dim newId As Integer =
-            CreateTiersRepository().Inserer(sRaisonSociale,
-                                            sPrenom,
-                                            sNom,
-                                            iCategorie,
-                                            iSousCategorie)
+            CreateTiersRepository().Inserer(
+                sRaisonSociale,
+                sPrenom,
+                sNom,
+                iCategorie,
+                iSousCategorie)
 
             If newId > 0 Then
                 Logger.INFO($"Nouveau tiers inséré avec succès. Id={newId}")
@@ -114,26 +116,21 @@ Public Class FrmNouveauTiers
     End Function
 
     ' Sauvegarde des coordonnées (réutilise les noms de paramètres attendus par insertCoordonnees/updateCoordonnees)
-    Private Sub SaveCoordonnees(coordonnee As Coordonnees)
-        Dim parametres As New Dictionary(Of String, Object) From {
-            {"@Id", coordonnee.Id},
-            {"@IdTiers", coordonnee.IdTiers},
-            {"@Rue1", coordonnee.Rue1},
-            {"@Rue2", coordonnee.Rue2},
-            {"@CodePostal", coordonnee.CodePostal},
-            {"@Ville", coordonnee.Ville},
-            {"@Pays", coordonnee.Pays},
-            {"@Email", If(String.IsNullOrWhiteSpace(coordonnee.Email), DBNull.Value, coordonnee.Email)},
-            {"@Telephone", If(String.IsNullOrWhiteSpace(coordonnee.Telephone), DBNull.Value, coordonnee.Telephone)}
-        }
-        Dim reqSqlCoord As String = If(coordonnee.Id = 0, "insertCoordonnees", "updateCoordonnees")
-        Using cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, reqSqlCoord, parametres)
-            If coordonnee.Id = 0 Then
-                coordonnee.Id = Convert.ToInt32(cmd.ExecuteScalar())
-            Else
-                cmd.ExecuteNonQuery()
-            End If
-        End Using
+    Public Sub Save(coordonnee As Coordonnees)
+        If coordonnee Is Nothing Then
+            Throw New ArgumentNullException(NameOf(coordonnee))
+        End If
+
+        coordonnee.Validate()
+
+        Try
+            coordonnee.InsererOuMettreAJour()
+            Logger.INFO($"Coordonnées enregistrées pour IdTiers={coordonnee.IdTiers}")
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors de l'enregistrement des coordonnées : {ex.Message}")
+            Throw
+        End Try
     End Sub
 
     Private Sub rbPersonneMorale_CheckedChanged(sender As Object, e As EventArgs) Handles rbPersonneMorale.CheckedChanged

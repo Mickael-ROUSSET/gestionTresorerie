@@ -62,28 +62,21 @@ Public Class FrmPrincipale
     End Sub
     Private Sub ChargerDgvPrincipale()
         Try
-            ' Créer une commande SQL 
-            Dim cmd = SqlCommandBuilder.CreateSqlCommand(Constantes.DataBases.Agumaaa, "sqlSelectMouvementsLibelles")
-            ' Créer un DataAdapter pour remplir le DataTable
-            Using adapter As New SqlDataAdapter(cmd)
-                ' Créer un DataTable pour stocker les données
-                Dim dataTable As New DataTable()
-                ' Remplir le DataTable avec les données de la base de données
-                adapter.Fill(dataTable)
-                ' Lier le DataTable au DataGridView
-                dgvPrincipale.DataSource = dataTable
-            End Using
-            ' Ajouter la colonne d'image pour l'état du mouvement
+            Dim dataTable As DataTable =
+            SqlCommandBuilder.ExecuteDataTable(
+                Constantes.DataBases.Agumaaa,
+                "sqlSelectMouvementsLibelles")
+
+            dgvPrincipale.DataSource = dataTable
+
             AjouterColonneEtatImage()
 
-            ' Écrire un log d'information
-            Logger.INFO("Chargement des données dans dgvPrincipale réussi.")
-        Catch ex As SqlException
-            ' Écrire un log d'erreur en cas d'exception SQL
-            Logger.ERR($"Erreur SQL lors du chargement des données dans dgvPrincipale : {ex.Message}")
         Catch ex As Exception
-            ' Écrire un log d'erreur en cas d'exception générale
-            Logger.ERR($"Erreur lors du chargement des données dans dgvPrincipale : {ex.Message}")
+            Logger.ERR($"Erreur lors du chargement de la grille principale : {ex.Message}")
+            MessageBox.Show("Erreur lors du chargement de la grille principale : " & ex.Message,
+                        "Erreur",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error)
         End Try
     End Sub
     Private Sub AjouterColonneEtatImage()
