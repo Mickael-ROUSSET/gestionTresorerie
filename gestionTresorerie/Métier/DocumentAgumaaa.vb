@@ -72,7 +72,7 @@ Public MustInherit Class DocumentAgumaaa
     End Property
     Public Shared Sub InsererDocument(doc As DocumentAgumaaa)
         Try
-            CreateRepository().Inserer(doc)
+            CreateDocumentRepository().Inserer(doc)
             Logger.INFO($"Document {doc.IdMvtDoc} inséré avec succès.")
         Catch ex As Exception
             Logger.ERR($"Erreur lors de l'insertion du document : {ex.Message}")
@@ -81,7 +81,7 @@ Public MustInherit Class DocumentAgumaaa
     End Sub
     Public Shared Function LireDocuments() As DataTable
         Try
-            Return CreateRepository().LireTous()
+            Return CreateDocumentRepository().LireTous()
         Catch ex As Exception
             Logger.ERR($"Erreur lors de la lecture des documents : {ex.Message}")
             Return New DataTable()
@@ -95,7 +95,7 @@ Public MustInherit Class DocumentAgumaaa
                                       sousCategorieDoc As String,
                                       idMvtDoc As Integer)
         Try
-            CreateRepository().MettreAJour(idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc)
+            CreateDocumentRepository().MettreAJour(idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc)
             Logger.INFO($"Document {idDoc} mis à jour avec succès.")
         Catch ex As Exception
             Logger.ERR($"Erreur lors de la mise à jour du document : {ex.Message}")
@@ -104,7 +104,7 @@ Public MustInherit Class DocumentAgumaaa
     End Sub
     Public Shared Sub SupprimerDocument(idDoc As Integer)
         Try
-            CreateRepository().Supprimer(idDoc)
+            CreateDocumentRepository().Supprimer(idDoc)
             Logger.INFO($"Document {idDoc} supprimé avec succès.")
         Catch ex As Exception
             Logger.ERR($"Erreur lors de la suppression du document : {ex.Message}")
