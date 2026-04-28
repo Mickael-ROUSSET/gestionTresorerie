@@ -59,6 +59,8 @@ Public Class SqlCommandBuilder
             cmd.Parameters.AddWithValue(param.Key, If(param.Value, DBNull.Value))
         Next
     End Sub
+
+    <Obsolete("Utiliser SqlExecutor ou un Repository dédié.", False)>
     Public Shared Function CreateSqlCommand(sBase As String,
                                         queryName As String,
                                         Optional params As Dictionary(Of String, Object) = Nothing) As SqlCommand
