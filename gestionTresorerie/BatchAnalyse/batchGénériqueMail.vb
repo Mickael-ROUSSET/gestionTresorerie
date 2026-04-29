@@ -5,8 +5,7 @@ Public Class BatchMailSender
         Dim factory As IConnectionFactory =
         RepositoryFactory.CreateConnectionFactory(Constantes.DataBases.Agumaaa)
 
-        Dim provider As ISqlTextProvider =
-        RepositoryFactory.CreateSqlTextProvider()
+        Dim provider As ISqlTextProvider = RepositoryFactory.CreateSqlTextProvider()
 
         Return New BatchAnalyseRepository(factory, provider)
     End Function

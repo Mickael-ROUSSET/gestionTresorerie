@@ -21,9 +21,9 @@ Public MustInherit Class BaseDataRow
     ' --- Chaque entité doit implémenter ceci ---
     Public MustOverride Sub LoadFromReader(reader As SqlDataReader)
     Public Shared Function Chargement(Of T As {BaseDataRow, New})(
-    nomRequete As String,
-    Optional params As Dictionary(Of String, Object) = Nothing
-) As List(Of T)
+            nomRequete As String,
+            Optional params As Dictionary(Of String, Object) = Nothing
+        ) As List(Of T)
 
         Dim executor As ISqlExecutor = RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 

@@ -5,24 +5,15 @@ Public Class SqlCommandBuilder
     Private Sub New()
     End Sub
 
-    Private Shared Function BuildExecutor(sBase As String) As ISqlExecutor
-        Dim connectionString As String = ConnexionDB.GetInstance(sBase).GetConnexion(sBase).ConnectionString
-        Dim factory As New AgumaaaConnectionFactory(connectionString)
-        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
-
-        Return New SqlExecutor(factory, provider)
-    End Function
-
     Public Shared Function ExecuteDataTable(sBase As String,
-                                            nomRequete As String,
-                                            Optional params As Dictionary(Of String, Object) = Nothing) As DataTable
+                                        nomRequete As String,
+                                        Optional params As Dictionary(Of String, Object) = Nothing) As DataTable
         Dim dt As New DataTable()
-        Dim sqlTextProvider As ISqlTextProvider = New LegacySqlTextProvider()
-        Dim sql As String = sqlTextProvider.GetSql(nomRequete)
+        Dim provider As ISqlTextProvider = RepositoryFactory.CreateSqlTextProvider()
+        Dim sql As String = provider.GetSql(nomRequete)
+        Dim factory As IConnectionFactory = RepositoryFactory.CreateConnectionFactory(sBase)
 
-        Dim connectionString As String = ConnexionDB.GetInstance(sBase).GetConnexion(sBase).ConnectionString
-
-        Using conn As New SqlConnection(connectionString)
+        Using conn = factory.CreateConnection()
             Using cmd As New SqlCommand(sql, conn)
                 AddDictionaryParameters(cmd, params)
 

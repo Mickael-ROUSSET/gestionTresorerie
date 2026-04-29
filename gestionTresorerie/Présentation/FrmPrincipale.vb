@@ -145,9 +145,7 @@ Public Class FrmPrincipale
     Private Sub SauvegarderToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SauvegarderToolStripMenuItem.Click
         Dim dbName As String = Constantes.DataBases.Agumaaa
         Dim dossier As String = "D:\Sauvegardes"
-        Dim connectionString As String = ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).GetConnexion(Constantes.DataBases.Agumaaa).ConnectionString
-
-        Dim factory As New AgumaaaConnectionFactory(connectionString)
+        Dim factory As IConnectionFactory = RepositoryFactory.CreateConnectionFactory(Constantes.DataBases.Agumaaa)
         Dim sqlAdmin As New SqlAdminService(factory)
         Dim maintenance As New DatabaseMaintenanceService(sqlAdmin)
 
@@ -168,12 +166,7 @@ Public Class FrmPrincipale
 
         Try
             Dim dbName As String = Constantes.DataBases.Agumaaa
-            Dim connectionString As String =
-            ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
-                        GetConnexion(Constantes.DataBases.Agumaaa).
-                        ConnectionString
-
-            Dim factory As New AgumaaaConnectionFactory(connectionString)
+            Dim factory As IConnectionFactory = RepositoryFactory.CreateConnectionFactory(Constantes.DataBases.Agumaaa)
             Dim sqlAdmin As New SqlAdminService(factory)
 
             sqlAdmin.RestaurerBase(dbName, ofd.FileName)
