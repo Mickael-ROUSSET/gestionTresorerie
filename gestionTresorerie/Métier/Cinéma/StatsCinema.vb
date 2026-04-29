@@ -8,7 +8,7 @@ Imports System.Drawing
 Public NotInheritable Class StatsCinema
     Private Shared Function CreateRepository() As StatsCinemaRepository
         Dim executor As ISqlExecutor =
-    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+    RepositoryFactory.CreateExecutor(Constantes.DataBases.Cinema)
 
         Return New StatsCinemaRepository(executor)
     End Function

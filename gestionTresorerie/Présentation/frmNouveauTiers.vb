@@ -7,8 +7,7 @@ Public Class FrmNouveauTiers
     Private _pendingCoordonnees As Coordonnees
     Private toolTip1 As ToolTip
     Private Shared Function CreateTiersRepository() As TiersRepository
-        Dim executor As ISqlExecutor =
-    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+        Dim executor As ISqlExecutor = RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New TiersRepository(executor)
     End Function

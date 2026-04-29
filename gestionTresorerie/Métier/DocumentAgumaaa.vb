@@ -42,14 +42,11 @@ Public MustInherit Class DocumentAgumaaa
         Me.dateModif = dateModif
     End Sub
     Private Shared Function CreateDocumentRepository() As DocumentRepository
-        Dim factory As IConnectionFactory =
-        RepositoryFactory.CreateConnectionFactory(Constantes.DataBases.Agumaaa)
+        Dim factory As IConnectionFactory = RepositoryFactory.CreateConnectionFactory(Constantes.DataBases.Agumaaa)
 
-        Dim provider As ISqlTextProvider =
-        RepositoryFactory.CreateSqlTextProvider()
+        Dim provider As ISqlTextProvider = RepositoryFactory.CreateSqlTextProvider()
 
-        Dim executor As ISqlExecutor =
-        RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+        Dim executor As ISqlExecutor = RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New DocumentRepository(executor, factory, provider)
     End Function

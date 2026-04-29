@@ -18,8 +18,7 @@ Public Class FrmSaisieCoordonnees
         Me.EnregistrerOnValidate = enregistrerOnValidate
     End Sub
     Private Shared Function CreateAdresseRepository() As AdresseRepository
-        Dim executor As ISqlExecutor =
-    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+        Dim executor As ISqlExecutor = RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New AdresseRepository(executor)
     End Function

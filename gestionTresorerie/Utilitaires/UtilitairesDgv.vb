@@ -6,13 +6,10 @@ Public Class UtilitairesDgv
     Public Function ExecuterRequete(query As String,
                                 Optional parameters As Dictionary(Of String, Object) = Nothing) As DataTable _
                                 Implements IDataService.ExecuterRequete
-        Dim connectionString As String =
-        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).
-                    GetConnexion(Constantes.DataBases.Agumaaa).
-                    ConnectionString
+        Dim factory As IConnectionFactory = RepositoryFactory.CreateConnectionFactory(Constantes.DataBases.Agumaaa)
 
-        Dim factory As New AgumaaaConnectionFactory(connectionString)
-        Dim provider As ISqlTextProvider = New LegacySqlTextProvider()
+        Dim provider As ISqlTextProvider = RepositoryFactory.CreateSqlTextProvider()
+
         Dim sqlText As String = provider.GetSql(query)
 
         Dim dt As New DataTable()

@@ -77,7 +77,7 @@ Public Class Seance
     End Sub
     Private Shared Function CreateRepository() As SeanceRepository
         Dim executor As ISqlExecutor =
-    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+    RepositoryFactory.CreateExecutor(Constantes.DataBases.Cinema)
 
         Return New SeanceRepository(executor)
     End Function

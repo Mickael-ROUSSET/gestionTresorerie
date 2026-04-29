@@ -53,8 +53,7 @@ Public Class Tiers
         End If
     End Sub
     Private Shared Function CreateRepository() As TiersRepository
-        Dim executor As ISqlExecutor =
-    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+        Dim executor As ISqlExecutor = RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New TiersRepository(executor)
     End Function

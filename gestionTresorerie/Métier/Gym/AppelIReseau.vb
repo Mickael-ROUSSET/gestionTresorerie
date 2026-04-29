@@ -3,8 +3,7 @@ Imports System.IO
 
 Public Class AppelIReseau
     Private Shared Function CreateRepository() As GymRepository
-        Dim executor As ISqlExecutor =
-    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+        Dim executor As ISqlExecutor = RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New GymRepository(executor)
     End Function

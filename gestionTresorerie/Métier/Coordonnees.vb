@@ -41,8 +41,7 @@ Public Class Coordonnees
         Validate()
     End Sub
     Private Shared Function CreateRepository() As AdresseRepository
-        Dim executor As ISqlExecutor =
-    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+        Dim executor As ISqlExecutor = RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New AdresseRepository(executor)
     End Function

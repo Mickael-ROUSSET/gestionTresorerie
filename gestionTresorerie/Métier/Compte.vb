@@ -11,8 +11,7 @@ Public Class Compte
         Me.TypeAcces = typeAcces
     End Sub
     Private Shared Function CreateRepository() As CompteRepository
-        Dim executor As ISqlExecutor =
-    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+        Dim executor As ISqlExecutor = RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New CompteRepository(executor)
     End Function

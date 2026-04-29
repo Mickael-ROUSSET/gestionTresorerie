@@ -13,15 +13,13 @@ Public Class EntreeCinema
     Public Property Payant As Boolean
 
     Private Shared Function CreateFilmRepository() As FilmRepository
-        Dim executor As ISqlExecutor =
-    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+        Dim executor As ISqlExecutor = RepositoryFactory.CreateExecutor(Constantes.DataBases.Cinema)
 
         Return New FilmRepository(executor)
     End Function
 
     Private Shared Function CreateSeanceRepository() As SeanceRepository
-        Dim executor As ISqlExecutor =
-    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+        Dim executor As ISqlExecutor = RepositoryFactory.CreateExecutor(Constantes.DataBases.Cinema)
 
         Return New SeanceRepository(executor)
     End Function

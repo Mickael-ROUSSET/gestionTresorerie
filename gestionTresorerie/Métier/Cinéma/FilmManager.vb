@@ -12,7 +12,7 @@ Public Class FilmManager
 
     Private Shared Function CreateRepository() As FilmRepository
         Dim executor As ISqlExecutor =
-    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+    RepositoryFactory.CreateExecutor(Constantes.DataBases.Cinema)
 
         Return New FilmRepository(executor)
     End Function

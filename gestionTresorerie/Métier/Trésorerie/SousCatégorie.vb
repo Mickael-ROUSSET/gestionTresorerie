@@ -22,8 +22,7 @@ Public Class SousCategorie
         Me.idCategorie = idCategorie
     End Sub
     Private Shared Function CreateRepository() As SousCategorieRepository
-        Dim executor As ISqlExecutor =
-    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+        Dim executor As ISqlExecutor = RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New SousCategorieRepository(executor)
     End Function

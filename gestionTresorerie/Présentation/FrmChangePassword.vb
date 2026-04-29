@@ -10,8 +10,7 @@ Public Class FrmChangePassword
         CancelButton = btnAnnuler
     End Sub
     Private Shared Function CreateUtilisateurRepository() As UtilisateurRepository
-        Dim executor As ISqlExecutor =
-    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+        Dim executor As ISqlExecutor = RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New UtilisateurRepository(executor)
     End Function

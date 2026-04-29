@@ -22,8 +22,7 @@ Public Class Categorie
         Me.Debit = debit
     End Sub
     Private Shared Function CreateRepository() As CategorieRepository
-        Dim executor As ISqlExecutor =
-    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+        Dim executor As ISqlExecutor = RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New CategorieRepository(executor)
     End Function

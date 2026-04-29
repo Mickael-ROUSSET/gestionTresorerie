@@ -8,7 +8,7 @@ Imports Microsoft.VisualBasic.Devices
 Public Class GenereAttestationNonParticipation
     Private Shared Function CreateRepository() As MarcheDeNoelRepository
         Dim executor As ISqlExecutor =
-    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+    RepositoryFactory.CreateExecutor(Constantes.DataBases.MarcheDeNoel)
 
         Return New MarcheDeNoelRepository(executor)
     End Function

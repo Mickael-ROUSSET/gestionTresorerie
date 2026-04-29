@@ -4,8 +4,7 @@ Imports DocumentFormat.OpenXml.Wordprocessing
 
 Public Class CreePresentation
     Private Shared Function CreateRepository() As PresentationRepository
-        Dim executor As ISqlExecutor =
-    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+        Dim executor As ISqlExecutor = RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
 
         Return New PresentationRepository(executor)
     End Function

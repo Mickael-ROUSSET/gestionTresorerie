@@ -38,7 +38,7 @@
     End Sub
     Private Shared Function CreateRepository() As TarifRepository
         Dim executor As ISqlExecutor =
-    RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+    RepositoryFactory.CreateExecutor(Constantes.DataBases.Cinema)
 
         Return New TarifRepository(executor)
     End Function
