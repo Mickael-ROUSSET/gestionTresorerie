@@ -4,24 +4,42 @@ Public Class SaisieService
 
     Private Shared ReadOnly CultureFr As CultureInfo =
         CultureInfo.GetCultureInfo("fr-FR")
+    Public Shared Sub Valider(dto As SaisieMouvementDto)
+        If dto Is Nothing Then
+            Throw New ArgumentNullException(NameOf(dto))
+        End If
 
+        If dto.DateMvt = DateTime.MinValue Then
+            Throw New ArgumentException("La date du mouvement est obligatoire.", NameOf(dto.DateMvt))
+        End If
+
+        If String.IsNullOrWhiteSpace(dto.MontantTexte) Then
+            Throw New ArgumentException("Le montant est obligatoire.", NameOf(dto.MontantTexte))
+        End If
+
+        Dim montant As Decimal = ParserMontant(dto.MontantTexte)
+
+        If montant <= 0D Then
+            Throw New ArgumentException("Le montant doit être strictement positif.", NameOf(dto.MontantTexte))
+        End If
+    End Sub
     Public Shared Function CreerMouvement(dto As SaisieMouvementDto) As Mouvements
-        If dto Is Nothing Then Throw New ArgumentNullException(NameOf(dto))
+        Valider(dto)
 
         Dim montant As Decimal = ParserMontant(dto.MontantTexte)
 
         Return New Mouvements With {
-            .DateMvt = dto.DateMvt.Date,
-            .Note = NettoyerTexte(dto.Note),
-            .Montant = montant,
-            .Sens = Not dto.EstDebit,
-            .Categorie = dto.IdCategorie,
-            .SousCategorie = dto.IdSousCategorie,
-            .Tiers = dto.IdTiers,
-            .idDoc = dto.IdDoc,
-            .Etat = False,
-            .Modifiable = True
-        }
+        .DateMvt = dto.DateMvt.Date,
+        .Note = NettoyerTexte(dto.Note),
+        .Montant = montant,
+        .Sens = Not dto.EstDebit,
+        .Categorie = dto.IdCategorie,
+        .SousCategorie = dto.IdSousCategorie,
+        .Tiers = dto.IdTiers,
+        .idDoc = dto.IdDoc,
+        .Etat = False,
+        .Modifiable = True
+    }
     End Function
 
     Public Shared Function ParserMontant(montantTexte As String) As Decimal

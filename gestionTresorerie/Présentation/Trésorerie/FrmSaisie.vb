@@ -19,11 +19,14 @@ Public Class FrmSaisie
     Public Property Properties As Object
     Private isExpanded As Boolean = True ' Non utilisé dans les méthodes fournies, mais conservé
     Private _idDocSelectionne As Integer = 0
+    Private ReadOnly _errorProvider As New ErrorProvider()
 
     Private Sub FrmSaisie_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Try
             InitialiserListeTiers()
             Dim indTiersDetecte As Integer = listeTiers.DetecteTiers(txtNote.Text)
+            _errorProvider.ContainerControl = Me
+            _errorProvider.BlinkStyle = ErrorBlinkStyle.NeverBlink
         Catch ex As Exception
             Logger.ERR($"Erreur lors du chargement du formulaire : {ex.Message}")
             ' Utilisation de Exit Sub au lieu de End pour un comportement plus propre dans WinForms
@@ -31,22 +34,85 @@ Public Class FrmSaisie
             Me.Close()
         End Try
     End Sub
+
+    Private Function ValiderFormulaireAvecAffichage() As Boolean
+        _errorProvider.Clear()
+
+        Dim dto As SaisieMouvementDto = ConstruireDtoDepuisFormulaire()
+
+        Dim result As SaisieValidationResult =
+        SaisieValidationService.Valider(
+            dto,
+            _tiersSelectionne IsNot Nothing,
+            _categorieSelectionne IsNot Nothing,
+            _sousCategorieSelectionnee IsNot Nothing,
+            _typeMvtSelectionne IsNot Nothing)
+
+        If result.Erreurs.ContainsKey("Montant") Then
+            _errorProvider.SetError(txtMontant, result.Erreurs("Montant"))
+        End If
+
+        If result.Erreurs.ContainsKey("Tiers") Then
+            _errorProvider.SetError(txtTiers, result.Erreurs("Tiers"))
+        End If
+
+        If result.Erreurs.ContainsKey("Categorie") Then
+            _errorProvider.SetError(txtCategorie, result.Erreurs("Categorie"))
+        End If
+
+        If result.Erreurs.ContainsKey("SousCategorie") Then
+            _errorProvider.SetError(txtSousCategorie, result.Erreurs("SousCategorie"))
+        End If
+
+        If result.Erreurs.ContainsKey("TypeMvt") Then
+            _errorProvider.SetError(txtTypeMvt, result.Erreurs("TypeMvt"))
+        End If
+
+        btnValider.Enabled = result.IsValid
+        Return result.IsValid
+    End Function
     Private Sub InitialiserListeTiers()
         If listeTiers Is Nothing Then
             listeTiers = New ListeTiers()
         End If
     End Sub
+    Private Function ConstruireDtoDepuisFormulaire() As SaisieMouvementDto
+        Return New SaisieMouvementDto With {
+        .DateMvt = dateMvt.Value,
+        .Note = txtNote.Text,
+        .MontantTexte = txtMontant.Text,
+        .EstDebit = rbDebit.Checked,
+        .IdCategorie = If(_categorieSelectionne Is Nothing, 0, _categorieSelectionne.Id),
+        .IdSousCategorie = If(_sousCategorieSelectionnee Is Nothing, 0, _sousCategorieSelectionnee.Id),
+        .IdTiers = If(_tiersSelectionne Is Nothing, 0, _tiersSelectionne.Id),
+        .IdDoc = _idDocSelectionne
+    }
+    End Function
     Private Sub BtnValider_Click(sender As Object, e As EventArgs) Handles btnValider.Click
-        If VerifierValiditeMouvement() Then
-            InsereMouvement()
-        Else
-            ' La méthode VerifierValiditeMouvement gère déjà l'affichage de l'erreur
-            ' et le focus, donc ce MessageBox est redondant sauf pour une erreur non gérée
-            ' Je le laisse pour la rétrocompatibilité, mais l'erreur spécifique est affichée par la fonction
-            MessageBox.Show("Le mouvement est invalide. Veuillez vérifier les informations saisies.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        If Not ValiderFormulaireAvecAffichage() Then
+            Logger.WARN("Validation du mouvement refusée : formulaire invalide.")
+            Exit Sub
         End If
-    End Sub
 
+        Try
+            InsereMouvement()
+        Catch ex As Exception
+            Logger.ERR($"Erreur lors de la validation du mouvement : {ex.Message}")
+            MessageBox.Show("Erreur technique lors de l'enregistrement : " & ex.Message,
+                        "Erreur",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error)
+        End Try
+    End Sub
+    Private Sub ChampValidation_Changed(sender As Object, e As EventArgs) _
+    Handles txtMontant.TextChanged,
+            txtTiers.TextChanged,
+            txtCategorie.TextChanged,
+            txtSousCategorie.TextChanged,
+            txtTypeMvt.TextChanged
+
+        ValiderFormulaireAvecAffichage()
+    End Sub
     ' --- Logique de Validation et de Gestion des Erreurs ---
 
     Private Function VerifierValiditeMouvement() As Boolean
@@ -105,15 +171,8 @@ Public Class FrmSaisie
     End Sub
 
     ' --- Gestion des événements de contrôles ---
-
     Private Sub TxtMontant_Leave(sender As Object, e As EventArgs) Handles txtMontant.Leave
-        ' Utilisation de Handles TxtMontant.Leave plutôt que TextChanged pour la validation
-        ' après que l'utilisateur ait quitté le champ.
-        If Not Regex.Match(txtMontant.Text, Constantes.Formats.RegExMontant, RegexOptions.IgnoreCase).Success Then
-            MessageBox.Show($"Le montant '{txtMontant.Text}' doit être numérique ou respecter le format attendu!")
-            ' Remet le focus sur la zone de saisie du montant
-            txtMontant.Focus()
-        End If
+        ValiderFormulaireAvecAffichage()
     End Sub
     Private Sub btnInsereTiers_Click(sender As Object, e As EventArgs) Handles btnInsereTiers.Click
         FrmNouveauTiers.Show()
@@ -121,18 +180,15 @@ Public Class FrmSaisie
 
     Private Sub InsereMouvement()
         Try
-            ' Les infos de création du mouvement sont récupérées sur la fenêtre de saisie
             _mvtEnCours = CreerMouvement()
 
             If _mvtEnCours Is Nothing Then
-                ' Une erreur est survenue dans CreerMouvement (déjà loggée)
                 Return
             End If
 
             _dtMvtsIdentiques = Mouvements.ChargerMouvementsSimilaires(_mvtEnCours)
 
             If _dtMvtsIdentiques IsNot Nothing AndAlso _dtMvtsIdentiques.Rows.Count > 0 Then
-                ' Un mouvement identique existe déjà
                 Dim frmListe As New FrmListe(_dtMvtsIdentiques)
                 AddHandler frmListe.objetSelectionneChanged, AddressOf mvtSelectionneChangedHandler
                 frmListe.ShowDialog()
@@ -140,11 +196,20 @@ Public Class FrmSaisie
             Else
                 Mouvements.InsererMouvementEnBase(_mvtEnCours)
                 Logger.INFO($"Insertion du mouvement pour : {_mvtEnCours.mvtValeursConcatenees}")
-                ' TODO : Ajouter une réinitialisation du formulaire après insertion réussie
             End If
+
+        Catch ex As ArgumentException
+            MessageBox.Show(ex.Message,
+                        "Saisie invalide",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning)
+
         Catch ex As Exception
-            MsgBox($"Erreur {ex.Message} lors de l'insertion des données {_mvtEnCours?.mvtValeursConcatenees}")
             Logger.ERR($"Erreur {ex.Message} lors de l'insertion des données {_mvtEnCours?.mvtValeursConcatenees}")
+            MessageBox.Show($"Erreur lors de l'insertion du mouvement : {ex.Message}",
+                        "Erreur",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error)
         End Try
     End Sub
     Private Sub mvtSelectionneChangedHandler(sender As Object, index As Integer)
@@ -161,7 +226,7 @@ Public Class FrmSaisie
                 ' Utilisation des objets sélectionnés (plus fiable)
                 Dim idCategorie As Integer = If(_categorieSelectionne Is Nothing, 0, _categorieSelectionne.Id)
                 Dim idSousCategorie As Integer = If(_sousCategorieSelectionnee Is Nothing, 0, _sousCategorieSelectionnee.Id)
-                Dim montantDecimal As Decimal = GetMontantValue(txtMontant.Text, rbCredit.Checked) ' Utilisation de la nouvelle fonction
+                Dim montantDecimal As Decimal = SaisieService.ParserMontant(txtMontant.Text)
                 Dim idTiers As Integer = If(_tiersSelectionne Is Nothing, 0, _tiersSelectionne.Id)
 
                 ' Autres valeurs
@@ -196,39 +261,14 @@ Public Class FrmSaisie
             Return 0 ' Retourne 0 si la conversion échoue
         End If
     End Function
-
-    ''' <summary>
-    ''' Calcule la valeur décimale du montant en tenant compte du sens (Crédit/Débit).
-    ''' </summary>
-    'Private Function GetMontantValue(montantTexte As String, isCredit As Boolean) As Decimal
-    '    Dim montantDecimal As Decimal
-    '    montantTexte = montantTexte.Trim().Replace(Constantes.Symboles.Espace, String.Empty)
-
-    '    If Not Decimal.TryParse(montantTexte, NumberStyles.Any, CultureInfo.CurrentCulture, montantDecimal) Then
-    '        Throw New FormatException($"Montant invalide : « {montantTexte} »")
-    '    End If
-
-    '    ' Ajustement du sens : négatif si Débit (et si le montant est positif)
-    '    If Not isCredit AndAlso montantDecimal > 0 Then
-    '        montantDecimal *= -1D
-    '    End If
-
-    '    Return montantDecimal
-    'End Function
     Private Function GetMontantValue(montantTexte As String, isCredit As Boolean) As Decimal
         Return SaisieService.ParserMontant(montantTexte)
     End Function
 
     Private Function CreerMouvement() As Mouvements
         Try
-            Dim idCategorie As Integer =
-            If(_categorieSelectionne Is Nothing, 0, _categorieSelectionne.Id)
-
-            Dim idSousCategorie As Integer =
-            If(_sousCategorieSelectionnee Is Nothing, 0, _sousCategorieSelectionnee.Id)
-
-            Dim idTiers As Integer =
-            If(_tiersSelectionne Is Nothing, 0, _tiersSelectionne.Id)
+            Dim dto As SaisieMouvementDto = ConstruireDtoDepuisFormulaire()
+            Dim mouvement As Mouvements = SaisieService.CreerMouvement(dto)
 
             Dim evenementLibelle As String =
             If(_evenementSelectionne Is Nothing OrElse String.IsNullOrWhiteSpace(_evenementSelectionne.libelle),
@@ -250,19 +290,6 @@ Public Class FrmSaisie
                Utilitaires.ExtraitNuméroChèque(txtNote.Text),
                String.Empty)
 
-            Dim dto As New SaisieMouvementDto With {
-            .DateMvt = dateMvt.Value,
-            .Note = txtNote.Text,
-            .MontantTexte = txtMontant.Text,
-            .EstDebit = rbDebit.Checked,
-            .IdCategorie = idCategorie,
-            .IdSousCategorie = idSousCategorie,
-            .IdTiers = idTiers,
-            .IdDoc = _idDocSelectionne
-        }
-
-            Dim mouvement As Mouvements = SaisieService.CreerMouvement(dto)
-
             mouvement.Evenement = evenementLibelle
             mouvement.TypeMouvement = typeMvtLibelle
             mouvement.Etat = rbRapproche.Checked
@@ -271,18 +298,13 @@ Public Class FrmSaisie
             mouvement.reference = sNumCheque
             mouvement.typeReference = typeDocLibelle
 
-            Logger.INFO($"Mouvement créé : {mouvement.Note} | Montant={mouvement.Montant} | Sens={mouvement.Sens} | TypeDoc={typeDocLibelle} | idDoc={_idDocSelectionne}")
+            Logger.INFO($"Mouvement créé : {mouvement.Note} | Montant={mouvement.Montant} | Sens={mouvement.Sens}")
 
             Return mouvement
 
         Catch ex As Exception
-            MessageBox.Show($"Erreur lors de la création du mouvement : {ex.Message}",
-                        "Erreur",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error)
-
             Logger.ERR("Erreur CreerMouvement : " & ex.ToString())
-            Return Nothing
+            Throw
         End Try
     End Function
 

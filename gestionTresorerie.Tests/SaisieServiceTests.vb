@@ -106,4 +106,46 @@ Public Class SaisieServiceTests
 
         Assert.AreEqual(String.Empty, mvt.Note)
     End Sub
+    <TestMethod>
+    Public Sub Valider_MontantZero_LeveException()
+        Dim dto As New SaisieMouvementDto With {
+            .DateMvt = Date.Today,
+            .MontantTexte = "0",
+            .EstDebit = True
+        }
+
+        Try
+            SaisieService.Valider(dto)
+            Assert.Fail("Une exception était attendue.")
+        Catch ex As ArgumentException
+            ' OK
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub Valider_DateMinValue_LeveException()
+        Dim dto As New SaisieMouvementDto With {
+            .DateMvt = DateTime.MinValue,
+            .MontantTexte = "10",
+            .EstDebit = True
+        }
+
+        Try
+            SaisieService.Valider(dto)
+            Assert.Fail("Une exception était attendue.")
+        Catch ex As ArgumentException
+            ' OK
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub Valider_DtoCorrect_NeLevePasException()
+        Dim dto As New SaisieMouvementDto With {
+            .DateMvt = Date.Today,
+            .MontantTexte = "10,50",
+            .EstDebit = True
+        }
+
+        SaisieService.Valider(dto)
+    End Sub
 End Class
