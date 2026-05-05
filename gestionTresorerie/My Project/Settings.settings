@@ -128,7 +128,7 @@
       <Value Profile="(Default)">select id, libelle from TypeMouvement;</Value>
     </Setting>
     <Setting Name="reqEvenement" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">select id, libelle from Evenement;</Value>
+      <Value Profile="(Default)">select id, libelle from Evenements;</Value>
     </Setting>
     <Setting Name="niveauLog" Type="System.String" Scope="Application">
       <Value Profile="(Default)">INFO</Value>
@@ -185,7 +185,7 @@
       <Value Profile="(Default)">Recues</Value>
     </Setting>
     <Setting Name="sqlTypesDocuments" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">SELECT prompt, gabaritRepertoire, gabaritNomFichier, classe FROM TypeDoc;</Value>
+      <Value Profile="(Default)">SELECT prompt, libellé, gabaritRepertoire, gabaritNomFichier, classe FROM TypeDoc;</Value>
     </Setting>
     <Setting Name="reqDocs" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT idDoc, dateDoc, contenuDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees FROM [dbo].[Documents];</Value>
@@ -407,9 +407,6 @@ SELECT SCOPE_IDENTITY();</Value>
     <Setting Name="reqSommeSousCatMouvements" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT sousCategorie, sum(montant) FROM Mouvements where categorie = @categorie</Value>
     </Setting>
-    <Setting Name="updMvt" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">UPDATE [dbo].[Mouvements] SET [categorie] = @Categorie, [sousCategorie] = @SousCategorie, [tiers] = @Tiers, [note] = @Note, [dateModification] = GETDATE(), [etat] = @Etat, [evenement] = @Evenement, [typeMouvement] = @TypeMouvement, [modifiable] = @Modifiable, [numeroRemise] = @NumeroRemise where [Id] = @Id</Value>
-    </Setting>
     <Setting Name="reqCategoriesMouvements" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT DISTINCT categorie FROM Mouvements;</Value>
     </Setting>
@@ -451,6 +448,28 @@ SELECT SCOPE_IDENTITY();</Value>
     </Setting>
     <Setting Name="numCptAgumaaa" Type="System.String" Scope="Application">
       <Value Profile="(Default)">01237705000</Value>
+    </Setting>
+    <Setting Name="updMvt" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">
+					UPDATE [dbo].[Mouvements]
+					SET [categorie] = @Categorie,
+					[sousCategorie] = @SousCategorie,
+					[montant] = @Montant,
+					[sens] = @Sens,
+					[tiers] = @Tiers,
+					[note] = @Note,
+					[dateMvt] = @DateMvt,
+					[dateModification] = GETDATE(),
+					[etat] = @Etat,
+					[evenement] = @Evenement,
+					[typeMouvement] = @TypeMouvement,
+					[modifiable] = @Modifiable,
+					[numeroRemise] = @NumeroRemise,
+					[reference] = @reference,
+					[typeReference] = @typeReference,
+					[idDoc] = @idDoc
+					WHERE [Id] = @Id
+				</Value>
     </Setting>
   </Settings>
 </SettingsFile>

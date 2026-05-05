@@ -90,7 +90,7 @@ Public Class FrmChargeRelevé
         Dim cellules As DataGridViewCellCollection
 
         cellules = dgvRelevé.CurrentRow.Cells
-        With FrmSaisie
+        With frmSaisie
             .dateMvt.Value = Convert.ToDateTime(cellules.Item(_iColDate).FormattedValue)
             .txtNote.Text = cellules.Item(_iColNote).FormattedValue
             If cellules.Item(_iColDebit).FormattedValue <> String.Empty Then

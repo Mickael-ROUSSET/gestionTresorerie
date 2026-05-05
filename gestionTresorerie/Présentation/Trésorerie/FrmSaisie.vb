@@ -200,64 +200,87 @@ Public Class FrmSaisie
     ''' <summary>
     ''' Calcule la valeur décimale du montant en tenant compte du sens (Crédit/Débit).
     ''' </summary>
+    'Private Function GetMontantValue(montantTexte As String, isCredit As Boolean) As Decimal
+    '    Dim montantDecimal As Decimal
+    '    montantTexte = montantTexte.Trim().Replace(Constantes.Symboles.Espace, String.Empty)
+
+    '    If Not Decimal.TryParse(montantTexte, NumberStyles.Any, CultureInfo.CurrentCulture, montantDecimal) Then
+    '        Throw New FormatException($"Montant invalide : « {montantTexte} »")
+    '    End If
+
+    '    ' Ajustement du sens : négatif si Débit (et si le montant est positif)
+    '    If Not isCredit AndAlso montantDecimal > 0 Then
+    '        montantDecimal *= -1D
+    '    End If
+
+    '    Return montantDecimal
+    'End Function
     Private Function GetMontantValue(montantTexte As String, isCredit As Boolean) As Decimal
-        Dim montantDecimal As Decimal
-        montantTexte = montantTexte.Trim().Replace(Constantes.Symboles.Espace, String.Empty)
-
-        If Not Decimal.TryParse(montantTexte, NumberStyles.Any, CultureInfo.CurrentCulture, montantDecimal) Then
-            Throw New FormatException($"Montant invalide : « {montantTexte} »")
-        End If
-
-        ' Ajustement du sens : négatif si Débit (et si le montant est positif)
-        If Not isCredit AndAlso montantDecimal > 0 Then
-            montantDecimal *= -1D
-        End If
-
-        Return montantDecimal
+        Return SaisieService.ParserMontant(montantTexte)
     End Function
 
     Private Function CreerMouvement() As Mouvements
         Try
-            ' 🔹 Conversion sécurisée du montant (utilise la nouvelle fonction)
-            Dim montantDecimal As Decimal = GetMontantValue(txtMontant.Text, rbCredit.Checked)
+            Dim idCategorie As Integer =
+            If(_categorieSelectionne Is Nothing, 0, _categorieSelectionne.Id)
 
-            ' 🔹 Récupération des ID et Libellés (plus sûr avec les objets)
-            Dim idCategorie As Integer = If(_categorieSelectionne Is Nothing, 0, _categorieSelectionne.Id)
-            Dim idSousCategorie As Integer = If(_sousCategorieSelectionnee Is Nothing, 0, _sousCategorieSelectionnee.Id)
-            Dim idTiers As Integer = If(_tiersSelectionne Is Nothing, 0, _tiersSelectionne.Id)
-            Dim evenementLibelle As String = If(_evenementSelectionne Is Nothing, String.Empty, _evenementSelectionne.libelle).Trim()
-            Dim typeMvtLibelle As String = If(_typeMvtSelectionne Is Nothing, String.Empty, _typeMvtSelectionne.libelle).Trim()
-            Dim typeDocLibelle As String = If(_typeDocSelectionne Is Nothing, String.Empty, _typeDocSelectionne.Libellé)
+            Dim idSousCategorie As Integer =
+            If(_sousCategorieSelectionnee Is Nothing, 0, _sousCategorieSelectionnee.Id)
 
-            ' 🔹 Extraction de la référence (numéro de chèque si TypeDoc est "Chèque")
-            Dim sNumCheque As String = If(typeDocLibelle.Equals("Chèque", StringComparison.OrdinalIgnoreCase),
-                                          Utilitaires.ExtraitNuméroChèque(txtNote.Text),
-                                          String.Empty)
+            Dim idTiers As Integer =
+            If(_tiersSelectionne Is Nothing, 0, _tiersSelectionne.Id)
 
-            ' 🔹 Création de l'objet Mouvements
-            Dim mouvement As New Mouvements(
-                note:=txtNote.Text.Trim(),
-                categorie:=idCategorie,
-                sousCategorie:=idSousCategorie,
-                tiers:=idTiers,
-                dateMvt:=dateMvt.Value,
-                montant:=montantDecimal,
-                sens:=rbCredit.Checked,
-                etat:=rbRapproche.Checked,
-                événement:=evenementLibelle,
-                type:=typeMvtLibelle,
-                modifiable:=False,
-                numeroRemise:=txtRemise.Text.Trim(),
-                reference:=sNumCheque,
-                typeReference:=typeDocLibelle,
-                idDoc:=_idDocSelectionne
-            )
+            Dim evenementLibelle As String =
+            If(_evenementSelectionne Is Nothing OrElse String.IsNullOrWhiteSpace(_evenementSelectionne.libelle),
+               String.Empty,
+               _evenementSelectionne.libelle.Trim())
 
-            Logger.INFO($"Mouvement créé : {mouvement.Note} | Montant {montantDecimal} | TypeDoc={typeDocLibelle} | idDoc={_idDocSelectionne}")
+            Dim typeMvtLibelle As String =
+            If(_typeMvtSelectionne Is Nothing OrElse String.IsNullOrWhiteSpace(_typeMvtSelectionne.libelle),
+               String.Empty,
+               _typeMvtSelectionne.libelle.Trim())
+
+            Dim typeDocLibelle As String =
+            If(_typeDocSelectionne Is Nothing OrElse String.IsNullOrWhiteSpace(_typeDocSelectionne.Libellé),
+               String.Empty,
+               _typeDocSelectionne.Libellé.Trim())
+
+            Dim sNumCheque As String =
+            If(typeDocLibelle.Equals("Chèque", StringComparison.OrdinalIgnoreCase),
+               Utilitaires.ExtraitNuméroChèque(txtNote.Text),
+               String.Empty)
+
+            Dim dto As New SaisieMouvementDto With {
+            .DateMvt = dateMvt.Value,
+            .Note = txtNote.Text,
+            .MontantTexte = txtMontant.Text,
+            .EstDebit = rbDebit.Checked,
+            .IdCategorie = idCategorie,
+            .IdSousCategorie = idSousCategorie,
+            .IdTiers = idTiers,
+            .IdDoc = _idDocSelectionne
+        }
+
+            Dim mouvement As Mouvements = SaisieService.CreerMouvement(dto)
+
+            mouvement.Evenement = evenementLibelle
+            mouvement.TypeMouvement = typeMvtLibelle
+            mouvement.Etat = rbRapproche.Checked
+            mouvement.Modifiable = False
+            mouvement.NumeroRemise = txtRemise.Text.Trim()
+            mouvement.reference = sNumCheque
+            mouvement.typeReference = typeDocLibelle
+
+            Logger.INFO($"Mouvement créé : {mouvement.Note} | Montant={mouvement.Montant} | Sens={mouvement.Sens} | TypeDoc={typeDocLibelle} | idDoc={_idDocSelectionne}")
+
             Return mouvement
 
         Catch ex As Exception
-            Dim unused = MessageBox.Show($"Erreur lors de la création du mouvement : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show($"Erreur lors de la création du mouvement : {ex.Message}",
+                        "Erreur",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error)
+
             Logger.ERR("Erreur CreerMouvement : " & ex.ToString())
             Return Nothing
         End Try
@@ -324,14 +347,34 @@ Public Class FrmSaisie
         Mouvements.MettreAJourIdDoc(_mvtEnCours.Id, idDoc)
     End Sub
     Private Sub btnSelTiers_Click(sender As Object, e As EventArgs) Handles btnSelTiers.Click
-        _tiersSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of gestionTresorerie.Tiers)(
-        nomRequete:="reqIdentiteCatTiers",
-        titreFenetre:="Sélection du tiers",
-        txtDestination:=txtTiers,
-        champLibelle:="Nom"
-    )
-        'Je force l'affichage du nom et du prénom car l'appel ci-dessus ne ramène que la propriété "Nom"
-        txtTiers.Text = _tiersSelectionne.Nom & " " & _tiersSelectionne.Prenom
+        Try
+            Dim tiers As Tiers =
+            AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of Tiers)(
+                nomRequete:="reqIdentiteCatTiers",
+                titreFenetre:="Sélection du tiers",
+                txtDestination:=txtTiers,
+                champLibelle:="Nom"
+            )
+
+            If tiers Is Nothing Then
+                Logger.INFO("Sélection du tiers annulée.")
+                Exit Sub
+            End If
+
+            _tiersSelectionne = tiers
+
+            Dim nomComplet As String =
+            $"{If(_tiersSelectionne.Nom, String.Empty)} {If(_tiersSelectionne.Prenom, String.Empty)}".Trim()
+
+            txtTiers.Text = nomComplet
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur sélection tiers : {ex.Message}")
+            MessageBox.Show("Erreur lors de la sélection du tiers : " & ex.Message,
+                        "Erreur",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error)
+        End Try
     End Sub
     Private Sub txtTiers_TextChanged(sender As Object, e As EventArgs) Handles txtTiers.TextChanged
         Try
@@ -382,46 +425,131 @@ Public Class FrmSaisie
     End Sub
 
     Private Sub btnSelCat_Click(sender As Object, e As EventArgs) Handles btnSelCat.Click
-        _categorieSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of Categorie)(
-        nomRequete:="selIdLibCat",
-        titreFenetre:="Sélection de la catégorie",
-        txtDestination:=txtCategorie
-    )
-        txtCategorie.Text = _categorieSelectionne.Libelle
+        Try
+            Dim categorie As Categorie =
+            AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of Categorie)(
+                nomRequete:="selIdLibCat",
+                titreFenetre:="Sélection de la catégorie",
+                txtDestination:=txtCategorie
+            )
+
+            If categorie Is Nothing Then
+                Logger.INFO("Sélection de la catégorie annulée.")
+                Exit Sub
+            End If
+
+            _categorieSelectionne = categorie
+            txtCategorie.Text = If(String.IsNullOrWhiteSpace(categorie.Libelle), String.Empty, categorie.Libelle.Trim())
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur sélection catégorie : {ex.Message}")
+            MessageBox.Show("Erreur lors de la sélection de la catégorie : " & ex.Message,
+                        "Erreur",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error)
+        End Try
     End Sub
     Private Sub btnSelSousCategorie_Click(sender As Object, e As EventArgs) Handles btnSelSousCategorie.Click
-        _sousCategorieSelectionnee = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of SousCategorie)(
-        nomRequete:="sqlSelSousCategoriesTout",
-        titreFenetre:="Sélection de la sous-catégorie",
-        txtDestination:=txtSousCategorie
-    )
-        txtSousCategorie.Text = _sousCategorieSelectionnee.Libelle
+        Try
+            Dim sousCategorie As SousCategorie =
+            AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of SousCategorie)(
+                nomRequete:="sqlSelSousCategoriesTout",
+                titreFenetre:="Sélection de la sous-catégorie",
+                txtDestination:=txtSousCategorie
+            )
+
+            If sousCategorie Is Nothing Then
+                Logger.INFO("Sélection de la sous-catégorie annulée.")
+                Exit Sub
+            End If
+
+            _sousCategorieSelectionnee = sousCategorie
+            txtSousCategorie.Text = If(String.IsNullOrWhiteSpace(sousCategorie.Libelle), String.Empty, sousCategorie.Libelle.Trim())
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur sélection sous-catégorie : {ex.Message}")
+            MessageBox.Show("Erreur lors de la sélection de la sous-catégorie : " & ex.Message,
+                        "Erreur",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error)
+        End Try
     End Sub
     Private Sub btnSelEvenement_Click(sender As Object, e As EventArgs) Handles btnSelEvenement.Click
-        _evenementSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of Evenement)(
-            nomRequete:="reqEvenement",
-            titreFenetre:="Sélection de l'événement",
-            txtDestination:=txtEvenement,
-            champLibelle:="Evénement"  ' ou autre propriété si besoin
-        )
-        txtEvenement.Text = _evenementSelectionne.libelle
+        Try
+            Dim evenement As Evenement =
+            AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of Evenement)(
+                nomRequete:="reqEvenement",
+                titreFenetre:="Sélection de l'événement",
+                txtDestination:=txtEvenement,
+                champLibelle:="Evénement"
+            )
+
+            If evenement Is Nothing Then
+                Logger.INFO("Sélection de l'événement annulée.")
+                Exit Sub
+            End If
+
+            _evenementSelectionne = evenement
+            txtEvenement.Text = If(String.IsNullOrWhiteSpace(evenement.libelle), String.Empty, evenement.libelle.Trim())
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur sélection événement : {ex.Message}")
+            MessageBox.Show("Erreur lors de la sélection de l'événement : " & ex.Message,
+                        "Erreur",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error)
+        End Try
     End Sub
     Private Sub btnSelTypeMvt_Click(sender As Object, e As EventArgs) Handles btnSelTypeMvt.Click
-        _typeMvtSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of TypeMvt)(
-            nomRequete:="reqTypesMouvement",
-            titreFenetre:="Sélection du typeDoc de mouvement",
-            txtDestination:=txtTypeMvt,
-            champLibelle:="TypeMouvement mouvement"  ' ou autre propriété si besoin
-        )
-        txtTypeMvt.Text = _typeMvtSelectionne.libelle
+        Try
+            Dim typeMvt As TypeMvt =
+            AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of TypeMvt)(
+                nomRequete:="reqTypesMouvement",
+                titreFenetre:="Sélection du type de mouvement",
+                txtDestination:=txtTypeMvt,
+                champLibelle:="TypeMouvement mouvement"
+            )
+
+            If typeMvt Is Nothing Then
+                Logger.INFO("Sélection du type de mouvement annulée.")
+                Exit Sub
+            End If
+
+            _typeMvtSelectionne = typeMvt
+            txtTypeMvt.Text = If(String.IsNullOrWhiteSpace(typeMvt.libelle), String.Empty, typeMvt.libelle.Trim())
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur sélection type mouvement : {ex.Message}")
+            MessageBox.Show("Erreur lors de la sélection du type de mouvement : " & ex.Message,
+                        "Erreur",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error)
+        End Try
     End Sub
     Private Sub btnSelTypeDoc_Click(sender As Object, e As EventArgs) Handles btnSelTypeDoc.Click
-        _typeDocSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of TypeDocImpl)(
-            nomRequete:="reqLibellesTypesDocuments",
-            titreFenetre:="Sélection du typeDoc de document",
-            txtDestination:=txtTypeDoc,
-            champLibelle:="Libellé"  ' ou autre propriété si besoin
-        )
-        txtTypeDoc.Text = _typeDocSelectionne.Libellé
+        Try
+            Dim typeDoc As TypeDocImpl =
+            AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of TypeDocImpl)(
+                nomRequete:="reqLibellesTypesDocuments",
+                titreFenetre:="Sélection du type de document",
+                txtDestination:=txtTypeDoc,
+                champLibelle:="Libellé"
+            )
+
+            If typeDoc Is Nothing Then
+                Logger.INFO("Sélection du type de document annulée.")
+                Exit Sub
+            End If
+
+            _typeDocSelectionne = typeDoc
+            txtTypeDoc.Text = If(String.IsNullOrWhiteSpace(typeDoc.Libellé), String.Empty, typeDoc.Libellé.Trim())
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur sélection type document : {ex.Message}")
+            MessageBox.Show("Erreur lors de la sélection du type de document : " & ex.Message,
+                        "Erreur",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error)
+        End Try
     End Sub
 End Class
