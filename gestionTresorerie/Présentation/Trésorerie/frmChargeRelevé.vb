@@ -1,109 +1,215 @@
-﻿Imports System.IO
+﻿Imports System.Globalization
 
 Public Class FrmChargeRelevé
 
-    ' Utiliser l'index des colonnes du datagridview
     Private _iColDate As Integer
     Private _iColNote As Integer
     Private _iColDebit As Integer
     Private _iColCredit As Integer
     Private _iColTraiteImage As Integer
+
+    Private _lignesReleve As New List(Of LigneReleve)
+    Private _mouvementsImportes As New List(Of Mouvements)
+
+    Private Shared ReadOnly CultureFr As CultureInfo = CultureInfo.GetCultureInfo("fr-FR")
+    Private _importResult As ImportReleveResult
+
     Public Sub New()
         InitializeComponent()
-        ' Utiliser l'index des colonnes
+
         _iColDate = dgvRelevé.Columns("dgVDate").Index
         _iColNote = dgvRelevé.Columns("dgVNOte").Index
         _iColDebit = dgvRelevé.Columns("dgVDébit").Index
         _iColCredit = dgvRelevé.Columns("dgVCrédit").Index
         _iColTraiteImage = dgvRelevé.Columns("traiteImage").Index
-        ' Ajouter le gestionnaire pour l'événement DataError
+
         AddHandler dgvRelevé.DataError, AddressOf dgvRelevé_DataError
     End Sub
+
     Private Sub dgvRelevé_DataError(sender As Object, e As DataGridViewDataErrorEventArgs)
-        ' Gérer les erreurs de données
         If e.Exception IsNot Nothing Then
-            Dim unused = MsgBox($"Erreur de données : {e.Exception.Message}", MsgBoxStyle.Critical)
             Logger.ERR($"Erreur de données : {e.Exception.Message}")
-            ' Empêcher l'erreur de propager
+            MessageBox.Show($"Erreur de données : {e.Exception.Message}",
+                            "Erreur",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error)
             e.ThrowException = False
         End If
     End Sub
-    Private Sub BtnOuvreFichier_Click(sender As Object, e As EventArgs) Handles btnOuvreFichier.Click
-        AlimenteLstMvtCA(OuvreFichier)
-    End Sub
-    Public Sub AlimenteLstMvtCA(sFichier As String)
-        Try
-            Dim monStreamReader As New StreamReader(sFichier) 'Stream pour la lecture
 
-            Dim sLigne As String = monStreamReader.ReadLine
-            While sLigne IsNot Nothing
-                ' Ajouter une zone vide pour la première colonne
-                Dim valeurs As String() = Split(sLigne, Constantes.Symboles.PointVirgule)
-                Dim nouvelleLigne As Object() = New Object(valeurs.Length) {}
-                nouvelleLigne(0) = String.Empty ' Ajouter une zone vide pour la première colonne
-                Array.Copy(valeurs, 0, nouvelleLigne, 1, valeurs.Length)
-                Dim unused1 = dgvRelevé.Rows.Add(nouvelleLigne)
-                sLigne = monStreamReader.ReadLine
-            End While
-            Call AjouterColonneTraite()
-            monStreamReader.Close()
+    Private Sub BtnOuvreFichier_Click(sender As Object, e As EventArgs) Handles btnOuvreFichier.Click
+        Try
+            Dim fichier As String = LitRelevé.OuvreFichier()
+
+            If String.IsNullOrWhiteSpace(fichier) Then
+                Logger.INFO("Aucun fichier de relevé sélectionné.")
+                Exit Sub
+            End If
+
+            AlimenteLstMvtCA(fichier)
+
         Catch ex As Exception
-            Dim unused = MsgBox($"Une erreur {ex.Message} est survenue sur la lecture du relevé : {sFichier}", MsgBoxStyle.Critical)
-            Logger.ERR($"Une erreur {ex.Message} est survenue sur la lecture du relevé : {sFichier}")
+            Logger.ERR($"Erreur ouverture relevé : {ex.Message}")
+            MessageBox.Show("Erreur lors de l'ouverture du relevé : " & ex.Message,
+                            "Erreur",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error)
         End Try
     End Sub
 
-    Private Sub AjouterColonneTraite()
-        ' Parcourir les lignes du DataGridView pour définir les images
-        For Each row As DataGridViewRow In dgvRelevé.Rows
-            'On ne traite pas la 1ère ligne qui est l'entête mais on lui affecte une image vide
-            If row.Index = 0 Then
-                row.Cells(_iColTraiteImage).Value = New Bitmap(1, 1)
+    Public Sub AlimenteLstMvtCA(sFichier As String)
+        Try
+            If String.IsNullOrWhiteSpace(sFichier) Then
+                MessageBox.Show("Aucun fichier sélectionné.",
+                            "Relevé",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information)
+                Exit Sub
             End If
-            If Not row.IsNewRow AndAlso row.Index > 0 Then
-                Try
-                    ' Supposons que les colonnes "dateMvt", "montant" et "sens" sont respectivement aux indices 1, 2 et 3
-                    Dim dateMvt As Date = CDate(row.Cells(_iColDate).Value)
-                    Dim montant As Decimal
-                    Dim sens As Boolean
 
-                    ' Vérifier la présence du montant dans row.Cells(iDebit) ou row.Cells(iCredit)
-                    If Not IsDBNull(row.Cells(_iColDebit).Value) AndAlso Decimal.TryParse(row.Cells(_iColDebit).Value.ToString(), montant) Then
-                        sens = True
-                    ElseIf Not IsDBNull(row.Cells(_iColCredit).Value) AndAlso Decimal.TryParse(row.Cells(_iColCredit).Value.ToString(), montant) Then
-                        sens = False
-                    Else
-                        Logger.WARN($"Montant non trouvé dans les cellules de la ligne {row.Index} : {row}")
-                    End If
-                    'TODO : à revoir, cela fait baucoup de requêtes
-                    'row.Cells(_iColTraiteImage).Value = If(Mouvements.Existe(dateMvt, montant, sens), My.Resources.OK, My.Resources.KO)
-                    row.Cells(_iColTraiteImage).Value = My.Resources.KO
-                Catch ex As Exception
-                    Logger.ERR($"Erreur lors de la définition de l'image pour la colonne 'Traité' dans la ligne {row.Index}: {ex.Message}")
-                    row.Cells("iTraiteImageIndex").Value = Nothing ' Par défaut, en cas d'erreur
-                End Try
+            _importResult = ImportReleveService.ChargerDepuisFichier(sFichier)
+
+            If _importResult Is Nothing OrElse _importResult.NbLignes = 0 Then
+                dgvRelevé.Rows.Clear()
+                MessageBox.Show("Aucune ligne de relevé exploitable trouvée.",
+                            "Relevé",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information)
+                Exit Sub
             End If
+
+            _lignesReleve = _importResult.Lignes
+            _mouvementsImportes = _importResult.Mouvements
+
+            AfficherLignesReleve(_importResult.Lignes)
+            AjouterColonneTraite()
+
+        Catch ex As Exception
+            Logger.ERR($"Une erreur {ex.Message} est survenue sur la lecture du relevé : {sFichier}")
+            MessageBox.Show($"Une erreur est survenue sur la lecture du relevé : {ex.Message}",
+                        "Erreur",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error)
+        End Try
+    End Sub
+
+    Private Sub AfficherLignesReleve(lignes As IEnumerable(Of LigneReleve))
+        dgvRelevé.Rows.Clear()
+
+        For Each ligne As LigneReleve In lignes
+            dgvRelevé.Rows.Add(
+                Nothing,
+                ligne.DateOperation.ToString("dd/MM/yyyy"),
+                ligne.Libelle,
+                If(ligne.MontantDebit.HasValue,
+                   ligne.MontantDebit.Value.ToString("0.00", CultureFr),
+                   String.Empty),
+                If(ligne.MontantCredit.HasValue,
+                   ligne.MontantCredit.Value.ToString("0.00", CultureFr),
+                   String.Empty)
+            )
         Next
     End Sub
-    Private Sub btnOuvreSaisie_Click(sender As Object, e As EventArgs) Handles btnOuvreSaisie.Click
-        Dim sMontant As String
-        Dim cellules As DataGridViewCellCollection
 
-        cellules = dgvRelevé.CurrentRow.Cells
-        With frmSaisie
-            .dateMvt.Value = Convert.ToDateTime(cellules.Item(_iColDate).FormattedValue)
-            .txtNote.Text = cellules.Item(_iColNote).FormattedValue
-            If cellules.Item(_iColDebit).FormattedValue <> String.Empty Then
-                'Il s'agit d'un débit
-                sMontant = cellules.Item(_iColDebit).FormattedValue
-                .rbDebit.Checked = True
-            Else
-                'Il s'agit d'un crédit
-                sMontant = cellules.Item(_iColCredit).FormattedValue
-                .rbCredit.Checked = True
-            End If
-            .txtMontant.Text = sMontant
-            .Show()
-        End With
+    Private Sub AjouterColonneTraite()
+        For Each row As DataGridViewRow In dgvRelevé.Rows
+            If row.IsNewRow Then Continue For
+
+            Try
+                Dim mouvement As Mouvements = MouvementDepuisLigneGrille(row)
+
+                If mouvement Is Nothing Then
+                    row.Cells(_iColTraiteImage).Value = My.Resources.KO
+                Else
+                    row.Cells(_iColTraiteImage).Value =
+                        If(Mouvements.Existe(mouvement), My.Resources.OK, My.Resources.KO)
+                End If
+
+            Catch ex As Exception
+                Logger.ERR($"Erreur lors de la définition de l'image traité ligne {row.Index}: {ex.Message}")
+                row.Cells(_iColTraiteImage).Value = My.Resources.KO
+            End Try
+        Next
+    End Sub
+
+    Private Function MouvementDepuisLigneGrille(row As DataGridViewRow) As Mouvements
+        If row Is Nothing OrElse row.IsNewRow Then Return Nothing
+
+        Dim dateMvt As DateTime
+        If Not DateTime.TryParse(row.Cells(_iColDate).Value?.ToString(),
+                                 CultureFr,
+                                 DateTimeStyles.None,
+                                 dateMvt) Then
+            Return Nothing
+        End If
+
+        Dim libelle As String = If(row.Cells(_iColNote).Value, String.Empty).ToString()
+        Dim debitTexte As String = If(row.Cells(_iColDebit).Value, String.Empty).ToString()
+        Dim creditTexte As String = If(row.Cells(_iColCredit).Value, String.Empty).ToString()
+
+        Dim ligne As New LigneReleve With {
+            .DateOperation = dateMvt,
+            .Libelle = libelle
+        }
+
+        Dim montant As Decimal
+
+        If Not String.IsNullOrWhiteSpace(debitTexte) AndAlso
+           Decimal.TryParse(debitTexte, NumberStyles.Number, CultureFr, montant) Then
+
+            ligne.MontantDebit = montant
+
+        ElseIf Not String.IsNullOrWhiteSpace(creditTexte) AndAlso
+               Decimal.TryParse(creditTexte, NumberStyles.Number, CultureFr, montant) Then
+
+            ligne.MontantCredit = montant
+
+        Else
+            Return Nothing
+        End If
+
+        Return ReleveToMouvementMapper.Mapper(ligne)
+    End Function
+
+    Private Sub btnOuvreSaisie_Click(sender As Object, e As EventArgs) Handles btnOuvreSaisie.Click
+        If dgvRelevé.CurrentRow Is Nothing OrElse dgvRelevé.CurrentRow.IsNewRow Then
+            MessageBox.Show("Veuillez sélectionner une ligne de relevé.",
+                            "Sélection",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information)
+            Exit Sub
+        End If
+
+        Try
+            Dim cellules As DataGridViewCellCollection = dgvRelevé.CurrentRow.Cells
+            Dim sMontant As String
+
+            With frmSaisie
+                .dateMvt.Value = Convert.ToDateTime(cellules.Item(_iColDate).FormattedValue, CultureFr)
+                .txtNote.Text = cellules.Item(_iColNote).FormattedValue.ToString()
+
+                If cellules.Item(_iColDebit).FormattedValue.ToString() <> String.Empty Then
+                    sMontant = cellules.Item(_iColDebit).FormattedValue.ToString()
+                    .rbDebit.Checked = True
+                Else
+                    sMontant = cellules.Item(_iColCredit).FormattedValue.ToString()
+                    .rbCredit.Checked = True
+                End If
+
+                .txtMontant.Text = sMontant
+                .Show()
+            End With
+
+        Catch ex As Exception
+            Logger.ERR($"Erreur ouverture saisie depuis relevé : {ex.Message}")
+            MessageBox.Show("Erreur lors de l'ouverture de la saisie : " & ex.Message,
+                            "Erreur",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error)
+        End Try
+    End Sub
+
+    Private Sub FrmChargeRelevé_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
     End Sub
 End Class

@@ -266,46 +266,33 @@ Public Class FrmSaisie
     End Function
 
     Private Function CreerMouvement() As Mouvements
-        Try
-            Dim dto As SaisieMouvementDto = ConstruireDtoDepuisFormulaire()
-            Dim mouvement As Mouvements = SaisieService.CreerMouvement(dto)
+        Dim dto As SaisieMouvementDto = ConstruireDtoDepuisFormulaire()
 
-            Dim evenementLibelle As String =
-            If(_evenementSelectionne Is Nothing OrElse String.IsNullOrWhiteSpace(_evenementSelectionne.libelle),
-               String.Empty,
-               _evenementSelectionne.libelle.Trim())
+        Dim typeDocLibelle As String =
+        If(_typeDocSelectionne Is Nothing OrElse String.IsNullOrWhiteSpace(_typeDocSelectionne.Libellé),
+           String.Empty,
+           _typeDocSelectionne.Libellé.Trim())
 
-            Dim typeMvtLibelle As String =
-            If(_typeMvtSelectionne Is Nothing OrElse String.IsNullOrWhiteSpace(_typeMvtSelectionne.libelle),
-               String.Empty,
-               _typeMvtSelectionne.libelle.Trim())
+        Dim reference As String =
+        If(typeDocLibelle.Equals("Chèque", StringComparison.OrdinalIgnoreCase),
+           Utilitaires.ExtraitNuméroChèque(txtNote.Text),
+           String.Empty)
 
-            Dim typeDocLibelle As String =
-            If(_typeDocSelectionne Is Nothing OrElse String.IsNullOrWhiteSpace(_typeDocSelectionne.Libellé),
-               String.Empty,
-               _typeDocSelectionne.Libellé.Trim())
+        Dim options As New MouvementBuildOptions With {
+        .TiersSelectionne = _tiersSelectionne IsNot Nothing,
+        .CategorieSelectionnee = _categorieSelectionne IsNot Nothing,
+        .SousCategorieSelectionnee = _sousCategorieSelectionnee IsNot Nothing,
+        .TypeMvtSelectionne = _typeMvtSelectionne IsNot Nothing,
+        .EvenementLibelle = If(_evenementSelectionne Is Nothing, String.Empty, _evenementSelectionne.libelle),
+        .TypeMvtLibelle = If(_typeMvtSelectionne Is Nothing, String.Empty, _typeMvtSelectionne.libelle),
+        .Rapproche = rbRapproche.Checked,
+        .Modifiable = False,
+        .NumeroRemise = txtRemise.Text,
+        .Reference = reference,
+        .TypeReference = typeDocLibelle
+    }
 
-            Dim sNumCheque As String =
-            If(typeDocLibelle.Equals("Chèque", StringComparison.OrdinalIgnoreCase),
-               Utilitaires.ExtraitNuméroChèque(txtNote.Text),
-               String.Empty)
-
-            mouvement.Evenement = evenementLibelle
-            mouvement.TypeMouvement = typeMvtLibelle
-            mouvement.Etat = rbRapproche.Checked
-            mouvement.Modifiable = False
-            mouvement.NumeroRemise = txtRemise.Text.Trim()
-            mouvement.reference = sNumCheque
-            mouvement.typeReference = typeDocLibelle
-
-            Logger.INFO($"Mouvement créé : {mouvement.Note} | Montant={mouvement.Montant} | Sens={mouvement.Sens}")
-
-            Return mouvement
-
-        Catch ex As Exception
-            Logger.ERR("Erreur CreerMouvement : " & ex.ToString())
-            Throw
-        End Try
+        Return MouvementBuildService.ConstruireDepuisSaisie(dto, options)
     End Function
 
     ' --- Gestion des Documents Associés ---
