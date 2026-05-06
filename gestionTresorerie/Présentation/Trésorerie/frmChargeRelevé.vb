@@ -67,7 +67,7 @@ Public Class FrmChargeRelevé
                 Exit Sub
             End If
 
-            _importResult = ImportReleveService.ChargerDepuisFichier(sFichier)
+            _importResult = ImportReleveService.ChargerDepuisFichier(sFichier, verifierDoublons:=True)
 
             If _importResult Is Nothing OrElse _importResult.NbLignes = 0 Then
                 dgvRelevé.Rows.Clear()
@@ -81,8 +81,8 @@ Public Class FrmChargeRelevé
             _lignesReleve = _importResult.Lignes
             _mouvementsImportes = _importResult.Mouvements
 
-            AfficherLignesReleve(_importResult.Lignes)
-            AjouterColonneTraite()
+            AfficherLignesImport(_importResult.LignesImport)
+            'AjouterColonneTraite()
 
         Catch ex As Exception
             Logger.ERR($"Une erreur {ex.Message} est survenue sur la lecture du relevé : {sFichier}")
@@ -92,7 +92,28 @@ Public Class FrmChargeRelevé
                         MessageBoxIcon.Error)
         End Try
     End Sub
+    Private Sub AfficherLignesImport(lignesImport As IEnumerable(Of LigneImportReleve))
+        dgvRelevé.Rows.Clear()
 
+        For Each item As LigneImportReleve In lignesImport
+            If item Is Nothing OrElse item.Ligne Is Nothing Then Continue For
+
+            Dim ligne As LigneReleve = item.Ligne
+
+            Dim rowIndex As Integer =
+            dgvRelevé.Rows.Add(
+                If(item.ExisteDeja, My.Resources.OK, My.Resources.KO),
+                ligne.DateOperation.ToString("dd/MM/yyyy"),
+                ligne.Libelle,
+                If(ligne.MontantDebit.HasValue,
+                   ligne.MontantDebit.Value.ToString("0.00", CultureFr),
+                   String.Empty),
+                If(ligne.MontantCredit.HasValue,
+                   ligne.MontantCredit.Value.ToString("0.00", CultureFr),
+                   String.Empty)
+            )
+        Next
+    End Sub
     Private Sub AfficherLignesReleve(lignes As IEnumerable(Of LigneReleve))
         dgvRelevé.Rows.Clear()
 
@@ -111,65 +132,65 @@ Public Class FrmChargeRelevé
         Next
     End Sub
 
-    Private Sub AjouterColonneTraite()
-        For Each row As DataGridViewRow In dgvRelevé.Rows
-            If row.IsNewRow Then Continue For
+    'Private Sub AjouterColonneTraite()
+    '    For Each row As DataGridViewRow In dgvRelevé.Rows
+    '        If row.IsNewRow Then Continue For
 
-            Try
-                Dim mouvement As Mouvements = MouvementDepuisLigneGrille(row)
+    '        Try
+    '            Dim mouvement As Mouvements = MouvementDepuisLigneGrille(row)
 
-                If mouvement Is Nothing Then
-                    row.Cells(_iColTraiteImage).Value = My.Resources.KO
-                Else
-                    row.Cells(_iColTraiteImage).Value =
-                        If(Mouvements.Existe(mouvement), My.Resources.OK, My.Resources.KO)
-                End If
+    '            If mouvement Is Nothing Then
+    '                row.Cells(_iColTraiteImage).Value = My.Resources.KO
+    '            Else
+    '                row.Cells(_iColTraiteImage).Value =
+    '                    If(Mouvements.Existe(mouvement), My.Resources.OK, My.Resources.KO)
+    '            End If
 
-            Catch ex As Exception
-                Logger.ERR($"Erreur lors de la définition de l'image traité ligne {row.Index}: {ex.Message}")
-                row.Cells(_iColTraiteImage).Value = My.Resources.KO
-            End Try
-        Next
-    End Sub
+    '        Catch ex As Exception
+    '            Logger.ERR($"Erreur lors de la définition de l'image traité ligne {row.Index}: {ex.Message}")
+    '            row.Cells(_iColTraiteImage).Value = My.Resources.KO
+    '        End Try
+    '    Next
+    'End Sub
 
-    Private Function MouvementDepuisLigneGrille(row As DataGridViewRow) As Mouvements
-        If row Is Nothing OrElse row.IsNewRow Then Return Nothing
+    'Private Function MouvementDepuisLigneGrille(row As DataGridViewRow) As Mouvements
+    '    If row Is Nothing OrElse row.IsNewRow Then Return Nothing
 
-        Dim dateMvt As DateTime
-        If Not DateTime.TryParse(row.Cells(_iColDate).Value?.ToString(),
-                                 CultureFr,
-                                 DateTimeStyles.None,
-                                 dateMvt) Then
-            Return Nothing
-        End If
+    '    Dim dateMvt As DateTime
+    '    If Not DateTime.TryParse(row.Cells(_iColDate).Value?.ToString(),
+    '                             CultureFr,
+    '                             DateTimeStyles.None,
+    '                             dateMvt) Then
+    '        Return Nothing
+    '    End If
 
-        Dim libelle As String = If(row.Cells(_iColNote).Value, String.Empty).ToString()
-        Dim debitTexte As String = If(row.Cells(_iColDebit).Value, String.Empty).ToString()
-        Dim creditTexte As String = If(row.Cells(_iColCredit).Value, String.Empty).ToString()
+    '    Dim libelle As String = If(row.Cells(_iColNote).Value, String.Empty).ToString()
+    '    Dim debitTexte As String = If(row.Cells(_iColDebit).Value, String.Empty).ToString()
+    '    Dim creditTexte As String = If(row.Cells(_iColCredit).Value, String.Empty).ToString()
 
-        Dim ligne As New LigneReleve With {
-            .DateOperation = dateMvt,
-            .Libelle = libelle
-        }
+    '    Dim ligne As New LigneReleve With {
+    '        .DateOperation = dateMvt,
+    '        .Libelle = libelle
+    '    }
 
-        Dim montant As Decimal
+    '    Dim montant As Decimal
 
-        If Not String.IsNullOrWhiteSpace(debitTexte) AndAlso
-           Decimal.TryParse(debitTexte, NumberStyles.Number, CultureFr, montant) Then
+    '    If Not String.IsNullOrWhiteSpace(debitTexte) AndAlso
+    '       Decimal.TryParse(debitTexte, NumberStyles.Number, CultureFr, montant) Then
 
-            ligne.MontantDebit = montant
+    '        ligne.MontantDebit = montant
 
-        ElseIf Not String.IsNullOrWhiteSpace(creditTexte) AndAlso
-               Decimal.TryParse(creditTexte, NumberStyles.Number, CultureFr, montant) Then
+    '    ElseIf Not String.IsNullOrWhiteSpace(creditTexte) AndAlso
+    '           Decimal.TryParse(creditTexte, NumberStyles.Number, CultureFr, montant) Then
 
-            ligne.MontantCredit = montant
+    '        ligne.MontantCredit = montant
 
-        Else
-            Return Nothing
-        End If
+    '    Else
+    '        Return Nothing
+    '    End If
 
-        Return ReleveToMouvementMapper.Mapper(ligne)
-    End Function
+    '    Return ReleveToMouvementMapper.Mapper(ligne)
+    'End Function
 
     Private Sub btnOuvreSaisie_Click(sender As Object, e As EventArgs) Handles btnOuvreSaisie.Click
         If dgvRelevé.CurrentRow Is Nothing OrElse dgvRelevé.CurrentRow.IsNewRow Then

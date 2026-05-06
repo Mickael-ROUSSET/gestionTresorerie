@@ -20,13 +20,10 @@
         Return mouvement
     End Function
 
-    Public Shared Function ConstruireDepuisReleve(ligne As LigneReleve,
-                                                  regles As IEnumerable(Of RegleAffectationReleve)) As Mouvements
-        Dim mouvement As Mouvements = ReleveToMouvementMapper.Mapper(ligne)
+    Public Shared Function ConstruireDepuisReleve(ligne As LigneReleve) As Mouvements
+        If ligne Is Nothing Then Throw New ArgumentNullException(NameOf(ligne))
 
-        AffectationReleveService.AppliquerAffectation(mouvement, regles)
-
-        Return mouvement
+        Return ReleveToMouvementMapper.Mapper(ligne)
     End Function
 
     Private Shared Sub AppliquerMetadonnees(mouvement As Mouvements,

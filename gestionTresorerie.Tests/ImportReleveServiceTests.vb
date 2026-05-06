@@ -4,7 +4,7 @@
 Public Class ImportReleveServiceTests
 
     <TestMethod>
-    Public Sub ConstruireDepuisLignes_CreeLignesEtMouvements()
+    Public Sub ConstruireDepuisLignes_CreeLignesImportEtMouvements()
         Dim lignes As New List(Of LigneReleve) From {
             New LigneReleve With {
                 .DateOperation = New DateTime(2025, 12, 23),
@@ -19,18 +19,19 @@ Public Class ImportReleveServiceTests
         }
 
         Dim result As ImportReleveResult =
-            ImportReleveService.ConstruireDepuisLignes(lignes)
+            ImportReleveService.ConstruireDepuisLignes(lignes, verifierDoublons:=False)
 
         Assert.AreEqual(2, result.NbLignes)
         Assert.AreEqual(2, result.NbMouvements)
+        Assert.AreEqual(0, result.NbDoublons)
 
-        Assert.AreEqual("CHEQUE EMIS", result.Mouvements(0).Note)
-        Assert.AreEqual(67.43D, result.Mouvements(0).Montant)
-        Assert.IsFalse(result.Mouvements(0).Sens)
+        Assert.AreEqual("CHEQUE EMIS", result.LignesImport(0).Mouvement.Note)
+        Assert.AreEqual(67.43D, result.LignesImport(0).Mouvement.Montant)
+        Assert.IsFalse(result.LignesImport(0).Mouvement.Sens)
 
-        Assert.AreEqual("VERSEMENT", result.Mouvements(1).Note)
-        Assert.AreEqual(95.9D, result.Mouvements(1).Montant)
-        Assert.IsTrue(result.Mouvements(1).Sens)
+        Assert.AreEqual("VERSEMENT", result.LignesImport(1).Mouvement.Note)
+        Assert.AreEqual(95.9D, result.LignesImport(1).Mouvement.Montant)
+        Assert.IsTrue(result.LignesImport(1).Mouvement.Sens)
     End Sub
 
     <TestMethod>
