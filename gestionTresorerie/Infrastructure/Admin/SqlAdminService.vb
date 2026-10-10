@@ -42,4 +42,14 @@ Public Class SqlAdminService
         End Using
     End Sub
 
+    ''' <summary>
+    ''' La restauration écrase potentiellement les données courantes.
+    ''' Elle est volontairement désactivée jusqu'à définition d'un protocole
+    ''' validé (sauvegarde préalable, base cible, connexions et retour arrière).
+    ''' </summary>
+    Public Sub RestaurerBase(dbName As String, backupPath As String)
+        Throw New NotSupportedException(
+            "Restauration SQL désactivée : une procédure de sécurité et une validation explicite sont nécessaires.")
+    End Sub
+
 End Class
