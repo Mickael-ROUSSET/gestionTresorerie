@@ -32,7 +32,7 @@ jobs:
       - name: Compiler application et tests
         run: msbuild gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj /restore /p:Configuration=Release /p:Platform="Any CPU" /m
       - name: Exécuter les tests
-        run: dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Release --no-build --logger "trx;LogFileName=results.trx"
+        run: dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Release --no-build --property:Platform="Any CPU" --logger "trx;LogFileName=results.trx"
       - name: Publier les résultats
         if: always()
         uses: actions/upload-artifact@v4
