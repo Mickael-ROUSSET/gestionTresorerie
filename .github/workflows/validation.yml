@@ -24,10 +24,13 @@ jobs:
           dotnet-version: '8.0.x'
       - name: Informations environnement
         run: dotnet --info
+      - name: Préparer MSBuild Visual Studio
+        uses: microsoft/setup-msbuild@v2
       - name: Restaurer les dépendances
         run: dotnet restore gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj
+      # ResolveComReference nécessite MSBuild de Visual Studio (Framework), pas dotnet build.
       - name: Compiler application et tests
-        run: dotnet build gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Release --no-restore
+        run: msbuild gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj /restore /p:Configuration=Release /p:Platform="Any CPU" /m
       - name: Exécuter les tests
         run: dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Release --no-build --logger "trx;LogFileName=results.trx"
       - name: Publier les résultats
