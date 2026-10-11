@@ -1,4 +1,4 @@
-﻿Imports Microsoft.VisualStudio.TestTools.UnitTesting
+Imports Microsoft.VisualStudio.TestTools.UnitTesting
 Imports System.Data.SqlClient
 Imports System.Linq
 
@@ -66,7 +66,8 @@ Public Class UtilisateurRepositoryTests
         Assert.AreEqual(7, p(0).Value)
 
         Assert.AreEqual("@actif", p(1).ParameterName)
-        Assert.IsTrue(p(3).Value)
+        Assert.HasCount(2, p)
+        Assert.IsFalse(CBool(p(1).Value))
     End Sub
 
 End Class
