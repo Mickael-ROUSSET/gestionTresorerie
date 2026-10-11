@@ -11,3 +11,6 @@ L'application couvre les mouvements de trésorerie, les relevés bancaires, les 
 
 ## Notes de correction
 Les validations de dépendances de DocumentRepository sont conservées et couvertes par trois cas de non-régression. Les tests n'utilisent ni images externes ni données de production. Les erreurs du logger restent diagnostiquées mais n'ouvrent plus de boîte modale. Aucun changement de schéma, migration, déploiement ou fusion.
+
+## Première validation des corrections
+Le run Windows 38135161123 compile et termine normalement : 34 tests réussis, 9 échecs, aucun ignoré. Ces échecs révèlent des fixtures supplémentaires obsolètes : dépendances nulles de MouvementRepository, paramètres SQL de mouvements/utilisateurs/tiers, appel incorrect du mapper générique par réflexion, attentes de dates de suivi de Tiers et montants sans centimes dans la fixture de relevé. Les corrections restent limitées aux tests ; le mapper métier spécifique de Tiers reste distinct du mapper générique testé.

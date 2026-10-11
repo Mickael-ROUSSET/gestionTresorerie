@@ -62,19 +62,4 @@ Public Class DocumentRepositoryTests
         Assert.AreEqual(dependance, ex.ParamName)
     End Sub
 
-    Private Class UnusedConnectionFactory
-        Implements IConnectionFactory
-
-        Public Function CreateConnection() As SqlConnection Implements IConnectionFactory.CreateConnection
-            Throw New InvalidOperationException("Ce test ne doit pas ouvrir de connexion SQL.")
-        End Function
-    End Class
-
-    Private Class UnusedSqlTextProvider
-        Implements ISqlTextProvider
-
-        Public Function GetSql(queryName As String) As String Implements ISqlTextProvider.GetSql
-            Throw New InvalidOperationException("Ce test doit passer par le faux exécuteur SQL.")
-        End Function
-    End Class
 End Class

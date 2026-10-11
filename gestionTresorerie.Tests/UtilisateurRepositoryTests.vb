@@ -18,10 +18,10 @@ Public Class UtilisateurRepositoryTests
         Dim p = fake.LastParameters.ToList()
 
         Assert.AreEqual(2, p.Count)
-        Assert.AreEqual("@Id", p(0).ParameterName)
+        Assert.AreEqual("@idUtilisateur", p(0).ParameterName)
         Assert.AreEqual(12, p(0).Value)
 
-        Assert.AreEqual("@pwd", p(1).ParameterName)
+        Assert.AreEqual("@motDePasse", p(1).ParameterName)
         Assert.AreEqual("HASH_TEST", p(1).Value)
     End Sub
 
