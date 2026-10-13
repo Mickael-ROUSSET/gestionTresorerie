@@ -2,9 +2,9 @@ name: Validation .NET Windows
 
 on:
   pull_request:
-    branches: [master]
+    branches: [master, chore/automation-foundation]
   push:
-    branches: [master]
+    branches: [master, refactor/remove-mistral]
   workflow_dispatch:
 
 permissions:
