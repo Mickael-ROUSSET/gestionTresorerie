@@ -108,9 +108,6 @@ Partial Class FrmPrincipale
         FichiersParamètresToolStripMenuItem = New ToolStripMenuItem()
         ParamètresTechniquesToolStripMenuItem1 = New ToolStripMenuItem()
         EnvironnementToolStripMenuItem = New ToolStripMenuItem()
-        AgentMistralToolStripMenuItem1 = New ToolStripMenuItem()
-        RecréerforçageToolStripMenuItem = New ToolStripMenuItem()
-        CréerToolStripMenuItem1 = New ToolStripMenuItem()
         GestionUtilisateurToolStripMenuItem = New ToolStripMenuItem()
         ConsoleToolStripMenuItem = New ToolStripMenuItem()
         ChangeMdPToolStripMenuItem = New ToolStripMenuItem()
@@ -652,7 +649,7 @@ Partial Class FrmPrincipale
         ' 
         ' ParamètresToolStripMenuItem1
         ' 
-        ParamètresToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {FichiersParamètresToolStripMenuItem, ParamètresTechniquesToolStripMenuItem1, EnvironnementToolStripMenuItem, AgentMistralToolStripMenuItem1})
+        ParamètresToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {FichiersParamètresToolStripMenuItem, ParamètresTechniquesToolStripMenuItem1, EnvironnementToolStripMenuItem})
         ParamètresToolStripMenuItem1.Name = "ParamètresToolStripMenuItem1"
         ParamètresToolStripMenuItem1.Size = New Size(167, 22)
         ParamètresToolStripMenuItem1.Text = "Paramètres"
@@ -674,25 +671,6 @@ Partial Class FrmPrincipale
         EnvironnementToolStripMenuItem.Name = "EnvironnementToolStripMenuItem"
         EnvironnementToolStripMenuItem.Size = New Size(194, 22)
         EnvironnementToolStripMenuItem.Text = "Environnement"
-        ' 
-        ' AgentMistralToolStripMenuItem1
-        ' 
-        AgentMistralToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {RecréerforçageToolStripMenuItem, CréerToolStripMenuItem1})
-        AgentMistralToolStripMenuItem1.Name = "AgentMistralToolStripMenuItem1"
-        AgentMistralToolStripMenuItem1.Size = New Size(194, 22)
-        AgentMistralToolStripMenuItem1.Text = "AgentMistral"
-        ' 
-        ' RecréerforçageToolStripMenuItem
-        ' 
-        RecréerforçageToolStripMenuItem.Name = "RecréerforçageToolStripMenuItem"
-        RecréerforçageToolStripMenuItem.Size = New Size(164, 22)
-        RecréerforçageToolStripMenuItem.Text = "Recréer (forçage)"
-        ' 
-        ' CréerToolStripMenuItem1
-        ' 
-        CréerToolStripMenuItem1.Name = "CréerToolStripMenuItem1"
-        CréerToolStripMenuItem1.Size = New Size(164, 22)
-        CréerToolStripMenuItem1.Text = "Créer"
         ' 
         ' GestionUtilisateurToolStripMenuItem
         ' 
@@ -885,9 +863,6 @@ Partial Class FrmPrincipale
     Friend WithEvents FichiersParamètresToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ParamètresTechniquesToolStripMenuItem1 As ToolStripMenuItem
     Friend WithEvents EnvironnementToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents AgentMistralToolStripMenuItem1 As ToolStripMenuItem
-    Friend WithEvents RecréerforçageToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents CréerToolStripMenuItem1 As ToolStripMenuItem
     Friend WithEvents GestionUtilisateurToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ConsoleToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ChangeMdPToolStripMenuItem As ToolStripMenuItem

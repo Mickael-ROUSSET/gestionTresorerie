@@ -1,6 +1,3 @@
-﻿'Public Class cléApiMistral
-'    ReadOnly _apiKey As String = "uswXFN4VPYfYmrTmNbLY16D3fxFunwjm"
-
 Imports System.IO
 Imports System.Reflection
 Imports Newtonsoft.Json.Linq
@@ -203,7 +200,7 @@ Public Class batchAnalyse
             ' Appeler litImage pour analyser l'image et obtenir les métadonnées
             Dim sMetaDonnees As String = AppelMistral.litImage(doc)
             If String.IsNullOrEmpty(sMetaDonnees) Then
-                Logger.ERR("AppelMistral.litImage a retourné des métadonnées vides ou null.")
+                Logger.ERR("L'analyse du document a retourné des métadonnées vides ou null.")
                 Return Nothing
             End If
 
@@ -220,7 +217,7 @@ Public Class batchAnalyse
             nouveauDoc.DateDoc = Date.Now
             nouveauDoc.CategorieDoc = doc.ClasseTypeDoc
             nouveauDoc.SousCategorieDoc = "" ' Peut être ajusté si nécessaire
-            'Nettoie le json renvoyé par Mistral
+            'Conserve le JSON renvoyé par l'analyseur de document
             nouveauDoc.metaDonnees = Utilitaires.ExtraireJsonValide(sMetaDonnees)
             nouveauDoc.IdMvtDoc = 0 ' Valeur par défaut, à ajuster si nécessaire
 
