@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [master, chore/automation-foundation]
   push:
-    branches: [master, refactor/remove-mistral]
+    branches: [master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral]
   workflow_dispatch:
 
 permissions:
@@ -32,11 +32,14 @@ jobs:
       - name: Compiler application et tests
         run: msbuild gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj /restore /p:Configuration=Release /p:Platform="Any CPU" /m
       - name: Exécuter les tests
-        run: dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Release --no-build --property:Platform="Any CPU" --logger "trx;LogFileName=results.trx"
+        timeout-minutes: 5
+        run: dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Release --no-build --property:Platform="Any CPU" --logger "trx;LogFileName=results.trx" --blame-hang --blame-hang-timeout 60s --blame-hang-dump-type none
       - name: Publier les résultats
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: '**/TestResults/**/*.trx'
+          path: |
+            **/TestResults/**/*.trx
+            **/TestResults/**/*_Sequence.xml
           if-no-files-found: ignore
