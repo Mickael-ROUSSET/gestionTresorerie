@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [master, chore/automation-foundation]
   push:
-    branches: [master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral]
+    branches: [master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral, security/nettoyage-config-20261014]
   workflow_dispatch:
 
 permissions:
