@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="" GeneratedClassName="Settings" UseMySettingsClassName="true">
   <Profiles />
   <Settings>
@@ -179,7 +179,7 @@
       <Value Profile="(Default)">with sel as (SELECT distinct sousCatégorie as sousCat, SUM(montant) as mnt FROM Mouvements Mvt WHERE Mvt.catégorie = @categorie group by sousCatégorie) select sC.libelle, mnt from sel, sousCategorie sC where sC.id = sousCat;</Value>
     </Setting>
     <Setting Name="cleApiMistral" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">uswXFN4VPYfYmrTmNbLY16D3fxFunwjm</Value>
+      <Value Profile="(Default)"></Value>
     </Setting>
     <Setting Name="modeleMistral" Type="System.String" Scope="Application">
       <Value Profile="(Default)">pixtral-12b-2409</Value>
@@ -316,7 +316,6 @@
     <Setting Name="ficAgentMistral" Type="System.String" Scope="Application">
       <Value Profile="(Default)">G:\Mon Drive\AGUMAAA\Documents\BacASable\mistral_state.json</Value>
     </Setting>
-<<<<<<< Updated upstream
     <Setting Name="updCheminDoc" Type="System.String" Scope="Application">
       <Value Profile="(Default)">UPDATE Documents SET cheminDoc = @cheminDoc WHERE idDoc = @idDoc;</Value>
     </Setting>
@@ -369,10 +368,10 @@
       <Value Profile="(Default)">select * from tarifs;</Value>
     </Setting>
     <Setting Name="cleApiTmdb" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">d4371f28c29f00bf2c168bd709a26059</Value>
+      <Value Profile="(Default)"></Value>
     </Setting>
     <Setting Name="jetonApiTmdb" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNDM3MWYyOGMyOWYwMGJmMmMxNjhiZDcwOWEyNjA1OSIsIm5iZiI6MTY0NDA3ODkzMS41OTEsInN1YiI6IjYxZmVhNzUzMzg0NjlhMDAxY2FhOTYwOCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Sf5hUzafWHm_MlfHRFKKOATpBIBst5AOWFDqwHwk344</Value>
+      <Value Profile="(Default)"></Value>
     </Setting>
     <Setting Name="selListeFilms" Type="System.String" Scope="Application">
       <Value Profile="(Default)">SELECT DISTINCT TitreFilm FROM Seances;</Value>
@@ -394,7 +393,7 @@
     </Setting>
     <Setting Name="logoCinevasion" Type="System.String" Scope="Application">
       <Value Profile="(Default)">C:\Users\User\source\repos\gestionTresorerie\gestionTresorerie\Resources\logoCinevasion.png</Value>
-=======
+    </Setting>
     <Setting Name="SMTP_SERVER" Type="System.String" Scope="Application">
       <Value Profile="(Default)">smtp.gmail.com</Value>
     </Setting>
@@ -405,8 +404,7 @@
       <Value Profile="(Default)">agumaaa43@gmail.com</Value>
     </Setting>
     <Setting Name="SMTP_PASS" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">43GeorgeSand+</Value>
->>>>>>> Stashed changes
+      <Value Profile="(Default)"></Value>
     </Setting>
   </Settings>
 </SettingsFile>
