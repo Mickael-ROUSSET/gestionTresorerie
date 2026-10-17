@@ -24,4 +24,20 @@ Public Class SqlAdminServiceTests
             Sub() SqlAdminService.ConstruireCommandeSauvegarde(" "))
     End Sub
 
+    <TestMethod>
+    Public Sub SauvegarderBase_RefuseCheminVideSansConnexion()
+        Dim service As New SqlAdminService(New UnusedConnectionFactory())
+
+        Assert.ThrowsExactly(Of ArgumentException)(
+            Sub() service.SauvegarderBase("TresorerieTest", " "))
+    End Sub
+
+    <TestMethod>
+    Public Sub RestaurerBase_ResteDesactiveeSansConnexion()
+        Dim service As New SqlAdminService(New UnusedConnectionFactory())
+
+        Assert.ThrowsExactly(Of NotSupportedException)(
+            Sub() service.RestaurerBase("TresorerieTest", "test.bak"))
+    End Sub
+
 End Class
