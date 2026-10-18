@@ -57,8 +57,11 @@ Public Class SqlAdminServiceTests
 
     <TestMethod>
     Public Sub Constructeur_RefuseUneFabriqueDeConnexionAbsente()
-        Assert.ThrowsExactly(Of ArgumentNullException)(
-            Sub() New SqlAdminService(Nothing))
+        Assert.ThrowsExactly(Of ArgumentNullException)(AddressOf CreerServiceSansFabrique)
+    End Sub
+
+    Private Sub CreerServiceSansFabrique()
+        Dim service As New SqlAdminService(Nothing)
     End Sub
 
 End Class
