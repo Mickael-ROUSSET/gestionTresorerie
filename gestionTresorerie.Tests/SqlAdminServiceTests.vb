@@ -40,4 +40,25 @@ Public Class SqlAdminServiceTests
             Sub() service.RestaurerBase("TresorerieTest", "test.bak"))
     End Sub
 
+    <TestMethod>
+    Public Sub ConstruireCommandeSauvegarde_EchappeUnNomContenantDuSql()
+        Dim sql As String = SqlAdminService.ConstruireCommandeSauvegarde("test]; DROP DATABASE master;--")
+
+        Assert.AreEqual("BACKUP DATABASE [test]]; DROP DATABASE master;--] TO DISK = @backupPath WITH NOINIT", sql)
+    End Sub
+
+    <TestMethod>
+    Public Sub SauvegarderBase_RefuseNomVideSansConnexion()
+        Dim service As New SqlAdminService(New UnusedConnectionFactory())
+
+        Assert.ThrowsExactly(Of ArgumentException)(
+            Sub() service.SauvegarderBase(" ", "test.bak"))
+    End Sub
+
+    <TestMethod>
+    Public Sub Constructeur_RefuseUneFabriqueDeConnexionAbsente()
+        Assert.ThrowsExactly(Of ArgumentNullException)(
+            Sub() New SqlAdminService(Nothing))
+    End Sub
+
 End Class
