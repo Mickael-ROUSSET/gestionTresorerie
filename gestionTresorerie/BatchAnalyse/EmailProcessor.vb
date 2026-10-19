@@ -128,7 +128,11 @@ Public Class EmailProcessor
         Dim dir = Path.GetDirectoryName(pathFile)
         Dim name = Path.GetFileNameWithoutExtension(pathFile)
         Dim ext = Path.GetExtension(pathFile)
-        Return Path.Combine(dir, $"{name}_{DateTime.Now:HHmmss}{ext}")
+        Dim candidat As String
+        Do
+            candidat = Path.Combine(dir, $"{name}_{Guid.NewGuid():N}{ext}")
+        Loop While File.Exists(candidat)
+        Return candidat
     End Function
 
     Private Shared Sub LogAndReportError(msg As String)
