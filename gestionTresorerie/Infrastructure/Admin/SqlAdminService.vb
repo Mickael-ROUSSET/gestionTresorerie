@@ -26,10 +26,7 @@ Public Class SqlAdminService
             Throw New ArgumentException("Le chemin de sauvegarde est obligatoire.", NameOf(backupPath))
         End If
 
-        ' Les identifiants SQL ne sont pas paramétrables : échapper les crochets.
-        Dim escapedDatabaseName As String = "[" & dbName.Replace("]", "]]") & "]"
-        Dim sql As String = "BACKUP DATABASE " & escapedDatabaseName &
-                            " TO DISK = @backupPath WITH INIT"
+        Dim sql As String = ConstruireCommandeSauvegarde(dbName)
 
         Using connection As SqlConnection = _connectionFactory.CreateConnection()
             connection.Open()
@@ -41,6 +38,20 @@ Public Class SqlAdminService
             End Using
         End Using
     End Sub
+
+    ''' <summary>
+    ''' Construit uniquement la commande SQL, sans ouvrir de connexion ni exécuter
+    ''' de sauvegarde. NOINIT conserve les jeux de sauvegarde existants.
+    ''' </summary>
+    Public Shared Function ConstruireCommandeSauvegarde(dbName As String) As String
+        If String.IsNullOrWhiteSpace(dbName) Then
+            Throw New ArgumentException("Le nom de la base est obligatoire.", NameOf(dbName))
+        End If
+        ' Les identifiants SQL ne sont pas paramétrables : échapper les crochets.
+        Dim escapedDatabaseName As String = "[" & dbName.Replace("]", "]]") & "]"
+        Return "BACKUP DATABASE " & escapedDatabaseName &
+               " TO DISK = @backupPath WITH NOINIT"
+    End Function
 
     ''' <summary>
     ''' La restauration écrase potentiellement les données courantes.

@@ -1,4 +1,4 @@
-﻿Imports Microsoft.VisualStudio.TestTools.UnitTesting
+Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 
 <TestClass>
@@ -82,8 +82,8 @@ Public Class LitReleveTests
         Dim lignes = {
             "18/02/2025",
             "LIBELLE",
-            "+100 €",
-            "-50 €"
+            "+100,00 €",
+            "-50,00 €"
         }
 
         Try
