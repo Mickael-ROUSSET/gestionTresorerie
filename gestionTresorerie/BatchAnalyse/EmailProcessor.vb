@@ -94,14 +94,35 @@ Public Class EmailProcessor
         Dim fullPath As String = Path.Combine(targetFolder, fileName)
         fullPath = EnsureUniqueFileName(fullPath)
 
-        ' 3. Écriture disque
-        Using stream = File.Create(fullPath)
-            If TypeOf attachment Is MessagePart Then
-                DirectCast(attachment, MessagePart).Message.WriteTo(stream)
-            Else
-                DirectCast(attachment, MimePart).Content.DecodeTo(stream)
-            End If
-        End Using
+        ' 3. Création atomique : ne jamais écraser un fichier existant.
+        ' En cas de collision concurrente, essayer un nouveau nom unique.
+        Dim stream As FileStream = Nothing
+        For tentative As Integer = 1 To 20
+            Try
+                stream = New FileStream(fullPath, FileMode.CreateNew, FileAccess.Write, FileShare.None)
+                Exit For
+            Catch ex As IOException When File.Exists(fullPath)
+                fullPath = EnsureUniqueFileName(fullPath)
+            End Try
+        Next
+        If stream Is Nothing Then Throw New IOException("Impossible de créer un nom unique pour la pièce jointe.")
+
+        Try
+            Using stream
+                If TypeOf attachment Is MessagePart Then
+                    DirectCast(attachment, MessagePart).Message.WriteTo(stream)
+                Else
+                    DirectCast(attachment, MimePart).Content.DecodeTo(stream)
+                End If
+            End Using
+        Catch
+            ' Ne pas laisser de pièce jointe incomplète après une erreur d'écriture.
+            Try
+                File.Delete(fullPath)
+            Catch
+            End Try
+            Throw
+        End Try
 
         _statsTotalPJ += 1
         _rapport.AppendLine($"[PJ] Enregistré : {Path.GetFileName(fullPath)} (De: {senderInfo})")
