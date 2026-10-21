@@ -34,18 +34,29 @@ Public Class EmailProcessor
         If Not Directory.Exists(_sRepDoc) Then Directory.CreateDirectory(_sRepDoc)
 
         PrepareDirectory(_sRepDoc)
+        ResetSession()
+        Dim journal As New GmailImportJournal(Path.Combine(_sRepDoc, "gmail_import_journal.txt"))
 
         Using client As New ImapClient()
             Try
                 ConnectAndAuthenticate(client)
                 Dim inbox = client.Inbox
-                inbox.Open(FolderAccess.ReadWrite)
+                inbox.Open(FolderAccess.ReadOnly)
 
-                Dim uids = inbox.Search(SearchQuery.NotSeen)
-                _statsMailsLus = uids.Count
-
+                ' Parcourir egalement les emails deja lus : le journal determine le travail restant.
+                Dim uids = inbox.Search(SearchQuery.All)
+                Dim account = LectureProprietes.GetVariable("SmtpUsername")
+                Dim validity As UInteger = inbox.UidValidity
                 For Each uid In uids
-                    ProcessSingleEmail(inbox, uid)
+                    Dim key = GmailImportJournal.MakeKey(account, validity, uid.Id)
+                    If journal.IsProcessed(key) Then Continue For
+                    _statsMailsLus += 1
+                    Try
+                        ProcessSingleEmail(inbox, uid)
+                        journal.MarkProcessed(key)
+                    Catch ex As Exception
+                        LogAndReportError($"Message UID {uid.Id} non traite : {ex.Message}")
+                    End Try
                 Next
 
                 client.Disconnect(True)
@@ -82,7 +93,7 @@ Public Class EmailProcessor
             SaveAttachment(attachment, targetPath, message.From.ToString())
         Next
 
-        inbox.AddFlags(uid, MessageFlags.Seen, True)
+        ' Ne pas modifier le statut lu/non lu : seul le journal fait foi.
     End Sub
 
     Private Shared Sub SaveAttachment(attachment As MimeEntity, targetFolder As String, senderInfo As String)
