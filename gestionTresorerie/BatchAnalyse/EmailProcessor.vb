@@ -90,42 +90,28 @@ Public Class EmailProcessor
         Dim fileName As String = If(attachment.ContentDisposition?.FileName, attachment.ContentType.Name)
         fileName = CleanFileName(fileName)
 
-        ' 2. Gestion des doublons et chemin final
-        Dim fullPath As String = Path.Combine(targetFolder, fileName)
-        fullPath = EnsureUniqueFileName(fullPath)
-
-        ' 3. Création atomique : ne jamais écraser un fichier existant.
-        ' En cas de collision concurrente, essayer un nouveau nom unique.
-        Dim stream As FileStream = Nothing
-        For tentative As Integer = 1 To 20
-            Try
-                stream = New FileStream(fullPath, FileMode.CreateNew, FileAccess.Write, FileShare.None)
-                Exit For
-            Catch ex As IOException When File.Exists(fullPath)
-                fullPath = EnsureUniqueFileName(fullPath)
-            End Try
-        Next
-        If stream Is Nothing Then Throw New IOException("Impossible de créer un nom unique pour la pièce jointe.")
-
+        ' Ecrire d'abord dans un fichier temporaire reserve exclusivement.
+        Dim desiredPath = Path.Combine(targetFolder, fileName)
+        Dim temporaryPath = Path.Combine(targetFolder, ".gmail-" & Guid.NewGuid().ToString("N") & ".tmp")
         Try
-            Using stream
+            Using stream As New FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None)
                 If TypeOf attachment Is MessagePart Then
                     DirectCast(attachment, MessagePart).Message.WriteTo(stream)
                 Else
                     DirectCast(attachment, MimePart).Content.DecodeTo(stream)
                 End If
             End Using
-        Catch
-            ' Ne pas laisser de pièce jointe incomplète après une erreur d'écriture.
-            Try
-                File.Delete(fullPath)
-            Catch
-            End Try
-            Throw
-        End Try
 
-        _statsTotalPJ += 1
-        _rapport.AppendLine($"[PJ] Enregistré : {Path.GetFileName(fullPath)} (De: {senderInfo})")
+            Dim storedPath = AttachmentStorage.StoreTemporaryFile(temporaryPath, desiredPath)
+            If storedPath Is Nothing Then
+                _rapport.AppendLine($"[PJ] Doublon SHA-256 ignoré : {fileName} (De: {senderInfo})")
+                Return
+            End If
+            _statsTotalPJ += 1
+            _rapport.AppendLine($"[PJ] Enregistré : {Path.GetFileName(storedPath)} (De: {senderInfo})")
+        Finally
+            If File.Exists(temporaryPath) Then File.Delete(temporaryPath)
+        End Try
     End Sub
 
     ' --- Utilitaires ---
