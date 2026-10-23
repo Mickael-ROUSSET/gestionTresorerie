@@ -5,6 +5,45 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 <TestClass>
 Public Class EmailProcessorFileNameTests
+    <TestMethod>
+    Public Sub IsImportAllowed_JournalVideSansDate_BloqueImportInitial()
+        Assert.IsFalse(EmailProcessor.IsImportAllowed(False, Nothing))
+    End Sub
+
+    <TestMethod>
+    Public Sub IsImportAllowed_JournalVideAvecDateExplicite_AutoriseImportInitial()
+        Dim cutoff As New DateTime(2026, 10, 1)
+        Assert.IsTrue(EmailProcessor.IsImportAllowed(False, cutoff))
+    End Sub
+
+    <TestMethod>
+    Public Sub IsImportAllowed_JournalInitialise_PreserveLaRepriseSansDate()
+        Assert.IsTrue(EmailProcessor.IsImportAllowed(True, Nothing))
+        Assert.IsTrue(EmailProcessor.IsImportAllowed(True, New DateTime(2026, 10, 1)))
+    End Sub
+
+    <TestMethod>
+    Public Sub ResolveInitialImportCutoff_EnregistreEtRelitLaMemeDate()
+        Dim folder = Path.Combine(Path.GetTempPath(), "GmailCutoffTests_" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            Dim cutoffFile = Path.Combine(folder, "cutoff.txt")
+            Assert.IsFalse(EmailProcessor.ResolveInitialImportCutoff(cutoffFile, Nothing).HasValue)
+            Dim debut As New DateTime(2026, 10, 1)
+            Assert.AreEqual(debut, EmailProcessor.ResolveInitialImportCutoff(cutoffFile, debut).Value)
+            Assert.AreEqual(debut, EmailProcessor.ResolveInitialImportCutoff(cutoffFile, Nothing).Value)
+            Dim raised As Boolean = False
+            Try
+                EmailProcessor.ResolveInitialImportCutoff(cutoffFile, New DateTime(2026, 9, 1))
+            Catch ex As InvalidOperationException
+                raised = True
+            End Try
+            Assert.IsTrue(raised)
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
     Private Shared Function AppelerUtilitaire(nom As String, ParamArray valeurs As String()) As String
         Dim methode = GetType(EmailProcessor).GetMethod(nom, BindingFlags.NonPublic Or BindingFlags.Static)
         Assert.IsNotNull(methode, $"Utilitaire introuvable : {nom}")

@@ -22,7 +22,7 @@ Public Class EmailProcessor
     ''' <summary>
     ''' Point d'entrée principal modularisé
     ''' </summary>
-    Public Shared Sub ProcessAttachments()
+    Public Shared Sub ProcessAttachments(Optional initialImportCutoff As DateTime? = Nothing)
         ' Création du dossier s'il n'existe pas
         LogFile = Path.Combine(LectureProprietes.GetVariable("repRacineAgumaaa"),
             LectureProprietes.GetVariable("repRacineDocuments"),
@@ -35,7 +35,18 @@ Public Class EmailProcessor
 
         PrepareDirectory(_sRepDoc)
         ResetSession()
-        Dim journal As New GmailImportJournal(Path.Combine(_sRepDoc, "gmail_import_journal.txt"))
+        Dim journalPath = Path.Combine(_sRepDoc, "gmail_import_journal.txt")
+        Dim journal As New GmailImportJournal(journalPath)
+        Dim hasJournalEntries = File.Exists(journalPath) AndAlso
+            File.ReadLines(journalPath).Any(Function(entry) entry.Length > 0)
+        ' Memoriser la date de demarrage : elle doit rester appliquee apres la premiere session.
+        Dim cutoffPath = Path.Combine(_sRepDoc, "gmail_import_cutoff.txt")
+        Dim effectiveCutoff = ResolveInitialImportCutoff(cutoffPath, initialImportCutoff)
+        If Not IsImportAllowed(hasJournalEntries, effectiveCutoff) Then
+            _rapport.AppendLine("[ERREUR] Import Gmail initial bloque : journal vide. Fournir explicitement initialImportCutoff (date de debut incluse) a ProcessAttachments pour autoriser l'import initial.")
+            SaveFinalReport()
+            Return
+        End If
 
         Using client As New ImapClient()
             Try
@@ -44,7 +55,9 @@ Public Class EmailProcessor
                 inbox.Open(FolderAccess.ReadOnly)
 
                 ' Parcourir egalement les emails deja lus : le journal determine le travail restant.
-                Dim uids = inbox.Search(SearchQuery.All)
+                Dim query = SearchQuery.All
+                If effectiveCutoff.HasValue Then query = SearchQuery.DeliveredAfter(effectiveCutoff.Value.Date)
+                Dim uids = inbox.Search(query)
                 Dim account = LectureProprietes.GetVariable("SmtpUsername")
                 Dim validity As UInteger = inbox.UidValidity
                 For Each uid In uids
@@ -126,6 +139,32 @@ Public Class EmailProcessor
     End Sub
 
     ' --- Utilitaires ---
+
+    ''' <summary>
+    ''' Sans journal initialise, une date de debut explicite est obligatoire.
+    ''' La recherche IMAP utilise le jour inclus (date de reception, sans heure).
+    ''' Un journal initialise conserve la reprise existante, sans limite de date.
+    ''' </summary>
+    Public Shared Function IsImportAllowed(hasJournalEntries As Boolean, initialImportCutoff As DateTime?) As Boolean
+        Return hasJournalEntries OrElse initialImportCutoff.HasValue
+    End Function
+
+    ' Conserver la borne de debut entre sessions pour ne jamais importer l'historique par accident.
+    Public Shared Function ResolveInitialImportCutoff(path As String, requested As DateTime?) As DateTime?
+        If File.Exists(path) Then
+            Dim stored = DateTime.ParseExact(File.ReadAllText(path).Trim(), "yyyy-MM-dd",
+                Globalization.CultureInfo.InvariantCulture, Globalization.DateTimeStyles.None)
+            If requested.HasValue AndAlso requested.Value.Date <> stored.Date Then
+                Throw New InvalidOperationException("Date de debut Gmail differente de celle deja enregistree.")
+            End If
+            Return stored.Date
+        End If
+        If requested.HasValue Then
+            File.WriteAllText(path, requested.Value.ToString("yyyy-MM-dd", Globalization.CultureInfo.InvariantCulture))
+            Return requested.Value.Date
+        End If
+        Return Nothing
+    End Function
 
     Private Shared Function GetFolderByDate(dt As DateTime) As String
         Dim pathByDate = Path.Combine(_sRepDoc, dt.ToString("yyyy"), dt.ToString("MM"))
