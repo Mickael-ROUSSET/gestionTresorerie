@@ -97,4 +97,38 @@ Public Class DocumentReviewStoreTests
             If Directory.Exists(folder) Then Directory.Delete(folder, True)
         End Try
     End Sub
+
+    <TestMethod>
+    Public Sub ApprobationRefuseSourceModifieeMaisRejetRestePossible()
+        Dim folder = Path.Combine(Path.GetTempPath(), "review-test-" & Guid.NewGuid().ToString("N"))
+        Try
+            Dim fixture = CreateFixture(folder)
+            File.AppendAllText(fixture.Source, " document modifie apres extraction")
+            Dim store As New DocumentReviewStore(fixture.Queue)
+            Dim corrected As New JObject From {{"montant", 12.5}}
+            Assert.ThrowsExactly(Of InvalidDataException)(
+                Sub() store.RecordReview(fixture.Sha, "test", DocumentReviewStore.ReviewDecision.ApprouvePourSaisie, corrected))
+            Assert.IsFalse(File.Exists(Path.Combine(fixture.Queue, fixture.Sha & ".review.json")))
+            Assert.IsTrue(store.RecordReview(fixture.Sha, "test", DocumentReviewStore.ReviewDecision.Rejete, Nothing))
+        Finally
+            If Directory.Exists(folder) Then Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub ApprobationRefuseSourceSupprimee()
+        Dim folder = Path.Combine(Path.GetTempPath(), "review-test-" & Guid.NewGuid().ToString("N"))
+        Try
+            Dim fixture = CreateFixture(folder)
+            File.Delete(fixture.Source)
+            Dim store As New DocumentReviewStore(fixture.Queue)
+            Dim corrected As New JObject From {{"montant", 12.5}}
+            Assert.ThrowsExactly(Of InvalidDataException)(
+                Sub() store.RecordReview(fixture.Sha, "test", DocumentReviewStore.ReviewDecision.ApprouvePourSaisie, corrected))
+            Assert.IsFalse(File.Exists(Path.Combine(fixture.Queue, fixture.Sha & ".review.json")))
+        Finally
+            If Directory.Exists(folder) Then Directory.Delete(folder, True)
+        End Try
+    End Sub
+
 End Class
