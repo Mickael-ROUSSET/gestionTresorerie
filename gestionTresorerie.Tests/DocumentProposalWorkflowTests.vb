@@ -56,8 +56,9 @@ Public Class DocumentProposalWorkflowTests
             Dim source = Path.Combine(folder, "scan.jpg")
             File.WriteAllText(source, "contenu factice")
             Dim queue = Path.Combine(folder, "a_valider")
+            Dim store As New DocumentProposalStore(queue)
             Assert.ThrowsExactly(Of Newtonsoft.Json.JsonReaderException)(
-                Sub() New DocumentProposalStore(queue).SavePending(source, "test", "pas du JSON"))
+                Sub() store.SavePending(source, "test", "pas du JSON"))
             Assert.IsFalse(Directory.Exists(queue))
         Finally
             Directory.Delete(folder, True)
