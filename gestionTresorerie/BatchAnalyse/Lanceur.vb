@@ -14,8 +14,8 @@ Public Class Lanceur
     End Function
     Public Async Function LanceTrt() As Task
         Try
-            ' 1. Préparation (Données Tiers et Confirmation Utilisateur)
-            VerifierOuGenererLstTiers()
+            ' La proposition documentaire ne requiert aucune connexion SQL.
+            ' La consultation des tiers sera reservee a la validation humaine.
 
             If Not DemanderConfirmationRepertoire() Then
                 Logger.INFO("Analyse annulée par l'utilisateur.")
