@@ -32,6 +32,17 @@ Public NotInheritable Class GmailImportJournal
         Return _processed.Contains(key)
     End Function
 
+    ''' <summary>Ne marque le message traite qu'apres la reussite complete du travail.</summary>
+    ''' <returns>False si le message avait deja ete traite.</returns>
+    Public Function ProcessOnce(key As String, work As Action) As Boolean
+        If String.IsNullOrWhiteSpace(key) Then Throw New ArgumentException("Cle de message requise.", NameOf(key))
+        If work Is Nothing Then Throw New ArgumentNullException(NameOf(work))
+        If IsProcessed(key) Then Return False
+        work()
+        MarkProcessed(key)
+        Return True
+    End Function
+
     Public Sub MarkProcessed(key As String)
         If String.IsNullOrWhiteSpace(key) OrElse key.Contains(vbLf) OrElse key.Contains(vbCr) Then Throw New ArgumentException("Cle de message invalide.", NameOf(key))
         If _processed.Contains(key) Then Return
