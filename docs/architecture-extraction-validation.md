@@ -23,3 +23,10 @@ Le moteur local est le seul utilise par defaut dans ce lot. Une image JPEG ou un
 - Les propositions sont des fichiers JSON locaux potentiellement sensibles : appliquer les memes droits d'acces et la meme politique de sauvegarde que les documents sources.
 - Le contenu extrait n'est pas encore normalise en categorie, tiers, date, montant ou sens debit/credit. La validation humaine, l'interface de correction, la liaison a un mouvement et les tests de bout en bout restent a faire.
 - Les tests de ce lot utilisent des fichiers factices et un moteur simule, sans connexion Gmail ou SQL.
+
+## Revue humaine locale (branche de suivi)
+- `DocumentReviewStore.ListPending` fournit les empreintes des propositions sans decision.
+- `RecordReview` exige un validateur et une decision explicite (`ApprouvePourSaisie` ou `Rejete`). L'approbation exige des donnees corrigees/verifiees non vides.
+- Chaque decision est conservee dans un recu distinct `<sha256>.review.json`, publie par renommage atomique, sans ecraser la proposition ni le document original. Une deuxieme decision est refusee (retour `False`).
+- **Une approbation ne cree aucune operation SQL** : il manque encore l'interface Windows de revue, la validation semantique des champs (date, montant, tiers, sens), et la commande d'enregistrement comptable avec confirmation distincte.
+- Les noms et donnees du validateur sont conserves localement dans les recus et doivent etre proteges au meme titre que les propositions.
