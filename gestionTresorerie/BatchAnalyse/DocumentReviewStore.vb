@@ -65,6 +65,18 @@ Public NotInheritable Class DocumentReviewStore
             Throw New InvalidDataException("Proposition incoherente ou non validable.")
         End If
 
+        ' Une approbation doit correspondre au document exact qui a ete extrait.
+        ' Une proposition obsolete peut etre rejetee, mais jamais approuvee.
+        If decision = ReviewDecision.ApprouvePourSaisie Then
+            Dim sourcePath = If(proposal("source") Is Nothing, "", proposal("source").ToString())
+            If String.IsNullOrWhiteSpace(sourcePath) OrElse Not File.Exists(sourcePath) Then
+                Throw New InvalidDataException("Document source introuvable : approbation impossible.")
+            End If
+            If Not String.Equals(AttachmentStorage.ComputeSha256(sourcePath), sha, StringComparison.OrdinalIgnoreCase) Then
+                Throw New InvalidDataException("Document source modifie depuis l'extraction : approbation impossible.")
+            End If
+        End If
+
         Dim receipt As New JObject From {
             {"schema_version", 1},
             {"source_sha256", sha},
