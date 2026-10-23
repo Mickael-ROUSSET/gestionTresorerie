@@ -53,7 +53,7 @@ Public NotInheritable Class DocumentReviewStore
             Throw New ArgumentException("Les donnees verifiees sont requises pour approuver.", NameOf(correctedData))
         End If
 
-        Dim sha = sourceSha256.ToLowerInvariant()
+        Dim sha = sourceSha256.ToUpperInvariant()
         Dim pendingPath = Path.Combine(_folder, sha & ".json")
         If Not File.Exists(pendingPath) Then Throw New FileNotFoundException("Proposition introuvable.", pendingPath)
 
@@ -96,7 +96,7 @@ Public NotInheritable Class DocumentReviewStore
     End Function
 
     Private Function ReviewPath(sha As String) As String
-        Return Path.Combine(_folder, sha.ToLowerInvariant() & ".review.json")
+        Return Path.Combine(_folder, sha.ToUpperInvariant() & ".review.json")
     End Function
 
     Private Shared Function IsSha256(value As String) As Boolean
