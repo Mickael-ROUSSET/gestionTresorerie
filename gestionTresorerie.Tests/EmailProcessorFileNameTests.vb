@@ -5,11 +5,36 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 <TestClass>
 Public Class EmailProcessorFileNameTests
-    Private Shared Function AppelerUtilitaire(nom As String, valeur As String) As String
+    Private Shared Function AppelerUtilitaire(nom As String, ParamArray valeurs As String()) As String
         Dim methode = GetType(EmailProcessor).GetMethod(nom, BindingFlags.NonPublic Or BindingFlags.Static)
         Assert.IsNotNull(methode, $"Utilitaire introuvable : {nom}")
-        Return CStr(methode.Invoke(Nothing, New Object() {valeur}))
+        Return CStr(methode.Invoke(Nothing, Array.ConvertAll(valeurs, Function(valeur) CObj(valeur))))
     End Function
+
+    <TestMethod>
+    Public Sub GetAttachmentFileName_UtiliseUnRepliSurPourLesNomsAbsents()
+        Dim nomsAbsents As String() = {Nothing, String.Empty, " " & vbTab & vbCrLf}
+        For Each dispositionName In nomsAbsents
+            For Each contentTypeName In nomsAbsents
+                Dim nom = AppelerUtilitaire("GetAttachmentFileName", dispositionName, contentTypeName)
+
+                Assert.AreEqual("attachment.bin", nom)
+                Assert.AreEqual(nom, AppelerUtilitaire("CleanFileName", nom))
+                Assert.AreEqual(".bin", Path.GetExtension(nom))
+                Assert.AreEqual(-1, nom.IndexOfAny(Path.GetInvalidFileNameChars()))
+            Next
+        Next
+    End Sub
+
+    <TestMethod>
+    Public Sub GetAttachmentFileName_PreserveLesNomsEtLaPrioriteMime()
+        Const nomOrdinaire As String = " facture 2026.pdf "
+        Assert.AreEqual(nomOrdinaire, AppelerUtilitaire("GetAttachmentFileName", nomOrdinaire, "autre.txt"))
+
+        For Each dispositionName In New String() {Nothing, String.Empty, " " & vbTab}
+            Assert.AreEqual(nomOrdinaire, AppelerUtilitaire("GetAttachmentFileName", dispositionName, nomOrdinaire))
+        Next
+    End Sub
 
     <TestMethod>
     Public Sub CleanFileName_RemplaceLesCaracteresInterdits()

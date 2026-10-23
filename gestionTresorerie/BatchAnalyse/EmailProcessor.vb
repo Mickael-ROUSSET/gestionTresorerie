@@ -98,7 +98,7 @@ Public Class EmailProcessor
 
     Private Shared Sub SaveAttachment(attachment As MimeEntity, targetFolder As String, senderInfo As String)
         ' 1. Récupération et nettoyage du nom
-        Dim fileName As String = If(attachment.ContentDisposition?.FileName, attachment.ContentType.Name)
+        Dim fileName As String = GetAttachmentFileName(attachment.ContentDisposition?.FileName, attachment.ContentType.Name)
         fileName = CleanFileName(fileName)
 
         ' Ecrire d'abord dans un fichier temporaire reserve exclusivement.
@@ -131,6 +131,12 @@ Public Class EmailProcessor
         Dim pathByDate = Path.Combine(_sRepDoc, dt.ToString("yyyy"), dt.ToString("MM"))
         If Not Directory.Exists(pathByDate) Then Directory.CreateDirectory(pathByDate)
         Return pathByDate
+    End Function
+
+    Private Shared Function GetAttachmentFileName(dispositionName As String, contentTypeName As String) As String
+        If Not String.IsNullOrWhiteSpace(dispositionName) Then Return dispositionName
+        If Not String.IsNullOrWhiteSpace(contentTypeName) Then Return contentTypeName
+        Return "attachment.bin"
     End Function
 
     Private Shared Function CleanFileName(name As String) As String
