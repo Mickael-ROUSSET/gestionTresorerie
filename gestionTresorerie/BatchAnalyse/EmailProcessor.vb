@@ -201,15 +201,39 @@ Public Class EmailProcessor
     End Function
 
     Private Shared Function GetAttachmentFileName(dispositionName As String, contentTypeName As String) As String
-        If Not String.IsNullOrWhiteSpace(dispositionName) Then Return dispositionName
-        If Not String.IsNullOrWhiteSpace(contentTypeName) Then Return contentTypeName
+        If Not String.IsNullOrWhiteSpace(dispositionName) Then Return CleanFileName(dispositionName)
+        If Not String.IsNullOrWhiteSpace(contentTypeName) Then Return CleanFileName(contentTypeName)
         Return "attachment.bin"
     End Function
 
     Private Shared Function CleanFileName(name As String) As String
-        For Each c In Path.GetInvalidFileNameChars()
-            name = name.Replace(c, "_"c)
+        If String.IsNullOrWhiteSpace(name) Then Return "attachment.bin"
+
+        ' Appliquer les regles Windows meme si les tests tournent sur un autre OS.
+        Dim cleaned As New StringBuilder(name.Length)
+        For Each c As Char In name
+            If AscW(c) >= 0 AndAlso AscW(c) < 32 OrElse "<>:""/\|?*".IndexOf(c) >= 0 Then
+                cleaned.Append("_"c)
+            Else
+                cleaned.Append(c)
+            End If
         Next
+        name = cleaned.ToString().TrimEnd("."c, " "c)
+        If String.IsNullOrWhiteSpace(name) Then Return "attachment.bin"
+
+        ' Les noms de peripheriques restent reserves avec une ou plusieurs extensions.
+        Dim basename = name.Split("."c)(0).TrimEnd(" "c)
+        Dim reserved = basename.Equals("CON", StringComparison.OrdinalIgnoreCase) OrElse
+            basename.Equals("PRN", StringComparison.OrdinalIgnoreCase) OrElse
+            basename.Equals("AUX", StringComparison.OrdinalIgnoreCase) OrElse
+            basename.Equals("NUL", StringComparison.OrdinalIgnoreCase)
+        If basename.Length = 4 Then
+            reserved = reserved OrElse
+                ((basename.StartsWith("COM", StringComparison.OrdinalIgnoreCase) OrElse
+                  basename.StartsWith("LPT", StringComparison.OrdinalIgnoreCase)) AndAlso
+                 basename(3) >= "1"c AndAlso basename(3) <= "9"c)
+        End If
+        If reserved Then name = "_" & name
         Return name
     End Function
 

@@ -231,7 +231,7 @@ Public Class EmailProcessorFileNameTests
 
     <TestMethod>
     Public Sub GetAttachmentFileName_PreserveLesNomsEtLaPrioriteMime()
-        Const nomOrdinaire As String = " facture 2026.pdf "
+        Const nomOrdinaire As String = " facture 2026.pdf"
         Assert.AreEqual(nomOrdinaire, AppelerUtilitaire("GetAttachmentFileName", nomOrdinaire, "autre.txt"))
 
         For Each dispositionName In New String() {Nothing, String.Empty, " " & vbTab}
@@ -244,6 +244,57 @@ Public Class EmailProcessorFileNameTests
         Dim nettoye = AppelerUtilitaire("CleanFileName", "facture:2026?.pdf")
 
         Assert.AreEqual("facture_2026_.pdf", nettoye)
+    End Sub
+
+    <TestMethod>
+    Public Sub CleanFileName_NomsVidesOuPoints_UtilisentUnRepliDeterministe()
+        For Each nom In New String() {Nothing, "", " ", ".", "..", "...", " . . "}
+            Assert.AreEqual("attachment.bin", AppelerUtilitaire("CleanFileName", nom))
+        Next
+    End Sub
+
+    <TestMethod>
+    Public Sub CleanFileName_NePermetPasDeCheminWindows()
+        For Each nom In New String() {"..\facture.pdf", "../../facture.pdf", "C:\temp\facture.pdf",
+                                      "\\serveur\partage\facture.pdf", "/facture.pdf", "facture.pdf:flux"}
+            Dim nettoye = AppelerUtilitaire("CleanFileName", nom)
+            Assert.AreEqual(-1, nettoye.IndexOfAny("/\:".ToCharArray()))
+            Assert.AreEqual(nettoye, Path.GetFileName(nettoye))
+            Assert.AreEqual(nettoye, AppelerUtilitaire("CleanFileName", nettoye))
+            Assert.AreEqual(nettoye, AppelerUtilitaire("GetAttachmentFileName", nom, "autre.pdf"))
+            Assert.AreEqual(nettoye, AppelerUtilitaire("GetAttachmentFileName", Nothing, nom))
+        Next
+    End Sub
+
+    <TestMethod>
+    Public Sub CleanFileName_NomsDosReserves_AvecOuSansExtension()
+        Dim noms As New List(Of String) From {"CON", "PRN", "AUX", "NUL"}
+        For index = 1 To 9
+            noms.Add("COM" & index)
+            noms.Add("LPT" & index)
+        Next
+        For Each nom In noms
+            For Each suffixe In New String() {"", ".pdf", ".tar.gz", " .txt", ". "}
+                Dim entree = nom.ToLowerInvariant() & suffixe
+                Dim attendu = "_" & entree.TrimEnd("."c, " "c)
+                Assert.AreEqual(attendu, AppelerUtilitaire("CleanFileName", entree))
+                Assert.AreEqual(attendu, AppelerUtilitaire("GetAttachmentFileName", entree, Nothing))
+            Next
+        Next
+    End Sub
+
+    <TestMethod>
+    Public Sub CleanFileName_PreserveUnicodeEtRetireLesTerminaisonsWindows()
+        For Each nom In New String() {"facture été 日本語 😀.pdf", "COM0.txt", "COM10.txt", "LPT0", "CONtrat.pdf"}
+            Assert.AreEqual(nom, AppelerUtilitaire("CleanFileName", nom))
+            Assert.AreEqual(nom, AppelerUtilitaire("GetAttachmentFileName", Nothing, nom))
+            Assert.AreEqual(nom, AppelerUtilitaire("CleanFileName", nom & ". . "))
+        Next
+        For code = 0 To 31
+            Assert.AreEqual("a_b.pdf", AppelerUtilitaire("CleanFileName", "a" & ChrW(code) & "b.pdf"))
+        Next
+        Assert.AreEqual("a_________b", AppelerUtilitaire("CleanFileName", "a<>:""/\|?*b"))
+        Assert.AreEqual("attachment.bin", AppelerUtilitaire("GetAttachmentFileName", "..", "valide.pdf"))
     End Sub
 
     <TestMethod>
