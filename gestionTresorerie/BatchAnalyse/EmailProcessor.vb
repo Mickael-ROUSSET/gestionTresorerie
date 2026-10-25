@@ -41,7 +41,11 @@ Public Class EmailProcessor
             File.ReadLines(journalPath).Any(Function(entry) entry.Length > 0)
         ' Memoriser la date de demarrage : elle doit rester appliquee apres la premiere session.
         Dim cutoffPath = Path.Combine(_sRepDoc, "gmail_import_cutoff.txt")
-        Dim effectiveCutoff = ResolveInitialImportCutoff(cutoffPath, initialImportCutoff)
+        Dim effectiveCutoff As DateTime?
+        If Not TryResolveInitialImportCutoff(cutoffPath, initialImportCutoff, effectiveCutoff, _rapport) Then
+            SaveFinalReport()
+            Return
+        End If
         If Not IsImportAllowed(hasJournalEntries, effectiveCutoff) Then
             _rapport.AppendLine("[ERREUR] Import Gmail initial bloque : journal vide. Fournir explicitement initialImportCutoff (date de debut incluse) a ProcessAttachments pour autoriser l'import initial.")
             SaveFinalReport()
@@ -150,9 +154,33 @@ Public Class EmailProcessor
     End Function
 
     ' Conserver la borne de debut entre sessions pour ne jamais importer l'historique par accident.
+    Private Shared Function TryResolveInitialImportCutoff(path As String, requested As DateTime?,
+                                                        ByRef effectiveCutoff As DateTime?, report As StringBuilder) As Boolean
+        effectiveCutoff = Nothing
+        Try
+            effectiveCutoff = ResolveInitialImportCutoff(path, requested)
+            Return True
+        Catch ex As Exception When TypeOf ex Is FormatException OrElse
+                                   TypeOf ex Is IOException OrElse
+                                   TypeOf ex Is UnauthorizedAccessException OrElse
+                                   TypeOf ex Is Global.System.Security.SecurityException OrElse
+                                   TypeOf ex Is InvalidOperationException
+            report.AppendLine($"[ERREUR] Import Gmail bloque : date de debut persistante invalide ou inaccessible. Verifier gmail_import_cutoff.txt avant de relancer. {ex.Message}")
+            Return False
+        End Try
+    End Function
+
     Public Shared Function ResolveInitialImportCutoff(path As String, requested As DateTime?) As DateTime?
-        If File.Exists(path) Then
-            Dim stored = DateTime.ParseExact(File.ReadAllText(path).Trim(), "yyyy-MM-dd",
+        Dim contents As String = Nothing
+        Try
+            contents = File.ReadAllText(path)
+        Catch ex As FileNotFoundException
+            ' Aucun cutoff encore enregistre.
+        Catch ex As DirectoryNotFoundException
+            ' Conserver le comportement initial pour un dossier absent.
+        End Try
+        If contents IsNot Nothing Then
+            Dim stored = DateTime.ParseExact(contents.Trim(), "yyyy-MM-dd",
                 Globalization.CultureInfo.InvariantCulture, Globalization.DateTimeStyles.None)
             If requested.HasValue AndAlso requested.Value.Date <> stored.Date Then
                 Throw New InvalidOperationException("Date de debut Gmail differente de celle deja enregistree.")

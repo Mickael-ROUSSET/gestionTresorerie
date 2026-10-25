@@ -51,6 +51,48 @@ Public Class EmailProcessorFileNameTests
     End Function
 
     <TestMethod>
+    Public Sub TryResolveInitialImportCutoff_FichierMalforme_BloqueEtRapporteErreur()
+        Dim folder = Path.Combine(Path.GetTempPath(), "GmailCutoffTests_" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            Dim cutoffFile = Path.Combine(folder, "cutoff.txt")
+            File.WriteAllText(cutoffFile, "date invalide")
+            VerifierCutoffBloque(cutoffFile)
+            Assert.AreEqual("date invalide", File.ReadAllText(cutoffFile))
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub TryResolveInitialImportCutoff_FichierVerrouille_BloqueEtRapporteErreur()
+        Dim folder = Path.Combine(Path.GetTempPath(), "GmailCutoffTests_" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            Dim cutoffFile = Path.Combine(folder, "cutoff.txt")
+            File.WriteAllText(cutoffFile, "2026-10-01")
+            Using locked As New FileStream(cutoffFile, FileMode.Open, FileAccess.ReadWrite, FileShare.None)
+                VerifierCutoffBloque(cutoffFile)
+            End Using
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    Private Shared Sub VerifierCutoffBloque(cutoffFile As String)
+        Dim methode = GetType(EmailProcessor).GetMethod("TryResolveInitialImportCutoff", BindingFlags.NonPublic Or BindingFlags.Static)
+        Assert.IsNotNull(methode)
+        For Each requested As DateTime? In New DateTime?() {Nothing, New DateTime(2026, 10, 1)}
+            Dim report As New System.Text.StringBuilder()
+            Dim arguments As Object() = {cutoffFile, requested, New DateTime(2020, 1, 1), report}
+            Assert.IsFalse(CBool(methode.Invoke(Nothing, arguments)))
+            Assert.IsNull(arguments(2), "Aucune date de repli ne doit autoriser l'import.")
+            StringAssert.Contains(report.ToString(), "[ERREUR] Import Gmail bloque")
+            StringAssert.Contains(report.ToString(), "gmail_import_cutoff.txt")
+        Next
+    End Sub
+
+    <TestMethod>
     Public Sub GetAttachmentFileName_UtiliseUnRepliSurPourLesNomsAbsents()
         Dim nomsAbsents As String() = {Nothing, String.Empty, " " & vbTab & vbCrLf}
         For Each dispositionName In nomsAbsents
