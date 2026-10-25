@@ -261,8 +261,25 @@ Public Class EmailProcessor
         _rapport.AppendLine($"- Emails avec PJ  : {_statsMailsAvecPJ}")
         _rapport.AppendLine($"- PJ enregistrées : {_statsTotalPJ}")
         _rapport.AppendLine("================================================")
-        File.WriteAllText("Dernier_Rapport_Agumaaa.txt", _rapport.ToString())
-        Logger.INFO(_rapport.ToString)
+        WriteFinalReport(_sRepDoc, _rapport.ToString(), AddressOf Logger.INFO)
+    End Sub
+
+    Private Shared Sub WriteFinalReport(reportDirectory As String, report As String, logReport As Action(Of String))
+        ' Le rapport est un diagnostic : ses erreurs ne doivent pas masquer l'echec Gmail.
+        Try
+            If String.IsNullOrWhiteSpace(reportDirectory) Then
+                Throw New ArgumentException("Dossier du rapport absent.", NameOf(reportDirectory))
+            End If
+            File.WriteAllText(Path.Combine(reportDirectory, "Dernier_Rapport_Agumaaa.txt"), report)
+        Catch ex As Exception
+            ' Conserver le rapport et l'erreur initiale, meme si le fichier est inaccessible.
+        End Try
+
+        Try
+            logReport(report)
+        Catch ex As Exception
+            ' La journalisation peut elle aussi echouer pendant le traitement d'une erreur.
+        End Try
     End Sub
 
     Private Shared Sub LogMessage(msg As String)

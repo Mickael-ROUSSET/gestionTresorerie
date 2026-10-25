@@ -5,6 +5,69 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 <TestClass>
 Public Class EmailProcessorFileNameTests
+    Private Shared Sub EcrireRapportFinal(folder As String, report As String, logger As Action(Of String))
+        Dim methode = GetType(EmailProcessor).GetMethod("WriteFinalReport", BindingFlags.NonPublic Or BindingFlags.Static)
+        Assert.IsNotNull(methode)
+        methode.Invoke(Nothing, New Object() {folder, report, logger})
+    End Sub
+
+    <TestMethod>
+    Public Sub SaveFinalReport_EcritDansLeDossierConfigureSansChangerLeContenu()
+        Dim folder = Path.Combine(Path.GetTempPath(), "EmailReportTests_" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            Dim report = "[ERREUR] Gmail fictif" & vbCrLf &
+                "- Emails analysés : 3" & vbCrLf &
+                "- Emails avec PJ  : 2" & vbCrLf &
+                "- PJ enregistrées : 4" & vbCrLf
+            Dim logged As String = Nothing
+            Dim reportPath = Path.Combine(folder, "Dernier_Rapport_Agumaaa.txt")
+            File.WriteAllText(reportPath, "Rapport precedent")
+
+            EcrireRapportFinal(folder, report, Sub(value) logged = value)
+
+            Assert.AreEqual(report, File.ReadAllText(reportPath))
+            Assert.AreEqual(report, logged)
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub SaveFinalReport_EchecsEcritureEtJournal_PreserventExceptionInitiale()
+        Dim folder = Path.Combine(Path.GetTempPath(), "EmailReportTests_" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            Dim reportPath = Path.Combine(folder, "Dernier_Rapport_Agumaaa.txt")
+            File.WriteAllText(reportPath, "Rapport precedent")
+            Dim original As New InvalidOperationException("Echec Gmail fictif")
+            Dim loggerCalled As Boolean = False
+            Dim logged As String = Nothing
+            Dim failingLogger As Action(Of String) =
+                Sub(value)
+                    loggerCalled = True
+                    logged = value
+                    Throw New IOException("Echec journal fictif")
+                End Sub
+            Using locked As New FileStream(reportPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None)
+                Try
+                    Try
+                        Throw original
+                    Finally
+                        EcrireRapportFinal(folder, "[ERREUR] Gmail fictif", failingLogger)
+                    End Try
+                Catch ex As Exception
+                    Assert.AreSame(original, ex)
+                End Try
+            End Using
+            Assert.IsTrue(loggerCalled)
+            Assert.AreEqual("[ERREUR] Gmail fictif", logged)
+            Assert.AreEqual("Rapport precedent", File.ReadAllText(reportPath))
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
     Private Shared Sub RapporterErreur(logPath As String, report As System.Text.StringBuilder)
         Dim methode = GetType(EmailProcessor).GetMethod("AppendErrorToLogAndReport", BindingFlags.NonPublic Or BindingFlags.Static)
         Assert.IsNotNull(methode)
