@@ -227,8 +227,20 @@ Public Class EmailProcessor
     End Function
 
     Private Shared Sub LogAndReportError(msg As String)
-        _rapport.AppendLine($"[ERREUR] {msg}")
-        File.AppendAllText("traitement_emails.log", $"{DateTime.Now} | CRITIQUE: {msg}{vbCrLf}")
+        AppendErrorToLogAndReport(LogFile, msg, _rapport)
+    End Sub
+
+    Private Shared Sub AppendErrorToLogAndReport(logPath As String, msg As String, report As StringBuilder)
+        report.AppendLine($"[ERREUR] {msg}")
+        Try
+            File.AppendAllText(logPath, $"{DateTime.Now} | CRITIQUE: {msg}{vbCrLf}")
+        Catch ex As Exception When TypeOf ex Is IOException OrElse
+                                   TypeOf ex Is UnauthorizedAccessException OrElse
+                                   TypeOf ex Is ArgumentException OrElse
+                                   TypeOf ex Is NotSupportedException OrElse
+                                   TypeOf ex Is Global.System.Security.SecurityException
+            report.AppendLine($"[ERREUR JOURNAL] Ecriture du journal impossible : {ex.Message}")
+        End Try
     End Sub
 
     Private Shared Sub ResetSession()

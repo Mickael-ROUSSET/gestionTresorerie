@@ -5,6 +5,65 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 <TestClass>
 Public Class EmailProcessorFileNameTests
+    Private Shared Sub RapporterErreur(logPath As String, report As System.Text.StringBuilder)
+        Dim methode = GetType(EmailProcessor).GetMethod("AppendErrorToLogAndReport", BindingFlags.NonPublic Or BindingFlags.Static)
+        Assert.IsNotNull(methode)
+        methode.Invoke(Nothing, New Object() {logPath, "Erreur initiale fictive", report})
+    End Sub
+
+    <TestMethod>
+    Public Sub AppendErrorToLogAndReport_AjouteAuCheminConfigureSansEcraser()
+        Dim folder = Path.Combine(Path.GetTempPath(), "EmailLogTests_" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            Dim logPath = Path.Combine(folder, "journal-configure.log")
+            File.WriteAllText(logPath, "Entree precedente" & Environment.NewLine)
+            Dim report As New System.Text.StringBuilder()
+
+            RapporterErreur(logPath, report)
+
+            Dim lines = File.ReadAllLines(logPath)
+            Assert.AreEqual(2, lines.Length)
+            Assert.AreEqual("Entree precedente", lines(0))
+            StringAssert.Contains(lines(1), " | CRITIQUE: Erreur initiale fictive")
+            Assert.AreEqual("[ERREUR] Erreur initiale fictive" & Environment.NewLine, report.ToString())
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub AppendErrorToLogAndReport_FichierVerrouille_ConserveErreurInitialeEtSignaleEchec()
+        Dim folder = Path.Combine(Path.GetTempPath(), "EmailLogTests_" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            Dim logPath = Path.Combine(folder, "journal.log")
+            File.WriteAllText(logPath, "Entree precedente")
+            Dim report As New System.Text.StringBuilder()
+            Using locked As New FileStream(logPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None)
+                RapporterErreur(logPath, report)
+            End Using
+
+            StringAssert.StartsWith(report.ToString(), "[ERREUR] Erreur initiale fictive" & Environment.NewLine)
+            StringAssert.Contains(report.ToString(), "[ERREUR JOURNAL]")
+            Assert.AreEqual("Entree precedente", File.ReadAllText(logPath))
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub AppendErrorToLogAndReport_CheminAbsentOuInvalide_ConserveErreurInitiale()
+        For Each logPath In New String() {Nothing, String.Empty, "invalide" & ChrW(0) & ".log"}
+            Dim report As New System.Text.StringBuilder()
+
+            RapporterErreur(logPath, report)
+
+            StringAssert.StartsWith(report.ToString(), "[ERREUR] Erreur initiale fictive" & Environment.NewLine)
+            StringAssert.Contains(report.ToString(), "[ERREUR JOURNAL]")
+        Next
+    End Sub
+
     <TestMethod>
     Public Sub IsImportAllowed_JournalVideSansDate_BloqueImportInitial()
         Assert.IsFalse(EmailProcessor.IsImportAllowed(False, Nothing))
