@@ -47,7 +47,7 @@ Public Class EmailProcessor
             Return
         End If
         If Not IsImportAllowed(hasJournalEntries, effectiveCutoff) Then
-            _rapport.AppendLine("[ERREUR] Import Gmail initial bloque : journal vide. Fournir explicitement initialImportCutoff (date de debut incluse) a ProcessAttachments pour autoriser l'import initial.")
+            _rapport.AppendLine("[ERREUR] Import Gmail bloque : date de debut absente. Fournir initialImportCutoff (date incluse) ; un journal existant ne remplace pas cette borne de securite.")
             SaveFinalReport()
             Return
         End If
@@ -145,12 +145,13 @@ Public Class EmailProcessor
     ' --- Utilitaires ---
 
     ''' <summary>
-    ''' Sans journal initialise, une date de debut explicite est obligatoire.
-    ''' La recherche IMAP utilise le jour inclus (date de reception, sans heure).
-    ''' Un journal initialise conserve la reprise existante, sans limite de date.
+    ''' La date de debut est obligatoire meme en presence d'un journal de reprise.
+    ''' Sans cutoff persiste, un journal incomplet pourrait autoriser un balayage
+    ''' de tout l'historique IMAP. L'argument hasJournalEntries est conserve pour
+    ''' compatibilite avec les appels existants, sans accorder de derogation.
     ''' </summary>
     Public Shared Function IsImportAllowed(hasJournalEntries As Boolean, initialImportCutoff As DateTime?) As Boolean
-        Return hasJournalEntries OrElse initialImportCutoff.HasValue
+        Return initialImportCutoff.HasValue
     End Function
 
     ' Conserver la borne de debut entre sessions pour ne jamais importer l'historique par accident.
