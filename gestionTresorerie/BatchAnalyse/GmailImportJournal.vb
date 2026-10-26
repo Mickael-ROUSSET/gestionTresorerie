@@ -14,10 +14,34 @@ Public NotInheritable Class GmailImportJournal
         _journalPath = journalPath
         If File.Exists(journalPath) Then
             For Each entry In File.ReadLines(journalPath)
-                If entry.Length > 0 Then _processed.Add(entry)
+                If entry.Length > 0 Then
+                    If Not IsValidKey(entry) Then Throw New InvalidDataException("Journal Gmail corrompu : cle de message invalide.")
+                    _processed.Add(entry)
+                End If
             Next
         End If
     End Sub
+
+    Public ReadOnly Property HasProcessedMessages As Boolean
+        Get
+            Return _processed.Count > 0
+        End Get
+    End Property
+
+    Private Shared Function IsValidKey(key As String) As Boolean
+        If String.IsNullOrWhiteSpace(key) Then Return False
+        Dim parts = key.Split(":"c)
+        If parts.Length <> 3 OrElse parts(0).Length = 0 OrElse parts(0).Length Mod 2 <> 0 Then Return False
+        For Each c As Char In parts(0)
+            If (c < "0"c OrElse c > "9"c) AndAlso (c < "A"c OrElse c > "F"c) Then Return False
+        Next
+        Dim validity As UInteger
+        Dim uid As UInteger
+        Return UInteger.TryParse(parts(1), Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, validity) AndAlso
+               validity > 0UI AndAlso
+               UInteger.TryParse(parts(2), Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, uid) AndAlso
+               uid > 0UI
+    End Function
 
     Public Shared Function MakeKey(account As String, uidValidity As UInteger, uid As UInteger) As String
         If String.IsNullOrWhiteSpace(account) Then Throw New ArgumentException("Compte Gmail manquant.", NameOf(account))
@@ -33,7 +57,7 @@ Public NotInheritable Class GmailImportJournal
     End Function
 
     Public Sub MarkProcessed(key As String)
-        If String.IsNullOrWhiteSpace(key) OrElse key.Contains(vbLf) OrElse key.Contains(vbCr) Then Throw New ArgumentException("Cle de message invalide.", NameOf(key))
+        If Not IsValidKey(key) Then Throw New ArgumentException("Cle de message invalide.", NameOf(key))
         If _processed.Contains(key) Then Return
         Dim folder = Path.GetDirectoryName(Path.GetFullPath(_journalPath))
         Directory.CreateDirectory(folder)

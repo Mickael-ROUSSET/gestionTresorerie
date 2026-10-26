@@ -40,4 +40,39 @@ Public Class GmailImportJournalTests
         Assert.IsFalse(File.Exists(fileName))
         Assert.IsFalse(journal.IsProcessed(GmailImportJournal.MakeKey("a@gmail.com", 1UI, 1UI)))
     End Sub
+
+    <TestMethod>
+    Public Sub JournalCorrompuNePeutPasAutoriserUneRepriseSansBorne()
+        Dim fileName = TemporaryJournal()
+        Directory.CreateDirectory(Path.GetDirectoryName(fileName))
+        Try
+            File.WriteAllText(fileName, "not-a-checkpoint" & Environment.NewLine)
+            Assert.ThrowsExactly(Of InvalidDataException)(
+                Sub()
+                    Dim journal As New GmailImportJournal(fileName)
+                End Sub)
+            Assert.AreEqual("not-a-checkpoint" & Environment.NewLine, File.ReadAllText(fileName))
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub SeulesLesClesValidesPeuventInitialiserLeJournal()
+        Dim fileName = TemporaryJournal()
+        Try
+            Dim journal As New GmailImportJournal(fileName)
+            Assert.IsFalse(journal.HasProcessedMessages)
+            Assert.ThrowsExactly(Of ArgumentException)(Sub() journal.MarkProcessed("cle-invalide"))
+            Assert.IsFalse(File.Exists(fileName))
+
+            Dim key = GmailImportJournal.MakeKey("factice@example.invalid", 17UI, 42UI)
+            journal.MarkProcessed(key)
+            Assert.IsTrue(journal.HasProcessedMessages)
+            Assert.IsTrue(New GmailImportJournal(fileName).HasProcessedMessages)
+            Assert.AreEqual(1, File.ReadAllLines(fileName).Length)
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
 End Class

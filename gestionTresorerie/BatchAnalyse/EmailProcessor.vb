@@ -37,8 +37,7 @@ Public Class EmailProcessor
         ResetSession()
         Dim journalPath = Path.Combine(_sRepDoc, "gmail_import_journal.txt")
         Dim journal As New GmailImportJournal(journalPath)
-        Dim hasJournalEntries = File.Exists(journalPath) AndAlso
-            File.ReadLines(journalPath).Any(Function(entry) entry.Length > 0)
+        Dim hasJournalEntries = journal.HasProcessedMessages
         ' Memoriser la date de demarrage : elle doit rester appliquee apres la premiere session.
         Dim cutoffPath = Path.Combine(_sRepDoc, "gmail_import_cutoff.txt")
         Dim effectiveCutoff As DateTime?
