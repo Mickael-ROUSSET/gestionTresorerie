@@ -221,6 +221,19 @@ Public Class EmailProcessor
         name = cleaned.ToString().TrimEnd("."c, " "c)
         If String.IsNullOrWhiteSpace(name) Then Return "attachment.bin"
 
+        ' Limiter le composant de nom pour eviter un echec permanent sur Windows.
+        ' Conserver l'extension si elle est raisonnable, sans couper une paire UTF-16.
+        Const maxFileNameLength As Integer = 200
+        If name.Length > maxFileNameLength Then
+            Dim extension = Path.GetExtension(name)
+            If extension.Length > 20 Then extension = ".bin"
+            Dim prefix = name.Substring(0, maxFileNameLength - extension.Length)
+            If prefix.Length > 0 AndAlso Char.IsHighSurrogate(prefix(prefix.Length - 1)) Then
+                prefix = prefix.Substring(0, prefix.Length - 1)
+            End If
+            name = prefix.TrimEnd("."c, " "c) & extension
+        End If
+
         ' Les noms de peripheriques restent reserves avec une ou plusieurs extensions.
         Dim basename = name.Split("."c)(0).TrimEnd(" "c)
         Dim reserved = basename.Equals("CON", StringComparison.OrdinalIgnoreCase) OrElse
