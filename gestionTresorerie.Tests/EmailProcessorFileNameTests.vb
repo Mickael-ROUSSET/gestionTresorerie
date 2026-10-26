@@ -254,6 +254,30 @@ Public Class EmailProcessorFileNameTests
     End Sub
 
     <TestMethod>
+    Public Sub CleanFileName_NomTropLongEstBorneEtConserveExtension()
+        Dim nom = New String("a"c, 300) & ".pdf"
+        Dim nettoye = AppelerUtilitaire("CleanFileName", nom)
+        Assert.AreEqual(New String("a"c, 196) & ".pdf", nettoye)
+        Assert.AreEqual(200, nettoye.Length)
+        Assert.AreEqual(nettoye, AppelerUtilitaire("CleanFileName", nettoye))
+
+        Dim extensionExcessive = "facture." & New String("z"c, 300)
+        Dim repli = AppelerUtilitaire("CleanFileName", extensionExcessive)
+        Assert.IsTrue(repli.Length <= 200)
+        Assert.AreEqual(".bin", Path.GetExtension(repli))
+        Assert.AreEqual(repli, AppelerUtilitaire("CleanFileName", repli))
+    End Sub
+
+    <TestMethod>
+    Public Sub CleanFileName_TroncatureNeCoupePasPaireSurrogate()
+        Dim emoji = Char.ConvertFromUtf32(&H1F600)
+        Dim nom = New String("a"c, 199) & emoji & New String("b"c, 50)
+        Dim nettoye = AppelerUtilitaire("CleanFileName", nom)
+        Assert.AreEqual(New String("a"c, 199), nettoye)
+        Assert.IsFalse(Char.IsHighSurrogate(nettoye(nettoye.Length - 1)))
+    End Sub
+
+    <TestMethod>
     Public Sub CleanFileName_NePermetPasDeCheminWindows()
         For Each nom In New String() {"..\facture.pdf", "../../facture.pdf", "C:\temp\facture.pdf",
                                       "\\serveur\partage\facture.pdf", "/facture.pdf", "facture.pdf:flux"}
