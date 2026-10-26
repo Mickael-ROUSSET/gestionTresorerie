@@ -69,8 +69,8 @@ Public Class EmailProcessor
                     If journal.IsProcessed(key) Then Continue For
                     _statsMailsLus += 1
                     Try
-                        ProcessSingleEmail(inbox, uid)
-                        journal.MarkProcessed(key)
+                        ' Le journal est valide uniquement apres le succes complet de l'import.
+                        journal.ProcessOnce(key, Sub() ProcessSingleEmail(inbox, uid))
                     Catch ex As Exception
                         LogAndReportError($"Message UID {uid.Id} non traite : {ex.Message}")
                     End Try
