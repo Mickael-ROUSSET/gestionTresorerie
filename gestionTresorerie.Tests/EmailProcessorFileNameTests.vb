@@ -139,9 +139,33 @@ Public Class EmailProcessorFileNameTests
     End Sub
 
     <TestMethod>
-    Public Sub IsImportAllowed_JournalInitialise_PreserveLaRepriseSansDate()
-        Assert.IsTrue(EmailProcessor.IsImportAllowed(True, Nothing))
+    Public Sub IsImportAllowed_JournalInitialiseSansDate_BloqueLaRepriseSansBorne()
+        Assert.IsFalse(EmailProcessor.IsImportAllowed(True, Nothing))
         Assert.IsTrue(EmailProcessor.IsImportAllowed(True, New DateTime(2026, 10, 1)))
+    End Sub
+
+    <TestMethod>
+    Public Sub JournalExistantSansCutoff_ExigeUneDateExpliciteAvantReprise()
+        Dim folder = Path.Combine(Path.GetTempPath(), "GmailCutoffTests_" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            Dim journalPath = Path.Combine(folder, "gmail_import_journal.txt")
+            Dim cutoffPath = Path.Combine(folder, "gmail_import_cutoff.txt")
+            File.WriteAllText(journalPath, GmailImportJournal.MakeKey("factice@example.invalid", 1UI, 2UI) & Environment.NewLine)
+            Dim journal As New GmailImportJournal(journalPath)
+            Assert.IsTrue(journal.IsProcessed(GmailImportJournal.MakeKey("factice@example.invalid", 1UI, 2UI)))
+
+            Dim cutoff = EmailProcessor.ResolveInitialImportCutoff(cutoffPath, Nothing)
+            Assert.IsFalse(EmailProcessor.IsImportAllowed(True, cutoff))
+            Assert.IsFalse(File.Exists(cutoffPath))
+
+            Dim debut As New DateTime(2026, 10, 1)
+            cutoff = EmailProcessor.ResolveInitialImportCutoff(cutoffPath, debut)
+            Assert.IsTrue(EmailProcessor.IsImportAllowed(True, cutoff))
+            Assert.AreEqual(debut, EmailProcessor.ResolveInitialImportCutoff(cutoffPath, Nothing).Value)
+        Finally
+            Directory.Delete(folder, True)
+        End Try
     End Sub
 
     <TestMethod>
