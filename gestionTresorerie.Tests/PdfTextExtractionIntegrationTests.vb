@@ -87,6 +87,8 @@ Public Class PdfTextExtractionIntegrationTests
             Assert.AreEqual("regles-facture-local/pdf-text-local", CStr(proposal("moteur")))
             Assert.AreEqual("Texte_a_verifier", CStr(proposal("extraction")("statut_extraction")))
             Assert.IsNotNull(proposal("extraction")("champs_proposes"))
+            Assert.IsNotNull(proposal("extraction")("champs_proposes")("montant_ttc"),
+                             "TTC absent du PDF fictif. Texte extrait : " & texte)
             Assert.AreEqual(42.5D, proposal("extraction")("champs_proposes")("montant_ttc").Value(Of Decimal)())
             Assert.AreEqual("2026-10-12", proposal("extraction")("champs_proposes")("date_document").ToString())
             Assert.AreEqual("Champs_a_verifier", proposal("extraction")("statut_champs").ToString())
