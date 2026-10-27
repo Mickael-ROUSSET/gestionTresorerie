@@ -128,6 +128,32 @@ Public Class EmailProcessorFileNameTests
     End Sub
 
     <TestMethod>
+    Public Sub TryParseInitialImportDate_AccepteUniquementLeFormatIso() 
+        Dim cutoff As DateTime
+        Assert.IsTrue(EmailProcessor.TryParseInitialImportDate(" 2026-10-01 ", cutoff))
+        Assert.AreEqual(New DateTime(2026, 10, 1), cutoff)
+        For Each input In New String() {Nothing, "", "  ", "01/10/2026", "2026-02-30", "2026-10-01 12:00", "2026-13-01"}
+            Assert.IsFalse(EmailProcessor.TryParseInitialImportDate(input, cutoff), "Date acceptee : " & input)
+        Next
+    End Sub
+
+    <TestMethod>
+    Public Sub NeedsInitialImportCutoff_InviteSeulementSiFichierAbsent()
+        Dim folder = Path.Combine(Path.GetTempPath(), "GmailCutoffUiTests_" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            Dim cutoffFile = Path.Combine(folder, "gmail_import_cutoff.txt")
+            Assert.IsTrue(EmailProcessor.NeedsInitialImportCutoff(cutoffFile))
+            File.WriteAllText(cutoffFile, "2026-10-01")
+            Assert.IsFalse(EmailProcessor.NeedsInitialImportCutoff(cutoffFile))
+            File.WriteAllText(cutoffFile, "date invalide")
+            Assert.IsFalse(EmailProcessor.NeedsInitialImportCutoff(cutoffFile))
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
     Public Sub IsImportAllowed_JournalVideSansDate_BloqueImportInitial()
         Assert.IsFalse(EmailProcessor.IsImportAllowed(False, Nothing))
     End Sub
