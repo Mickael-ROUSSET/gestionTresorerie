@@ -22,7 +22,8 @@ Public Class EmailProcessor
     ''' <summary>
     ''' Point d'entrée principal modularisé
     ''' </summary>
-    Public Shared Sub ProcessAttachments(Optional enableDocumentProposals As Boolean = False)
+    Public Shared Sub ProcessAttachments(Optional enableDocumentProposals As Boolean = False,
+                                         Optional initialImportCutoff As DateTime? = Nothing)
         ' Création du dossier s'il n'existe pas
         LogFile = Path.Combine(LectureProprietes.GetVariable("repRacineAgumaaa"),
             LectureProprietes.GetVariable("repRacineDocuments"),
@@ -37,6 +38,20 @@ Public Class EmailProcessor
         PrepareDirectory(_sRepDoc)
         ResetSession()
         Dim journal As New GmailImportJournal(Path.Combine(_sRepDoc, "gmail_import_journal.txt"))
+        ' Sans borne explicite ou persistante, ne jamais parcourir toute la boite Gmail.
+        Dim effectiveCutoff As DateTime
+        Try
+            effectiveCutoff = ResolveInitialImportCutoff(
+                Path.Combine(_sRepDoc, "gmail_import_cutoff.txt"), initialImportCutoff)
+        Catch ex As Exception When TypeOf ex Is IOException OrElse
+                                   TypeOf ex Is UnauthorizedAccessException OrElse
+                                   TypeOf ex Is InvalidOperationException OrElse
+                                   TypeOf ex Is ArgumentException OrElse
+                                   TypeOf ex Is Global.System.Security.SecurityException
+            _rapport.AppendLine("[ERREUR] Import Gmail bloque avant connexion : " & ex.Message)
+            SaveFinalReport()
+            Return
+        End Try
 
         Using client As New ImapClient()
             Try
@@ -45,7 +60,7 @@ Public Class EmailProcessor
                 inbox.Open(FolderAccess.ReadOnly)
 
                 ' Parcourir egalement les emails deja lus : le journal determine le travail restant.
-                Dim uids = inbox.Search(SearchQuery.All)
+                Dim uids = inbox.Search(SearchQuery.DeliveredAfter(effectiveCutoff))
                 Dim account = LectureProprietes.GetVariable("SmtpUsername")
                 Dim validity As UInteger = inbox.UidValidity
                 For Each uid In uids
@@ -162,6 +177,36 @@ Public Class EmailProcessor
     End Function
 
     ' --- Utilitaires ---
+
+    ''' <summary>
+    ''' Fixe une date de debut incluse, exigee meme si un ancien journal existe.
+    ''' Une date deja enregistree ne peut pas etre remplacee implicitement.
+    ''' </summary>
+    Public Shared Function ResolveInitialImportCutoff(path As String, requested As DateTime?) As DateTime
+        If String.IsNullOrWhiteSpace(path) Then Throw New ArgumentException("Chemin de borne requis.", NameOf(path))
+        If File.Exists(path) Then
+            Dim stored As DateTime
+            If Not DateTime.TryParseExact(File.ReadAllText(path).Trim(), "yyyy-MM-dd",
+                                          Globalization.CultureInfo.InvariantCulture,
+                                          Globalization.DateTimeStyles.None, stored) Then
+                Throw New InvalidOperationException("Borne Gmail persistante invalide : verifier gmail_import_cutoff.txt.")
+            End If
+            If requested.HasValue AndAlso requested.Value.Date <> stored.Date Then
+                Throw New InvalidOperationException("Borne Gmail differente de la date deja enregistree.")
+            End If
+            Return stored.Date
+        End If
+        If Not requested.HasValue Then
+            Throw New InvalidOperationException("Borne Gmail absente : fournir initialImportCutoff explicitement.")
+        End If
+        ' CreateNew empeche une course de reecriture avec un autre processus.
+        Using stream As New FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None)
+            Using writer As New StreamWriter(stream, New UTF8Encoding(False))
+                writer.Write(requested.Value.ToString("yyyy-MM-dd", Globalization.CultureInfo.InvariantCulture))
+            End Using
+        End Using
+        Return requested.Value.Date
+    End Function
 
     Private Shared Function GetFolderByDate(dt As DateTime) As String
         Dim pathByDate = Path.Combine(_sRepDoc, dt.ToString("yyyy"), dt.ToString("MM"))
