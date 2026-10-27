@@ -109,6 +109,15 @@ Public Class GmailImportJournalTests
     End Sub
 
     <TestMethod>
+    Public Sub EcritureCleInvalideNeCreePasDeJournal()
+        Dim fileName = TemporaryJournal()
+        Dim journal As New GmailImportJournal(fileName)
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() journal.MarkProcessed("cle-invalide"))
+        Assert.IsFalse(File.Exists(fileName))
+        Assert.IsFalse(journal.HasEntries)
+    End Sub
+
+    <TestMethod>
     Public Sub JournalExclusivementVideResteValide()
         Dim fileName = TemporaryJournal()
         Try
