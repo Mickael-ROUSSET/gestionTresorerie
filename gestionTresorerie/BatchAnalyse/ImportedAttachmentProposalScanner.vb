@@ -25,16 +25,16 @@ Public NotInheritable Class ImportedAttachmentProposalScanner
         If Not Directory.Exists(root) Then Throw New DirectoryNotFoundException("Dossier d'import introuvable : " & root)
 
         Dim result As New ImportedAttachmentProposalScanResult()
-        For Each path In Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
-            If IsInsideFolder(path, _queueFolder) OrElse Not IsSupportedDocument(path) Then Continue For
+        For Each documentPath In Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
+            If IsInsideFolder(documentPath, _queueFolder) OrElse Not IsSupportedDocument(documentPath) Then Continue For
             Try
-                If Await _workflow.ProposeAsync(path).ConfigureAwait(False) Then
+                If Await _workflow.ProposeAsync(documentPath).ConfigureAwait(False) Then
                     result.Created += 1
                 Else
                     result.AlreadyPresent += 1
                 End If
             Catch ex As Exception
-                result.Errors.Add(Path.GetFileName(path) & " : " & ex.Message)
+                result.Errors.Add(Path.GetFileName(documentPath) & " : " & ex.Message)
             End Try
         Next
         Return result
