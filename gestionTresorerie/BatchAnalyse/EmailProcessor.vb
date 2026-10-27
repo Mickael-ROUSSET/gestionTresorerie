@@ -22,7 +22,7 @@ Public Class EmailProcessor
     ''' <summary>
     ''' Point d'entrée principal modularisé
     ''' </summary>
-    Public Shared Sub ProcessAttachments()
+    Public Shared Sub ProcessAttachments(Optional enableDocumentProposals As Boolean = False)
         ' Création du dossier s'il n'existe pas
         LogFile = Path.Combine(LectureProprietes.GetVariable("repRacineAgumaaa"),
             LectureProprietes.GetVariable("repRacineDocuments"),
@@ -30,6 +30,7 @@ Public Class EmailProcessor
         _sRepDoc = LectureProprietes.GetVariable("repRacineAgumaaa") &
             LectureProprietes.GetVariable("repRacineDocuments") &
             LectureProprietes.GetVariable("repFichiersDocumentsATrier")
+        _sRepDoc = Path.GetFullPath(_sRepDoc)
         ' Création du dossier s'il n'existe pas
         If Not Directory.Exists(_sRepDoc) Then Directory.CreateDirectory(_sRepDoc)
 
@@ -53,7 +54,22 @@ Public Class EmailProcessor
                     _statsMailsLus += 1
                     Try
                         ' Le journal est valide uniquement apres le succes complet de l'import.
-                        journal.ProcessOnce(key, Sub() ProcessSingleEmail(inbox, uid))
+                        Dim savedPaths As New List(Of String)()
+                        journal.ProcessOnce(key, Sub() savedPaths = ProcessSingleEmail(inbox, uid))
+                        ' Desactive par defaut : jamais d'analyse documentaire implicite.
+                        ' La revue est distincte du journal Gmail et ne valide aucune operation.
+                        If enableDocumentProposals AndAlso savedPaths.Count > 0 Then
+                            Try
+                                Dim review = ProposeSavedAttachmentsAsync(_sRepDoc, savedPaths).GetAwaiter().GetResult()
+                                _rapport.AppendLine($"[REVUE] Propositions : {review.Created}, deja presentes : {review.AlreadyPresent}, erreurs : {review.Errors.Count}")
+                                For Each reviewError In review.Errors
+                                    _rapport.AppendLine("[REVUE] " & reviewError)
+                                Next
+                            Catch reviewEx As Exception
+                                ' L'import est deja journalise : conserver la possibilite de reprise hors ligne.
+                                _rapport.AppendLine("[REVUE] Echec sans validation automatique : " & reviewEx.Message)
+                            End Try
+                        End If
                     Catch ex As Exception
                         LogAndReportError($"Message UID {uid.Id} non traite : {ex.Message}")
                     End Try
@@ -68,6 +84,21 @@ Public Class EmailProcessor
         End Using
     End Sub
 
+    ''' <summary>
+    ''' Reprise hors ligne sur les seuls chemins sauvegardes, avec moteur injectable pour les tests.
+    ''' Aucun acces IMAP et aucune validation ou ecriture comptable.
+    ''' </summary>
+    Public Shared Async Function ProposeSavedAttachmentsAsync(importRoot As String,
+                                                               savedPaths As IEnumerable(Of String),
+                                                               Optional engine As IDocumentExtractionEngine = Nothing) As Task(Of ImportedAttachmentProposalScanResult)
+        If String.IsNullOrWhiteSpace(importRoot) Then Throw New ArgumentException("Dossier d'import requis.", NameOf(importRoot))
+        Dim selectedEngine As IDocumentExtractionEngine = engine
+        If selectedEngine Is Nothing Then selectedEngine = New LocalPdfTextExtractionEngine()
+        Dim queue = Path.Combine(Path.GetFullPath(importRoot), "_PropositionsAValider")
+        Dim scanner As New ImportedAttachmentProposalScanner(selectedEngine, queue)
+        Return Await scanner.ScanSavedPathsAsync(importRoot, savedPaths).ConfigureAwait(False)
+    End Function
+
     ' --- Sous-Modules Spécialisés ---
 
     Private Shared Sub ConnectAndAuthenticate(ByRef client As ImapClient)
@@ -76,9 +107,10 @@ Public Class EmailProcessor
         client.Authenticate(LectureProprietes.GetVariable("SmtpUsername"), GlobalSettings.GmailPassword)
     End Sub
 
-    Private Shared Sub ProcessSingleEmail(inbox As IMailFolder, uid As UniqueId)
+    Private Shared Function ProcessSingleEmail(inbox As IMailFolder, uid As UniqueId) As List(Of String)
         Dim message = inbox.GetMessage(uid)
         Dim hasAttachments As Boolean = False
+        Dim savedPaths As New List(Of String)()
         Dim dateMail As DateTime = message.Date.DateTime
 
         ' Détermination du dossier de destination (Année/Mois)
@@ -90,13 +122,15 @@ Public Class EmailProcessor
                 hasAttachments = True
             End If
 
-            SaveAttachment(attachment, targetPath, message.From.ToString())
+            Dim savedPath = SaveAttachment(attachment, targetPath, message.From.ToString())
+            If savedPath IsNot Nothing Then savedPaths.Add(savedPath)
         Next
 
         ' Ne pas modifier le statut lu/non lu : seul le journal fait foi.
-    End Sub
+        Return savedPaths
+    End Function
 
-    Private Shared Sub SaveAttachment(attachment As MimeEntity, targetFolder As String, senderInfo As String)
+    Private Shared Function SaveAttachment(attachment As MimeEntity, targetFolder As String, senderInfo As String) As String
         ' 1. Récupération et nettoyage du nom
         Dim fileName As String = If(attachment.ContentDisposition?.FileName, attachment.ContentType.Name)
         fileName = CleanFileName(fileName)
@@ -116,14 +150,15 @@ Public Class EmailProcessor
             Dim storedPath = AttachmentStorage.StoreTemporaryFile(temporaryPath, desiredPath)
             If storedPath Is Nothing Then
                 _rapport.AppendLine($"[PJ] Doublon SHA-256 ignoré : {fileName} (De: {senderInfo})")
-                Return
+                Return Nothing
             End If
             _statsTotalPJ += 1
             _rapport.AppendLine($"[PJ] Enregistré : {Path.GetFileName(storedPath)} (De: {senderInfo})")
+            Return Path.GetFullPath(storedPath)
         Finally
             If File.Exists(temporaryPath) Then File.Delete(temporaryPath)
         End Try
-    End Sub
+    End Function
 
     ' --- Utilitaires ---
 
