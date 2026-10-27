@@ -90,12 +90,13 @@ Public Class EmailProcessor
     ''' </summary>
     Public Shared Async Function ProposeSavedAttachmentsAsync(importRoot As String,
                                                                savedPaths As IEnumerable(Of String),
-                                                               Optional engine As IDocumentExtractionEngine = Nothing) As Task(Of ImportedAttachmentProposalScanResult)
+                                                               Optional engine As IDocumentExtractionEngine = Nothing,
+                                                               Optional enableLocalInvoiceRules As Boolean = False) As Task(Of ImportedAttachmentProposalScanResult)
         If String.IsNullOrWhiteSpace(importRoot) Then Throw New ArgumentException("Dossier d'import requis.", NameOf(importRoot))
         Dim selectedEngine As IDocumentExtractionEngine = engine
         If selectedEngine Is Nothing Then selectedEngine = New LocalPdfTextExtractionEngine()
         Dim queue = Path.Combine(Path.GetFullPath(importRoot), "_PropositionsAValider")
-        Dim scanner As New ImportedAttachmentProposalScanner(selectedEngine, queue)
+        Dim scanner As New ImportedAttachmentProposalScanner(selectedEngine, queue, enableLocalInvoiceRules)
         Return Await scanner.ScanSavedPathsAsync(importRoot, savedPaths).ConfigureAwait(False)
     End Function
 
