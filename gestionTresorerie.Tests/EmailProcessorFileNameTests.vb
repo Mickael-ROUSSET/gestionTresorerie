@@ -1,10 +1,76 @@
-Imports System.IO
+﻿Imports System.IO
 Imports System.Reflection
 Imports gestionTresorerie
 Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 <TestClass>
 Public Class EmailProcessorFileNameTests
+    Private Shared Function InitialiserJournal(path As String, expected As Boolean, hasEntries As Boolean) As GmailImportJournal
+        Dim method = GetType(EmailProcessor).GetMethod("TryInitializeJournal", BindingFlags.NonPublic Or BindingFlags.Static)
+        Assert.IsNotNull(method)
+        Dim report As New System.Text.StringBuilder()
+        Dim args As Object() = {path, Nothing, True, report}
+        Assert.AreEqual(expected, CBool(method.Invoke(Nothing, args)))
+        Assert.AreEqual(hasEntries, CBool(args(2)))
+        If expected Then
+            Assert.AreEqual("", report.ToString())
+            Assert.IsNotNull(args(1))
+        Else
+            Assert.IsNull(args(1))
+            Assert.AreEqual("[ERREUR] Import Gmail bloque : journal invalide ou inaccessible. Verifier gmail_import_journal.txt avant de relancer." & Environment.NewLine, report.ToString())
+        End If
+        Return DirectCast(args(1), GmailImportJournal)
+    End Function
+
+    <TestMethod>
+    Public Sub TryInitializeJournal_AbsentVideEtValide_PreserveLesUid()
+        Dim folder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "GmailJournalTests_" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            Dim path = System.IO.Path.Combine(folder, "journal.txt")
+            InitialiserJournal(path, True, False)
+            Assert.IsFalse(File.Exists(path))
+            File.WriteAllText(path, vbCrLf)
+            InitialiserJournal(path, True, False)
+            Dim key = GmailImportJournal.MakeKey("offline@example.invalid", 12UI, 34UI)
+            Dim contents = key & vbCrLf & vbCrLf & key & vbCrLf
+            File.WriteAllText(path, contents, New System.Text.UTF8Encoding(True))
+            Dim journal = InitialiserJournal(path, True, True)
+            Assert.IsTrue(journal.IsProcessed(key))
+            Assert.IsFalse(journal.IsProcessed(GmailImportJournal.MakeKey("offline@example.invalid", 13UI, 34UI)))
+            Assert.IsFalse(journal.IsProcessed(GmailImportJournal.MakeKey("offline@example.invalid", 12UI, 35UI)))
+            Assert.AreEqual(contents, File.ReadAllText(path))
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub TryInitializeJournal_IllisibleOuMalforme_BloqueSansDivulgation()
+        Dim folder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "GmailJournalTests_" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            Dim path = System.IO.Path.Combine(folder, "journal.txt")
+            Dim key = GmailImportJournal.MakeKey("offline@example.invalid", 12UI, 34UI)
+            For Each invalid In New String() {New String("x"c, 10000), " ", "GG:1:2", "61:0:2", "61:1:4294967296", "61:1", "FF:1:2"}
+                Dim contents = key & vbCrLf & invalid
+                File.WriteAllText(path, contents)
+                InitialiserJournal(path, False, False)
+                Assert.AreEqual(contents, File.ReadAllText(path))
+            Next
+            File.WriteAllBytes(path, New Byte() {&HFF, &HFF})
+            InitialiserJournal(path, False, False)
+            File.WriteAllText(path, key)
+            Using locked As New FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None)
+                InitialiserJournal(path, False, False)
+            End Using
+            InitialiserJournal(folder, False, False)
+            InitialiserJournal("invalid" & ChrW(0), False, False)
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
     Private Shared Sub EcrireRapportFinal(folder As String, report As String, logger As Action(Of String))
         Dim methode = GetType(EmailProcessor).GetMethod("WriteFinalReport", BindingFlags.NonPublic Or BindingFlags.Static)
         Assert.IsNotNull(methode)

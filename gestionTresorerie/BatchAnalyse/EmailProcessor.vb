@@ -36,9 +36,12 @@ Public Class EmailProcessor
         PrepareDirectory(_sRepDoc)
         ResetSession()
         Dim journalPath = Path.Combine(_sRepDoc, "gmail_import_journal.txt")
-        Dim journal As New GmailImportJournal(journalPath)
-        Dim hasJournalEntries = File.Exists(journalPath) AndAlso
-            File.ReadLines(journalPath).Any(Function(entry) entry.Length > 0)
+        Dim journal As GmailImportJournal = Nothing
+        Dim hasJournalEntries As Boolean
+        If Not TryInitializeJournal(journalPath, journal, hasJournalEntries, _rapport) Then
+            SaveFinalReport()
+            Return
+        End If
         ' Memoriser la date de demarrage : elle doit rester appliquee apres la premiere session.
         Dim cutoffPath = Path.Combine(_sRepDoc, "gmail_import_cutoff.txt")
         Dim effectiveCutoff As DateTime?
@@ -151,6 +154,59 @@ Public Class EmailProcessor
     ''' </summary>
     Public Shared Function IsImportAllowed(hasJournalEntries As Boolean, initialImportCutoff As DateTime?) As Boolean
         Return hasJournalEntries OrElse initialImportCutoff.HasValue
+    End Function
+
+    ' Lire toutes les lignes avant toute connexion; une ligne valide ne masque pas une fin corrompue.
+    Private Shared Function TryInitializeJournal(path As String, ByRef journal As GmailImportJournal,
+                                                 ByRef hasEntries As Boolean, report As StringBuilder) As Boolean
+        journal = Nothing
+        hasEntries = False
+        Try
+            Dim stream As FileStream = Nothing
+            Try
+                stream = New FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read)
+            Catch ex As FileNotFoundException
+                ' Un journal absent correspond a un premier import, soumis au cutoff.
+            End Try
+            Using stream
+                If stream IsNot Nothing Then
+                    Using reader As New StreamReader(stream, New UTF8Encoding(False, True), detectEncodingFromByteOrderMarks:=False,
+                                                     bufferSize:=1024, leaveOpen:=True)
+                        Dim firstLine = True
+                        While Not reader.EndOfStream
+                            Dim entry = reader.ReadLine()
+                            If firstLine Then entry = entry.TrimStart(ChrW(&HFEFF))
+                            firstLine = False
+                            If entry.Length = 0 Then Continue While
+                            Dim parts = entry.Split(":"c)
+                            Dim validity, uid As UInteger
+                            If parts.Length <> 3 OrElse
+                                Not UInteger.TryParse(parts(1), Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, validity) OrElse
+                                Not UInteger.TryParse(parts(2), Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, uid) Then
+                                Throw New FormatException()
+                            End If
+                            Dim account = New UTF8Encoding(False, True).GetString(Convert.FromHexString(parts(0)))
+                            If entry <> GmailImportJournal.MakeKey(account, validity, uid) Then Throw New FormatException()
+                            hasEntries = True
+                        End While
+                    End Using
+                End If
+                ' Garder le fichier en lecture partagee pendant le chargement du journal.
+                journal = New GmailImportJournal(path)
+            End Using
+            Return True
+        Catch ex As Exception When TypeOf ex Is IOException OrElse
+                                   TypeOf ex Is UnauthorizedAccessException OrElse
+                                   TypeOf ex Is Global.System.Security.SecurityException OrElse
+                                   TypeOf ex Is ArgumentException OrElse
+                                   TypeOf ex Is FormatException OrElse
+                                   TypeOf ex Is NotSupportedException
+            journal = Nothing
+            hasEntries = False
+            ' Message borne et sans donnees du journal ni details de chemin provenant de l'exception.
+            report.AppendLine("[ERREUR] Import Gmail bloque : journal invalide ou inaccessible. Verifier gmail_import_journal.txt avant de relancer.")
+            Return False
+        End Try
     End Function
 
     ' Conserver la borne de debut entre sessions pour ne jamais importer l'historique par accident.
