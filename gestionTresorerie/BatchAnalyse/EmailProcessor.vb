@@ -179,6 +179,26 @@ Public Class EmailProcessor
         Catch ex As DirectoryNotFoundException
             ' Conserver le comportement initial pour un dossier absent.
         End Try
+        If contents Is Nothing AndAlso requested.HasValue Then
+            Dim stream As FileStream = Nothing
+            Try
+                stream = New FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None)
+            Catch ex As IOException
+                ' Un autre processus peut avoir cree le fichier depuis la lecture initiale.
+                ' Toute valeur illisible ou incomplete doit continuer a bloquer l'import.
+                contents = File.ReadAllText(path)
+            End Try
+            If stream IsNot Nothing Then
+                Using stream
+                    Using writer As New StreamWriter(stream, New UTF8Encoding(False), 1024, leaveOpen:=True)
+                        writer.Write(requested.Value.ToString("yyyy-MM-dd", Globalization.CultureInfo.InvariantCulture))
+                        writer.Flush()
+                        stream.Flush(True)
+                    End Using
+                End Using
+                Return requested.Value.Date
+            End If
+        End If
         If contents IsNot Nothing Then
             Dim stored = DateTime.ParseExact(contents.Trim(), "yyyy-MM-dd",
                 Globalization.CultureInfo.InvariantCulture, Globalization.DateTimeStyles.None)
@@ -186,10 +206,6 @@ Public Class EmailProcessor
                 Throw New InvalidOperationException("Date de debut Gmail differente de celle deja enregistree.")
             End If
             Return stored.Date
-        End If
-        If requested.HasValue Then
-            File.WriteAllText(path, requested.Value.ToString("yyyy-MM-dd", Globalization.CultureInfo.InvariantCulture))
-            Return requested.Value.Date
         End If
         Return Nothing
     End Function

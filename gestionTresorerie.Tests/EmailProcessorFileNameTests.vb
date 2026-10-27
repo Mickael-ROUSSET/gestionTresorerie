@@ -151,7 +151,10 @@ Public Class EmailProcessorFileNameTests
         Try
             Dim cutoffFile = Path.Combine(folder, "cutoff.txt")
             Assert.IsFalse(EmailProcessor.ResolveInitialImportCutoff(cutoffFile, Nothing).HasValue)
+            Assert.IsFalse(File.Exists(cutoffFile))
             Dim debut As New DateTime(2026, 10, 1)
+            Assert.AreEqual(debut, EmailProcessor.ResolveInitialImportCutoff(cutoffFile, debut.AddHours(12)).Value)
+            Assert.AreEqual("2026-10-01", File.ReadAllText(cutoffFile))
             Assert.AreEqual(debut, EmailProcessor.ResolveInitialImportCutoff(cutoffFile, debut).Value)
             Assert.AreEqual(debut, EmailProcessor.ResolveInitialImportCutoff(cutoffFile, Nothing).Value)
             Dim raised As Boolean = False
@@ -166,6 +169,54 @@ Public Class EmailProcessorFileNameTests
         End Try
     End Sub
 
+    <TestMethod>
+    <DataRow(False)>
+    <DataRow(True)>
+    Public Sub ResolveInitialImportCutoff_CreationsConcurrentes_PreserventLaDateGagnante(datesDifferentes As Boolean)
+        Dim folder = Path.Combine(Path.GetTempPath(), "GmailCutoffTests_" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            For iteration = 1 To 20
+                Dim cutoffFile = Path.Combine(folder, iteration.ToString() & ".txt")
+                Dim dates = {New DateTime(2026, 10, 1), New DateTime(2026, 10, If(datesDifferentes, 2, 1))}
+                Using start As New System.Threading.Barrier(2)
+                    Dim attempts = Array.ConvertAll(dates,
+                        Function(requested) System.Threading.Tasks.Task.Run(
+                            Function() As DateTime?
+                                Assert.IsTrue(start.SignalAndWait(TimeSpan.FromSeconds(10)))
+                                Try
+                                    Return EmailProcessor.ResolveInitialImportCutoff(cutoffFile, requested)
+                                Catch ex As IOException
+                                    ' Le fichier en cours d'ecriture reste inaccessible : echec ferme autorise.
+                                    Return Nothing
+                                Catch ex As InvalidOperationException
+                                    If Not datesDifferentes Then Throw
+                                    Return Nothing
+                                End Try
+                            End Function))
+                    System.Threading.Tasks.Task.WaitAll(attempts)
+                    Dim stored = EmailProcessor.ResolveInitialImportCutoff(cutoffFile, Nothing).Value
+                    Assert.IsTrue(dates.Contains(stored))
+                    Assert.IsTrue(attempts.Any(Function(attempt) attempt.Result.HasValue))
+                    For Each attempt In attempts
+                        If attempt.Result.HasValue Then Assert.AreEqual(stored, attempt.Result.Value)
+                    Next
+                    Assert.AreEqual(stored.ToString("yyyy-MM-dd", Globalization.CultureInfo.InvariantCulture), File.ReadAllText(cutoffFile))
+                    For Each requested In dates
+                        If requested = stored Then
+                            Assert.AreEqual(stored, EmailProcessor.ResolveInitialImportCutoff(cutoffFile, requested).Value)
+                        Else
+                            Assert.ThrowsExactly(Of InvalidOperationException)(
+                                Sub() EmailProcessor.ResolveInitialImportCutoff(cutoffFile, requested))
+                        End If
+                    Next
+                End Using
+            Next
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
     Private Shared Function AppelerUtilitaire(nom As String, ParamArray valeurs As String()) As String
         Dim methode = GetType(EmailProcessor).GetMethod(nom, BindingFlags.NonPublic Or BindingFlags.Static)
         Assert.IsNotNull(methode, $"Utilitaire introuvable : {nom}")
@@ -173,14 +224,17 @@ Public Class EmailProcessorFileNameTests
     End Function
 
     <TestMethod>
-    Public Sub TryResolveInitialImportCutoff_FichierMalforme_BloqueEtRapporteErreur()
+    <DataRow("date invalide")>
+    <DataRow("")>
+    <DataRow("2026-10-")>
+    Public Sub TryResolveInitialImportCutoff_FichierMalforme_BloqueEtRapporteErreur(contents As String)
         Dim folder = Path.Combine(Path.GetTempPath(), "GmailCutoffTests_" & Guid.NewGuid().ToString("N"))
         Directory.CreateDirectory(folder)
         Try
             Dim cutoffFile = Path.Combine(folder, "cutoff.txt")
-            File.WriteAllText(cutoffFile, "date invalide")
+            File.WriteAllText(cutoffFile, contents)
             VerifierCutoffBloque(cutoffFile)
-            Assert.AreEqual("date invalide", File.ReadAllText(cutoffFile))
+            Assert.AreEqual(contents, File.ReadAllText(cutoffFile))
         Finally
             Directory.Delete(folder, True)
         End Try
