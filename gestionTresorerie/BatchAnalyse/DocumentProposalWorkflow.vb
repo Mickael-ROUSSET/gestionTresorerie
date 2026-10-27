@@ -3,6 +3,7 @@ Imports System.Text
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 Imports UglyToad.PdfPig
+Imports UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor
 
 ''' <summary>Un moteur produit des donnees brutes a verifier, sans ecriture comptable.</summary>
 Public Interface IDocumentExtractionEngine
@@ -34,7 +35,8 @@ Public NotInheritable Class LocalPdfTextExtractionEngine
                 Using pdf = PdfDocument.Open(documentPath)
                     For Each page In pdf.GetPages()
                         If text.Length >= 16000 Then Exit For
-                        text.AppendLine(page.Text)
+                        ' Reconstruire les sauts de ligne avant les regles TTC/date ancrees sur les lignes.
+                        text.AppendLine(ContentOrderTextExtractor.GetText(page))
                     Next
                 End Using
                 extractedText = If(text.Length > 16000, text.ToString(0, 16000), text.ToString())
