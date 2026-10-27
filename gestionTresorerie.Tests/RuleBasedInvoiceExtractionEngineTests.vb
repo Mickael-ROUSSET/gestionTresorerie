@@ -13,8 +13,8 @@ Public Class RuleBasedInvoiceExtractionEngineTests
 
         Private ReadOnly _result As String
 
-        Public Sub New(text As String)
-            _result = New JObject From {{"texte", text}, {"statut_extraction", "Texte_a_verifier"}}.ToString()
+        Public Sub New(text As String, Optional status As String = "Texte_a_verifier")
+            _result = New JObject From {{"texte", text}, {"statut_extraction", status}}.ToString()
         End Sub
 
         Public ReadOnly Property EngineName As String Implements IDocumentExtractionEngine.EngineName
@@ -62,6 +62,20 @@ Public Class RuleBasedInvoiceExtractionEngineTests
 
         Assert.AreEqual("Aucune_donnee_fiable", result("statut_champs").ToString())
         Assert.IsFalse(CType(result("champs_proposes"), JObject).HasValues)
+    End Function
+
+    <TestMethod>
+    Public Async Function ExtractionTronqueeNeProposePasDeChampsPartiels() As Task
+        ' Un total peut etre contredit dans la partie manquante du PDF fictif.
+        Dim source = "Total TTC : 42,50 EUR" & vbLf & "Date facture : 12/10/2026"
+        Dim engine As New RuleBasedInvoiceExtractionEngine(
+            New FakeTextEngine(source, "Texte_tronque_a_verifier"))
+        Dim result = JObject.Parse(Await engine.ExtractAsync("factice.pdf"))
+
+        Assert.AreEqual("Texte_tronque_a_verifier", result("statut_extraction").ToString())
+        Assert.AreEqual("Extraction_incomplete_a_verifier", result("statut_champs").ToString())
+        Assert.IsFalse(CType(result("champs_proposes"), JObject).HasValues)
+        Assert.IsNull(result("decision"))
     End Function
 
     <TestMethod>
