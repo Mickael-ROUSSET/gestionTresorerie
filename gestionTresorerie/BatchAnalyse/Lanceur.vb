@@ -23,11 +23,11 @@ Public Class Lanceur
             End If
 
             ' 2. Lancement du traitement
-            Dim repertoireSource = ConstruireCheminParDefaut()
+            Dim dossierConfirme As String = ValiderRepertoireSelectionne(Me.RepertoireSource)
             Dim batch = New BatchAnalyse()
 
-            Logger.INFO($"Démarrage de l'analyse dans : {repertoireSource}")
-            Await batch.DemarrerTraitement(repertoireSource)
+            Logger.INFO($"Démarrage de l'analyse dans : {dossierConfirme}")
+            Await batch.DemarrerTraitement(dossierConfirme)
 
         Catch ex As Exception
             Logger.ERR($"Erreur lors du traitement global : {ex.Message}")
@@ -46,6 +46,21 @@ Public Class Lanceur
     End Function
 
     ''' <summary>
+    ''' Utiliser exclusivement le dossier confirme par l'utilisateur.
+    ''' Ne jamais revenir silencieusement au dossier par defaut.
+    ''' </summary>
+    Public Shared Function ValiderRepertoireSelectionne(repertoire As String) As String
+        If String.IsNullOrWhiteSpace(repertoire) Then
+            Throw New ArgumentException("Aucun repertoire selectionne.", NameOf(repertoire))
+        End If
+        Dim cheminComplet = Path.GetFullPath(repertoire)
+        If Not Directory.Exists(cheminComplet) Then
+            Throw New DirectoryNotFoundException("Repertoire selectionne introuvable : " & cheminComplet)
+        End If
+        Return cheminComplet
+    End Function
+
+    ''' <summary>
     ''' Module d'interface : Gère le dialogue de sélection
     ''' </summary>
     Private Function DemanderConfirmationRepertoire() As Boolean
@@ -54,8 +69,10 @@ Public Class Lanceur
             fbd.ShowNewFolderButton = False
 
             ' Positionne l'explorateur sur le chemin par défaut s'il existe
-            If Directory.Exists(Me.RepertoireSource) Then
-                fbd.SelectedPath = Me.RepertoireSource
+            Dim repertoireInitial = If(String.IsNullOrWhiteSpace(Me.RepertoireSource),
+                                       ConstruireCheminParDefaut(), Me.RepertoireSource)
+            If Directory.Exists(repertoireInitial) Then
+                fbd.SelectedPath = repertoireInitial
             End If
 
             If fbd.ShowDialog() = DialogResult.OK Then
