@@ -57,7 +57,7 @@ Public Class EmailProcessor
             Return
         End If
         If Not IsImportAllowed(hasJournalEntries, effectiveCutoff) Then
-            _rapport.AppendLine("[ERREUR] Import Gmail initial bloque : journal vide. Fournir explicitement initialImportCutoff (date de debut incluse) a ProcessAttachments pour autoriser l'import initial.")
+            _rapport.AppendLine("[ERREUR] Import Gmail bloque avant connexion : borne temporelle absente, meme avec un ancien journal. Fournir explicitement initialImportCutoff une fois.")
             SaveFinalReport()
             Return
         End If
@@ -68,10 +68,8 @@ Public Class EmailProcessor
                 Dim inbox = client.Inbox
                 inbox.Open(FolderAccess.ReadOnly)
 
-                ' Parcourir egalement les emails deja lus : le journal determine le travail restant.
-                Dim query = SearchQuery.All
-                If effectiveCutoff.HasValue Then query = SearchQuery.DeliveredAfter(effectiveCutoff.Value.Date)
-                Dim uids = inbox.Search(query)
+                ' Parcourir egalement les emails deja lus, mais jamais avant la borne persistante.
+                Dim uids = inbox.Search(SearchQuery.DeliveredAfter(effectiveCutoff.Value.Date))
                 Dim account = LectureProprietes.GetVariable("SmtpUsername")
                 Dim validity As UInteger = inbox.UidValidity
                 For Each uid In uids
@@ -155,12 +153,12 @@ Public Class EmailProcessor
     ' --- Utilitaires ---
 
     ''' <summary>
-    ''' Sans journal initialise, une date de debut explicite est obligatoire.
+    ''' Une borne de debut effective est obligatoire, meme avec un ancien journal.
+    ''' Le parametre hasJournalEntries est conserve pour compatibilite avec les appelants.
     ''' La recherche IMAP utilise le jour inclus (date de reception, sans heure).
-    ''' Un journal initialise conserve la reprise existante, sans limite de date.
     ''' </summary>
     Public Shared Function IsImportAllowed(hasJournalEntries As Boolean, initialImportCutoff As DateTime?) As Boolean
-        Return hasJournalEntries OrElse initialImportCutoff.HasValue
+        Return initialImportCutoff.HasValue
     End Function
 
     ' Conserver la borne de debut entre sessions pour ne jamais importer l'historique par accident.
