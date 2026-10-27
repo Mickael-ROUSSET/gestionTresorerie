@@ -10,7 +10,8 @@ Imports Newtonsoft.Json.Linq
 ' Integration locale : PDF minimal valide, donnees inventees, aucun Gmail ni SQL.
 <TestClass>
 Public Class PdfTextExtractionIntegrationTests
-    Private Shared Sub WriteSyntheticPdf(destination As String)
+    Private Shared Sub WriteSyntheticPdf(destination As String, Optional extraLines As Integer = 0,
+                                         Optional conflictingTotal As Boolean = False)
         ' PDF 1.4 textuel, construit sans service externe ni fichier de production.
         Dim streamText = String.Join(vbLf, New String() {
             "BT",
@@ -24,6 +25,20 @@ Public Class PdfTextExtractionIntegrationTests
             "ET",
             ""
         })
+        If conflictingTotal Then
+            ' Ajouter un second total contradictoire avant la date, dans un PDF valide.
+            streamText = streamText.Replace("(Date facture : 12/10/2026) Tj",
+                "(Montant TTC : 99,99 EUR) Tj" & vbLf & "0 -24 Td" & vbLf &
+                "(Date facture : 12/10/2026) Tj")
+        End If
+        If extraLines > 0 Then
+            Dim filler As New StringBuilder()
+            For index = 1 To extraLines
+                filler.Append("0 -1 Td").Append(vbLf).
+                    Append("(").Append(New String("F"c, 80)).Append(") Tj").Append(vbLf)
+            Next
+            streamText = streamText.Replace("ET" & vbLf, filler.ToString() & "ET" & vbLf)
+        End If
         Dim objects As String() = {
             "<< /Type /Catalog /Pages 2 0 R >>",
             "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
@@ -104,4 +119,75 @@ Public Class PdfTextExtractionIntegrationTests
             If Directory.Exists(root) Then Directory.Delete(root, True)
         End Try
     End Function
+    <TestMethod>
+    Public Async Function PdfFictifLong_ReelleTroncatureSansChampsProposes() As Task
+        Dim root = Path.Combine(Path.GetTempPath(), "pdf-troncature-fictive-" & Guid.NewGuid().ToString("N"))
+        Dim imported = Path.Combine(root, "import")
+        Directory.CreateDirectory(imported)
+        Try
+            Dim pdfPath = Path.Combine(imported, "facture_longue_fictive.pdf")
+            ' Plus de 16 000 caracteres effectivement extraits d'un PDF valide.
+            WriteSyntheticPdf(pdfPath, extraLines:=450)
+            Dim original = File.ReadAllBytes(pdfPath)
+            Dim engine As New LocalPdfTextExtractionEngine()
+            Dim extraction = JObject.Parse(Await engine.ExtractAsync(pdfPath))
+            Assert.AreEqual("Texte_tronque_a_verifier", CStr(extraction("statut_extraction")))
+            Assert.AreEqual(16000, CStr(extraction("texte")).Length)
+
+            Dim report = Await EmailProcessor.ProposeSavedAttachmentsAsync(
+                imported, New String() {pdfPath}, engine, enableLocalInvoiceRules:=True)
+            Assert.AreEqual(1, report.Created, String.Join(" ; ", report.Errors))
+            Assert.AreEqual(0, report.Errors.Count)
+            Dim queue = Path.Combine(imported, "_PropositionsAValider")
+            Dim proposals = Directory.GetFiles(queue, "*.json")
+            Assert.AreEqual(1, proposals.Length)
+            Dim proposal = JObject.Parse(File.ReadAllText(proposals(0)))
+            Assert.AreEqual("EnAttenteValidation", CStr(proposal("statut")))
+            Assert.AreEqual("Texte_tronque_a_verifier",
+                            CStr(proposal("extraction")("statut_extraction")))
+            Assert.AreEqual("Extraction_incomplete_a_verifier",
+                            CStr(proposal("extraction")("statut_champs")))
+            Assert.IsFalse(CType(proposal("extraction")("champs_proposes"), JObject).HasValues)
+            Assert.AreEqual(0, Directory.GetFiles(queue, "*.review.json").Length)
+            CollectionAssert.AreEqual(original, File.ReadAllBytes(pdfPath))
+        Finally
+            If Directory.Exists(root) Then Directory.Delete(root, True)
+        End Try
+    End Function
+
+
+    <TestMethod>
+    Public Async Function PdfFictifTotauxContradictoires_AucuneValeurTtcArbitree() As Task
+        Dim root = Path.Combine(Path.GetTempPath(), "pdf-totaux-contradictoires-" & Guid.NewGuid().ToString("N"))
+        Dim imported = Path.Combine(root, "import")
+        Directory.CreateDirectory(imported)
+        Try
+            Dim pdfPath = Path.Combine(imported, "facture_contradictoire_fictive.pdf")
+            WriteSyntheticPdf(pdfPath, conflictingTotal:=True)
+            Dim original = File.ReadAllBytes(pdfPath)
+            Dim engine As New LocalPdfTextExtractionEngine()
+            Dim extracted = JObject.Parse(Await engine.ExtractAsync(pdfPath))
+            StringAssert.Contains(CStr(extracted("texte")), "Total TTC : 42,50 EUR")
+            StringAssert.Contains(CStr(extracted("texte")), "Montant TTC : 99,99 EUR")
+
+            Dim report = Await EmailProcessor.ProposeSavedAttachmentsAsync(
+                imported, New String() {pdfPath}, engine, enableLocalInvoiceRules:=True)
+            Assert.AreEqual(1, report.Created, String.Join(" ; ", report.Errors))
+            Assert.AreEqual(0, report.Errors.Count)
+            Dim queue = Path.Combine(imported, "_PropositionsAValider")
+            Dim proposals = Directory.GetFiles(queue, "*.json")
+            Assert.AreEqual(1, proposals.Length)
+            Dim proposal = JObject.Parse(File.ReadAllText(proposals(0)))
+            Assert.AreEqual("EnAttenteValidation", CStr(proposal("statut")))
+            Assert.AreEqual("Ambigu_a_verifier", CStr(proposal("extraction")("statut_champs")))
+            Assert.IsNull(proposal("extraction")("champs_proposes")("montant_ttc"))
+            Assert.AreEqual("2026-10-12",
+                            CStr(proposal("extraction")("champs_proposes")("date_document")))
+            Assert.AreEqual(0, Directory.GetFiles(queue, "*.review.json").Length)
+            CollectionAssert.AreEqual(original, File.ReadAllBytes(pdfPath))
+        Finally
+            If Directory.Exists(root) Then Directory.Delete(root, True)
+        End Try
+    End Function
+
 End Class
