@@ -36,9 +36,19 @@ Public Class EmailProcessor
         PrepareDirectory(_sRepDoc)
         ResetSession()
         Dim journalPath = Path.Combine(_sRepDoc, "gmail_import_journal.txt")
-        Dim journal As New GmailImportJournal(journalPath)
-        Dim hasJournalEntries = File.Exists(journalPath) AndAlso
-            File.ReadLines(journalPath).Any(Function(entry) entry.Length > 0)
+        Dim journal As GmailImportJournal
+        Try
+            journal = New GmailImportJournal(journalPath)
+        Catch ex As Exception When TypeOf ex Is IOException OrElse
+                                   TypeOf ex Is InvalidDataException OrElse
+                                   TypeOf ex Is DecoderFallbackException OrElse
+                                   TypeOf ex Is UnauthorizedAccessException OrElse
+                                   TypeOf ex Is Global.System.Security.SecurityException
+            _rapport.AppendLine("[ERREUR] Import Gmail bloque avant connexion : journal illisible ou incomplet. " & ex.Message)
+            SaveFinalReport()
+            Return
+        End Try
+        Dim hasJournalEntries = journal.HasEntries
         ' Memoriser la date de demarrage : elle doit rester appliquee apres la premiere session.
         Dim cutoffPath = Path.Combine(_sRepDoc, "gmail_import_cutoff.txt")
         Dim effectiveCutoff As DateTime?

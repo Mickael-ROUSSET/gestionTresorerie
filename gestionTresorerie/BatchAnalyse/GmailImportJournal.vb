@@ -13,11 +13,49 @@ Public NotInheritable Class GmailImportJournal
         If String.IsNullOrWhiteSpace(journalPath) Then Throw New ArgumentException("Chemin de journal requis.", NameOf(journalPath))
         _journalPath = journalPath
         If File.Exists(journalPath) Then
-            For Each entry In File.ReadLines(journalPath)
-                If entry.Length > 0 Then _processed.Add(entry)
-            Next
+            ' Ne pas accepter un journal en cours d'ecriture ou tronque.
+            ' Le partage en lecture seule exclut un redacteur simultane.
+            Using stream As New FileStream(journalPath, FileMode.Open, FileAccess.Read, FileShare.Read)
+                If stream.Length > 0 Then
+                    stream.Seek(-1, SeekOrigin.End)
+                    If stream.ReadByte() <> 10 Then
+                        Throw New InvalidDataException("Journal Gmail incomplet : derniere ligne non terminee.")
+                    End If
+                    stream.Position = 0
+                    Using reader As New StreamReader(stream, New UTF8Encoding(False, True))
+                        Dim entry = reader.ReadLine()
+                        While entry IsNot Nothing
+                            If Not IsValidKey(entry) Then
+                                Throw New InvalidDataException("Journal Gmail invalide : cle malformee.")
+                            End If
+                            _processed.Add(entry)
+                            entry = reader.ReadLine()
+                        End While
+                    End Using
+                End If
+            End Using
         End If
     End Sub
+
+    Public ReadOnly Property HasEntries As Boolean
+        Get
+            Return _processed.Count > 0
+        End Get
+    End Property
+
+    Private Shared Function IsValidKey(key As String) As Boolean
+        If String.IsNullOrEmpty(key) Then Return False
+        Dim parts = key.Split(":"c)
+        If parts.Length <> 3 OrElse parts(0).Length = 0 OrElse parts(0).Length Mod 2 <> 0 Then Return False
+        For Each c As Char In parts(0)
+            If Not ((c >= "0"c AndAlso c <= "9"c) OrElse (c >= "A"c AndAlso c <= "F"c)) Then Return False
+        Next
+        Dim validity As UInteger
+        Dim uid As UInteger
+        Return UInteger.TryParse(parts(1), Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, validity) AndAlso
+               UInteger.TryParse(parts(2), Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, uid) AndAlso
+               validity > 0UI AndAlso uid > 0UI
+    End Function
 
     Public Shared Function MakeKey(account As String, uidValidity As UInteger, uid As UInteger) As String
         If String.IsNullOrWhiteSpace(account) Then Throw New ArgumentException("Compte Gmail manquant.", NameOf(account))
@@ -33,7 +71,7 @@ Public NotInheritable Class GmailImportJournal
     End Function
 
     Public Sub MarkProcessed(key As String)
-        If String.IsNullOrWhiteSpace(key) OrElse key.Contains(vbLf) OrElse key.Contains(vbCr) Then Throw New ArgumentException("Cle de message invalide.", NameOf(key))
+        If Not IsValidKey(key) Then Throw New ArgumentException("Cle de message invalide.", NameOf(key))
         If _processed.Contains(key) Then Return
         Dim folder = Path.GetDirectoryName(Path.GetFullPath(_journalPath))
         Directory.CreateDirectory(folder)
