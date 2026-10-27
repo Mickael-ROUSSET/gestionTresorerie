@@ -14,28 +14,32 @@ Public NotInheritable Class GmailImportJournal
         _journalPath = journalPath
         If File.Exists(journalPath) Then
             ' Ne pas accepter un journal en cours d'ecriture ou tronque.
-            ' Le partage en lecture seule exclut un redacteur simultane.
             Using stream As New FileStream(journalPath, FileMode.Open, FileAccess.Read, FileShare.Read)
-                If stream.Length > 0 Then
-                    stream.Seek(-1, SeekOrigin.End)
-                    If stream.ReadByte() <> 10 Then
-                        Throw New InvalidDataException("Journal Gmail incomplet : derniere ligne non terminee.")
-                    End If
-                    stream.Position = 0
-                    Using reader As New StreamReader(stream, New UTF8Encoding(False, True))
-                        Dim entry = reader.ReadLine()
-                        While entry IsNot Nothing
-                            If Not IsValidKey(entry) Then
-                                Throw New InvalidDataException("Journal Gmail invalide : cle malformee.")
-                            End If
-                            _processed.Add(entry)
-                            entry = reader.ReadLine()
-                        End While
-                    End Using
-                End If
+                _processed.UnionWith(ReadEntries(stream))
             End Using
         End If
     End Sub
+
+    Private Shared Function ReadEntries(stream As FileStream) As HashSet(Of String)
+        Dim entries As New HashSet(Of String)(StringComparer.Ordinal)
+        If stream.Length = 0 Then Return entries
+        stream.Seek(-1, SeekOrigin.End)
+        If stream.ReadByte() <> 10 Then
+            Throw New InvalidDataException("Journal Gmail incomplet : derniere ligne non terminee.")
+        End If
+        stream.Position = 0
+        Using reader As New StreamReader(stream, New UTF8Encoding(False, True), True, 1024, True)
+            Dim entry = reader.ReadLine()
+            While entry IsNot Nothing
+                If Not IsValidKey(entry) Then
+                    Throw New InvalidDataException("Journal Gmail invalide : cle malformee.")
+                End If
+                entries.Add(entry)
+                entry = reader.ReadLine()
+            End While
+        End Using
+        Return entries
+    End Function
 
     Public ReadOnly Property HasEntries As Boolean
         Get
@@ -72,16 +76,23 @@ Public NotInheritable Class GmailImportJournal
 
     Public Sub MarkProcessed(key As String)
         If Not IsValidKey(key) Then Throw New ArgumentException("Cle de message invalide.", NameOf(key))
-        If _processed.Contains(key) Then Return
         Dim folder = Path.GetDirectoryName(Path.GetFullPath(_journalPath))
         Directory.CreateDirectory(folder)
-        Using stream As New FileStream(_journalPath, FileMode.Append, FileAccess.Write, FileShare.Read)
-            Using writer As New StreamWriter(stream, New UTF8Encoding(False))
-                writer.WriteLine(key)
-                writer.Flush()
-                stream.Flush(True)
-            End Using
+        ' Relire sous verrou exclusif : une autre instance a pu ecrire depuis New().
+        ' Ne jamais ajouter une ligne a un journal devenu incomplet ou corrompu.
+        Using stream As New FileStream(_journalPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)
+            Dim diskEntries = ReadEntries(stream)
+            If Not diskEntries.Contains(key) Then
+                stream.Seek(0, SeekOrigin.End)
+                Using writer As New StreamWriter(stream, New UTF8Encoding(False), 1024, True)
+                    writer.WriteLine(key)
+                    writer.Flush()
+                    stream.Flush(True)
+                End Using
+                diskEntries.Add(key)
+            End If
+            _processed.Clear()
+            _processed.UnionWith(diskEntries)
         End Using
-        _processed.Add(key)
     End Sub
 End Class
