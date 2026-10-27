@@ -3,6 +3,7 @@ Imports System.Text
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 Imports UglyToad.PdfPig
+Imports UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor
 
 ''' <summary>Un moteur produit des donnees brutes a verifier, sans ecriture comptable.</summary>
 Public Interface IDocumentExtractionEngine
@@ -27,24 +28,31 @@ Public NotInheritable Class LocalPdfTextExtractionEngine
         If Not File.Exists(documentPath) Then Throw New FileNotFoundException("Document introuvable.", documentPath)
         Dim extension = Path.GetExtension(documentPath).ToLowerInvariant()
         Dim extractedText As String = String.Empty
+        Dim truncated As Boolean = False
 
         Select Case extension
             Case ".pdf"
                 Dim text As New StringBuilder()
                 Using pdf = PdfDocument.Open(documentPath)
                     For Each page In pdf.GetPages()
-                        If text.Length >= 16000 Then Exit For
-                        text.AppendLine(page.Text)
+                        If text.Length >= 16000 Then
+                            truncated = True
+                            Exit For
+                        End If
+                        ' Reconstruire les sauts de ligne avant les regles TTC/date ancrees sur les lignes.
+                        text.AppendLine(ContentOrderTextExtractor.GetText(page))
                     Next
                 End Using
-                extractedText = If(text.Length > 16000, text.ToString(0, 16000), text.ToString())
+                If text.Length > 16000 Then truncated = True
+                extractedText = If(truncated, text.ToString(0, 16000), text.ToString())
             Case ".jpg", ".jpeg", ".png"
                 ' Pas d'OCR implicite : l'operateur choisira un moteur adapte.
             Case Else
                 Throw New NotSupportedException("Type de document non pris en charge.")
         End Select
 
-        Dim status = If(String.IsNullOrWhiteSpace(extractedText), "OCR_ou_saisie_manuelle_requis", "Texte_a_verifier")
+        Dim status = If(truncated, "Texte_tronque_a_verifier",
+                        If(String.IsNullOrWhiteSpace(extractedText), "OCR_ou_saisie_manuelle_requis", "Texte_a_verifier"))
         Dim result = JsonConvert.SerializeObject(New With {
             .type_document = "A_verifier",
             .statut_extraction = status,

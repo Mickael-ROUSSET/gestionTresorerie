@@ -29,12 +29,22 @@ Public NotInheritable Class RuleBasedInvoiceExtractionEngine
         Dim rawJson = Await _inner.ExtractAsync(documentPath).ConfigureAwait(False)
         Dim extracted = JObject.Parse(rawJson)
         Dim rawText = If(extracted("texte") Is Nothing, "", extracted("texte").ToString())
+        ' PdfPig utilise les fins de ligne Windows CRLF ; les expressions ^/$ doivent rester portables.
+        Dim normalizedText = rawText.Replace(vbCrLf, vbLf).Replace(vbCr, vbLf)
+        ' Une extraction partielle peut masquer un second total contradictoire.
+        ' Ne jamais proposer de montant ou date depuis un PDF tronque.
+        If String.Equals(If(extracted("statut_extraction") Is Nothing, "", extracted("statut_extraction").ToString()),
+                         "Texte_tronque_a_verifier", StringComparison.Ordinal) Then
+            extracted("champs_proposes") = New JObject()
+            extracted("statut_champs") = "Extraction_incomplete_a_verifier"
+            Return extracted.ToString(Formatting.None)
+        End If
         Dim proposed As New JObject()
         Dim amounts As New HashSet(Of Decimal)()
         Dim dates As New HashSet(Of String)(StringComparer.Ordinal)
 
         ' Ne retenir que des totaux explicitement etiquetes TTC et libelles en euros.
-        For Each match As Match In Regex.Matches(rawText,
+        For Each match As Match In Regex.Matches(normalizedText,
             "(?im)^[ \t]*(?:total|montant)[ \t]+ttc[ \t]*[:\-]?[ \t]*(?<amount>\d[\d \u00A0]*[.,]\d{2})[ \t]*(?:EUR|€)[ \t]*$")
             Dim valueText = match.Groups("amount").Value.Replace(" ", "").Replace(ChrW(&HA0).ToString(), "").Replace(",", ".")
             Dim value As Decimal
@@ -44,7 +54,7 @@ Public NotInheritable Class RuleBasedInvoiceExtractionEngine
         Next
 
         ' Ne pas deduire une date depuis une ligne non etiquetee.
-        For Each match As Match In Regex.Matches(rawText,
+        For Each match As Match In Regex.Matches(normalizedText,
             "(?im)^[ \t]*date[ \t]+(?:de[ \t]+)?facture[ \t]*:[ \t]*(?<date>\d{2}/\d{2}/\d{4})[ \t]*$")
             Dim value As DateTime
             If DateTime.TryParseExact(match.Groups("date").Value, "dd/MM/yyyy",
