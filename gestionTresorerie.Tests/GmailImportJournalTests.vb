@@ -64,7 +64,10 @@ Public Class GmailImportJournalTests
             Directory.CreateDirectory(Path.GetDirectoryName(fileName))
             Dim key = GmailImportJournal.MakeKey("fictif@example.org", 1UI, 2UI)
             File.WriteAllText(fileName, key)
-            Assert.ThrowsExactly(Of InvalidDataException)(Sub() New GmailImportJournal(fileName))
+            Assert.ThrowsExactly(Of InvalidDataException)(
+                Sub()
+                    Dim ignored As New GmailImportJournal(fileName)
+                End Sub)
             Assert.AreEqual(key, File.ReadAllText(fileName))
         Finally
             If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
@@ -79,7 +82,10 @@ Public Class GmailImportJournalTests
             Dim valid = GmailImportJournal.MakeKey("fictif@example.org", 1UI, 2UI)
             Dim contents = valid & vbLf & "cle-invalide" & vbLf
             File.WriteAllText(fileName, contents)
-            Assert.ThrowsExactly(Of InvalidDataException)(Sub() New GmailImportJournal(fileName))
+            Assert.ThrowsExactly(Of InvalidDataException)(
+                Sub()
+                    Dim ignored As New GmailImportJournal(fileName)
+                End Sub)
             Assert.AreEqual(contents, File.ReadAllText(fileName))
         Finally
             If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
