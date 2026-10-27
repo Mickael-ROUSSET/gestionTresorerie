@@ -67,7 +67,8 @@ Public NotInheritable Class DocumentProposalStore
     End Sub
 
     ''' <returns>True si une nouvelle proposition est creee; False si le contenu existe deja.</returns>
-    Public Function SavePending(sourcePath As String, engineName As String, extractedJson As String) As Boolean
+    Public Function SavePending(sourcePath As String, engineName As String, extractedJson As String,
+                                Optional expectedSha256 As String = Nothing) As Boolean
         If Not File.Exists(sourcePath) Then Throw New FileNotFoundException("Document introuvable.", sourcePath)
         If String.IsNullOrWhiteSpace(engineName) Then Throw New ArgumentException("Moteur requis.", NameOf(engineName))
         If String.IsNullOrWhiteSpace(extractedJson) Then Throw New ArgumentException("Extraction vide.", NameOf(extractedJson))
@@ -75,6 +76,11 @@ Public NotInheritable Class DocumentProposalStore
         ' Rejeter toute reponse non JSON avant de creer un fichier.
         Dim extraction = JObject.Parse(extractedJson)
         Dim sha256 = AttachmentStorage.ComputeSha256(sourcePath)
+        ' Ne jamais associer une extraction ancienne a un document modifie entre-temps.
+        If expectedSha256 IsNot Nothing AndAlso
+           Not String.Equals(sha256, expectedSha256, StringComparison.OrdinalIgnoreCase) Then
+            Throw New InvalidDataException("Document source modifie pendant l'extraction : proposition refusee.")
+        End If
         Dim proposal = New JObject From {
             {"schema_version", 1},
             {"statut", "EnAttenteValidation"},
@@ -123,7 +129,8 @@ Public NotInheritable Class DocumentProposalWorkflow
     End Sub
 
     Public Async Function ProposeAsync(sourcePath As String) As Task(Of Boolean)
+        Dim sourceSha256 = AttachmentStorage.ComputeSha256(sourcePath)
         Dim json = Await _engine.ExtractAsync(sourcePath).ConfigureAwait(False)
-        Return _store.SavePending(sourcePath, _engine.EngineName, json)
+        Return _store.SavePending(sourcePath, _engine.EngineName, json, sourceSha256)
     End Function
 End Class
