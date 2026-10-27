@@ -41,6 +41,7 @@ Public Class EmailProcessor
             journal = New GmailImportJournal(journalPath)
         Catch ex As Exception When TypeOf ex Is IOException OrElse
                                    TypeOf ex Is InvalidDataException OrElse
+                                   TypeOf ex Is DecoderFallbackException OrElse
                                    TypeOf ex Is UnauthorizedAccessException OrElse
                                    TypeOf ex Is Global.System.Security.SecurityException
             _rapport.AppendLine("[ERREUR] Import Gmail bloque avant connexion : journal illisible ou incomplet. " & ex.Message)
