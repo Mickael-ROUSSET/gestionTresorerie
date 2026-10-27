@@ -87,23 +87,25 @@ Public NotInheritable Class DocumentProposalStore
 
         Directory.CreateDirectory(_folder)
         Dim destination = Path.Combine(_folder, sha256 & ".json")
-        Dim created As Boolean = False
+        ' Ecrire hors du nom public : une revue ne doit jamais voir un JSON partiel.
+        ' Le renommage dans le meme dossier publie la proposition complete atomiquement.
+        Dim temporary = Path.Combine(_folder, ".proposal-tmp-" & Guid.NewGuid().ToString("N"))
         Try
-            Using stream As New FileStream(destination, FileMode.CreateNew, FileAccess.Write, FileShare.None)
-                created = True
+            Using stream As New FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None)
                 Using writer As New StreamWriter(stream, New UTF8Encoding(False))
                     writer.Write(proposal.ToString(Formatting.Indented))
                     writer.Flush()
                     stream.Flush(True)
                 End Using
             End Using
+            ' File.Move ne remplace jamais une proposition deja publiee.
+            File.Move(temporary, destination)
             Return True
-        Catch ex As IOException When Not created AndAlso File.Exists(destination)
-            ' L'identifiant est derive du contenu : ne jamais ecraser une proposition existante.
+        Catch ex As IOException When File.Exists(destination)
+            ' Collision ou import concurrent du meme contenu : ne pas ecraser.
             Return False
-        Catch
-            If created AndAlso File.Exists(destination) Then File.Delete(destination)
-            Throw
+        Finally
+            If File.Exists(temporary) Then File.Delete(temporary)
         End Try
     End Function
 End Class

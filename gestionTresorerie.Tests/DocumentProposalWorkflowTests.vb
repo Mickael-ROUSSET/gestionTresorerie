@@ -80,4 +80,34 @@ Public Class DocumentProposalWorkflowTests
             Directory.Delete(folder, True)
         End Try
     End Function
+
+    <TestMethod>
+    Public Sub PublicationsConcurrentesNeCreentQuUnePropositionComplete()
+        Dim folder = Path.Combine(Path.GetTempPath(), "proposal-concurrent-" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            Dim source = Path.Combine(folder, "facture-factice.pdf")
+            File.WriteAllText(source, "Contenu fictif, sans information reelle")
+            Dim queue = Path.Combine(folder, "a_valider")
+            Dim store As New DocumentProposalStore(queue)
+            Dim outcomes As New System.Collections.Concurrent.ConcurrentBag(Of Boolean)()
+
+            Parallel.For(0, 20, Sub(i)
+                                    outcomes.Add(store.SavePending(source, "moteur-factice",
+                                        "{""montant"":12.5,""tiers"":""fictif""}"))
+                                End Sub)
+
+            Assert.AreEqual(1, outcomes.Where(Function(created) created).Count())
+            Assert.AreEqual(19, outcomes.Where(Function(created) Not created).Count())
+            Dim published = Directory.GetFiles(queue, "*.json")
+            Assert.AreEqual(1, published.Length)
+            Dim proposal = JObject.Parse(File.ReadAllText(published(0)))
+            Assert.AreEqual("EnAttenteValidation", proposal("statut").ToString())
+            Assert.AreEqual(AttachmentStorage.ComputeSha256(source), proposal("source_sha256").ToString())
+            Assert.AreEqual(0, Directory.GetFiles(queue, ".proposal-tmp-*").Length)
+            Assert.AreEqual("Contenu fictif, sans information reelle", File.ReadAllText(source))
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
 End Class
