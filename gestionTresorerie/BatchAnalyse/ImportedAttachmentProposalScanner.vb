@@ -43,6 +43,43 @@ Public NotInheritable Class ImportedAttachmentProposalScanner
         Return result
     End Function
 
+    ''' <summary>
+    ''' Point de raccordement explicite pour les chemins effectivement sauvegardes par un import.
+    ''' Aucune connexion Gmail, aucun balayage du disque et aucune validation automatique.
+    ''' Les chemins hors du dossier d'import sont rejetes avant toute lecture.
+    ''' </summary>
+    Public Async Function ScanSavedPathsAsync(importRoot As String, savedPaths As IEnumerable(Of String)) As Task(Of ImportedAttachmentProposalScanResult)
+        If String.IsNullOrWhiteSpace(importRoot) Then Throw New ArgumentException("Dossier d'import requis.", NameOf(importRoot))
+        If savedPaths Is Nothing Then Throw New ArgumentNullException(NameOf(savedPaths))
+        Dim root = Path.GetFullPath(importRoot)
+        If Not Directory.Exists(root) Then Throw New DirectoryNotFoundException("Dossier d'import introuvable : " & root)
+
+        Dim result As New ImportedAttachmentProposalScanResult()
+        Dim visited As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
+        For Each suppliedPath In savedPaths
+            Try
+                If String.IsNullOrWhiteSpace(suppliedPath) OrElse Not Path.IsPathRooted(suppliedPath) Then
+                    Throw New ArgumentException("Chemin absolu de piece jointe requis.")
+                End If
+                Dim documentPath = Path.GetFullPath(suppliedPath)
+                If Not IsInsideFolder(documentPath, root) Then
+                    Throw New InvalidOperationException("Document hors dossier d'import.")
+                End If
+                If IsInsideFolder(documentPath, _queueFolder) OrElse Not IsSupportedDocument(documentPath) Then Continue For
+                If Not visited.Add(documentPath) Then Continue For
+
+                If Await _workflow.ProposeAsync(documentPath).ConfigureAwait(False) Then
+                    result.Created += 1
+                Else
+                    result.AlreadyPresent += 1
+                End If
+            Catch ex As Exception
+                result.Errors.Add("Piece jointe ignoree : " & ex.Message)
+            End Try
+        Next
+        Return result
+    End Function
+
     Private Shared Function IsSupportedDocument(documentPath As String) As Boolean
         Select Case Path.GetExtension(documentPath).ToLowerInvariant()
             Case ".pdf", ".jpg", ".jpeg", ".png"
