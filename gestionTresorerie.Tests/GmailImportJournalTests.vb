@@ -93,6 +93,22 @@ Public Class GmailImportJournalTests
     End Sub
 
     <TestMethod>
+    Public Sub JournalAvecOctetsUtf8InvalidesEstRefuse()
+        Dim fileName = TemporaryJournal()
+        Try
+            Directory.CreateDirectory(Path.GetDirectoryName(fileName))
+            File.WriteAllBytes(fileName, New Byte() {&HFF, &HA})
+            Assert.ThrowsExactly(Of System.Text.DecoderFallbackException)(
+                Sub()
+                    Dim ignored As New GmailImportJournal(fileName)
+                End Sub)
+            CollectionAssert.AreEqual(New Byte() {&HFF, &HA}, File.ReadAllBytes(fileName))
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
+
+    <TestMethod>
     Public Sub JournalExclusivementVideResteValide()
         Dim fileName = TemporaryJournal()
         Try
