@@ -132,8 +132,8 @@ Public Class EmailProcessorFileNameTests
         Dim cutoff As DateTime
         Assert.IsTrue(EmailProcessor.TryParseInitialImportDate(" 2026-10-01 ", cutoff))
         Assert.AreEqual(New DateTime(2026, 10, 1), cutoff)
-        For Each input In New String() {Nothing, "", "  ", "01/10/2026", "2026-02-30", "2026-10-01 12:00", "2026-13-01"}
-            Assert.IsFalse(EmailProcessor.TryParseInitialImportDate(input, cutoff), "Date acceptee : " & input)
+        For Each dateTexte As String In New String() {Nothing, "", "  ", "01/10/2026", "2026-02-30", "2026-10-01 12:00", "2026-13-01"}
+            Assert.IsFalse(EmailProcessor.TryParseInitialImportDate(dateTexte, cutoff), "Date acceptee : " & dateTexte)
         Next
     End Sub
 
