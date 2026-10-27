@@ -15,15 +15,15 @@ Public Class GmailImportCutoffTests
     Public Sub SansDateNiFichier_ImportInitialBloque()
         Dim folder = NouveauDossier()
         Try
-            Dim path = Path.Combine(folder, "gmail_import_cutoff.txt")
+            Dim cutoffFile = Path.Combine(folder, "gmail_import_cutoff.txt")
             Dim rejected = False
             Try
-                EmailProcessor.ResolveInitialImportCutoff(path, Nothing)
+                EmailProcessor.ResolveInitialImportCutoff(cutoffFile, Nothing)
             Catch ex As InvalidOperationException
                 rejected = True
             End Try
             Assert.IsTrue(rejected)
-            Assert.IsFalse(File.Exists(path))
+            Assert.IsFalse(File.Exists(cutoffFile))
         Finally
             Directory.Delete(folder, True)
         End Try
@@ -33,19 +33,19 @@ Public Class GmailImportCutoffTests
     Public Sub BornePersistante_ConserveDateEtRefuseChangement()
         Dim folder = NouveauDossier()
         Try
-            Dim path = Path.Combine(folder, "gmail_import_cutoff.txt")
+            Dim cutoffFile = Path.Combine(folder, "gmail_import_cutoff.txt")
             Dim startDate As New DateTime(2026, 10, 1)
-            Assert.AreEqual(startDate, EmailProcessor.ResolveInitialImportCutoff(path, startDate))
-            Assert.AreEqual("2026-10-01", File.ReadAllText(path))
-            Assert.AreEqual(startDate, EmailProcessor.ResolveInitialImportCutoff(path, Nothing))
+            Assert.AreEqual(startDate, EmailProcessor.ResolveInitialImportCutoff(cutoffFile, startDate))
+            Assert.AreEqual("2026-10-01", File.ReadAllText(cutoffFile))
+            Assert.AreEqual(startDate, EmailProcessor.ResolveInitialImportCutoff(cutoffFile, Nothing))
             Dim rejected = False
             Try
-                EmailProcessor.ResolveInitialImportCutoff(path, New DateTime(2026, 9, 1))
+                EmailProcessor.ResolveInitialImportCutoff(cutoffFile, New DateTime(2026, 9, 1))
             Catch ex As InvalidOperationException
                 rejected = True
             End Try
             Assert.IsTrue(rejected)
-            Assert.AreEqual("2026-10-01", File.ReadAllText(path))
+            Assert.AreEqual("2026-10-01", File.ReadAllText(cutoffFile))
         Finally
             Directory.Delete(folder, True)
         End Try
@@ -55,16 +55,16 @@ Public Class GmailImportCutoffTests
     Public Sub BorneCorrompue_NePermetPasDeRepli()
         Dim folder = NouveauDossier()
         Try
-            Dim path = Path.Combine(folder, "gmail_import_cutoff.txt")
-            File.WriteAllText(path, "date invalide")
+            Dim cutoffFile = Path.Combine(folder, "gmail_import_cutoff.txt")
+            File.WriteAllText(cutoffFile, "date invalide")
             Dim rejected = False
             Try
-                EmailProcessor.ResolveInitialImportCutoff(path, New DateTime(2026, 10, 1))
+                EmailProcessor.ResolveInitialImportCutoff(cutoffFile, New DateTime(2026, 10, 1))
             Catch ex As InvalidOperationException
                 rejected = True
             End Try
             Assert.IsTrue(rejected)
-            Assert.AreEqual("date invalide", File.ReadAllText(path))
+            Assert.AreEqual("date invalide", File.ReadAllText(cutoffFile))
         Finally
             Directory.Delete(folder, True)
         End Try
