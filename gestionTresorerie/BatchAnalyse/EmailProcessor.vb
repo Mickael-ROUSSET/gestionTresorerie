@@ -272,10 +272,13 @@ Public Class EmailProcessor
             basename.Equals("AUX", StringComparison.OrdinalIgnoreCase) OrElse
             basename.Equals("NUL", StringComparison.OrdinalIgnoreCase)
         If basename.Length = 4 Then
+            ' Windows reserve egalement COM¹/COM²/COM³ et LPT¹/LPT²/LPT³.
+            Dim digit = basename(3)
+            Dim deviceDigit = (digit >= "1"c AndAlso digit <= "9"c) OrElse
+                              digit = ChrW(&HB9) OrElse digit = ChrW(&HB2) OrElse digit = ChrW(&HB3)
             reserved = reserved OrElse
                 ((basename.StartsWith("COM", StringComparison.OrdinalIgnoreCase) OrElse
-                  basename.StartsWith("LPT", StringComparison.OrdinalIgnoreCase)) AndAlso
-                 basename(3) >= "1"c AndAlso basename(3) <= "9"c)
+                  basename.StartsWith("LPT", StringComparison.OrdinalIgnoreCase)) AndAlso deviceDigit)
         End If
         If reserved Then name = "_" & name
         Return name

@@ -380,6 +380,24 @@ Public Class EmailProcessorFileNameTests
     End Sub
 
     <TestMethod>
+    Public Sub CleanFileName_NomsWindowsReservesAvecChiffresExposants()
+        ' Windows traite aussi ¹, ² et ³ comme chiffres reserves pour COM/LPT.
+        For Each prefix In New String() {"COM", "lpt"}
+            For Each exposant In New String() {ChrW(&HB9).ToString(), ChrW(&HB2).ToString(), ChrW(&HB3).ToString()}
+                For Each extension In New String() {"", ".pdf", ".tar.gz"}
+                    Dim nom = prefix & exposant & extension
+                    Dim attendu = "_" & nom
+                    Assert.AreEqual(attendu, AppelerUtilitaire("CleanFileName", nom))
+                    Assert.AreEqual(attendu, AppelerUtilitaire("GetAttachmentFileName", nom, Nothing))
+                    Assert.AreEqual(attendu, AppelerUtilitaire("CleanFileName", attendu))
+                Next
+            Next
+        Next
+        ' Les autres chiffres exposes ne sont pas des noms reserves Windows.
+        Assert.AreEqual("COM⁴.pdf", AppelerUtilitaire("CleanFileName", "COM⁴.pdf"))
+    End Sub
+
+    <TestMethod>
     Public Sub CleanFileName_PreserveUnicodeEtRetireLesTerminaisonsWindows()
         For Each nom In New String() {"facture été 日本語 😀.pdf", "COM0.txt", "COM10.txt", "LPT0", "CONtrat.pdf"}
             Assert.AreEqual(nom, AppelerUtilitaire("CleanFileName", nom))
