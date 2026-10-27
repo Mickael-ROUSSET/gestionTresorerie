@@ -161,6 +161,26 @@ Public Class EmailProcessor
         Return initialImportCutoff.HasValue
     End Function
 
+    ' La premiere date est demandee dans l'interface seulement si aucun fichier n'existe.
+    ' Un fichier present mais invalide reste bloque par ResolveInitialImportCutoff.
+    Public Shared Function NeedsInitialImportCutoff(Optional cutoffPath As String = Nothing) As Boolean
+        If cutoffPath Is Nothing Then
+            Dim documentsFolder = LectureProprietes.GetVariable("repRacineAgumaaa") &
+                LectureProprietes.GetVariable("repRacineDocuments") &
+                LectureProprietes.GetVariable("repFichiersDocumentsATrier")
+            cutoffPath = Path.Combine(documentsFolder, "gmail_import_cutoff.txt")
+        End If
+        Return Not File.Exists(cutoffPath)
+    End Function
+
+    ' Format strict, sans date implicite ni interpretation dependante de la langue Windows.
+    Public Shared Function TryParseInitialImportDate(input As String, ByRef cutoff As DateTime) As Boolean
+        cutoff = DateTime.MinValue
+        If String.IsNullOrWhiteSpace(input) Then Return False
+        Return DateTime.TryParseExact(input.Trim(), "yyyy-MM-dd",
+            Globalization.CultureInfo.InvariantCulture, Globalization.DateTimeStyles.None, cutoff)
+    End Function
+
     ' Conserver la borne de debut entre sessions pour ne jamais importer l'historique par accident.
     Private Shared Function TryResolveInitialImportCutoff(path As String, requested As DateTime?,
                                                         ByRef effectiveCutoff As DateTime?, report As StringBuilder) As Boolean

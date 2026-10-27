@@ -375,7 +375,30 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub RécupDesPJReçuesParMailToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RécupDesPJReçuesParMailToolStripMenuItem.Click
-        EmailProcessor.ProcessAttachments()
+        Try
+            Dim initialCutoff As DateTime? = Nothing
+            If EmailProcessor.NeedsInitialImportCutoff() Then
+                Dim input = InputBox("Premiere importation Gmail : indiquez la date de debut incluse (AAAA-MM-JJ)." &
+                                     vbCrLf & "Aucun message anterieur a cette date ne sera recherche." &
+                                     vbCrLf & "Laisser vide annule l'import.", "Date de debut Gmail")
+                If String.IsNullOrWhiteSpace(input) Then Return
+
+                Dim parsedCutoff As DateTime
+                If Not EmailProcessor.TryParseInitialImportDate(input, parsedCutoff) Then
+                    MessageBox.Show("Date invalide. Utilisez le format AAAA-MM-JJ (ex. 2026-10-01).",
+                                    "Import Gmail annule", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                    Return
+                End If
+                initialCutoff = parsedCutoff
+            End If
+            ' Si la date est deja memorisee, le processeur la relit et la verifie.
+            ' Un fichier corrompu bloque l'import sans connexion Gmail.
+            EmailProcessor.ProcessAttachments(initialCutoff)
+        Catch ex As Exception
+            Logger.ERR("Import Gmail non demarre : " & ex.Message)
+            MessageBox.Show("Impossible de demarrer l'import Gmail : " & ex.Message,
+                            "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
     End Sub
     'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
     '    'Call CreeBilans()
