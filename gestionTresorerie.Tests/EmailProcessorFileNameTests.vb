@@ -42,4 +42,33 @@ Public Class EmailProcessorFileNameTests
         Assert.IsFalse(File.Exists(candidat1))
         Assert.IsFalse(File.Exists(candidat2))
     End Sub
+
+    <TestMethod>
+    Public Sub CleanFileName_NomsAbsentsOuPoints_UtilisentUnRepliSur()
+        For Each nom As String In New String() {Nothing, "", "  ", ".", "..", " . . "}
+            Assert.AreEqual("attachment.bin", AppelerUtilitaire("CleanFileName", nom))
+        Next
+    End Sub
+
+    <TestMethod>
+    Public Sub CleanFileName_BloqueSeparateursEtFluxWindows()
+        For Each nom As String In New String() {"..\facture.pdf", "../../facture.pdf",
+                                                "C:\temp\facture.pdf", "\\serveur\partage\facture.pdf",
+                                                "facture.pdf:flux"}
+            Dim nettoye = AppelerUtilitaire("CleanFileName", nom)
+            Assert.AreEqual(-1, nettoye.IndexOfAny("/\:".ToCharArray()))
+            Assert.AreEqual(nettoye, Path.GetFileName(nettoye))
+            Assert.AreEqual(nettoye, AppelerUtilitaire("CleanFileName", nettoye))
+        Next
+    End Sub
+
+    <TestMethod>
+    Public Sub CleanFileName_ProtegeNomsDePeripheriquesReserves()
+        For Each nom As String In New String() {"con", "NUL.pdf", "COM1.txt", "LPT9", "PRN.tar.gz"}
+            Dim nettoye = AppelerUtilitaire("CleanFileName", nom)
+            Assert.AreEqual("_" & nom, nettoye)
+            Assert.AreEqual(nettoye, AppelerUtilitaire("CleanFileName", nettoye))
+        Next
+    End Sub
+
 End Class
