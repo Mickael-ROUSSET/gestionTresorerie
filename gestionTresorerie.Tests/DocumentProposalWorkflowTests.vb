@@ -22,6 +22,22 @@ Public Class DocumentProposalWorkflowTests
         End Function
     End Class
 
+    ' Simule une modification concurrente du fichier pendant l'extraction, sans reseau.
+    Private Class EngineQuiModifieLaSource
+        Implements IDocumentExtractionEngine
+
+        Public ReadOnly Property EngineName As String Implements IDocumentExtractionEngine.EngineName
+            Get
+                Return "fake-modification"
+            End Get
+        End Property
+
+        Public Function ExtractAsync(documentPath As String) As Task(Of String) Implements IDocumentExtractionEngine.ExtractAsync
+            File.AppendAllText(documentPath, " MODIFIE")
+            Return Task.FromResult("{""montant"":12.5}")
+        End Function
+    End Class
+
     <TestMethod>
     Public Async Function ExtractionProduitPropositionSansModifierLaSource() As Task
         Dim folder = Path.Combine(Path.GetTempPath(), "proposal-test-" & Guid.NewGuid().ToString("N"))
@@ -43,6 +59,30 @@ Public Class DocumentProposalWorkflowTests
             Assert.AreEqual("fake-sans-reseau", proposal("moteur").ToString())
             Assert.AreEqual("Facture", proposal("extraction")("type_document").ToString())
             Assert.AreEqual(AttachmentStorage.ComputeSha256(source), proposal("source_sha256").ToString())
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Function
+
+    <TestMethod>
+    Public Async Function ModificationPendantExtractionRefuseLaProposition() As Task
+        Dim folder = Path.Combine(Path.GetTempPath(), "proposal-race-" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            Dim source = Path.Combine(folder, "facture-factice.pdf")
+            File.WriteAllText(source, "DOCUMENT FICTIF")
+            Dim queue = Path.Combine(folder, "a_valider")
+            Dim workflow As New DocumentProposalWorkflow(New EngineQuiModifieLaSource(), New DocumentProposalStore(queue))
+            Dim refused As Boolean = False
+            Try
+                Await workflow.ProposeAsync(source)
+            Catch ex As InvalidDataException
+                refused = True
+            End Try
+
+            Assert.IsTrue(refused, "Une extraction ne doit pas etre associee a un fichier modifie.")
+            Assert.IsFalse(Directory.Exists(queue), "Aucune proposition ne doit etre publiee.")
+            Assert.AreEqual("DOCUMENT FICTIF MODIFIE", File.ReadAllText(source))
         Finally
             Directory.Delete(folder, True)
         End Try
