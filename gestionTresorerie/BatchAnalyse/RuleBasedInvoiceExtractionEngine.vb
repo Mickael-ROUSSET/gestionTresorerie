@@ -31,6 +31,14 @@ Public NotInheritable Class RuleBasedInvoiceExtractionEngine
         Dim rawText = If(extracted("texte") Is Nothing, "", extracted("texte").ToString())
         ' PdfPig utilise les fins de ligne Windows CRLF ; les expressions ^/$ doivent rester portables.
         Dim normalizedText = rawText.Replace(vbCrLf, vbLf).Replace(vbCr, vbLf)
+        ' Une extraction partielle peut masquer un second total contradictoire.
+        ' Ne jamais proposer de montant ou date depuis un PDF tronque.
+        If String.Equals(If(extracted("statut_extraction") Is Nothing, "", extracted("statut_extraction").ToString()),
+                         "Texte_tronque_a_verifier", StringComparison.Ordinal) Then
+            extracted("champs_proposes") = New JObject()
+            extracted("statut_champs") = "Extraction_incomplete_a_verifier"
+            Return extracted.ToString(Formatting.None)
+        End If
         Dim proposed As New JObject()
         Dim amounts As New HashSet(Of Decimal)()
         Dim dates As New HashSet(Of String)(StringComparer.Ordinal)
