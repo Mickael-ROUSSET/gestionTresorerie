@@ -71,7 +71,7 @@ Public NotInheritable Class GmailImportJournal
     End Function
 
     Public Sub MarkProcessed(key As String)
-        If String.IsNullOrWhiteSpace(key) OrElse key.Contains(vbLf) OrElse key.Contains(vbCr) Then Throw New ArgumentException("Cle de message invalide.", NameOf(key))
+        If Not IsValidKey(key) Then Throw New ArgumentException("Cle de message invalide.", NameOf(key))
         If _processed.Contains(key) Then Return
         Dim folder = Path.GetDirectoryName(Path.GetFullPath(_journalPath))
         Directory.CreateDirectory(folder)
