@@ -23,11 +23,11 @@ Public Class Lanceur
             End If
 
             ' 2. Lancement du traitement
-            Dim repertoireSource = ValiderRepertoireSelectionne(RepertoireSource)
+            Dim dossierConfirme As String = ValiderRepertoireSelectionne(Me.RepertoireSource)
             Dim batch = New BatchAnalyse()
 
-            Logger.INFO($"Démarrage de l'analyse dans : {repertoireSource}")
-            Await batch.DemarrerTraitement(repertoireSource)
+            Logger.INFO($"Démarrage de l'analyse dans : {dossierConfirme}")
+            Await batch.DemarrerTraitement(dossierConfirme)
 
         Catch ex As Exception
             Logger.ERR($"Erreur lors du traitement global : {ex.Message}")
