@@ -2,7 +2,7 @@ name: Validation .NET Windows
 
 on:
   pull_request:
-    branches: [master, chore/automation-foundation, refactor/remove-mistral, fix/gmail-sha256-local, fix/gmail-journal-retry-integration-20261023, feature/propositions-validation-humaine-20261023, feature/revue-propositions-20261023, fix/review-source-integrity-20261023, fix/proposal-atomic-write-20261027, fix/proposal-source-consistency-20261027, test/gmail-attachment-review-flow-20261027, feature/offline-import-proposal-scan-20261027, feature/local-invoice-rules-20261027]
+    branches: [master, chore/automation-foundation, refactor/remove-mistral, fix/gmail-sha256-local, fix/gmail-journal-retry-integration-20261023, feature/propositions-validation-humaine-20261023, feature/revue-propositions-20261023, fix/review-source-integrity-20261023, fix/proposal-atomic-write-20261027, fix/proposal-source-consistency-20261027, test/gmail-attachment-review-flow-20261027, feature/offline-import-proposal-scan-20261027, feature/local-invoice-rules-20261027, feature/opt-in-invoice-scanner-20261027, feature/gmail-saved-path-handoff-20261027]
   push:
     branches: [master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral, feature/gmail-import-fiabilisation, fix/review-selected-directory-20261027, fix/proposal-atomic-write-20261027, fix/proposal-source-consistency-20261027, test/gmail-attachment-review-flow-20261027, feature/offline-import-proposal-scan-20261027, feature/local-invoice-rules-20261027, feature/opt-in-invoice-scanner-20261027]
   workflow_dispatch:
