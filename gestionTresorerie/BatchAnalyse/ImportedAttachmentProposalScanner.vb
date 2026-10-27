@@ -40,8 +40,8 @@ Public NotInheritable Class ImportedAttachmentProposalScanner
         Return result
     End Function
 
-    Private Shared Function IsSupportedDocument(path As String) As Boolean
-        Select Case Path.GetExtension(path).ToLowerInvariant()
+    Private Shared Function IsSupportedDocument(documentPath As String) As Boolean
+        Select Case Path.GetExtension(documentPath).ToLowerInvariant()
             Case ".pdf", ".jpg", ".jpeg", ".png"
                 Return True
             Case Else
@@ -49,8 +49,8 @@ Public NotInheritable Class ImportedAttachmentProposalScanner
         End Select
     End Function
 
-    Private Shared Function IsInsideFolder(path As String, folder As String) As Boolean
-        Dim fullPath = Path.GetFullPath(path)
+    Private Shared Function IsInsideFolder(documentPath As String, folder As String) As Boolean
+        Dim fullPath = Path.GetFullPath(documentPath)
         Return fullPath.StartsWith(folder.TrimEnd(Path.DirectorySeparatorChar) &
                                    Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
     End Function
