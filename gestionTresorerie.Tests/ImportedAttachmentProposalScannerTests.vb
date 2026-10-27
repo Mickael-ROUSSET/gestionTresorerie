@@ -77,4 +77,64 @@ Public Class ImportedAttachmentProposalScannerTests
             If Directory.Exists(folder) Then Directory.Delete(folder, True)
         End Try
     End Function
+
+    <TestMethod>
+    Public Async Function CheminsImportesExplicitesNeParcourentPasLesAutresDocuments() As Task
+        Dim folder = Path.Combine(Path.GetTempPath(), "handoff-fictif-" & Guid.NewGuid().ToString("N"))
+        Dim imported = Path.Combine(folder, "import")
+        Dim outsideFolder = Path.Combine(folder, "import-autre")
+        Dim queue = Path.Combine(imported, "_PropositionsAValider")
+        Directory.CreateDirectory(imported)
+        Directory.CreateDirectory(outsideFolder)
+        Directory.CreateDirectory(queue)
+        Try
+            Dim selected = Path.Combine(imported, "selection.pdf")
+            Dim unselected = Path.Combine(imported, "non-selection.png")
+            Dim outside = Path.Combine(outsideFolder, "externe.pdf")
+            Dim queueDocument = Path.Combine(queue, "archive.pdf")
+            Dim unsupported = Path.Combine(imported, "notes.txt")
+            File.WriteAllText(selected, "Facture fictive selectionnee")
+            File.WriteAllText(unselected, "Image fictive non selectionnee")
+            File.WriteAllText(outside, "Document externe fictif")
+            File.WriteAllText(queueDocument, "Archive de revue fictive")
+            File.WriteAllText(unsupported, "Notes fictives")
+            Dim scanner As New ImportedAttachmentProposalScanner(New FakeEngine(), queue)
+
+            Dim first = Await scanner.ScanSavedPathsAsync(imported,
+                New String() {selected, selected, outside, queueDocument, unsupported})
+            Assert.AreEqual(1, first.Created)
+            Assert.AreEqual(0, first.AlreadyPresent)
+            Assert.AreEqual(1, first.Errors.Count)
+            StringAssert.Contains(first.Errors(0), "hors dossier d'import")
+            Assert.AreEqual(1, Directory.GetFiles(queue, "*.json").Length)
+            Assert.AreEqual(0, Directory.GetFiles(queue, "*.review.json").Length)
+            Assert.AreEqual("Document externe fictif", File.ReadAllText(outside))
+            Assert.AreEqual("Image fictive non selectionnee", File.ReadAllText(unselected))
+
+            Dim second = Await scanner.ScanSavedPathsAsync(imported, New String() {selected})
+            Assert.AreEqual(0, second.Created)
+            Assert.AreEqual(1, second.AlreadyPresent)
+            Assert.AreEqual(0, second.Errors.Count)
+        Finally
+            If Directory.Exists(folder) Then Directory.Delete(folder, True)
+        End Try
+    End Function
+
+    <TestMethod>
+    Public Async Function CheminsRelatifsOuVidesSontRefusesSansProposition() As Task
+        Dim folder = Path.Combine(Path.GetTempPath(), "handoff-invalid-" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            File.WriteAllText(Path.Combine(folder, "facture.pdf"), "Facture fictive")
+            Dim queue = Path.Combine(folder, "_PropositionsAValider")
+            Dim scanner As New ImportedAttachmentProposalScanner(New FakeEngine(), queue)
+
+            Dim result = Await scanner.ScanSavedPathsAsync(folder, New String() {Nothing, "facture.pdf"})
+            Assert.AreEqual(0, result.Created)
+            Assert.AreEqual(2, result.Errors.Count)
+            Assert.IsFalse(Directory.Exists(queue))
+        Finally
+            If Directory.Exists(folder) Then Directory.Delete(folder, True)
+        End Try
+    End Function
 End Class
