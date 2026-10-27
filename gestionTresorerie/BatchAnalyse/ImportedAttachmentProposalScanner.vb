@@ -8,11 +8,14 @@ Public NotInheritable Class ImportedAttachmentProposalScanner
     Private ReadOnly _workflow As DocumentProposalWorkflow
     Private ReadOnly _queueFolder As String
 
-    Public Sub New(engine As IDocumentExtractionEngine, queueFolder As String)
+    Public Sub New(engine As IDocumentExtractionEngine, queueFolder As String, Optional enableLocalInvoiceRules As Boolean = False)
         If engine Is Nothing Then Throw New ArgumentNullException(NameOf(engine))
         If String.IsNullOrWhiteSpace(queueFolder) Then Throw New ArgumentException("Dossier de propositions requis.", NameOf(queueFolder))
         _queueFolder = Path.GetFullPath(queueFolder)
-        _workflow = New DocumentProposalWorkflow(engine, New DocumentProposalStore(_queueFolder))
+        ' Les regles de facture restent opt-in : aucune analyse automatique a l'import Gmail.
+        Dim selectedEngine As IDocumentExtractionEngine = engine
+        If enableLocalInvoiceRules Then selectedEngine = New RuleBasedInvoiceExtractionEngine(engine)
+        _workflow = New DocumentProposalWorkflow(selectedEngine, New DocumentProposalStore(_queueFolder))
     End Sub
 
     ''' <summary>
