@@ -129,4 +129,57 @@ Public Class GmailImportJournalTests
             If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
         End Try
     End Sub
+
+    <TestMethod>
+    Public Sub DeuxInstancesNEnregistrentPasDeuxFoisLaMemeCle()
+        Dim fileName = TemporaryJournal()
+        Try
+            Dim key = GmailImportJournal.MakeKey("fictif@example.org", 11UI, 12UI)
+            Dim first As New GmailImportJournal(fileName)
+            Dim second As New GmailImportJournal(fileName)
+            first.MarkProcessed(key)
+            second.MarkProcessed(key)
+            Assert.AreEqual(1, File.ReadAllLines(fileName).Length)
+            Assert.IsTrue(second.IsProcessed(key))
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub DeuxInstancesConserventLesClesAjouteesEntreTemps()
+        Dim fileName = TemporaryJournal()
+        Try
+            Dim firstKey = GmailImportJournal.MakeKey("fictif@example.org", 11UI, 12UI)
+            Dim secondKey = GmailImportJournal.MakeKey("fictif@example.org", 11UI, 13UI)
+            Dim first As New GmailImportJournal(fileName)
+            Dim second As New GmailImportJournal(fileName)
+            first.MarkProcessed(firstKey)
+            second.MarkProcessed(secondKey)
+            Assert.AreEqual(2, File.ReadAllLines(fileName).Length)
+            Dim restarted As New GmailImportJournal(fileName)
+            Assert.IsTrue(restarted.IsProcessed(firstKey))
+            Assert.IsTrue(restarted.IsProcessed(secondKey))
+            Assert.IsTrue(second.IsProcessed(firstKey))
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub CorruptionApresCreationEstRefuseeAvantAjout()
+        Dim fileName = TemporaryJournal()
+        Try
+            Dim firstKey = GmailImportJournal.MakeKey("fictif@example.org", 11UI, 12UI)
+            Dim secondKey = GmailImportJournal.MakeKey("fictif@example.org", 11UI, 13UI)
+            Dim journal As New GmailImportJournal(fileName)
+            journal.MarkProcessed(firstKey)
+            File.AppendAllText(fileName, "ligne-incomplete")
+            Dim contentsBefore = File.ReadAllText(fileName)
+            Assert.ThrowsExactly(Of InvalidDataException)(Sub() journal.MarkProcessed(secondKey))
+            Assert.AreEqual(contentsBefore, File.ReadAllText(fileName))
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
 End Class

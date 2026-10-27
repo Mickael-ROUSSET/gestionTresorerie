@@ -2,9 +2,9 @@ name: Validation .NET Windows
 
 on:
   pull_request:
-    branches: [master, chore/automation-foundation, refactor/remove-mistral, fix/gmail-sha256-local]
+    branches: [master, chore/automation-foundation, refactor/remove-mistral, fix/gmail-sha256-local, fix/gmail-journal-read-reliability-20261027]
   push:
-    branches: [master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral, feature/gmail-import-fiabilisation]
+    branches: [master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral, feature/gmail-import-fiabilisation, fix/gmail-journal-concurrent-replay-20261027]
   workflow_dispatch:
 
 permissions:
