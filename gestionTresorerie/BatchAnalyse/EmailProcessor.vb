@@ -170,9 +170,32 @@ Public Class EmailProcessor
     End Function
 
     Private Shared Function CleanFileName(name As String) As String
-        For Each c In Path.GetInvalidFileNameChars()
-            name = name.Replace(c, "_"c)
+        If String.IsNullOrWhiteSpace(name) Then Return "attachment.bin"
+
+        ' Appliquer les regles Windows, independamment du systeme de test.
+        Dim forbidden As String = "<>:" & ChrW(34) & "/\|?*"
+        Dim cleaned As New StringBuilder(name.Length)
+        For Each c As Char In name
+            If Char.IsControl(c) OrElse forbidden.IndexOf(c) >= 0 Then
+                cleaned.Append("_"c)
+            Else
+                cleaned.Append(c)
+            End If
         Next
+        name = cleaned.ToString().TrimEnd("."c, " "c)
+        If String.IsNullOrWhiteSpace(name) Then Return "attachment.bin"
+
+        ' CON, NUL, COM1, LPT1... restent reserves meme avec une extension.
+        Dim stem = name.Split("."c)(0).TrimEnd(" "c).ToUpperInvariant()
+        Dim reserved = stem = "CON" OrElse stem = "PRN" OrElse
+                       stem = "AUX" OrElse stem = "NUL"
+        If stem.Length = 4 Then
+            reserved = reserved OrElse
+                       ((stem.StartsWith("COM", StringComparison.Ordinal) OrElse
+                         stem.StartsWith("LPT", StringComparison.Ordinal)) AndAlso
+                        stem(3) >= "1"c AndAlso stem(3) <= "9"c)
+        End If
+        If reserved Then name = "_" & name
         Return name
     End Function
 
