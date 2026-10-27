@@ -97,8 +97,8 @@ Public Class DocumentProposalWorkflowTests
                                         "{""montant"":12.5,""tiers"":""fictif""}"))
                                 End Sub)
 
-            Assert.AreEqual(1, outcomes.Count(Function(created) created))
-            Assert.AreEqual(19, outcomes.Count(Function(created) Not created))
+            Assert.AreEqual(1, outcomes.Where(Function(created) created).Count())
+            Assert.AreEqual(19, outcomes.Where(Function(created) Not created).Count())
             Dim published = Directory.GetFiles(queue, "*.json")
             Assert.AreEqual(1, published.Length)
             Dim proposal = JObject.Parse(File.ReadAllText(published(0)))
