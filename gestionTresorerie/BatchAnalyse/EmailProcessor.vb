@@ -47,7 +47,7 @@ Public Class EmailProcessor
             Return
         End If
         If Not IsImportAllowed(hasJournalEntries, effectiveCutoff) Then
-            _rapport.AppendLine("[ERREUR] Import Gmail initial bloque : journal vide. Fournir explicitement initialImportCutoff (date de debut incluse) a ProcessAttachments pour autoriser l'import initial.")
+            _rapport.AppendLine("[ERREUR] Import Gmail bloque : date de debut absente. Fournir initialImportCutoff (date incluse) ; un journal existant ne remplace pas cette borne de securite.")
             SaveFinalReport()
             Return
         End If
@@ -145,12 +145,13 @@ Public Class EmailProcessor
     ' --- Utilitaires ---
 
     ''' <summary>
-    ''' Sans journal initialise, une date de debut explicite est obligatoire.
-    ''' La recherche IMAP utilise le jour inclus (date de reception, sans heure).
-    ''' Un journal initialise conserve la reprise existante, sans limite de date.
+    ''' La date de debut est obligatoire meme en presence d'un journal de reprise.
+    ''' Sans cutoff persiste, un journal incomplet pourrait autoriser un balayage
+    ''' de tout l'historique IMAP. L'argument hasJournalEntries est conserve pour
+    ''' compatibilite avec les appels existants, sans accorder de derogation.
     ''' </summary>
     Public Shared Function IsImportAllowed(hasJournalEntries As Boolean, initialImportCutoff As DateTime?) As Boolean
-        Return hasJournalEntries OrElse initialImportCutoff.HasValue
+        Return initialImportCutoff.HasValue
     End Function
 
     ' Conserver la borne de debut entre sessions pour ne jamais importer l'historique par accident.
@@ -179,19 +180,34 @@ Public Class EmailProcessor
         Catch ex As DirectoryNotFoundException
             ' Conserver le comportement initial pour un dossier absent.
         End Try
-        If contents IsNot Nothing Then
-            Dim stored = DateTime.ParseExact(contents.Trim(), "yyyy-MM-dd",
-                Globalization.CultureInfo.InvariantCulture, Globalization.DateTimeStyles.None)
-            If requested.HasValue AndAlso requested.Value.Date <> stored.Date Then
-                Throw New InvalidOperationException("Date de debut Gmail differente de celle deja enregistree.")
-            End If
-            Return stored.Date
-        End If
+        If contents IsNot Nothing Then Return ValidateStoredCutoff(contents, requested)
         If requested.HasValue Then
-            File.WriteAllText(path, requested.Value.ToString("yyyy-MM-dd", Globalization.CultureInfo.InvariantCulture))
-            Return requested.Value.Date
+            ' CreateNew refuse d'ecraser une borne creee par une autre execution.
+            ' Un fichier concurrent encore en cours d'ecriture bloque l'import,
+            ' plutot que de risquer de remplacer la date de securite.
+            Try
+                Using stream As New FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None)
+                    Using writer As New StreamWriter(stream, New UTF8Encoding(False))
+                        writer.Write(requested.Value.Date.ToString("yyyy-MM-dd", Globalization.CultureInfo.InvariantCulture))
+                        writer.Flush()
+                        stream.Flush(True)
+                    End Using
+                End Using
+                Return requested.Value.Date
+            Catch ex As IOException When File.Exists(path)
+                Return ValidateStoredCutoff(File.ReadAllText(path), requested)
+            End Try
         End If
         Return Nothing
+    End Function
+
+    Private Shared Function ValidateStoredCutoff(contents As String, requested As DateTime?) As DateTime
+        Dim stored = DateTime.ParseExact(contents.Trim(), "yyyy-MM-dd",
+            Globalization.CultureInfo.InvariantCulture, Globalization.DateTimeStyles.None)
+        If requested.HasValue AndAlso requested.Value.Date <> stored.Date Then
+            Throw New InvalidOperationException("Date de debut Gmail differente de celle deja enregistree.")
+        End If
+        Return stored.Date
     End Function
 
     Private Shared Function GetFolderByDate(dt As DateTime) As String

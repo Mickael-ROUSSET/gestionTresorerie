@@ -139,9 +139,33 @@ Public Class EmailProcessorFileNameTests
     End Sub
 
     <TestMethod>
-    Public Sub IsImportAllowed_JournalInitialise_PreserveLaRepriseSansDate()
-        Assert.IsTrue(EmailProcessor.IsImportAllowed(True, Nothing))
+    Public Sub IsImportAllowed_JournalInitialiseSansDate_BloqueLaRepriseSansBorne()
+        Assert.IsFalse(EmailProcessor.IsImportAllowed(True, Nothing))
         Assert.IsTrue(EmailProcessor.IsImportAllowed(True, New DateTime(2026, 10, 1)))
+    End Sub
+
+    <TestMethod>
+    Public Sub JournalExistantSansCutoff_ExigeUneDateExpliciteAvantReprise()
+        Dim folder = Path.Combine(Path.GetTempPath(), "GmailCutoffTests_" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            Dim journalPath = Path.Combine(folder, "gmail_import_journal.txt")
+            Dim cutoffPath = Path.Combine(folder, "gmail_import_cutoff.txt")
+            File.WriteAllText(journalPath, GmailImportJournal.MakeKey("factice@example.invalid", 1UI, 2UI) & Environment.NewLine)
+            Dim journal As New GmailImportJournal(journalPath)
+            Assert.IsTrue(journal.IsProcessed(GmailImportJournal.MakeKey("factice@example.invalid", 1UI, 2UI)))
+
+            Dim cutoff = EmailProcessor.ResolveInitialImportCutoff(cutoffPath, Nothing)
+            Assert.IsFalse(EmailProcessor.IsImportAllowed(True, cutoff))
+            Assert.IsFalse(File.Exists(cutoffPath))
+
+            Dim debut As New DateTime(2026, 10, 1)
+            cutoff = EmailProcessor.ResolveInitialImportCutoff(cutoffPath, debut)
+            Assert.IsTrue(EmailProcessor.IsImportAllowed(True, cutoff))
+            Assert.AreEqual(debut, EmailProcessor.ResolveInitialImportCutoff(cutoffPath, Nothing).Value)
+        Finally
+            Directory.Delete(folder, True)
+        End Try
     End Sub
 
     <TestMethod>
@@ -163,6 +187,49 @@ Public Class EmailProcessorFileNameTests
             Assert.IsTrue(raised)
         Finally
             Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub ResolveInitialImportCutoff_DeuxDemarragesConcurrents_NeRemplacentPasLaDate()
+        Dim folder = Path.Combine(Path.GetTempPath(), "GmailCutoffRace_" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            For index As Integer = 0 To 9
+                Dim cutoffFile = Path.Combine(folder, "cutoff_" & index & ".txt")
+                Dim successes As New System.Collections.Concurrent.ConcurrentBag(Of DateTime)()
+                Dim failures As New System.Collections.Concurrent.ConcurrentBag(Of Exception)()
+                Using gate As New System.Threading.ManualResetEventSlim(False)
+                    Dim first = System.Threading.Tasks.Task.Run(
+                        Sub() AttemptCutoff(cutoffFile, New DateTime(2026, 10, 1), gate, successes, failures))
+                    Dim second = System.Threading.Tasks.Task.Run(
+                        Sub() AttemptCutoff(cutoffFile, New DateTime(2026, 10, 2), gate, successes, failures))
+                    gate.Set()
+                    System.Threading.Tasks.Task.WaitAll(first, second)
+                End Using
+                Assert.AreEqual(1, successes.Count, "Une seule date peut initialiser la borne.")
+                Assert.AreEqual(1, failures.Count, "La seconde date doit etre refusee.")
+                Dim failure = failures.ToArray()(0)
+                Assert.IsTrue(TypeOf failure Is InvalidOperationException OrElse
+                              TypeOf failure Is IOException OrElse TypeOf failure Is FormatException,
+                              "Un conflit concurrent doit bloquer sans modifier la borne : " & failure.GetType().Name)
+                Assert.AreEqual(successes.ToArray()(0),
+                                EmailProcessor.ResolveInitialImportCutoff(cutoffFile, Nothing).Value)
+            Next
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    Private Shared Sub AttemptCutoff(path As String, requested As DateTime,
+                                     gate As System.Threading.ManualResetEventSlim,
+                                     successes As System.Collections.Concurrent.ConcurrentBag(Of DateTime),
+                                     failures As System.Collections.Concurrent.ConcurrentBag(Of Exception))
+        gate.Wait()
+        Try
+            successes.Add(EmailProcessor.ResolveInitialImportCutoff(path, requested).Value)
+        Catch ex As Exception
+            failures.Add(ex)
         End Try
     End Sub
 
