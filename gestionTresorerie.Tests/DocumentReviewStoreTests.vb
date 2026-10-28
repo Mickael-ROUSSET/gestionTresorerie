@@ -213,4 +213,32 @@ Public Class DocumentReviewStoreTests
         Next
     End Sub
 
+    <TestMethod>
+    Public Sub JSONTronqueRefuseLectureEtDecisionSansRecu()
+        Dim folder = Path.Combine(Path.GetTempPath(), "review-json-incorrect-" & Guid.NewGuid().ToString("N"))
+        Try
+            Dim fixture = CreateFixture(folder)
+            Dim pendingPath = Path.Combine(fixture.Queue, fixture.Sha & ".json")
+            Dim malformed = "{""schema_version"":1,""extraction"":"
+            File.WriteAllText(pendingPath, malformed)
+
+            Dim store As New DocumentReviewStore(fixture.Queue)
+            Assert.ThrowsExactly(Of InvalidDataException)(
+                Sub() store.ReadPendingProposal(fixture.Sha))
+            Assert.ThrowsExactly(Of InvalidDataException)(
+                Sub() store.RecordReview(fixture.Sha, "validateur-fictif",
+                                         DocumentReviewStore.ReviewDecision.Rejete, Nothing))
+            Dim corrected As New JObject From {{"montant", 12.5}}
+            Assert.ThrowsExactly(Of InvalidDataException)(
+                Sub() store.RecordReview(fixture.Sha, "validateur-fictif",
+                                         DocumentReviewStore.ReviewDecision.ApprouvePourSaisie, corrected))
+
+            Assert.IsFalse(File.Exists(Path.Combine(fixture.Queue, fixture.Sha & ".review.json")))
+            Assert.AreEqual(malformed, File.ReadAllText(pendingPath))
+            Assert.AreEqual("Facture de test sans information reelle", File.ReadAllText(fixture.Source))
+        Finally
+            If Directory.Exists(folder) Then Directory.Delete(folder, True)
+        End Try
+    End Sub
+
 End Class
