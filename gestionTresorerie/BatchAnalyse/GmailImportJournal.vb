@@ -77,8 +77,20 @@ Public NotInheritable Class GmailImportJournal
     Public Shared Function MakeKey(account As String, uidValidity As UInteger, uid As UInteger) As String
         If String.IsNullOrWhiteSpace(account) Then Throw New ArgumentException("Compte Gmail manquant.", NameOf(account))
         If uidValidity = 0UI OrElse uid = 0UI Then Throw New ArgumentOutOfRangeException(NameOf(uid), "UID et UIDVALIDITY doivent etre non nuls.")
-        ' Account name encoded to avoid delimiters in a single-line journal.
-        Return Convert.ToHexString(Encoding.UTF8.GetBytes(account.Trim().ToLowerInvariant())) & ":" &
+        ' Rejeter les caracteres de controle et les sequences Unicode invalides
+        ' avant de construire une cle : elles ne doivent jamais identifier un compte.
+        Dim normalizedAccount = account.Trim().ToLowerInvariant()
+        For Each character As Char In normalizedAccount
+            If Char.IsControl(character) Then Throw New ArgumentException("Compte Gmail invalide.", NameOf(account))
+        Next
+        Dim accountBytes As Byte()
+        Try
+            accountBytes = New UTF8Encoding(False, True).GetBytes(normalizedAccount)
+        Catch ex As EncoderFallbackException
+            Throw New ArgumentException("Compte Gmail Unicode invalide.", NameOf(account), ex)
+        End Try
+        ' Encodage hexadecimal pour eviter les separateurs dans le journal.
+        Return Convert.ToHexString(accountBytes) & ":" &
                uidValidity.ToString(Globalization.CultureInfo.InvariantCulture) & ":" &
                uid.ToString(Globalization.CultureInfo.InvariantCulture)
     End Function
