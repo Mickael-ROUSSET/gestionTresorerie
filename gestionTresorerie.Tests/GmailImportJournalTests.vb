@@ -374,6 +374,33 @@ Public Class GmailImportJournalTests
     End Sub
 
     <TestMethod>
+    Public Sub ClesNonCanoniquesSontRefuseesSansReecriture()
+        Dim fileName = TemporaryJournal()
+        Try
+            ' 01 et 1 designent le meme UID, et les comptes sont normalises
+            ' par MakeKey : une variante ne doit jamais passer pour un checkpoint.
+            Dim invalidKeys = New String() {"61:01:2", "61:1:02", "41:1:2", "2061:1:2"}
+            For Each invalidKey In invalidKeys
+                Dim journal As New GmailImportJournal(fileName)
+                Assert.ThrowsExactly(Of ArgumentException)(Sub() journal.MarkProcessed(invalidKey))
+                Assert.IsFalse(File.Exists(fileName))
+
+                Directory.CreateDirectory(Path.GetDirectoryName(fileName))
+                Dim original = invalidKey & vbLf
+                File.WriteAllText(fileName, original)
+                Assert.ThrowsExactly(Of InvalidDataException)(
+                    Sub()
+                        Dim ignored As New GmailImportJournal(fileName)
+                    End Sub)
+                Assert.AreEqual(original, File.ReadAllText(fileName))
+                File.Delete(fileName)
+            Next
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
+
+    <TestMethod>
     Public Sub JournalUtf16BigEndianEstRefuseSansModifierLesOctets()
         Dim fileName = TemporaryJournal()
         Try

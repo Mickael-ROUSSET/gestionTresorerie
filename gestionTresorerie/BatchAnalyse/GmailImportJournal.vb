@@ -88,7 +88,9 @@ Public NotInheritable Class GmailImportJournal
             For Each character As Char In account
                 If Char.IsControl(character) Then Return False
             Next
-            Return True
+            ' Refuser les variantes non canoniques : 01/1, majuscules et espaces
+            ' changeraient la cle et permettraient de retraiter le meme UID.
+            Return String.Equals(key, MakeKey(account, validity, uid), StringComparison.Ordinal)
         Catch ex As DecoderFallbackException
             Return False
         End Try
