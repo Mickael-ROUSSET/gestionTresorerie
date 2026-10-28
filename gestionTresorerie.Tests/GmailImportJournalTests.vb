@@ -372,4 +372,25 @@ Public Class GmailImportJournalTests
             If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
         End Try
     End Sub
+
+    <TestMethod>
+    Public Sub JournalUtf16BigEndianEstRefuseSansModifierLesOctets()
+        Dim fileName = TemporaryJournal()
+        Try
+            Directory.CreateDirectory(Path.GetDirectoryName(fileName))
+            Dim key = GmailImportJournal.MakeKey("fictif@example.invalid", 11UI, 12UI)
+            ' UTF-16 big endian se termine par 0A : le controle de fin de
+            ' ligne seul ne suffit pas a detecter cet encodage non pris en charge.
+            File.WriteAllText(fileName, key & vbLf, New System.Text.UnicodeEncoding(True, True))
+            Dim originalBytes = File.ReadAllBytes(fileName)
+
+            Assert.ThrowsExactly(Of System.Text.DecoderFallbackException)(
+                Sub()
+                    Dim ignored As New GmailImportJournal(fileName)
+                End Sub)
+            CollectionAssert.AreEqual(originalBytes, File.ReadAllBytes(fileName))
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
 End Class
