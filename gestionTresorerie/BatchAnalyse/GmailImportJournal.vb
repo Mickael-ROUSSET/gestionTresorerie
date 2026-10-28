@@ -60,16 +60,37 @@ Public NotInheritable Class GmailImportJournal
         Next
         Dim validity As UInteger
         Dim uid As UInteger
-        Return UInteger.TryParse(parts(1), Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, validity) AndAlso
-               UInteger.TryParse(parts(2), Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, uid) AndAlso
-               validity > 0UI AndAlso uid > 0UI
+        If Not UInteger.TryParse(parts(1), Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, validity) OrElse
+           Not UInteger.TryParse(parts(2), Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, uid) OrElse
+           validity = 0UI OrElse uid = 0UI Then Return False
+
+        ' Une cle doit contenir un compte UTF-8 valide, pas seulement des octets hexadecimaux.
+        ' Garder la compatibilite avec les cles historiques deja enregistrees.
+        Try
+            Dim account = New UTF8Encoding(False, True).GetString(Convert.FromHexString(parts(0)))
+            Return Not String.IsNullOrWhiteSpace(account) AndAlso account.IndexOf(ChrW(0)) < 0
+        Catch ex As DecoderFallbackException
+            Return False
+        End Try
     End Function
 
     Public Shared Function MakeKey(account As String, uidValidity As UInteger, uid As UInteger) As String
         If String.IsNullOrWhiteSpace(account) Then Throw New ArgumentException("Compte Gmail manquant.", NameOf(account))
         If uidValidity = 0UI OrElse uid = 0UI Then Throw New ArgumentOutOfRangeException(NameOf(uid), "UID et UIDVALIDITY doivent etre non nuls.")
-        ' Account name encoded to avoid delimiters in a single-line journal.
-        Return Convert.ToHexString(Encoding.UTF8.GetBytes(account.Trim().ToLowerInvariant())) & ":" &
+        ' Rejeter les caracteres de controle et les sequences Unicode invalides
+        ' avant de construire une cle : elles ne doivent jamais identifier un compte.
+        Dim normalizedAccount = account.Trim().ToLowerInvariant()
+        For Each character As Char In normalizedAccount
+            If Char.IsControl(character) Then Throw New ArgumentException("Compte Gmail invalide.", NameOf(account))
+        Next
+        Dim accountBytes As Byte()
+        Try
+            accountBytes = New UTF8Encoding(False, True).GetBytes(normalizedAccount)
+        Catch ex As EncoderFallbackException
+            Throw New ArgumentException("Compte Gmail Unicode invalide.", NameOf(account), ex)
+        End Try
+        ' Encodage hexadecimal pour eviter les separateurs dans le journal.
+        Return Convert.ToHexString(accountBytes) & ":" &
                uidValidity.ToString(Globalization.CultureInfo.InvariantCulture) & ":" &
                uid.ToString(Globalization.CultureInfo.InvariantCulture)
     End Function

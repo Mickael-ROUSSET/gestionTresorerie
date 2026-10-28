@@ -229,4 +229,68 @@ Public Class GmailImportJournalTests
             If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
         End Try
     End Sub
+
+    <TestMethod>
+    Public Sub CompteHexAvecUtf8InvalideEstRefuseSansModifierLeJournal()
+        Dim fileName = TemporaryJournal()
+        Try
+            Dim invalidKey = "FF:1:2"
+            Dim journal As New GmailImportJournal(fileName)
+            Assert.ThrowsExactly(Of ArgumentException)(Sub() journal.MarkProcessed(invalidKey))
+            Assert.IsFalse(File.Exists(fileName))
+
+            Directory.CreateDirectory(Path.GetDirectoryName(fileName))
+            Dim original = invalidKey & vbLf
+            File.WriteAllText(fileName, original)
+            Assert.ThrowsExactly(Of InvalidDataException)(
+                Sub()
+                    Dim ignored As New GmailImportJournal(fileName)
+                End Sub)
+            Assert.AreEqual(original, File.ReadAllText(fileName))
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub CompteUnicodeValideEstConserveApresRedemarrage()
+        Dim fileName = TemporaryJournal()
+        Try
+            Dim key = GmailImportJournal.MakeKey("ÉLÈVE@example.invalid", 11UI, 12UI)
+            Dim journal As New GmailImportJournal(fileName)
+            journal.MarkProcessed(key)
+            Assert.IsTrue(New GmailImportJournal(fileName).IsProcessed(key))
+            Assert.AreEqual(key, File.ReadAllLines(fileName)(0))
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub CompteHexNulOuBlancEstRefuse()
+        Dim fileName = TemporaryJournal()
+        Dim journal As New GmailImportJournal(fileName)
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() journal.MarkProcessed("00:1:2"))
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() journal.MarkProcessed("20:1:2"))
+        Assert.IsFalse(File.Exists(fileName))
+    End Sub
+    <TestMethod>
+    Public Sub MakeKeyRefuseLesCaracteresDeControleAvantToutJournal()
+        Dim invalidAccounts = New String() {
+            "fictif" & ChrW(0) & "@example.invalid",
+            "fictif" & vbLf & "@example.invalid",
+            "fictif" & vbTab & "@example.invalid"
+        }
+        For Each invalidAccount In invalidAccounts
+            Assert.ThrowsExactly(Of ArgumentException)(
+                Sub() GmailImportJournal.MakeKey(invalidAccount, 11UI, 12UI))
+        Next
+    End Sub
+
+    <TestMethod>
+    Public Sub MakeKeyRefuseUneSequenceUnicodeInvalide()
+        Dim invalidAccount = "fictif" & ChrW(&HD800) & "@example.invalid"
+        Assert.ThrowsExactly(Of ArgumentException)(
+            Sub() GmailImportJournal.MakeKey(invalidAccount, 11UI, 12UI))
+    End Sub
 End Class
