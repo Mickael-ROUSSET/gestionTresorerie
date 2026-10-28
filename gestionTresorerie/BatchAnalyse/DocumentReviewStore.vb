@@ -72,6 +72,10 @@ Public NotInheritable Class DocumentReviewStore
         End If
 
         Dim sha = sourceSha256.ToUpperInvariant()
+        ' Une decision deja publiee reste definitive : un nouvel appel ne doit pas
+        ' revalider un document source supprime ou modifie depuis la revue.
+        If File.Exists(ReviewPath(sha)) Then Return False
+
         Dim pendingPath = Path.Combine(_folder, sha & ".json")
         If Not File.Exists(pendingPath) Then Throw New FileNotFoundException("Proposition introuvable.", pendingPath)
 
