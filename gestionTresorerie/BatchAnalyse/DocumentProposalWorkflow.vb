@@ -127,12 +127,12 @@ Public NotInheritable Class DocumentProposalStore
             Dim recordedHash = If(existing("source_sha256") Is Nothing, "", existing("source_sha256").ToString())
             Dim recordedStatus = If(existing("statut") Is Nothing, "", existing("statut").ToString())
             Dim schemaVersion = existing("schema_version")
-            Dim extraction = existing("extraction")
+            Dim existingExtraction = existing("extraction")
             If Not String.Equals(recordedHash, sha256, StringComparison.Ordinal) OrElse
                Not String.Equals(recordedStatus, "EnAttenteValidation", StringComparison.Ordinal) OrElse
                schemaVersion Is Nothing OrElse schemaVersion.Type <> JTokenType.Integer OrElse
                Not String.Equals(schemaVersion.ToString(), "1", StringComparison.Ordinal) OrElse
-               extraction Is Nothing OrElse extraction.Type <> JTokenType.Object Then
+               existingExtraction Is Nothing OrElse existingExtraction.Type <> JTokenType.Object Then
                 Throw New InvalidDataException("Proposition existante invalide : schema ou empreinte incoherente.")
             End If
             Return False
