@@ -331,4 +331,66 @@ Public Class GmailImportJournalTests
                 Sub() GmailImportJournal.MakeKey(invalidAccount, 11UI, 12UI))
         Next
     End Sub
+
+    <TestMethod>
+    Public Sub CheminJournalOccupéParUnDossierEstRefuseSansLeModifier()
+        Dim fileName = TemporaryJournal()
+        Try
+            Directory.CreateDirectory(fileName)
+            Dim refused As Boolean = False
+            Try
+                Dim ignored As New GmailImportJournal(fileName)
+            Catch ex As UnauthorizedAccessException
+                refused = True
+            Catch ex As IOException
+                refused = True
+            End Try
+            Assert.IsTrue(refused, "Un dossier ne doit jamais etre traite comme un journal absent.")
+            Assert.IsTrue(Directory.Exists(fileName))
+            Assert.AreEqual(0, Directory.GetFileSystemEntries(fileName).Length)
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub JournalVerrouilleEstRefuseSansEcriture()
+        Dim fileName = TemporaryJournal()
+        Try
+            Directory.CreateDirectory(Path.GetDirectoryName(fileName))
+            Dim key = GmailImportJournal.MakeKey("fictif@example.invalid", 11UI, 12UI)
+            Dim original = key & vbLf
+            File.WriteAllText(fileName, original)
+            Using locked As New FileStream(fileName, FileMode.Open, FileAccess.ReadWrite, FileShare.None)
+                Assert.ThrowsExactly(Of IOException)(
+                    Sub()
+                        Dim ignored As New GmailImportJournal(fileName)
+                    End Sub)
+            End Using
+            Assert.AreEqual(original, File.ReadAllText(fileName))
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub JournalUtf16BigEndianEstRefuseSansModifierLesOctets()
+        Dim fileName = TemporaryJournal()
+        Try
+            Directory.CreateDirectory(Path.GetDirectoryName(fileName))
+            Dim key = GmailImportJournal.MakeKey("fictif@example.invalid", 11UI, 12UI)
+            ' UTF-16 big endian se termine par 0A : le controle de fin de
+            ' ligne seul ne suffit pas a detecter cet encodage non pris en charge.
+            File.WriteAllText(fileName, key & vbLf, New System.Text.UnicodeEncoding(True, True))
+            Dim originalBytes = File.ReadAllBytes(fileName)
+
+            Assert.ThrowsExactly(Of System.Text.DecoderFallbackException)(
+                Sub()
+                    Dim ignored As New GmailImportJournal(fileName)
+                End Sub)
+            CollectionAssert.AreEqual(originalBytes, File.ReadAllBytes(fileName))
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
 End Class

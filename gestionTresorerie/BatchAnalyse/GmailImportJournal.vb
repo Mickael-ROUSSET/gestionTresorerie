@@ -12,12 +12,18 @@ Public NotInheritable Class GmailImportJournal
     Public Sub New(journalPath As String)
         If String.IsNullOrWhiteSpace(journalPath) Then Throw New ArgumentException("Chemin de journal requis.", NameOf(journalPath))
         _journalPath = journalPath
-        If File.Exists(journalPath) Then
-            ' Ne pas accepter un journal en cours d'ecriture ou tronque.
+        ' File.Exists peut renvoyer False pour un dossier ou un acces refuse.
+        ' Ouvrir explicitement : seul un fichier vraiment absent autorise un premier import.
+        Try
             Using stream As New FileStream(journalPath, FileMode.Open, FileAccess.Read, FileShare.Read)
                 _processed.UnionWith(ReadEntries(stream))
             End Using
-        End If
+        Catch ex As FileNotFoundException
+            ' Premier import : le journal sera cree apres le premier succes.
+        Catch ex As DirectoryNotFoundException
+            ' Le dossier d'import peut ne pas encore exister lors de la creation du journal.
+            ' ProcessAttachments prepare ce dossier avant de construire le journal.
+        End Try
     End Sub
 
     Private Shared Function ReadEntries(stream As FileStream) As HashSet(Of String)
@@ -28,7 +34,17 @@ Public NotInheritable Class GmailImportJournal
             Throw New InvalidDataException("Journal Gmail incomplet : derniere ligne non terminee.")
         End If
         stream.Position = 0
-        Using reader As New StreamReader(stream, New UTF8Encoding(False, True), True, 1024, True)
+        ' Seul UTF-8 est autorise. La detection automatique des BOM accepterait
+        ' un journal UTF-16BE, puis MarkProcessed y ajouterait des octets UTF-8.
+        ' Le BOM UTF-8 historique reste accepte explicitement.
+        Dim prefix(2) As Byte
+        Dim prefixCount = stream.Read(prefix, 0, prefix.Length)
+        stream.Position = 0
+        If prefixCount = 3 AndAlso prefix(0) = &HEF AndAlso
+           prefix(1) = &HBB AndAlso prefix(2) = &HBF Then
+            stream.Position = 3
+        End If
+        Using reader As New StreamReader(stream, New UTF8Encoding(False, True), False, 1024, True)
             Dim entry = reader.ReadLine()
             While entry IsNot Nothing
                 ' Les anciens journaux peuvent contenir des lignes vides.
