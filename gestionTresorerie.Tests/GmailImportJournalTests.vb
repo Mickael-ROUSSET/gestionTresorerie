@@ -293,4 +293,42 @@ Public Class GmailImportJournalTests
         Assert.ThrowsExactly(Of ArgumentException)(
             Sub() GmailImportJournal.MakeKey(invalidAccount, 11UI, 12UI))
     End Sub
+
+    <TestMethod>
+    Public Sub ClesHexAvecCaracteresDeControleSontRefuseesSansAltererLeJournal()
+        Dim fileName = TemporaryJournal()
+        Try
+            Dim invalidKeys = New String() {"09:11:12", "0A:11:12", "0D:11:12"}
+            For Each invalidKey In invalidKeys
+                Dim journal As New GmailImportJournal(fileName)
+                Assert.ThrowsExactly(Of ArgumentException)(Sub() journal.MarkProcessed(invalidKey))
+                Assert.IsFalse(File.Exists(fileName))
+
+                Directory.CreateDirectory(Path.GetDirectoryName(fileName))
+                Dim original = invalidKey & vbLf
+                File.WriteAllText(fileName, original)
+                Assert.ThrowsExactly(Of InvalidDataException)(
+                    Sub()
+                        Dim ignored As New GmailImportJournal(fileName)
+                    End Sub)
+                Assert.AreEqual(original, File.ReadAllText(fileName))
+                File.Delete(fileName)
+            Next
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub MakeKeyRefuseLesControlesMemeEnBordureDuCompte()
+        Dim invalidAccounts = New String() {
+            vbTab & "fictif@example.invalid",
+            "fictif@example.invalid" & vbCr,
+            vbLf & "fictif@example.invalid"
+        }
+        For Each invalidAccount In invalidAccounts
+            Assert.ThrowsExactly(Of ArgumentException)(
+                Sub() GmailImportJournal.MakeKey(invalidAccount, 11UI, 12UI))
+        Next
+    End Sub
 End Class
