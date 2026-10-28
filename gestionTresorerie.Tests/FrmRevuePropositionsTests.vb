@@ -9,7 +9,7 @@ Imports gestionTresorerie
 Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 <TestClass>
-Public Class FrmRevuePropositionsTests
+Public Class FrmApercuPropositionsTests
     ' Construction et inspection sans Show, Application.Run ou boucle de messages.
     Private Shared Sub SurThreadSta(action As Action)
         Dim erreur As Exception = Nothing
@@ -35,7 +35,7 @@ Public Class FrmRevuePropositionsTests
         SurThreadSta(Sub()
                          Dim erreur = Assert.ThrowsExactly(Of ArgumentNullException)(
                              Sub()
-                                 Using formulaire As New FrmRevuePropositions(Nothing)
+                                 Using formulaire As New FrmApercuPropositions(Nothing)
                                  End Using
                              End Sub)
                          Assert.AreEqual("revue", erreur.ParamName)
@@ -54,7 +54,7 @@ Public Class FrmRevuePropositionsTests
                              New PropositionDocumentService.Entree(cheque, "a", PropositionMouvement.SensMouvement.Credit),
                              New PropositionDocumentService.Entree(Nothing, "absent", PropositionMouvement.SensMouvement.Debit),
                              Nothing}))
-                         Using formulaire As New FrmRevuePropositions(revue)
+                         Using formulaire As New FrmApercuPropositions(revue)
                              Dim propositions = Grille(formulaire, "grillePropositions")
                              Dim rejets = Grille(formulaire, "grilleRejets")
                              Assert.AreEqual(2, propositions.Rows.Count)
@@ -117,7 +117,7 @@ Public Class FrmRevuePropositionsTests
                          Dim service As New PropositionDocumentService()
                          For Each resultat In {service.Proposer(Array.Empty(Of PropositionDocumentService.Entree)()),
                                                service.Proposer(New PropositionDocumentService.Entree() {Nothing})}
-                             Using formulaire As New FrmRevuePropositions(New PropositionRevue(resultat))
+                             Using formulaire As New FrmApercuPropositions(New PropositionRevue(resultat))
                                  Assert.AreEqual(0, Grille(formulaire, "grillePropositions").Rows.Count)
                                  Assert.AreEqual(resultat.Rejets.Count, Grille(formulaire, "grilleRejets").Rows.Count)
                              End Using

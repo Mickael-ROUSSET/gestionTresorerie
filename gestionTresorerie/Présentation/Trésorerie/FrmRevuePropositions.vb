@@ -10,7 +10,7 @@ Imports System.Windows.Forms
 ''' Les valeurs sont copiées dans les grilles ; aucun document source n'est conservé.
 ''' Aucun traitement métier ni accès à une ressource externe n'est déclenché.
 ''' </summary>
-Public NotInheritable Class FrmRevuePropositions
+Public NotInheritable Class FrmApercuPropositions
     Inherits Form
 
     Public Sub New(revue As PropositionRevue)
