@@ -27,6 +27,26 @@ Public Class AttachmentStorageTests
     End Sub
 
     <TestMethod>
+    Public Sub RefuseDestinationIdentiqueSansSupprimerLeFichier()
+        Dim folder = NewFolder()
+        Try
+            Dim original = Path.Combine(folder, "facture.pdf")
+            File.WriteAllText(original, "facture fictive a conserver")
+
+            Assert.ThrowsException(Of ArgumentException)(
+                Sub() AttachmentStorage.StoreTemporaryFile(original, original))
+            Assert.ThrowsException(Of ArgumentException)(
+                Sub() AttachmentStorage.StoreTemporaryFile(original, Path.Combine(folder, ".", "facture.pdf")))
+
+            Assert.IsTrue(File.Exists(original))
+            Assert.AreEqual("facture fictive a conserver", File.ReadAllText(original))
+            Assert.IsFalse(File.Exists(Path.Combine(folder, ".gmail-storage.lock")))
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
     Public Sub IgnoreMemeContenuSousNomDifferent()
         Dim folder = NewFolder()
         Try
