@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [master, chore/automation-foundation, refactor/remove-mistral]
   push:
-    branches: [master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral, feature/gmail-import-fiabilisation]
+    branches: [master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral, feature/gmail-import-fiabilisation, feature/offline-extraction-mapper-20261028]
   workflow_dispatch:
 
 permissions:
