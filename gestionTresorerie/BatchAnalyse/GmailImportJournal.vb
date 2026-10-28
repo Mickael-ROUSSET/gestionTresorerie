@@ -60,9 +60,18 @@ Public NotInheritable Class GmailImportJournal
         Next
         Dim validity As UInteger
         Dim uid As UInteger
-        Return UInteger.TryParse(parts(1), Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, validity) AndAlso
-               UInteger.TryParse(parts(2), Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, uid) AndAlso
-               validity > 0UI AndAlso uid > 0UI
+        If Not UInteger.TryParse(parts(1), Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, validity) OrElse
+           Not UInteger.TryParse(parts(2), Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, uid) OrElse
+           validity = 0UI OrElse uid = 0UI Then Return False
+
+        ' Une cle doit contenir un compte UTF-8 valide, pas seulement des octets hexadecimaux.
+        ' Garder la compatibilite avec les cles historiques deja enregistrees.
+        Try
+            Dim account = New UTF8Encoding(False, True).GetString(Convert.FromHexString(parts(0)))
+            Return Not String.IsNullOrWhiteSpace(account) AndAlso account.IndexOf(ChrW(0)) < 0
+        Catch ex As DecoderFallbackException
+            Return False
+        End Try
     End Function
 
     Public Shared Function MakeKey(account As String, uidValidity As UInteger, uid As UInteger) As String
