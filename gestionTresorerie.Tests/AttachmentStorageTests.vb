@@ -236,4 +236,26 @@ Public Class AttachmentStorageTests
             Directory.Delete(folder, True)
         End Try
     End Sub
+    <TestMethod>
+    Public Sub IgnoreFichierTemporaireEnCoursDecriturePourLeDedoublonnage()
+        Dim folder = NewFolder()
+        Try
+            ' Une autre importation n'a pas encore publie sa piece jointe.
+            ' Son fichier .gmail-*.tmp ne doit jamais etre pris pour un document archive.
+            Dim pendingTemp = Path.Combine(folder, ".gmail-pending.tmp")
+            Dim currentTemp = Path.Combine(folder, ".gmail-current.tmp")
+            Dim desired = Path.Combine(folder, "facture.pdf")
+            File.WriteAllText(pendingTemp, "facture fictive identique")
+            File.WriteAllText(currentTemp, "facture fictive identique")
+
+            Assert.AreEqual(desired, AttachmentStorage.StoreTemporaryFile(currentTemp, desired))
+            Assert.AreEqual("facture fictive identique", File.ReadAllText(desired))
+            Assert.IsFalse(File.Exists(currentTemp))
+            Assert.IsTrue(File.Exists(pendingTemp))
+            Assert.AreEqual("facture fictive identique", File.ReadAllText(pendingTemp))
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
 End Class
