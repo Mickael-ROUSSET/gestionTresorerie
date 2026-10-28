@@ -150,4 +150,47 @@ Public Class DocumentProposalWorkflowTests
             Directory.Delete(folder, True)
         End Try
     End Sub
+
+    <TestMethod>
+    Public Sub PropositionExistanteCorrompueBloqueLaRepriseSansEcrasement()
+        Dim folder = Path.Combine(Path.GetTempPath(), "proposal-corrupt-fictif-" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            Dim source = Path.Combine(folder, "facture-fictive.pdf")
+            File.WriteAllText(source, "Document entierement fictif")
+            Dim queue = Path.Combine(folder, "a_valider")
+            Dim store As New DocumentProposalStore(queue)
+            Dim extracted = "{""type_document"":""Facture fictive""}"
+            Assert.IsTrue(store.SavePending(source, "moteur-fictif", extracted))
+            Dim sha = AttachmentStorage.ComputeSha256(source)
+            Dim proposalPath = Path.Combine(queue, sha & ".json")
+            Dim original = File.ReadAllText(proposalPath)
+
+            ' Une proposition tronquee ne doit pas etre consideree comme un doublon sain.
+            File.WriteAllText(proposalPath, "{json-tronque")
+            Dim corrupted = File.ReadAllText(proposalPath)
+            Assert.ThrowsExactly(Of InvalidDataException)(
+                Sub() store.SavePending(source, "moteur-fictif", extracted))
+            Assert.AreEqual(corrupted, File.ReadAllText(proposalPath))
+
+            ' Un JSON syntaxiquement valide avec une autre empreinte est egalement refuse.
+            Dim altered = JObject.Parse(original)
+            altered("source_sha256") = New String("0"c, 64)
+            File.WriteAllText(proposalPath, altered.ToString())
+            Dim mismatched = File.ReadAllText(proposalPath)
+            Assert.ThrowsExactly(Of InvalidDataException)(
+                Sub() store.SavePending(source, "moteur-fictif", extracted))
+            Assert.AreEqual(mismatched, File.ReadAllText(proposalPath))
+
+            ' Une proposition intacte reste idempotente, sans modification du document.
+            File.WriteAllText(proposalPath, original)
+            Assert.IsFalse(store.SavePending(source, "moteur-fictif", extracted))
+            Assert.AreEqual(original, File.ReadAllText(proposalPath))
+            Assert.AreEqual("Document entierement fictif", File.ReadAllText(source))
+            Assert.AreEqual(0, Directory.GetFiles(queue, ".proposal-tmp-*").Length)
+        Finally
+            If Directory.Exists(folder) Then Directory.Delete(folder, True)
+        End Try
+    End Sub
+
 End Class

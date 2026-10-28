@@ -286,4 +286,59 @@ Public Class DocumentReviewStoreTests
         End Try
     End Sub
 
+    <TestMethod>
+    Public Sub CatalogueDeRevueExposeLesPropositionsValidesSansDecisionAutomatique()
+        Dim folder = Path.Combine(Path.GetTempPath(), "review-catalogue-fictif-" & Guid.NewGuid().ToString("N"))
+        Try
+            Dim fixture = CreateFixture(folder)
+            Dim otherSource = Path.Combine(folder, "seconde-facture-fictive.pdf")
+            File.WriteAllText(otherSource, "Seconde facture entierement fictive")
+            Dim proposals As New DocumentProposalStore(fixture.Queue)
+            Assert.IsTrue(proposals.SavePending(otherSource, "moteur-test", "{""montant"":7.5}"))
+            Dim otherSha = AttachmentStorage.ComputeSha256(otherSource)
+            Dim review As New DocumentReviewStore(fixture.Queue)
+            Dim originalFirst = File.ReadAllText(Path.Combine(fixture.Queue, fixture.Sha & ".json"))
+            Dim originalSecond = File.ReadAllText(Path.Combine(fixture.Queue, otherSha & ".json"))
+
+            Dim catalogue = review.ListPendingProposals()
+            Assert.AreEqual(2, catalogue.Count)
+            Dim expected = New String() {fixture.Sha, otherSha}.OrderBy(Function(sha) sha, StringComparer.Ordinal).ToArray()
+            CollectionAssert.AreEqual(expected, catalogue.Select(Function(item) CStr(item("source_sha256"))).ToArray())
+            Assert.IsTrue(catalogue.All(Function(item) CStr(item("statut")) = "EnAttenteValidation"))
+            Assert.AreEqual(0, Directory.GetFiles(fixture.Queue, "*.review.json").Length)
+            Assert.AreEqual(originalFirst, File.ReadAllText(Path.Combine(fixture.Queue, fixture.Sha & ".json")))
+            Assert.AreEqual(originalSecond, File.ReadAllText(Path.Combine(fixture.Queue, otherSha & ".json")))
+
+            Assert.IsTrue(review.RecordReview(fixture.Sha, "validateur-fictif",
+                                             DocumentReviewStore.ReviewDecision.Rejete, Nothing))
+            Dim remaining = review.ListPendingProposals()
+            Assert.AreEqual(1, remaining.Count)
+            Assert.AreEqual(otherSha, CStr(remaining(0)("source_sha256")))
+            Assert.IsFalse(File.Exists(Path.Combine(fixture.Queue, otherSha & ".review.json")))
+            Assert.AreEqual("Seconde facture entierement fictive", File.ReadAllText(otherSource))
+        Finally
+            If Directory.Exists(folder) Then Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub CatalogueDeRevueRefuseUnePropositionCorrompueSansCreerDeRecu()
+        Dim folder = Path.Combine(Path.GetTempPath(), "review-catalogue-invalide-" & Guid.NewGuid().ToString("N"))
+        Try
+            Dim fixture = CreateFixture(folder)
+            Dim pendingPath = Path.Combine(fixture.Queue, fixture.Sha & ".json")
+            Dim corrupted = "{""schema_version"":"
+            File.WriteAllText(pendingPath, corrupted)
+            Dim review As New DocumentReviewStore(fixture.Queue)
+
+            Assert.ThrowsExactly(Of InvalidDataException)(
+                Sub() review.ListPendingProposals())
+            Assert.AreEqual(corrupted, File.ReadAllText(pendingPath))
+            Assert.IsFalse(File.Exists(Path.Combine(fixture.Queue, fixture.Sha & ".review.json")))
+            Assert.AreEqual("Facture de test sans information reelle", File.ReadAllText(fixture.Source))
+        Finally
+            If Directory.Exists(folder) Then Directory.Delete(folder, True)
+        End Try
+    End Sub
+
 End Class

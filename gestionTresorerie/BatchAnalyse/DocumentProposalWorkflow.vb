@@ -116,7 +116,25 @@ Public NotInheritable Class DocumentProposalStore
             File.Move(temporary, destination)
             Return True
         Catch ex As IOException When File.Exists(destination)
-            ' Collision ou import concurrent du meme contenu : ne pas ecraser.
+            ' Une collision ne prouve pas que la proposition deja publiee est valide.
+            ' Ne jamais masquer un JSON altere par un simple resultat "deja present".
+            Dim existing As JObject
+            Try
+                existing = JObject.Parse(File.ReadAllText(destination, Encoding.UTF8))
+            Catch parseError As JsonException
+                Throw New InvalidDataException("Proposition existante invalide : JSON corrompu.", parseError)
+            End Try
+            Dim recordedHash = If(existing("source_sha256") Is Nothing, "", existing("source_sha256").ToString())
+            Dim recordedStatus = If(existing("statut") Is Nothing, "", existing("statut").ToString())
+            Dim schemaVersion = existing("schema_version")
+            Dim existingExtraction = existing("extraction")
+            If Not String.Equals(recordedHash, sha256, StringComparison.Ordinal) OrElse
+               Not String.Equals(recordedStatus, "EnAttenteValidation", StringComparison.Ordinal) OrElse
+               schemaVersion Is Nothing OrElse schemaVersion.Type <> JTokenType.Integer OrElse
+               Not String.Equals(schemaVersion.ToString(), "1", StringComparison.Ordinal) OrElse
+               existingExtraction Is Nothing OrElse existingExtraction.Type <> JTokenType.Object Then
+                Throw New InvalidDataException("Proposition existante invalide : schema ou empreinte incoherente.")
+            End If
             Return False
         Finally
             If File.Exists(temporary) Then File.Delete(temporary)

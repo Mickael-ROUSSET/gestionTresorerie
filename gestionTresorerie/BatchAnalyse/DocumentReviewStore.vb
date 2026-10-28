@@ -36,6 +36,20 @@ Public NotInheritable Class DocumentReviewStore
     End Function
 
     ''' <summary>
+    ''' Retourne les propositions encore en attente pour une future interface de revue.
+    ''' Chaque element passe par les memes controles que ReadPendingProposal :
+    ''' un fichier corrompu interrompt la liste plutot que d'etre affiche comme fiable.
+    ''' Lecture seule, sans approbation et sans ecriture comptable.
+    ''' </summary>
+    Public Function ListPendingProposals() As IReadOnlyList(Of JObject)
+        Dim proposals As New List(Of JObject)()
+        For Each sha In ListPending()
+            proposals.Add(ReadPendingProposal(sha))
+        Next
+        Return proposals
+    End Function
+
+    ''' <summary>
     ''' Charge une proposition encore en attente pour sa presentation en revue humaine.
     ''' Lecture seule : aucune approbation, aucun recu et aucune ecriture comptable.
     ''' RecordReview reverifie l'empreinte du document avant toute approbation.
