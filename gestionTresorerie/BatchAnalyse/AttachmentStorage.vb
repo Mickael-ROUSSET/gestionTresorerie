@@ -13,6 +13,9 @@ Public NotInheritable Class AttachmentStorage
     Public Shared Function StoreTemporaryFile(tempPath As String, desiredPath As String) As String
         If String.IsNullOrWhiteSpace(tempPath) Then Throw New ArgumentException("Chemin temporaire manquant.", NameOf(tempPath))
         If String.IsNullOrWhiteSpace(desiredPath) Then Throw New ArgumentException("Destination manquante.", NameOf(desiredPath))
+        If String.Equals(Path.GetFullPath(tempPath), Path.GetFullPath(desiredPath), StringComparison.OrdinalIgnoreCase) Then
+            Throw New ArgumentException("Le fichier temporaire et la destination doivent etre distincts.", NameOf(desiredPath))
+        End If
         Dim folder = Path.GetDirectoryName(desiredPath)
         If Not String.Equals(Path.GetFullPath(Path.GetDirectoryName(tempPath)), Path.GetFullPath(folder), StringComparison.OrdinalIgnoreCase) Then
             Throw New ArgumentException("Le fichier temporaire doit etre dans le dossier cible.", NameOf(tempPath))
