@@ -46,8 +46,7 @@ Public NotInheritable Class DocumentReviewStore
         Dim pendingPath = Path.Combine(_folder, sha & ".json")
         If Not File.Exists(pendingPath) Then Throw New FileNotFoundException("Proposition introuvable.", pendingPath)
 
-        Dim proposal = JObject.Parse(File.ReadAllText(pendingPath, Encoding.UTF8))
-        ValidatePendingProposal(proposal, sha)
+        Dim proposal = LoadPendingProposal(pendingPath, sha)
         If File.Exists(ReviewPath(sha)) Then
             Throw New InvalidOperationException("Cette proposition a deja fait l'objet d'une revue.")
         End If
@@ -76,8 +75,7 @@ Public NotInheritable Class DocumentReviewStore
         Dim pendingPath = Path.Combine(_folder, sha & ".json")
         If Not File.Exists(pendingPath) Then Throw New FileNotFoundException("Proposition introuvable.", pendingPath)
 
-        Dim proposal = JObject.Parse(File.ReadAllText(pendingPath, Encoding.UTF8))
-        ValidatePendingProposal(proposal, sha)
+        Dim proposal = LoadPendingProposal(pendingPath, sha)
 
         ' Une approbation doit correspondre au document exact qui a ete extrait.
         ' Une proposition obsolete peut etre rejetee, mais jamais approuvee.
@@ -119,6 +117,21 @@ Public NotInheritable Class DocumentReviewStore
         Finally
             If File.Exists(temporary) Then File.Delete(temporary)
         End Try
+    End Function
+
+    ''' <summary>
+    ''' Convertit les JSON tronques ou malformes en erreur documentaire explicite.
+    ''' La meme validation est appliquee a la lecture et a la decision humaine.
+    ''' </summary>
+    Private Shared Function LoadPendingProposal(pendingPath As String, sha As String) As JObject
+        Dim proposal As JObject
+        Try
+            proposal = JObject.Parse(File.ReadAllText(pendingPath, Encoding.UTF8))
+        Catch ex As JsonException
+            Throw New InvalidDataException("JSON de proposition invalide.", ex)
+        End Try
+        ValidatePendingProposal(proposal, sha)
+        Return proposal
     End Function
 
     ''' <summary>
