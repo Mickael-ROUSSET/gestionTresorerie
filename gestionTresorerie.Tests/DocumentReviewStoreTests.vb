@@ -241,4 +241,49 @@ Public Class DocumentReviewStoreTests
         End Try
     End Sub
 
+
+    <TestMethod>
+    Public Sub RevuePublieeResteIdempotenteSiLeDocumentSourceEstSupprime()
+        Dim folder = Path.Combine(Path.GetTempPath(), "review-replay-absent-" & Guid.NewGuid().ToString("N"))
+        Try
+            Dim fixture = CreateFixture(folder)
+            Dim store As New DocumentReviewStore(fixture.Queue)
+            Dim corrected As New JObject From {{"montant", 12.5}}
+            Assert.IsTrue(store.RecordReview(fixture.Sha, "validateur-fictif",
+                                             DocumentReviewStore.ReviewDecision.ApprouvePourSaisie, corrected))
+            Dim receiptPath = Path.Combine(fixture.Queue, fixture.Sha & ".review.json")
+            Dim originalReceipt = File.ReadAllText(receiptPath)
+            File.Delete(fixture.Source)
+
+            Assert.IsFalse(store.RecordReview(fixture.Sha, "autre-validateur",
+                                              DocumentReviewStore.ReviewDecision.ApprouvePourSaisie, corrected))
+            Assert.AreEqual(originalReceipt, File.ReadAllText(receiptPath))
+            Assert.AreEqual(0, store.ListPending().Count)
+        Finally
+            If Directory.Exists(folder) Then Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub RevuePublieeResteIdempotenteSiLaPropositionEstTronquee()
+        Dim folder = Path.Combine(Path.GetTempPath(), "review-replay-json-" & Guid.NewGuid().ToString("N"))
+        Try
+            Dim fixture = CreateFixture(folder)
+            Dim store As New DocumentReviewStore(fixture.Queue)
+            Assert.IsTrue(store.RecordReview(fixture.Sha, "validateur-fictif",
+                                             DocumentReviewStore.ReviewDecision.Rejete, Nothing))
+            Dim receiptPath = Path.Combine(fixture.Queue, fixture.Sha & ".review.json")
+            Dim originalReceipt = File.ReadAllText(receiptPath)
+            Dim pendingPath = Path.Combine(fixture.Queue, fixture.Sha & ".json")
+            File.WriteAllText(pendingPath, "{")
+
+            Assert.IsFalse(store.RecordReview(fixture.Sha, "autre-validateur",
+                                              DocumentReviewStore.ReviewDecision.Rejete, Nothing))
+            Assert.AreEqual(originalReceipt, File.ReadAllText(receiptPath))
+            Assert.AreEqual("{", File.ReadAllText(pendingPath))
+        Finally
+            If Directory.Exists(folder) Then Directory.Delete(folder, True)
+        End Try
+    End Sub
+
 End Class
