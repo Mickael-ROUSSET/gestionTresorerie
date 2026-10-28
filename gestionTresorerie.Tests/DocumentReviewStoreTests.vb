@@ -131,4 +131,55 @@ Public Class DocumentReviewStoreTests
         End Try
     End Sub
 
+    <TestMethod>
+    Public Sub LectureEnAttenteExposeLesDonneesSansValiderEtRefuseUneRevueDejaFaite()
+        Dim folder = Path.Combine(Path.GetTempPath(), "review-read-" & Guid.NewGuid().ToString("N"))
+        Try
+            Dim fixture = CreateFixture(folder)
+            Dim pendingPath = Path.Combine(fixture.Queue, fixture.Sha & ".json")
+            Dim originalProposal = File.ReadAllText(pendingPath)
+            Dim store As New DocumentReviewStore(fixture.Queue)
+
+            Dim proposal = store.ReadPendingProposal(fixture.Sha.ToLowerInvariant())
+            Assert.AreEqual("EnAttenteValidation", proposal("statut").ToString())
+            Assert.AreEqual("moteur-test", proposal("moteur").ToString())
+            Assert.IsNotNull(proposal("extraction")("montant"))
+            Assert.AreEqual(originalProposal, File.ReadAllText(pendingPath))
+            Assert.AreEqual("Facture de test sans information reelle", File.ReadAllText(fixture.Source))
+            Assert.IsFalse(File.Exists(Path.Combine(fixture.Queue, fixture.Sha & ".review.json")))
+
+            Assert.IsTrue(store.RecordReview(fixture.Sha, "validateur-fictif",
+                                             DocumentReviewStore.ReviewDecision.Rejete, Nothing))
+            Assert.ThrowsExactly(Of InvalidOperationException)(
+                Sub() store.ReadPendingProposal(fixture.Sha))
+            Assert.AreEqual(originalProposal, File.ReadAllText(pendingPath))
+        Finally
+            If Directory.Exists(folder) Then Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub LectureRefuseEmpreinteInvalidePropositionAbsenteOuAltere()
+        Dim folder = Path.Combine(Path.GetTempPath(), "review-read-" & Guid.NewGuid().ToString("N"))
+        Try
+            Dim fixture = CreateFixture(folder)
+            Dim store As New DocumentReviewStore(fixture.Queue)
+            Assert.ThrowsExactly(Of ArgumentException)(
+                Sub() store.ReadPendingProposal("../hors-dossier"))
+            Assert.ThrowsExactly(Of FileNotFoundException)(
+                Sub() store.ReadPendingProposal(New String("0"c, 64)))
+
+            Dim pendingPath = Path.Combine(fixture.Queue, fixture.Sha & ".json")
+            Dim proposal = JObject.Parse(File.ReadAllText(pendingPath))
+            proposal("source_sha256") = New String("0"c, 64)
+            File.WriteAllText(pendingPath, proposal.ToString())
+            Assert.ThrowsExactly(Of InvalidDataException)(
+                Sub() store.ReadPendingProposal(fixture.Sha))
+            Assert.IsFalse(File.Exists(Path.Combine(fixture.Queue, fixture.Sha & ".review.json")))
+            Assert.AreEqual("Facture de test sans information reelle", File.ReadAllText(fixture.Source))
+        Finally
+            If Directory.Exists(folder) Then Directory.Delete(folder, True)
+        End Try
+    End Sub
+
 End Class
