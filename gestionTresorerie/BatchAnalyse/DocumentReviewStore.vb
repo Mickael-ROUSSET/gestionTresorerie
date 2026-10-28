@@ -29,7 +29,12 @@ Public NotInheritable Class DocumentReviewStore
         For Each filePath In Directory.EnumerateFiles(_folder, "*.json", SearchOption.TopDirectoryOnly)
             Dim sha = Path.GetFileNameWithoutExtension(filePath)
             If Not IsSha256(sha) Then Continue For
-            If Not File.Exists(ReviewPath(sha)) Then result.Add(sha)
+            Dim receiptPath = ReviewPath(sha)
+            If File.Exists(receiptPath) Then
+                ValidateReviewReceipt(receiptPath, sha)
+            Else
+                result.Add(sha)
+            End If
         Next
         result.Sort(StringComparer.Ordinal)
         Return result
@@ -62,6 +67,7 @@ Public NotInheritable Class DocumentReviewStore
 
         Dim proposal = LoadPendingProposal(pendingPath, sha)
         If File.Exists(ReviewPath(sha)) Then
+            ValidateReviewReceipt(ReviewPath(sha), sha)
             Throw New InvalidOperationException("Cette proposition a deja fait l'objet d'une revue.")
         End If
         Return proposal
@@ -88,7 +94,10 @@ Public NotInheritable Class DocumentReviewStore
         Dim sha = sourceSha256.ToUpperInvariant()
         ' Une decision deja publiee reste definitive : un nouvel appel ne doit pas
         ' revalider un document source supprime ou modifie depuis la revue.
-        If File.Exists(ReviewPath(sha)) Then Return False
+        If File.Exists(ReviewPath(sha)) Then
+            ValidateReviewReceipt(ReviewPath(sha), sha)
+            Return False
+        End If
 
         Dim pendingPath = Path.Combine(_folder, sha & ".json")
         If Not File.Exists(pendingPath) Then Throw New FileNotFoundException("Proposition introuvable.", pendingPath)
@@ -131,6 +140,7 @@ Public NotInheritable Class DocumentReviewStore
             File.Move(temporary, destination)
             Return True
         Catch ex As IOException When File.Exists(destination)
+            ValidateReviewReceipt(destination, sha)
             Return False
         Finally
             If File.Exists(temporary) Then File.Delete(temporary)
@@ -167,6 +177,31 @@ Public NotInheritable Class DocumentReviewStore
            Not String.Equals(schemaVersion.ToString(), "1", StringComparison.Ordinal) OrElse
            extraction Is Nothing OrElse extraction.Type <> JTokenType.Object Then
             Throw New InvalidDataException("Schema ou contenu de proposition invalide.")
+        End If
+    End Sub
+
+    ''' <summary>
+    ''' Un recu present mais altere ne doit pas faire disparaitre silencieusement
+    ''' une proposition du catalogue ni etre traite comme une decision fiable.
+    ''' </summary>
+    Private Shared Sub ValidateReviewReceipt(receiptPath As String, sha As String)
+        Dim receipt As JObject
+        Try
+            receipt = JObject.Parse(File.ReadAllText(receiptPath, Encoding.UTF8))
+        Catch ex As JsonException
+            Throw New InvalidDataException("Recu de revue invalide : JSON corrompu.", ex)
+        End Try
+        Dim version = receipt("schema_version")
+        Dim recordedSha = If(receipt("source_sha256") Is Nothing, "", receipt("source_sha256").ToString())
+        Dim decision = If(receipt("decision") Is Nothing, "", receipt("decision").ToString())
+        Dim reviewer = If(receipt("validateur") Is Nothing, "", receipt("validateur").ToString())
+        If version Is Nothing OrElse version.Type <> JTokenType.Integer OrElse
+           Not String.Equals(version.ToString(), "1", StringComparison.Ordinal) OrElse
+           Not String.Equals(recordedSha, sha, StringComparison.Ordinal) OrElse
+           (Not String.Equals(decision, ReviewDecision.Rejete.ToString(), StringComparison.Ordinal) AndAlso
+            Not String.Equals(decision, ReviewDecision.ApprouvePourSaisie.ToString(), StringComparison.Ordinal)) OrElse
+           String.IsNullOrWhiteSpace(reviewer) Then
+            Throw New InvalidDataException("Recu de revue invalide : schema ou decision incoherente.")
         End If
     End Sub
 

@@ -341,4 +341,38 @@ Public Class DocumentReviewStoreTests
         End Try
     End Sub
 
+    <TestMethod>
+    Public Sub RecuDeRevueAltereBloqueLeCatalogueEtLaRepriseSansEcrasement()
+        Dim folder = Path.Combine(Path.GetTempPath(), "review-receipt-fictif-" & Guid.NewGuid().ToString("N"))
+        Try
+            Dim fixture = CreateFixture(folder)
+            Dim store As New DocumentReviewStore(fixture.Queue)
+            Assert.IsTrue(store.RecordReview(fixture.Sha, "validateur-fictif",
+                                             DocumentReviewStore.ReviewDecision.Rejete, Nothing))
+            Dim receiptPath = Path.Combine(fixture.Queue, fixture.Sha & ".review.json")
+            Dim original = File.ReadAllText(receiptPath)
+            Dim altered = JObject.Parse(original)
+            altered("source_sha256") = New String("0"c, 64)
+
+            For Each invalid In New String() {"{json-tronque", altered.ToString()}
+                File.WriteAllText(receiptPath, invalid)
+                Assert.ThrowsExactly(Of InvalidDataException)(Sub() store.ListPending())
+                Assert.ThrowsExactly(Of InvalidDataException)(Sub() store.ListPendingProposals())
+                Assert.ThrowsExactly(Of InvalidDataException)(
+                    Sub() store.RecordReview(fixture.Sha, "autre-validateur",
+                                             DocumentReviewStore.ReviewDecision.Rejete, Nothing))
+                Assert.AreEqual(invalid, File.ReadAllText(receiptPath))
+                Assert.AreEqual("Facture de test sans information reelle", File.ReadAllText(fixture.Source))
+            Next
+
+            File.WriteAllText(receiptPath, original)
+            Assert.AreEqual(0, store.ListPending().Count)
+            Assert.IsFalse(store.RecordReview(fixture.Sha, "autre-validateur",
+                                              DocumentReviewStore.ReviewDecision.Rejete, Nothing))
+            Assert.AreEqual(original, File.ReadAllText(receiptPath))
+        Finally
+            If Directory.Exists(folder) Then Directory.Delete(folder, True)
+        End Try
+    End Sub
+
 End Class
