@@ -68,7 +68,7 @@ Public NotInheritable Class GmailImportJournal
         ' Garder la compatibilite avec les cles historiques deja enregistrees.
         Try
             Dim account = New UTF8Encoding(False, True).GetString(Convert.FromHexString(parts(0)))
-            Return Not String.IsNullOrWhiteSpace(account) AndAlso account.IndexOf(ChrW(0)) < 0
+            Return Not String.IsNullOrWhiteSpace(account) AndAlso Not account.Any(Function(character) Char.IsControl(character))
         Catch ex As DecoderFallbackException
             Return False
         End Try
@@ -79,6 +79,9 @@ Public NotInheritable Class GmailImportJournal
         If uidValidity = 0UI OrElse uid = 0UI Then Throw New ArgumentOutOfRangeException(NameOf(uid), "UID et UIDVALIDITY doivent etre non nuls.")
         ' Rejeter les caracteres de controle et les sequences Unicode invalides
         ' avant de construire une cle : elles ne doivent jamais identifier un compte.
+        For Each character As Char In account
+            If Char.IsControl(character) Then Throw New ArgumentException("Compte Gmail invalide.", NameOf(account))
+        Next
         Dim normalizedAccount = account.Trim().ToLowerInvariant()
         For Each character As Char In normalizedAccount
             If Char.IsControl(character) Then Throw New ArgumentException("Compte Gmail invalide.", NameOf(account))
