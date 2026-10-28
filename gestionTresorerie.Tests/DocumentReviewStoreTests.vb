@@ -182,4 +182,35 @@ Public Class DocumentReviewStoreTests
         End Try
     End Sub
 
+
+    <TestMethod>
+    Public Sub LectureEtApprobationRefusentSchemaOuExtractionAlteres()
+        For Each invalidField As String In New String() {"schema_version", "extraction"}
+            Dim folder = Path.Combine(Path.GetTempPath(), "review-schema-" & Guid.NewGuid().ToString("N"))
+            Try
+                Dim fixture = CreateFixture(folder)
+                Dim pendingPath = Path.Combine(fixture.Queue, fixture.Sha & ".json")
+                Dim proposal = JObject.Parse(File.ReadAllText(pendingPath))
+                If invalidField = "schema_version" Then
+                    proposal("schema_version") = 2
+                Else
+                    proposal("extraction") = "contenu non structure"
+                End If
+                File.WriteAllText(pendingPath, proposal.ToString())
+
+                Dim store As New DocumentReviewStore(fixture.Queue)
+                Assert.ThrowsExactly(Of InvalidDataException)(
+                    Sub() store.ReadPendingProposal(fixture.Sha))
+                Dim corrected As New JObject From {{"montant", 12.5}}
+                Assert.ThrowsExactly(Of InvalidDataException)(
+                    Sub() store.RecordReview(fixture.Sha, "validateur-fictif",
+                                             DocumentReviewStore.ReviewDecision.ApprouvePourSaisie, corrected))
+                Assert.IsFalse(File.Exists(Path.Combine(fixture.Queue, fixture.Sha & ".review.json")))
+                Assert.AreEqual("Facture de test sans information reelle", File.ReadAllText(fixture.Source))
+            Finally
+                If Directory.Exists(folder) Then Directory.Delete(folder, True)
+            End Try
+        Next
+    End Sub
+
 End Class
