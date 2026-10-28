@@ -36,6 +36,25 @@ Public NotInheritable Class DocumentReviewStore
     End Function
 
     ''' <summary>
+    ''' Charge une proposition encore en attente pour sa presentation en revue humaine.
+    ''' Lecture seule : aucune approbation, aucun recu et aucune ecriture comptable.
+    ''' RecordReview reverifie l'empreinte du document avant toute approbation.
+    ''' </summary>
+    Public Function ReadPendingProposal(sourceSha256 As String) As JObject
+        If Not IsSha256(sourceSha256) Then Throw New ArgumentException("Empreinte SHA-256 invalide.", NameOf(sourceSha256))
+        Dim sha = sourceSha256.ToUpperInvariant()
+        Dim pendingPath = Path.Combine(_folder, sha & ".json")
+        If Not File.Exists(pendingPath) Then Throw New FileNotFoundException("Proposition introuvable.", pendingPath)
+
+        Dim proposal = JObject.Parse(File.ReadAllText(pendingPath, Encoding.UTF8))
+        ValidatePendingProposal(proposal, sha)
+        If File.Exists(ReviewPath(sha)) Then
+            Throw New InvalidOperationException("Cette proposition a deja fait l'objet d'une revue.")
+        End If
+        Return proposal
+    End Function
+
+    ''' <summary>
     ''' Une approbation autorise seulement une future saisie manuelle/controlee.
     ''' Elle ne cree aucune operation SQL. False indique une decision deja presente.
     ''' </summary>
@@ -58,12 +77,7 @@ Public NotInheritable Class DocumentReviewStore
         If Not File.Exists(pendingPath) Then Throw New FileNotFoundException("Proposition introuvable.", pendingPath)
 
         Dim proposal = JObject.Parse(File.ReadAllText(pendingPath, Encoding.UTF8))
-        Dim recordedHash = If(proposal("source_sha256") Is Nothing, "", proposal("source_sha256").ToString())
-        Dim recordedStatus = If(proposal("statut") Is Nothing, "", proposal("statut").ToString())
-        If Not String.Equals(recordedHash, sha, StringComparison.Ordinal) OrElse
-           Not String.Equals(recordedStatus, "EnAttenteValidation", StringComparison.Ordinal) Then
-            Throw New InvalidDataException("Proposition incoherente ou non validable.")
-        End If
+        ValidatePendingProposal(proposal, sha)
 
         ' Une approbation doit correspondre au document exact qui a ete extrait.
         ' Une proposition obsolete peut etre rejetee, mais jamais approuvee.
@@ -106,6 +120,24 @@ Public NotInheritable Class DocumentReviewStore
             If File.Exists(temporary) Then File.Delete(temporary)
         End Try
     End Function
+
+    ''' <summary>
+    ''' Validation partagee : une proposition alteree ne doit etre ni presentee
+    ''' comme valide, ni approuvee directement en contournant l'interface.
+    ''' </summary>
+    Private Shared Sub ValidatePendingProposal(proposal As JObject, sha As String)
+        Dim recordedHash = If(proposal("source_sha256") Is Nothing, "", proposal("source_sha256").ToString())
+        Dim recordedStatus = If(proposal("statut") Is Nothing, "", proposal("statut").ToString())
+        Dim schemaVersion = proposal("schema_version")
+        Dim extraction = proposal("extraction")
+        If Not String.Equals(recordedHash, sha, StringComparison.Ordinal) OrElse
+           Not String.Equals(recordedStatus, "EnAttenteValidation", StringComparison.Ordinal) OrElse
+           schemaVersion Is Nothing OrElse schemaVersion.Type <> JTokenType.Integer OrElse
+           Not String.Equals(schemaVersion.ToString(), "1", StringComparison.Ordinal) OrElse
+           extraction Is Nothing OrElse extraction.Type <> JTokenType.Object Then
+            Throw New InvalidDataException("Schema ou contenu de proposition invalide.")
+        End If
+    End Sub
 
     Private Function ReviewPath(sha As String) As String
         Return Path.Combine(_folder, sha.ToUpperInvariant() & ".review.json")
