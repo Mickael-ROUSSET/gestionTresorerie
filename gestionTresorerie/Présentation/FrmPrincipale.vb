@@ -20,6 +20,7 @@ Public Class FrmPrincipale
 
     Private Sub FrmPrincipale_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Try
+            InstallerMenuRevuePropositions()
             EnvironmentManager.LoadEnvironment()
             Logger.INFO("Environnement actif : " & EnvironmentManager.GetEnvironmentLabel())
             StatusLabelEnv.Text = "Environnement : " & EnvironmentManager.GetEnvironmentLabel
@@ -41,6 +42,28 @@ Public Class FrmPrincipale
             Logger.ERR($"Une erreur est survenue lors de l'initialisation : {ex.Message}")
         End Try
     End Sub
+    ''' <summary>
+    ''' La revue est declenchee uniquement par l'utilisateur sur un dossier choisi.
+    ''' Elle ne lance ni connexion Gmail ni import comptable.
+    ''' </summary>
+    Private Sub InstallerMenuRevuePropositions()
+        Dim item As New ToolStripMenuItem("Revoir les propositions documentaires...")
+        AddHandler item.Click, AddressOf OuvrirRevuePropositions
+        BatchToolStripMenuItem.DropDownItems.Add(item)
+    End Sub
+
+    Private Sub OuvrirRevuePropositions(sender As Object, e As EventArgs)
+        Using chooser As New FolderBrowserDialog With {
+            .Description = "Selectionnez le dossier local des propositions a examiner.",
+            .ShowNewFolderButton = False
+        }
+            If chooser.ShowDialog(Me) <> DialogResult.OK Then Return
+            Using review As New FrmRevuePropositions(chooser.SelectedPath)
+                review.ShowDialog(Me)
+            End Using
+        End Using
+    End Sub
+
     Private Sub initIndiceColDgv()
 
         'Récupère le rang des colonnes du datagridview
