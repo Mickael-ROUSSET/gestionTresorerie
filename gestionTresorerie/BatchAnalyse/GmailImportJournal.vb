@@ -12,12 +12,18 @@ Public NotInheritable Class GmailImportJournal
     Public Sub New(journalPath As String)
         If String.IsNullOrWhiteSpace(journalPath) Then Throw New ArgumentException("Chemin de journal requis.", NameOf(journalPath))
         _journalPath = journalPath
-        If File.Exists(journalPath) Then
-            ' Ne pas accepter un journal en cours d'ecriture ou tronque.
+        ' File.Exists peut renvoyer False pour un dossier ou un acces refuse.
+        ' Ouvrir explicitement : seul un fichier vraiment absent autorise un premier import.
+        Try
             Using stream As New FileStream(journalPath, FileMode.Open, FileAccess.Read, FileShare.Read)
                 _processed.UnionWith(ReadEntries(stream))
             End Using
-        End If
+        Catch ex As FileNotFoundException
+            ' Premier import : le journal sera cree apres le premier succes.
+        Catch ex As DirectoryNotFoundException
+            ' Le dossier d'import peut ne pas encore exister lors de la creation du journal.
+            ' ProcessAttachments prepare ce dossier avant de construire le journal.
+        End Try
     End Sub
 
     Private Shared Function ReadEntries(stream As FileStream) As HashSet(Of String)
