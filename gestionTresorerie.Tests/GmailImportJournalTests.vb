@@ -182,4 +182,51 @@ Public Class GmailImportJournalTests
             If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
         End Try
     End Sub
+
+    <TestMethod>
+    Public Sub JournalHistoriqueAvecBOMEtLignesVidesResteLisible()
+        Dim fileName = TemporaryJournal()
+        Try
+            Directory.CreateDirectory(Path.GetDirectoryName(fileName))
+            Dim firstKey = GmailImportJournal.MakeKey("fictif@example.invalid", 11UI, 12UI)
+            Dim secondKey = GmailImportJournal.MakeKey("fictif@example.invalid", 11UI, 13UI)
+            Dim contents = vbCrLf & firstKey & vbCrLf & vbCrLf & firstKey & vbCrLf
+            File.WriteAllText(fileName, contents, New System.Text.UTF8Encoding(True))
+            Dim originalBytes = File.ReadAllBytes(fileName)
+
+            Dim journal As New GmailImportJournal(fileName)
+            Assert.IsTrue(journal.HasEntries)
+            Assert.IsTrue(journal.IsProcessed(firstKey))
+            Assert.IsFalse(journal.IsProcessed(secondKey))
+            CollectionAssert.AreEqual(originalBytes, File.ReadAllBytes(fileName))
+
+            journal.MarkProcessed(secondKey)
+            Dim restarted As New GmailImportJournal(fileName)
+            Assert.IsTrue(restarted.IsProcessed(firstKey))
+            Assert.IsTrue(restarted.IsProcessed(secondKey))
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub LignesVidesAccepteesMaisLigneBlancheInvalideRefusee()
+        Dim fileName = TemporaryJournal()
+        Try
+            Directory.CreateDirectory(Path.GetDirectoryName(fileName))
+            File.WriteAllText(fileName, vbCrLf & vbLf)
+            Dim journal As New GmailImportJournal(fileName)
+            Assert.IsFalse(journal.HasEntries)
+
+            File.WriteAllText(fileName, vbCrLf & " " & vbLf)
+            Dim originalBytes = File.ReadAllBytes(fileName)
+            Assert.ThrowsExactly(Of InvalidDataException)(
+                Sub()
+                    Dim ignored As New GmailImportJournal(fileName)
+                End Sub)
+            CollectionAssert.AreEqual(originalBytes, File.ReadAllBytes(fileName))
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
 End Class

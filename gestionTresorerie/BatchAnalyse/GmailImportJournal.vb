@@ -31,10 +31,14 @@ Public NotInheritable Class GmailImportJournal
         Using reader As New StreamReader(stream, New UTF8Encoding(False, True), True, 1024, True)
             Dim entry = reader.ReadLine()
             While entry IsNot Nothing
-                If Not IsValidKey(entry) Then
-                    Throw New InvalidDataException("Journal Gmail invalide : cle malformee.")
+                ' Les anciens journaux peuvent contenir des lignes vides.
+                ' Les ignorer sans accepter de cles malformees ni de ligne tronquee.
+                If entry.Length > 0 Then
+                    If Not IsValidKey(entry) Then
+                        Throw New InvalidDataException("Journal Gmail invalide : cle malformee.")
+                    End If
+                    entries.Add(entry)
                 End If
-                entries.Add(entry)
                 entry = reader.ReadLine()
             End While
         End Using
