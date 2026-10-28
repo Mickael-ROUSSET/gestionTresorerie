@@ -33,16 +33,23 @@ Public Class AttachmentStorageTests
             Dim original = Path.Combine(folder, "facture.pdf")
             File.WriteAllText(original, "facture fictive a conserver")
 
-            Assert.ThrowsException(Of ArgumentException)(
-                Sub() AttachmentStorage.StoreTemporaryFile(original, original))
-            Assert.ThrowsException(Of ArgumentException)(
-                Sub() AttachmentStorage.StoreTemporaryFile(original, Path.Combine(folder, ".", "facture.pdf")))
+            AssertDestinationIdentiqueRejetee(original, original)
+            AssertDestinationIdentiqueRejetee(original, Path.Combine(folder, ".", "facture.pdf"))
 
             Assert.IsTrue(File.Exists(original))
             Assert.AreEqual("facture fictive a conserver", File.ReadAllText(original))
             Assert.IsFalse(File.Exists(Path.Combine(folder, ".gmail-storage.lock")))
         Finally
             Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    Private Shared Sub AssertDestinationIdentiqueRejetee(temp As String, desired As String)
+        Try
+            AttachmentStorage.StoreTemporaryFile(temp, desired)
+            Assert.Fail("Un chemin de destination identique doit etre refuse.")
+        Catch ex As ArgumentException
+            Assert.AreEqual("desiredPath", ex.ParamName)
         End Try
     End Sub
 
