@@ -3,6 +3,49 @@
 Public Class FrmPrincipale
     Inherits System.Windows.Forms.Form
 
+    ' Instantané fourni explicitement par un appelant ; conservé en mémoire uniquement.
+    Private _revuePropositions As PropositionRevue
+
+    Public Sub New()
+        InitializeComponent()
+
+        Dim menuRevue As New ToolStripMenuItem With {
+            .Name = "RevuePropositionsToolStripMenuItem",
+            .Text = "Revue des propositions (lecture seule)"}
+        AddHandler menuRevue.Click, AddressOf RevuePropositions_Click
+        AnalyseToolStripMenuItem.DropDownItems.Add(menuRevue)
+    End Sub
+
+    ''' <summary>
+    ''' Ouvre une consultation du résultat fourni, sans chargement ni écriture externe.
+    ''' L'appelant doit appeler cette méthode sur le thread de l'interface.
+    ''' </summary>
+    Public Sub OuvrirRevuePropositions(resultat As PropositionDocumentService.Resultat)
+        If resultat Is Nothing Then Throw New ArgumentNullException(NameOf(resultat))
+
+        _revuePropositions = New PropositionRevue(resultat)
+        AfficherRevuePropositions()
+    End Sub
+
+    Private Sub RevuePropositions_Click(sender As Object, e As EventArgs)
+        If _revuePropositions Is Nothing Then
+            MessageBox.Show(Me,
+                            "Aucune proposition n'a été fournie actuellement par un appelant autorisé. " &
+                            "Cette consultation en lecture seule ne charge aucune donnée.",
+                            "Revue des propositions (lecture seule)",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information)
+            Return
+        End If
+
+        AfficherRevuePropositions()
+    End Sub
+
+    Private Sub AfficherRevuePropositions()
+        Using formulaire As New FrmApercuPropositions(_revuePropositions)
+            formulaire.ShowDialog(Me)
+        End Using
+    End Sub
+
     ' Variables de classe pour utiliser l'index des colonnes du datagridview
     Private _icolEtat As Integer
     Private _icolEtatMasque As Integer
