@@ -172,10 +172,13 @@ Public NotInheritable Class FrmRevuePropositions
                                 MessageBoxIcon.Information)
             End If
         Catch ex As Exception
+            ' Ne pas effacer une correction saisie par l'utilisateur si la
+            ' decision echoue (source modifiee, recu invalide, erreur disque).
+            ' Il peut corriger le probleme puis retenter la validation.
             MessageBox.Show(Me, ex.Message, "Decision non enregistree",
                             MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Finally
-            ReloadProposals()
+            Return
         End Try
+        ReloadProposals()
     End Sub
 End Class
