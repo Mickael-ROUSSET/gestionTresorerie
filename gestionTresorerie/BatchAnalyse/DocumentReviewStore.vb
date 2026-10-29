@@ -195,12 +195,21 @@ Public NotInheritable Class DocumentReviewStore
         Dim recordedSha = If(receipt("source_sha256") Is Nothing, "", receipt("source_sha256").ToString())
         Dim decision = If(receipt("decision") Is Nothing, "", receipt("decision").ToString())
         Dim reviewer = If(receipt("validateur") Is Nothing, "", receipt("validateur").ToString())
+        ' Un recu sans date UTC fiable ne peut pas servir de preuve de revue.
+        Dim timestamp = receipt("revue_utc")
+        Dim reviewedAt As DateTime
+        Dim validTimestamp = timestamp IsNot Nothing AndAlso timestamp.Type = JTokenType.String AndAlso
+                             DateTime.TryParseExact(timestamp.ToString(), "O",
+                                                    Globalization.CultureInfo.InvariantCulture,
+                                                    Globalization.DateTimeStyles.RoundtripKind,
+                                                    reviewedAt) AndAlso reviewedAt.Kind = DateTimeKind.Utc
         If version Is Nothing OrElse version.Type <> JTokenType.Integer OrElse
            Not String.Equals(version.ToString(), "1", StringComparison.Ordinal) OrElse
            Not String.Equals(recordedSha, sha, StringComparison.Ordinal) OrElse
            (Not String.Equals(decision, ReviewDecision.Rejete.ToString(), StringComparison.Ordinal) AndAlso
             Not String.Equals(decision, ReviewDecision.ApprouvePourSaisie.ToString(), StringComparison.Ordinal)) OrElse
            String.IsNullOrWhiteSpace(reviewer) OrElse
+           Not validTimestamp OrElse
            (String.Equals(decision, ReviewDecision.ApprouvePourSaisie.ToString(), StringComparison.Ordinal) AndAlso
             (Not TypeOf receipt("donnees_corrigees") Is JObject OrElse
              Not DirectCast(receipt("donnees_corrigees"), JObject).HasValues)) Then
