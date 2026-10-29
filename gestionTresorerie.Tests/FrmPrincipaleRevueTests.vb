@@ -100,4 +100,65 @@ Public Class FrmPrincipaleRevueTests
                          End Using
                      End Sub)
     End Sub
+
+    <TestMethod>
+    Public Sub MenuCorrectionFictive_ConserveLaSessionSansModifierLeDocument()
+        SurThreadSta(Sub()
+                         Dim cheque As New Cheque With {.montant_numerique = 12.34D, .devise = "EUR",
+                             .dateChq = "20260204", .numero_du_cheque = "0000123"}
+                         Dim resultat = New PropositionDocumentService().Proposer({
+                             New PropositionDocumentService.Entree(cheque, "cheque-fictif",
+                                 PropositionMouvement.SensMouvement.Credit)})
+                         Using principale As New FrmPrincipale()
+                             principale.PreparerRevuePropositions(resultat, True)
+                             Dim menu = DirectCast(principale.MainMenuStrip.Items.Find(
+                                 "RevuePropositionsToolStripMenuItem", True)(0), ToolStripMenuItem)
+                             Assert.AreEqual("Revue des propositions (correction en mémoire)", menu.Text)
+                             Using revue = principale.ConstruireFormulaireRevuePropositions()
+                                 Dim grille = DirectCast(revue.Controls.Find("grillePropositions", True)(0), DataGridView)
+                                 Assert.AreEqual(1, revue.Controls.Find("boutonCorriger", True).Length)
+                                 grille.Rows(0).Selected = True
+                                 Using correction = revue.CreerFormulaireCorrectionSelectionnee()
+                                     DirectCast(correction.Controls.Find("montant", True)(0), TextBox).Text = "88"
+                                     Assert.IsTrue(correction.AppliquerCorrection())
+                                 End Using
+                             End Using
+                             Using revueRouverte = principale.ConstruireFormulaireRevuePropositions()
+                                 Dim grille = DirectCast(revueRouverte.Controls.Find(
+                                     "grillePropositions", True)(0), DataGridView)
+                                 Assert.AreEqual(88D, grille.Rows(0).Cells("Montant").Value)
+                                 Assert.AreEqual("En attente de revue humaine",
+                                                 grille.Rows(0).Cells("Statut").Value)
+                             End Using
+                             Assert.AreEqual(12.34D, cheque.montant_numerique)
+                             Assert.IsFalse(principale.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
+
+    <TestMethod>
+    Public Sub RetourLectureSeule_DesactiveCorrectionEtConserveLeMenuHistorique()
+        SurThreadSta(Sub()
+                         Dim resultat = New PropositionDocumentService().Proposer({
+                             New PropositionDocumentService.Entree(
+                                 New Facture With {.montant_ttc = 25D, .devise = "EUR",
+                                     .date_facture = "2026-02-03", .numero_facture = "F-FICTIVE"},
+                                 "facture-fictive", PropositionMouvement.SensMouvement.Debit)})
+                         Using principale As New FrmPrincipale()
+                             principale.PreparerRevuePropositions(resultat, True)
+                             Assert.ThrowsExactly(Of ArgumentNullException)(
+                                 Sub() principale.PreparerRevuePropositions(Nothing, True))
+                             principale.PreparerRevuePropositions(resultat)
+                             Dim menu = DirectCast(principale.MainMenuStrip.Items.Find(
+                                 "RevuePropositionsToolStripMenuItem", True)(0), ToolStripMenuItem)
+                             Assert.AreEqual("Revue des propositions (lecture seule)", menu.Text)
+                             Using revue = principale.ConstruireFormulaireRevuePropositions()
+                                 Assert.AreEqual(0, revue.Controls.Find("boutonCorriger", True).Length)
+                                 Assert.AreEqual(1, DirectCast(revue.Controls.Find(
+                                     "grillePropositions", True)(0), DataGridView).Rows.Count)
+                             End Using
+                             Assert.IsFalse(principale.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
 End Class

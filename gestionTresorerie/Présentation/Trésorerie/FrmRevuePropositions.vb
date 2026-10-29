@@ -99,6 +99,9 @@ Public NotInheritable Class FrmRevuePropositions
             propositions.ClearSelection()
         End If
         Controls.Add(disposition)
+        ' Le menu peut rouvrir la même session après une correction : afficher
+        ' les valeurs actuelles, et non l'instantané initial de la revue.
+        If sessionCorrection IsNot Nothing Then ActualiserPropositions()
     End Sub
 
     Private Sub SelectionPropositionChangee(sender As Object, e As EventArgs)
