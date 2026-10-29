@@ -11,6 +11,8 @@ Imports System.Collections.Generic
 ''' </summary>
 Public NotInheritable Class SessionCorrectionPropositions
     Private ReadOnly _propositions As New List(Of PropositionMouvement)()
+    Private ReadOnly _propositionsInitiales As New List(Of PropositionMouvement)()
+    Private ReadOnly _rejetsInitiaux As New List(Of PropositionDocumentService.Rejet)()
     Private ReadOnly indices As New Dictionary(Of String, Integer)(StringComparer.Ordinal)
 
     Public Sub New(resultat As PropositionDocumentService.Resultat)
@@ -22,6 +24,11 @@ Public NotInheritable Class SessionCorrectionPropositions
             End If
             indices.Add(proposition.CleSource, _propositions.Count)
             _propositions.Add(proposition)
+            _propositionsInitiales.Add(proposition)
+        Next
+        For Each rejet In resultat.Rejets
+            If rejet Is Nothing Then Throw New ArgumentException("Diagnostic de rejet absent.", NameOf(resultat))
+            _rejetsInitiaux.Add(rejet)
         Next
     End Sub
 
@@ -29,6 +36,20 @@ Public NotInheritable Class SessionCorrectionPropositions
     Public ReadOnly Property Propositions As IReadOnlyList(Of PropositionMouvement)
         Get
             Return New List(Of PropositionMouvement)(_propositions).AsReadOnly()
+        End Get
+    End Property
+
+    ''' <summary>Origines immuables du lot, conservées même après correction.</summary>
+    Public ReadOnly Property PropositionsInitiales As IReadOnlyList(Of PropositionMouvement)
+        Get
+            Return New List(Of PropositionMouvement)(_propositionsInitiales).AsReadOnly()
+        End Get
+    End Property
+
+    ''' <summary>Diagnostics initiaux immuables : appartiennent au même lot que les propositions.</summary>
+    Public ReadOnly Property RejetsInitiaux As IReadOnlyList(Of PropositionDocumentService.Rejet)
+        Get
+            Return New List(Of PropositionDocumentService.Rejet)(_rejetsInitiaux).AsReadOnly()
         End Get
     End Property
 
