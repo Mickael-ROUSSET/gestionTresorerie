@@ -81,7 +81,8 @@ Public NotInheritable Class FrmCorrectionProposition
         correction = Nothing
         erreur.Text = ""
         Dim dateValeur As DateTime
-        If Not DateTime.TryParseExact(dateSaisie.Text, {"yyyy-MM-dd", "yyyy-MM-dd HH:mm:ss.fffffff"},
+        If Not DateTime.TryParseExact(dateSaisie.Text, {"yyyy-MM-dd", "yyyy-MM-dd HH:mm",
+                                                  "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss.fffffff"},
                                       CultureInfo.InvariantCulture, DateTimeStyles.None, dateValeur) Then
             erreur.Text = "Date invalide : saisir aaaa-MM-jj."
             Return False
