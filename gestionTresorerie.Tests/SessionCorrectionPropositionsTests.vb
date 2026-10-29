@@ -85,4 +85,44 @@ Public Class SessionCorrectionPropositionsTests
                 Dim invalide As New SessionCorrectionPropositions(Nothing)
             End Sub)
     End Sub
+
+    <TestMethod>
+    Public Sub ResultatExterne_NePeutPasEcraserUneCorrectionDejaAppliquee()
+        Dim session As New SessionCorrectionPropositions(LotFictif())
+        Dim avant = session.Selectionner("facture-fictive")
+        Dim autre = session.Selectionner("cheque-fictif")
+        Dim correction = PropositionCorrection.Corriger(avant, avant.DateProposee, 50D,
+            avant.Sens, "Correction fictive", avant.Reference)
+
+        session.AppliquerResultatCorrection(correction)
+
+        Assert.AreSame(correction.Proposition, session.Selectionner("facture-fictive"))
+        Assert.AreEqual(50D, session.Selectionner("facture-fictive").Montant)
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                        correction.Proposition.Etat)
+        Assert.AreSame(autre, session.Selectionner("cheque-fictif"))
+        Assert.AreEqual(120.42D, avant.Montant)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.AppliquerResultatCorrection(correction))
+        Assert.AreSame(correction.Proposition, session.Selectionner("facture-fictive"))
+    End Sub
+
+    <TestMethod>
+    Public Sub ResultatAbsentOuIssuDUnAutreLot_EstRefuseSansModification()
+        Dim session As New SessionCorrectionPropositions(LotFictif())
+        Dim avant = session.Selectionner("facture-fictive")
+        Dim autreLot = LotFictif()
+        Dim sourceEtrangere = autreLot.Propositions(0)
+        Dim correctionEtrangere = PropositionCorrection.Corriger(
+            sourceEtrangere, sourceEtrangere.DateProposee, 15D,
+            sourceEtrangere.Sens, "Autre lot fictif", sourceEtrangere.Reference)
+
+        Assert.ThrowsExactly(Of ArgumentNullException)(
+            Sub() session.AppliquerResultatCorrection(Nothing))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.AppliquerResultatCorrection(correctionEtrangere))
+        Assert.AreSame(avant, session.Selectionner("facture-fictive"))
+        Assert.AreEqual(120.42D, session.Selectionner("facture-fictive").Montant)
+        Assert.AreEqual(2, session.Propositions.Count)
+    End Sub
 End Class
