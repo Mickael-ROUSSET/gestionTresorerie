@@ -187,7 +187,13 @@ Public NotInheritable Class DocumentReviewStore
     Private Shared Sub ValidateReviewReceipt(receiptPath As String, sha As String)
         Dim receipt As JObject
         Try
-            receipt = JObject.Parse(File.ReadAllText(receiptPath, Encoding.UTF8))
+            ' Json.NET convertit sinon automatiquement les dates ISO en JTokenType.Date,
+            ' ce qui masque le format UTC exact du champ revue_utc.
+            Using stringReader As New StringReader(File.ReadAllText(receiptPath, Encoding.UTF8))
+                Using jsonReader As New JsonTextReader(stringReader) With {.DateParseHandling = DateParseHandling.None}
+                    receipt = JObject.Load(jsonReader)
+                End Using
+            End Using
         Catch ex As JsonException
             Throw New InvalidDataException("Recu de revue invalide : JSON corrompu.", ex)
         End Try
