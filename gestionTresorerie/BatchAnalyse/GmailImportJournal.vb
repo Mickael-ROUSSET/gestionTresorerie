@@ -32,6 +32,22 @@ Public NotInheritable Class GmailImportJournal
         Return _processed.Contains(key)
     End Function
 
+    Private Shared Function OpenJournalWithRetry(path As String) As FileStream
+        ' Another process may briefly hold the journal exclusively. Retry only
+        ' Windows sharing/lock violations; other I/O failures remain visible.
+        For attempt As Integer = 1 To 20
+            Try
+                Return New FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)
+            Catch ex As IOException
+                Dim win32Code = ex.HResult And &HFFFF
+                If win32Code <> 32 AndAlso win32Code <> 33 Then Throw
+                If attempt = 20 Then Throw
+                Threading.Thread.Sleep(50)
+            End Try
+        Next
+        Throw New IOException("Impossible d'ouvrir le journal.")
+    End Function
+
     Public Sub MarkProcessed(key As String)
         If String.IsNullOrWhiteSpace(key) OrElse key.Contains(vbLf) OrElse key.Contains(vbCr) Then Throw New ArgumentException("Cle de message invalide.", NameOf(key))
         If _processed.Contains(key) Then Return
@@ -39,7 +55,7 @@ Public NotInheritable Class GmailImportJournal
         Directory.CreateDirectory(folder)
         ' Recheck on disk while holding an exclusive lock: another journal instance
         ' may have recorded the same message after this instance was constructed.
-        Using stream As New FileStream(_journalPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)
+        Using stream As FileStream = OpenJournalWithRetry(_journalPath)
             Using reader As New StreamReader(stream, Encoding.UTF8, True, 1024, True)
                 While Not reader.EndOfStream
                     If String.Equals(reader.ReadLine(), key, StringComparison.Ordinal) Then
