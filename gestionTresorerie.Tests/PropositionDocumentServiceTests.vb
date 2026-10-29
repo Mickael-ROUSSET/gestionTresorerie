@@ -82,12 +82,53 @@ Public Class PropositionDocumentServiceTests
             Entree(FactureFictive(), "source"), Entree(ChequeFictif(), "source"),
             Entree(invalide, "erreur"), Entree(ChequeFictif(), "erreur"),
             Entree(ChequeFictif(), "SOURCE")})
-        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual(1, resultat.Propositions.Count)
         Assert.AreEqual("FACTURE", resultat.Propositions(0).TypeDocument)
-        Assert.AreEqual("SOURCE", resultat.Propositions(1).CleSource)
-        Assert.AreEqual(3, resultat.Rejets.Count)
+        Assert.AreEqual(4, resultat.Rejets.Count)
         Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(0).Motif)
         Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(2).Motif)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(3).Motif)
+        Assert.AreEqual(4, resultat.Rejets(3).IndexEntree)
+    End Sub
+
+    <TestMethod>
+    Public Sub Doublons_AvecCasseEtEspaces_SontRejetesSansAltererLesCles()
+        Dim resultat = New PropositionDocumentService().Proposer({
+            Entree(FactureFictive(), " Fichier-001 "),
+            Entree(ChequeFictif(), "fichier-001"),
+            Entree(ChequeFictif(), "FICHIER-001  "),
+            Entree(ChequeFictif(), "autre")})
+        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual(" Fichier-001 ", resultat.Propositions(0).CleSource)
+        Assert.AreEqual("autre", resultat.Propositions(1).CleSource)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual(1, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual(2, resultat.Rejets(1).IndexEntree)
+        For Each rejet In resultat.Rejets
+            Assert.AreEqual("Cle source dupliquee dans le lot.", rejet.Motif)
+        Next
+    End Sub
+
+    <TestMethod>
+    Public Sub PremiereOccurrenceInvalideAvecCasseEtEspaces_ReserveLaCleSource()
+        ' Même rejetée, la première identité normalisée reste réservée dans ce lot.
+        Dim factureInvalide = FactureFictive()
+        factureInvalide.montant_ttc = -1D
+        Dim resultat = New PropositionDocumentService().Proposer({
+            Entree(factureInvalide, " Facture-777 "),
+            Entree(ChequeFictif(), "FACTURE-777"),
+            Entree(ChequeFictif(), "piece-distincte")})
+
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual("piece-distincte", resultat.Propositions(0).CleSource)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual(0, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual(" Facture-777 ", resultat.Rejets(0).CleSource)
+        Assert.IsTrue(resultat.Rejets(0).Motif.Contains("montant"))
+        Assert.AreEqual(1, resultat.Rejets(1).IndexEntree)
+        Assert.AreEqual("FACTURE-777", resultat.Rejets(1).CleSource)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(1).Motif)
+        Assert.AreEqual(-1D, factureInvalide.montant_ttc)
     End Sub
 
     <TestMethod>
@@ -114,6 +155,112 @@ Public Class PropositionDocumentServiceTests
         Assert.AreEqual(premier.Rejets(0).IndexEntree, second.Rejets(0).IndexEntree)
         Assert.AreEqual(premier.Rejets(0).CleSource, second.Rejets(0).CleSource)
         Assert.AreEqual(premier.Rejets(0).Motif, second.Rejets(0).Motif)
+    End Sub
+
+    <TestMethod>
+    Public Sub ParcoursFictif_ConversionExigeConfirmationDuSensEtApprobationHumaine()
+        ' Parcours strictement en mémoire : aucune connexion Gmail ou écriture comptable.
+        Dim facture = FactureFictive()
+        Dim resultat = New PropositionDocumentService().Proposer({
+            Entree(facture, "piece-fictive-001")})
+        Dim revue As New PropositionRevue(resultat)
+        Assert.AreEqual(0, resultat.Rejets.Count)
+        Assert.AreEqual(1, revue.Lignes.Count)
+        Assert.AreEqual(PropositionRevue.StatutRevue.AwaitingHumanReview, revue.Lignes(0).Statut)
+
+        Dim proposition = resultat.Propositions(0)
+        Assert.AreEqual(1, proposition.AvertissementsValidation.Count)
+        ' L'approbation seule ne contourne pas l'avertissement sur le sens.
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() PropositionMouvementValidation.Convertir(
+                proposition, 42, Array.Empty(Of String)(), True, False))
+
+        ' Confirmer le sens ne vaut pas approbation de la proposition.
+        Dim sensConfirme = PropositionMouvementMapper.Mapper(
+            facture, "piece-fictive-001", PropositionMouvement.SensMouvement.Debit, True)
+        Assert.AreEqual(0, sensConfirme.AvertissementsValidation.Count)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() PropositionMouvementValidation.Convertir(
+                sensConfirme, 42, Array.Empty(Of String)(), False, False))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() PropositionMouvementValidation.Convertir(
+                sensConfirme, 42, Array.Empty(Of String)(), True, True))
+
+        ' Les deux confirmations explicites produisent uniquement un objet en mémoire.
+        Dim mouvement = PropositionMouvementValidation.Convertir(
+            sensConfirme, 42, Array.Empty(Of String)(), True, False)
+        Assert.AreEqual(120.42D, mouvement.Montant)
+        Assert.AreEqual("F-001", mouvement.reference)
+        Assert.AreEqual(42, mouvement.idDoc)
+        Assert.IsFalse(mouvement.Sens)
+        Assert.IsFalse(mouvement.Etat)
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine, sensConfirme.Etat)
+        Assert.AreEqual(PropositionRevue.StatutRevue.AwaitingHumanReview, revue.Lignes(0).Statut)
+        Assert.AreEqual("F-001", facture.numero_facture)
+        Assert.AreEqual(120.42D, facture.montant_ttc)
+    End Sub
+
+    <TestMethod>
+    Public Sub ParcoursChequeFictif_RefuseIdentiteDejaUtiliseeEtConserveLeDocument()
+        ' Aucune connexion Gmail ni écriture en base : le mouvement reste en mémoire.
+        Dim cheque = ChequeFictif()
+        Dim resultat = New PropositionDocumentService().Proposer({
+            Entree(cheque, "piece-cheque-fictive-002", PropositionMouvement.SensMouvement.Credit)})
+        Dim revue As New PropositionRevue(resultat)
+        Assert.AreEqual(0, resultat.Rejets.Count)
+        Assert.AreEqual(1, revue.Lignes.Count)
+        Assert.AreEqual(1, resultat.Propositions(0).AvertissementsValidation.Count)
+
+        Dim confirme = PropositionMouvementMapper.Mapper(
+            cheque, "piece-cheque-fictive-002", PropositionMouvement.SensMouvement.Credit, True)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() PropositionMouvementValidation.Convertir(
+                confirme, 43, New String() {"piece-cheque-fictive-002"}, True, False))
+
+        Dim mouvement = PropositionMouvementValidation.Convertir(
+            confirme, 43, Array.Empty(Of String)(), True, False)
+        Assert.AreEqual(42.12D, mouvement.Montant)
+        Assert.AreEqual("0000123", mouvement.reference)
+        Assert.AreEqual("CHEQUE", mouvement.TypeMouvement)
+        Assert.AreEqual(43, mouvement.idDoc)
+        Assert.IsTrue(mouvement.Sens)
+        Assert.IsFalse(mouvement.Etat)
+        Assert.AreEqual(PropositionRevue.StatutRevue.AwaitingHumanReview, revue.Lignes(0).Statut)
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine, confirme.Etat)
+        Assert.AreEqual("0000123", cheque.numero_du_cheque)
+        Assert.AreEqual(42.12D, cheque.montant_numerique)
+    End Sub
+
+    <TestMethod>
+    Public Sub IdentiteNormalisee_ProtegeeDansLeLotEtLorsDeLaConversion()
+        ' Deux protections successives avec des pièces strictement fictives.
+        Dim facture = FactureFictive()
+        Dim resultat = New PropositionDocumentService().Proposer({
+            Entree(facture, " Piece-Alpha "),
+            Entree(ChequeFictif(), "piece-alpha"),
+            Entree(ChequeFictif(), "piece-beta")})
+
+        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual(1, resultat.Rejets.Count)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(0).Motif)
+        Assert.AreEqual(1, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual(" Piece-Alpha ", resultat.Propositions(0).CleSource)
+
+        ' Une conversion autorisée reste en mémoire et conserve la clé source.
+        Dim confirmee = PropositionMouvementMapper.Mapper(
+            facture, " Piece-Alpha ", PropositionMouvement.SensMouvement.Debit, True)
+        Dim mouvement = PropositionMouvementValidation.Convertir(
+            confirmee, 42, Array.Empty(Of String)(), True, False)
+        Assert.AreEqual(42, mouvement.idDoc)
+        Assert.AreEqual(120.42D, mouvement.Montant)
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine, confirmee.Etat)
+
+        ' Après usage, une variante casse/espaces doit aussi être refusée.
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() PropositionMouvementValidation.Convertir(
+                confirmee, 42, New String() {"PIECE-ALPHA"}, True, False))
+        Assert.AreEqual("F-001", facture.numero_facture)
+        Assert.AreEqual(120.42D, facture.montant_ttc)
     End Sub
 
     <TestMethod>
