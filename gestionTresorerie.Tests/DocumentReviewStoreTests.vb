@@ -416,4 +416,42 @@ Public Class DocumentReviewStoreTests
         End Try
     End Sub
 
+
+    <TestMethod>
+    Public Sub RecuSansHorodatageUtcValideEstRefuseSansEcrasement()
+        Dim folder = Path.Combine(Path.GetTempPath(), "review-date-fictive-" & Guid.NewGuid().ToString("N"))
+        Try
+            Dim fixture = CreateFixture(folder)
+            Dim store As New DocumentReviewStore(fixture.Queue)
+            Assert.IsTrue(store.RecordReview(fixture.Sha, "validateur-fictif",
+                                             DocumentReviewStore.ReviewDecision.Rejete, Nothing))
+            Dim receiptPath = Path.Combine(fixture.Queue, fixture.Sha & ".review.json")
+            Dim original = File.ReadAllText(receiptPath)
+            Dim pendingPath = Path.Combine(fixture.Queue, fixture.Sha & ".json")
+            Dim originalProposal = File.ReadAllText(pendingPath)
+
+            For Each invalidTimestamp As String In New String() {
+                Nothing, "date-invalide", "2026-10-29T09:00:00.0000000+01:00"
+            }
+                Dim altered = JObject.Parse(original)
+                altered("revue_utc") = invalidTimestamp
+                Dim invalidReceipt = altered.ToString()
+                File.WriteAllText(receiptPath, invalidReceipt)
+
+                Assert.ThrowsExactly(Of InvalidDataException)(Sub() store.ListPending())
+                Assert.ThrowsExactly(Of InvalidDataException)(
+                    Sub() store.RecordReview(fixture.Sha, "autre-validateur",
+                                             DocumentReviewStore.ReviewDecision.Rejete, Nothing))
+                Assert.AreEqual(invalidReceipt, File.ReadAllText(receiptPath))
+                Assert.AreEqual(originalProposal, File.ReadAllText(pendingPath))
+                Assert.AreEqual("Facture de test sans information reelle", File.ReadAllText(fixture.Source))
+            Next
+
+            File.WriteAllText(receiptPath, original)
+            Assert.AreEqual(0, store.ListPending().Count)
+        Finally
+            If Directory.Exists(folder) Then Directory.Delete(folder, True)
+        End Try
+    End Sub
+
 End Class
