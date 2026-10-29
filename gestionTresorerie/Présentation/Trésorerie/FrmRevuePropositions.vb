@@ -25,6 +25,19 @@ Public NotInheritable Class FrmRevuePropositions
             If elements.Count <> revue.Lignes.Count OrElse initiales.Count <> revue.Lignes.Count Then
                 Throw New ArgumentException("Le lot de correction ne correspond pas à la revue.", NameOf(session))
             End If
+            Dim rejetsInitiaux = session.RejetsInitiaux
+            If rejetsInitiaux.Count <> revue.Rejets.Count Then
+                Throw New ArgumentException("Les diagnostics du lot ne correspondent pas à la revue.", NameOf(session))
+            End If
+            For i As Integer = 0 To rejetsInitiaux.Count - 1
+                Dim sourceRejet = rejetsInitiaux(i)
+                Dim ligneRejet = revue.Rejets(i)
+                If sourceRejet.IndexEntree <> ligneRejet.IndexEntree OrElse
+                   Not String.Equals(sourceRejet.CleSource, ligneRejet.CleSource, StringComparison.Ordinal) OrElse
+                   Not String.Equals(sourceRejet.Motif, ligneRejet.Motif, StringComparison.Ordinal) Then
+                    Throw New ArgumentException("Les diagnostics du lot ne correspondent pas à la revue.", NameOf(session))
+                End If
+            Next
             For i As Integer = 0 To elements.Count - 1
                 If Not CorrespondA(initiales(i), revue.Lignes(i)) OrElse
                    Not String.Equals(elements(i).CleSource, initiales(i).CleSource, StringComparison.Ordinal) OrElse
