@@ -199,9 +199,11 @@ Public NotInheritable Class DocumentReviewStore
         Dim timestamp = receipt("revue_utc")
         Dim reviewedAt As DateTime
         Dim validTimestamp = timestamp IsNot Nothing AndAlso timestamp.Type = JTokenType.String AndAlso
-                             DateTime.TryParseExact(timestamp.ToString(), "O",
+                             DateTime.TryParseExact(timestamp.ToString(),
+                                                    "yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'",
                                                     Globalization.CultureInfo.InvariantCulture,
-                                                    Globalization.DateTimeStyles.RoundtripKind,
+                                                    Globalization.DateTimeStyles.AssumeUniversal Or
+                                                    Globalization.DateTimeStyles.AdjustToUniversal,
                                                     reviewedAt) AndAlso reviewedAt.Kind = DateTimeKind.Utc
         If version Is Nothing OrElse version.Type <> JTokenType.Integer OrElse
            Not String.Equals(version.ToString(), "1", StringComparison.Ordinal) OrElse
