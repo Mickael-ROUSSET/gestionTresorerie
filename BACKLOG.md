@@ -3,13 +3,13 @@
 Vue de consultation générée automatiquement à partir du backlog local.
 **Ne pas modifier ce fichier pour piloter l'orchestrateur.**
 
-**Actualisation :** 2026-10-29 18:32 UTC
+**Actualisation :** 2026-10-29 19:32 UTC
 **Objectif :** Link read-only review to corrections and establish safe preapproval gates with offline regression tests; no automatic accounting writes
 
 | Tâche | État | Validation | Commit |
 |---|---|---|---|
 | `treasury-review-correction-link-113` | Bloquée : failed-test | build OK, test échec | — |
-| `treasury-prevalidation-rules-114` | À faire |  | — |
+| `treasury-prevalidation-rules-114` | Publiée | build OK, test OK | [`c26d1394664f`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/c26d1394664f) |
 | `treasury-review-session-115` | À faire |  | — |
 | `treasury-review-endtoend-tests-116` | À faire |  | — |
 | `treasury-persistence-design-117` | Désactivée (sécurité) |  | — |
