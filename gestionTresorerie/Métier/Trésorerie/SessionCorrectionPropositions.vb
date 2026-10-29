@@ -10,7 +10,7 @@ Imports System.Collections.Generic
 ''' Les identités des documents restent inchangées.
 ''' </summary>
 Public NotInheritable Class SessionCorrectionPropositions
-    Private ReadOnly propositions As New List(Of PropositionMouvement)()
+    Private ReadOnly _propositions As New List(Of PropositionMouvement)()
     Private ReadOnly indices As New Dictionary(Of String, Integer)(StringComparer.Ordinal)
 
     Public Sub New(resultat As PropositionDocumentService.Resultat)
@@ -20,15 +20,15 @@ Public NotInheritable Class SessionCorrectionPropositions
             If indices.ContainsKey(proposition.CleSource) Then
                 Throw New ArgumentException("Identité source dupliquée.", NameOf(resultat))
             End If
-            indices.Add(proposition.CleSource, propositions.Count)
-            propositions.Add(proposition)
+            indices.Add(proposition.CleSource, _propositions.Count)
+            _propositions.Add(proposition)
         Next
     End Sub
 
     ''' <summary>Instantané ordonné ; les propositions elles-mêmes sont immuables.</summary>
     Public ReadOnly Property Propositions As IReadOnlyList(Of PropositionMouvement)
         Get
-            Return New List(Of PropositionMouvement)(propositions).AsReadOnly()
+            Return New List(Of PropositionMouvement)(_propositions).AsReadOnly()
         End Get
     End Property
 
@@ -41,7 +41,7 @@ Public NotInheritable Class SessionCorrectionPropositions
         If Not indices.TryGetValue(cleSource, index) Then
             Throw New KeyNotFoundException("Proposition introuvable.")
         End If
-        Return propositions(index)
+        Return _propositions(index)
     End Function
 
     ''' <summary>
@@ -53,7 +53,7 @@ Public NotInheritable Class SessionCorrectionPropositions
                             libelle As String, reference As String) As PropositionCorrection.Resultat
         Dim source = Selectionner(cleSource)
         Dim correction = PropositionCorrection.Corriger(source, dateProposee, montant, sens, libelle, reference)
-        propositions(indices(cleSource)) = correction.Proposition
+        _propositions(indices(cleSource)) = correction.Proposition
         Return correction
     End Function
 End Class
