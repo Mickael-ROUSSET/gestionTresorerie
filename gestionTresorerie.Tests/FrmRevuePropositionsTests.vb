@@ -2,6 +2,7 @@ Option Strict On
 Option Explicit On
 
 Imports System
+Imports System.Globalization
 Imports System.Runtime.ExceptionServices
 Imports System.Threading
 Imports System.Windows.Forms
@@ -124,4 +125,33 @@ Public Class FrmRevuePropositionsTests
                          Next
                      End Sub)
     End Sub
+    <TestMethod>
+    Public Sub DateAffichee_ConserveHeureEtFractionsSansArrondir()
+        SurThreadSta(Sub()
+                         Dim facture As New Facture With {.montant_ttc = 12.34D, .devise = "EUR",
+                             .date_facture = "2026-10-29", .numero_facture = "FICTIVE-DATE"}
+                         Dim resultat = New PropositionDocumentService().Proposer({
+                             New PropositionDocumentService.Entree(facture, "date-fictive",
+                                 PropositionMouvement.SensMouvement.Debit)})
+                         Using formulaire As New FrmRevuePropositions(New PropositionRevue(resultat))
+                             Dim grilleDates = Grille(formulaire, "grillePropositions")
+                             Dim colonne = grilleDates.Columns("DateProposee")
+                             Assert.AreEqual(GetType(DateTime), colonne.ValueType)
+                             Assert.AreEqual("dd/MM/yyyy HH:mm:ss.FFFFFFF", colonne.DefaultCellStyle.Format)
+                             Assert.AreEqual(New DateTime(2026, 10, 29),
+                                             grilleDates.Rows(0).Cells("DateProposee").Value)
+                             Dim avecFractions = New DateTime(2026, 10, 29, 14, 5, 9).AddTicks(1234560)
+                             Assert.AreEqual("29/10/2026 14:05:09.123456",
+                                             avecFractions.ToString(colonne.DefaultCellStyle.Format,
+                                                                   CultureInfo.GetCultureInfo("fr-FR")))
+                             Assert.AreEqual("29/10/2026 00:00:00",
+                                             New DateTime(2026, 10, 29).ToString(
+                                                 colonne.DefaultCellStyle.Format,
+                                                 CultureInfo.GetCultureInfo("fr-FR")))
+                             Assert.IsTrue(grilleDates.ReadOnly)
+                             Assert.IsFalse(formulaire.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
+
 End Class

@@ -29,7 +29,7 @@ Public NotInheritable Class FrmRevuePropositions
                          {"Identité du document", "Type", "Référence", "Date proposée",
                           "Montant (EUR)", "Débit / Crédit", "Libellé", "Statut", "Avertissements de validation"})
         propositions.Columns("DateProposee").ValueType = GetType(DateTime)
-        propositions.Columns("DateProposee").DefaultCellStyle.Format = "dd/MM/yyyy"
+        propositions.Columns("DateProposee").DefaultCellStyle.Format = "dd/MM/yyyy HH:mm:ss.FFFFFFF"
         propositions.Columns("Montant").ValueType = GetType(Decimal)
         propositions.Columns("Montant").DefaultCellStyle.Format = "N2"
         For Each ligne In revue.Lignes
