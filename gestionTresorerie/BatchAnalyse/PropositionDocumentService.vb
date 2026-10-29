@@ -42,7 +42,8 @@ Public NotInheritable Class PropositionDocumentService
     End Class
 
     ''' <summary>
-    ''' Conserve l'ordre d'entree. Les cles sont comparees exactement (Ordinal), sans normalisation.
+    ''' Conserve l'ordre d'entree. Les cles sont comparees apres Trim et sans tenir compte de la casse,
+    ''' comme lors du controle des identites deja utilisees a la conversion.
     ''' La premiere occurrence reserve la cle, meme invalide ; les suivantes sont rejetees.
     ''' Aucun etat n'est conserve entre appels : un meme lot retourne les memes valeurs.
     ''' Une erreur de validation est isolee par document ; une erreur d'enumeration reste visible.
@@ -51,14 +52,14 @@ Public NotInheritable Class PropositionDocumentService
         If entrees Is Nothing Then Throw New ArgumentNullException(NameOf(entrees))
         Dim propositions As New List(Of PropositionMouvement)()
         Dim rejets As New List(Of Rejet)()
-        Dim cles As New HashSet(Of String)(StringComparer.Ordinal)
+        Dim cles As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
         Dim index As Integer = 0
         For Each entree In entrees
             Dim cle = If(entree Is Nothing, Nothing, entree.CleSource)
             Try
                 If entree Is Nothing Then Throw New ArgumentException("Entree absente.")
                 If String.IsNullOrWhiteSpace(cle) Then Throw New ArgumentException("Cle source obligatoire.")
-                If Not cles.Add(cle) Then Throw New ArgumentException("Cle source dupliquee dans le lot.")
+                If Not cles.Add(cle.Trim()) Then Throw New ArgumentException("Cle source dupliquee dans le lot.")
                 If entree.Document Is Nothing Then Throw New ArgumentException("Document absent.")
                 If TypeOf entree.Document Is Facture Then
                     propositions.Add(PropositionMouvementMapper.Mapper(
