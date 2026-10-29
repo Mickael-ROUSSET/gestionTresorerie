@@ -200,7 +200,10 @@ Public NotInheritable Class DocumentReviewStore
            Not String.Equals(recordedSha, sha, StringComparison.Ordinal) OrElse
            (Not String.Equals(decision, ReviewDecision.Rejete.ToString(), StringComparison.Ordinal) AndAlso
             Not String.Equals(decision, ReviewDecision.ApprouvePourSaisie.ToString(), StringComparison.Ordinal)) OrElse
-           String.IsNullOrWhiteSpace(reviewer) Then
+           String.IsNullOrWhiteSpace(reviewer) OrElse
+           (String.Equals(decision, ReviewDecision.ApprouvePourSaisie.ToString(), StringComparison.Ordinal) AndAlso
+            (Not TypeOf receipt("donnees_corrigees") Is JObject OrElse
+             Not DirectCast(receipt("donnees_corrigees"), JObject).HasValues)) Then
             Throw New InvalidDataException("Recu de revue invalide : schema ou decision incoherente.")
         End If
     End Sub
