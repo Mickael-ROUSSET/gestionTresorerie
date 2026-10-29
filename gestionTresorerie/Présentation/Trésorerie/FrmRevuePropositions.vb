@@ -21,13 +21,15 @@ Public NotInheritable Class FrmRevuePropositions
         If revue Is Nothing Then Throw New ArgumentNullException(NameOf(revue))
         If session IsNot Nothing Then
             Dim elements = session.Propositions
-            If elements.Count <> revue.Lignes.Count Then
+            Dim initiales = session.PropositionsInitiales
+            If elements.Count <> revue.Lignes.Count OrElse initiales.Count <> revue.Lignes.Count Then
                 Throw New ArgumentException("Le lot de correction ne correspond pas à la revue.", NameOf(session))
             End If
             For i As Integer = 0 To elements.Count - 1
-                If Not String.Equals(elements(i).CleSource, revue.Lignes(i).CleSource, StringComparison.Ordinal) OrElse
-                   Not String.Equals(elements(i).TypeDocument, revue.Lignes(i).TypeDocument, StringComparison.Ordinal) Then
-                    Throw New ArgumentException("Les identités ou types de documents diffèrent.", NameOf(session))
+                If Not CorrespondA(initiales(i), revue.Lignes(i)) OrElse
+                   Not String.Equals(elements(i).CleSource, initiales(i).CleSource, StringComparison.Ordinal) OrElse
+                   Not String.Equals(elements(i).TypeDocument, initiales(i).TypeDocument, StringComparison.Ordinal) Then
+                    Throw New ArgumentException("Les documents d'origine ne correspondent pas à la revue.", NameOf(session))
                 End If
             Next
         End If
@@ -108,6 +110,24 @@ Public NotInheritable Class FrmRevuePropositions
         ' les valeurs actuelles, et non l'instantané initial de la revue.
         If sessionCorrection IsNot Nothing Then ActualiserPropositions()
     End Sub
+
+    ''' <summary>Compare le lot d'origine, jamais les valeurs déjà corrigées en mémoire.</summary>
+    Private Shared Function CorrespondA(source As PropositionMouvement, ligne As PropositionRevue.Ligne) As Boolean
+        If Not String.Equals(source.CleSource, ligne.CleSource, StringComparison.Ordinal) OrElse
+           Not String.Equals(source.TypeDocument, ligne.TypeDocument, StringComparison.Ordinal) OrElse
+           source.DateProposee <> ligne.DateProposee OrElse
+           source.Montant <> ligne.Montant OrElse source.Sens <> ligne.Sens OrElse
+           Not String.Equals(source.Libelle, ligne.Libelle, StringComparison.Ordinal) OrElse
+           Not String.Equals(source.Reference, ligne.Reference, StringComparison.Ordinal) OrElse
+           source.AvertissementsValidation.Count <> ligne.AvertissementsValidation.Count Then
+            Return False
+        End If
+        For i As Integer = 0 To source.AvertissementsValidation.Count - 1
+            If Not String.Equals(source.AvertissementsValidation(i), ligne.AvertissementsValidation(i),
+                                 StringComparison.Ordinal) Then Return False
+        Next
+        Return True
+    End Function
 
     Private Sub SelectionPropositionChangee(sender As Object, e As EventArgs)
         boutonCorriger.Enabled = (propositions.SelectedRows.Count = 1)

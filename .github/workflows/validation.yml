@@ -2,9 +2,9 @@ name: Validation .NET Windows
 
 on:
   pull_request:
-    branches: [master, chore/automation-foundation, refactor/remove-mistral, fix/gmail-sha256-local, fix/correction-date-entry-20261029, feature/revue-selection-correction-20261029]
+    branches: [master, chore/automation-foundation, refactor/remove-mistral, fix/gmail-sha256-local, fix/correction-date-entry-20261029, feature/revue-selection-correction-20261029, fix/revue-source-type-consistency-20261029]
   push:
-    branches: [master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral, feature/gmail-import-fiabilisation, fix/gmail-sha256-local, fix/correction-date-entry-20261029, fix/revue-horodatage-visible-20261029, feature/session-correction-fictive-20261029, feature/revue-selection-correction-20261029, fix/revue-source-type-consistency-20261029]
+    branches: [master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral, feature/gmail-import-fiabilisation, fix/gmail-sha256-local, fix/correction-date-entry-20261029, fix/revue-horodatage-visible-20261029, feature/session-correction-fictive-20261029, feature/revue-selection-correction-20261029, fix/revue-source-type-consistency-20261029, fix/revue-origin-snapshot-consistency-20261029]
   workflow_dispatch:
 
 permissions:
