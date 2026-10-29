@@ -13,8 +13,24 @@ Imports System.Windows.Forms
 Public NotInheritable Class FrmRevuePropositions
     Inherits Form
 
-    Public Sub New(revue As PropositionRevue)
+    Private ReadOnly sessionCorrection As SessionCorrectionPropositions
+    Private ReadOnly propositions As DataGridView
+    Private ReadOnly boutonCorriger As Button
+
+    Public Sub New(revue As PropositionRevue, Optional session As SessionCorrectionPropositions = Nothing)
         If revue Is Nothing Then Throw New ArgumentNullException(NameOf(revue))
+        If session IsNot Nothing Then
+            Dim elements = session.Propositions
+            If elements.Count <> revue.Lignes.Count Then
+                Throw New ArgumentException("Le lot de correction ne correspond pas à la revue.", NameOf(session))
+            End If
+            For i As Integer = 0 To elements.Count - 1
+                If Not String.Equals(elements(i).CleSource, revue.Lignes(i).CleSource, StringComparison.Ordinal) Then
+                    Throw New ArgumentException("Les identités de propositions diffèrent.", NameOf(session))
+                End If
+            Next
+        End If
+        sessionCorrection = session
 
         Text = "Revue des propositions — lecture seule"
         AccessibleName = Text
@@ -23,7 +39,7 @@ Public NotInheritable Class FrmRevuePropositions
         MinimumSize = New Size(700, 450)
         StartPosition = FormStartPosition.CenterParent
 
-        Dim propositions = CreerGrille("grillePropositions", "Propositions en lecture seule", 0)
+        propositions = CreerGrille("grillePropositions", "Propositions en lecture seule", 0)
         AjouterColonnes(propositions, {"CleSource", "TypeDocument", "Reference", "DateProposee",
                                       "Montant", "Sens", "Libelle", "Statut", "Avertissements"},
                          {"Identité du document", "Type", "Référence", "Date proposée",
@@ -66,8 +82,64 @@ Public NotInheritable Class FrmRevuePropositions
         disposition.Controls.Add(propositions, 0, 1)
         disposition.Controls.Add(New Label With {.Text = "Entrées rejetées — diagnostics uniquement", .AutoSize = True}, 0, 2)
         disposition.Controls.Add(rejets, 0, 3)
-        disposition.Controls.Add(fermer, 0, 4)
+        If sessionCorrection Is Nothing Then
+            disposition.Controls.Add(fermer, 0, 4)
+        Else
+            boutonCorriger = New Button With {
+                .Name = "boutonCorriger", .Text = "Corriger la sélection",
+                .AccessibleName = "Corriger la proposition sélectionnée en mémoire",
+                .AutoSize = True, .Enabled = False}
+            AddHandler boutonCorriger.Click, AddressOf OuvrirCorrectionSelectionnee
+            AddHandler propositions.SelectionChanged, AddressOf SelectionPropositionChangee
+            Dim actions As New FlowLayoutPanel With {
+                .Dock = DockStyle.Fill, .AutoSize = True, .FlowDirection = FlowDirection.LeftToRight}
+            actions.Controls.Add(boutonCorriger)
+            actions.Controls.Add(fermer)
+            disposition.Controls.Add(actions, 0, 4)
+            propositions.ClearSelection()
+        End If
         Controls.Add(disposition)
+    End Sub
+
+    Private Sub SelectionPropositionChangee(sender As Object, e As EventArgs)
+        boutonCorriger.Enabled = (propositions.SelectedRows.Count = 1)
+    End Sub
+
+    ''' <summary>Prépare la correction de l'identité explicitement sélectionnée.</summary>
+    Public Function CreerFormulaireCorrectionSelectionnee() As FrmCorrectionProposition
+        If sessionCorrection Is Nothing Then
+            Throw New InvalidOperationException("La revue est en lecture seule.")
+        End If
+        If propositions.SelectedRows.Count <> 1 Then
+            Throw New InvalidOperationException("Sélectionner une proposition à corriger.")
+        End If
+        Dim cleSource = CStr(propositions.SelectedRows(0).Cells("CleSource").Value)
+        Return New FrmCorrectionProposition(sessionCorrection, cleSource)
+    End Function
+
+    Private Sub OuvrirCorrectionSelectionnee(sender As Object, e As EventArgs)
+        Using formulaire = CreerFormulaireCorrectionSelectionnee()
+            If formulaire.ShowDialog(Me) = DialogResult.OK Then
+                ActualiserPropositions()
+            End If
+        End Using
+    End Sub
+
+    ''' <summary>Actualise uniquement l'affichage depuis la session en mémoire.</summary>
+    Public Sub ActualiserPropositions()
+        If sessionCorrection Is Nothing Then
+            Throw New InvalidOperationException("La revue est en lecture seule.")
+        End If
+        For Each ligne As DataGridViewRow In propositions.Rows
+            Dim source = sessionCorrection.Selectionner(CStr(ligne.Cells("CleSource").Value))
+            ligne.Cells("DateProposee").Value = source.DateProposee
+            ligne.Cells("Montant").Value = source.Montant
+            ligne.Cells("Sens").Value = If(source.Sens = PropositionMouvement.SensMouvement.Debit, "Débit", "Crédit")
+            ligne.Cells("Libelle").Value = source.Libelle
+            ligne.Cells("Reference").Value = source.Reference
+            ligne.Cells("Avertissements").Value = String.Join(Environment.NewLine, source.AvertissementsValidation)
+            ligne.Cells("Statut").Value = "En attente de revue humaine"
+        Next
     End Sub
 
     Private Shared Function CreerGrille(nom As String, description As String, ordre As Integer) As DataGridView
