@@ -32,7 +32,8 @@ Public NotInheritable Class FrmRevuePropositions
         End If
         sessionCorrection = session
 
-        Text = "Revue des propositions — lecture seule"
+        Text = If(session Is Nothing, "Revue des propositions — lecture seule",
+                  "Revue des propositions — correction en mémoire (sans approbation)")
         AccessibleName = Text
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(1100, 650)
@@ -78,7 +79,10 @@ Public NotInheritable Class FrmRevuePropositions
         disposition.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         disposition.RowStyles.Add(New RowStyle(SizeType.Percent, 35.0F))
         disposition.RowStyles.Add(New RowStyle(SizeType.AutoSize))
-        disposition.Controls.Add(New Label With {.Text = "Propositions — lecture seule", .AutoSize = True}, 0, 0)
+        disposition.Controls.Add(New Label With {
+            .Text = If(session Is Nothing, "Propositions — lecture seule",
+                       "Propositions — correction en mémoire, sans approbation"),
+            .AutoSize = True}, 0, 0)
         disposition.Controls.Add(propositions, 0, 1)
         disposition.Controls.Add(New Label With {.Text = "Entrées rejetées — diagnostics uniquement", .AutoSize = True}, 0, 2)
         disposition.Controls.Add(rejets, 0, 3)
