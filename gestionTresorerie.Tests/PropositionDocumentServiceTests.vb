@@ -232,6 +232,38 @@ Public Class PropositionDocumentServiceTests
     End Sub
 
     <TestMethod>
+    Public Sub IdentiteNormalisee_ProtegeeDansLeLotEtLorsDeLaConversion()
+        ' Deux protections successives avec des pièces strictement fictives.
+        Dim facture = FactureFictive()
+        Dim resultat = New PropositionDocumentService().Proposer({
+            Entree(facture, " Piece-Alpha "),
+            Entree(ChequeFictif(), "piece-alpha"),
+            Entree(ChequeFictif(), "piece-beta")})
+
+        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual(1, resultat.Rejets.Count)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(0).Motif)
+        Assert.AreEqual(1, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual(" Piece-Alpha ", resultat.Propositions(0).CleSource)
+
+        ' Une conversion autorisée reste en mémoire et conserve la clé source.
+        Dim confirmee = PropositionMouvementMapper.Mapper(
+            facture, " Piece-Alpha ", PropositionMouvement.SensMouvement.Debit, True)
+        Dim mouvement = PropositionMouvementValidation.Convertir(
+            confirmee, 42, Array.Empty(Of String)(), True, False)
+        Assert.AreEqual(42, mouvement.idDoc)
+        Assert.AreEqual(120.42D, mouvement.Montant)
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine, confirmee.Etat)
+
+        ' Après usage, une variante casse/espaces doit aussi être refusée.
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() PropositionMouvementValidation.Convertir(
+                confirmee, 42, New String() {"PIECE-ALPHA"}, True, False))
+        Assert.AreEqual("F-001", facture.numero_facture)
+        Assert.AreEqual(120.42D, facture.montant_ttc)
+    End Sub
+
+    <TestMethod>
     Public Sub LotVideAccepte_LotAbsentRejete()
         Dim service As New PropositionDocumentService()
         Dim resultat = service.Proposer(Array.Empty(Of PropositionDocumentService.Entree)())
