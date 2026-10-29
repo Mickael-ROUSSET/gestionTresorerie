@@ -42,4 +42,4 @@ jobs:
           path: |
             **/TestResults/**/*.trx
             **/TestResults/**/*_Sequence.xml
-          if-no-files-found: error
+          if-no-files-found: ignore
