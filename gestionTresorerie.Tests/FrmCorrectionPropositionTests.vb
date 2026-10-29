@@ -193,4 +193,76 @@ Public Class FrmCorrectionPropositionTests
                          Next
                      End Sub)
     End Sub
+
+    Private Shared Function SessionFictive() As SessionCorrectionPropositions
+        Dim facture As New Facture With {.montant_ttc = 120.42D, .devise = "EUR",
+            .date_facture = "2026-02-03", .numero_facture = "F-FICTIVE"}
+        Dim lot = New PropositionDocumentService().Proposer({
+            New PropositionDocumentService.Entree(facture, "facture-fictive",
+                                                  PropositionMouvement.SensMouvement.Debit)})
+        Return New SessionCorrectionPropositions(lot)
+    End Function
+
+    <TestMethod>
+    Public Sub FormulaireLie_SauvegardeLaCorrectionDansLaSessionSansApprobation()
+        SurThreadSta(Sub()
+                         Dim session = SessionFictive()
+                         Dim original = session.Selectionner("facture-fictive")
+                         Using f As New FrmCorrectionProposition(session, "facture-fictive")
+                             Controle(Of TextBox)(f, "montant").Text = 51.25D.ToString(CultureInfo.CurrentCulture)
+                             Assert.IsTrue(f.AppliquerCorrection())
+                             Assert.AreSame(f.PropositionCorrigee, session.Selectionner("facture-fictive"))
+                             Assert.AreEqual(51.25D, session.Selectionner("facture-fictive").Montant)
+                             Assert.AreEqual(120.42D, original.Montant)
+                             Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                                             session.Selectionner("facture-fictive").Etat)
+                             Assert.IsFalse(f.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
+
+    <TestMethod>
+    Public Sub FormulaireLie_RefuseCorrectionObsoleteSansEcraserLaSession()
+        SurThreadSta(Sub()
+                         Dim session = SessionFictive()
+                         Dim original = session.Selectionner("facture-fictive")
+                         Using f As New FrmCorrectionProposition(session, "facture-fictive")
+                             Dim correctionConcurrente = session.Corriger("facture-fictive", original.DateProposee,
+                                 77D, original.Sens, original.Libelle, original.Reference)
+                             Controle(Of TextBox)(f, "montant").Text = 15D.ToString(CultureInfo.CurrentCulture)
+                             Assert.IsFalse(f.AppliquerCorrection())
+                             Assert.IsNull(f.ResultatCorrection)
+                             Assert.AreSame(correctionConcurrente.Proposition,
+                                            session.Selectionner("facture-fictive"))
+                             Assert.AreEqual(77D, session.Selectionner("facture-fictive").Montant)
+                             Assert.IsFalse(String.IsNullOrWhiteSpace(Controle(Of Label)(f, "erreurValidation").Text))
+                             Assert.IsFalse(f.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
+
+    <TestMethod>
+    Public Sub FormulaireLie_AnnulationEtSelectionInconnueNeModifientRien()
+        SurThreadSta(Sub()
+                         Dim session = SessionFictive()
+                         Dim original = session.Selectionner("facture-fictive")
+                         Assert.ThrowsExactly(Of ArgumentNullException)(
+                             Sub()
+                                 Using f As New FrmCorrectionProposition(
+                                     DirectCast(Nothing, SessionCorrectionPropositions), "facture-fictive")
+                                 End Using
+                             End Sub)
+                         Assert.ThrowsExactly(Of KeyNotFoundException)(
+                             Sub()
+                                 Using f As New FrmCorrectionProposition(session, "inconnue")
+                                 End Using
+                             End Sub)
+                         Using f As New FrmCorrectionProposition(session, "facture-fictive")
+                             Controle(Of TextBox)(f, "montant").Text = 1D.ToString(CultureInfo.CurrentCulture)
+                             f.AnnulerCorrection()
+                             Assert.IsNull(f.ResultatCorrection)
+                         End Using
+                         Assert.AreSame(original, session.Selectionner("facture-fictive"))
+                     End Sub)
+    End Sub
 End Class
