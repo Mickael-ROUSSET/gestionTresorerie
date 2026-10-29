@@ -11,6 +11,7 @@ Public NotInheritable Class FrmCorrectionProposition
     Inherits Form
 
     Private ReadOnly source As PropositionMouvement
+    Private ReadOnly sessionCorrection As SessionCorrectionPropositions
     Private ReadOnly dateSaisie As New TextBox With {.Name = "dateProposee"}
     Private ReadOnly montantSaisi As New TextBox With {.Name = "montant"}
     Private ReadOnly sensSaisi As New ComboBox With {.Name = "sens", .DropDownStyle = ComboBoxStyle.DropDownList}
@@ -64,6 +65,22 @@ Public NotInheritable Class FrmCorrectionProposition
         CancelButton = annuler
     End Sub
 
+    ''' <summary>
+    ''' Variante liée à une session en mémoire : la correction est appliquée à
+    ''' la proposition sélectionnée seulement après validation du formulaire.
+    ''' Aucune approbation, écriture SQL ou modification du document source.
+    ''' </summary>
+    Public Sub New(session As SessionCorrectionPropositions, cleSource As String)
+        Me.New(SelectionnerSource(session, cleSource))
+        sessionCorrection = session
+    End Sub
+
+    Private Shared Function SelectionnerSource(session As SessionCorrectionPropositions,
+                                               cleSource As String) As PropositionMouvement
+        If session Is Nothing Then Throw New ArgumentNullException(NameOf(session))
+        Return session.Selectionner(cleSource)
+    End Function
+
     Public ReadOnly Property ResultatCorrection As PropositionCorrection.Resultat
         Get
             Return correction
@@ -94,11 +111,17 @@ Public NotInheritable Class FrmCorrectionProposition
             Return False
         End If
         Try
-            correction = PropositionCorrection.Corriger(source, dateValeur, montantValeur,
+            Dim candidate = PropositionCorrection.Corriger(source, dateValeur, montantValeur,
                 CType(sensSaisi.SelectedIndex, PropositionMouvement.SensMouvement), libelleSaisi.Text,
                 If(source.Reference Is Nothing AndAlso referenceSaisie.Text.Length = 0, Nothing, referenceSaisie.Text))
+            If sessionCorrection IsNot Nothing Then sessionCorrection.AppliquerResultatCorrection(candidate)
+            correction = candidate
             Return True
         Catch ex As ArgumentException
+            erreur.Text = ex.Message
+            Return False
+        Catch ex As InvalidOperationException
+            ' La session a changé depuis l'ouverture du formulaire : ne rien écraser.
             erreur.Text = ex.Message
             Return False
         End Try
