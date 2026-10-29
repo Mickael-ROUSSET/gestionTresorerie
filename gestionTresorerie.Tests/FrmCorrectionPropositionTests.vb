@@ -81,12 +81,39 @@ Public Class FrmCorrectionPropositionTests
     End Sub
 
     <TestMethod>
+    Public Sub Correction_AccepteHeureEtFractionsSansApprobation()
+        SurThreadSta(Sub()
+                         Dim cas As New Dictionary(Of String, DateTime) From {
+                             {"2026-10-29 14:05", New DateTime(2026, 10, 29, 14, 5, 0)},
+                             {"2026-10-29 14:05:09", New DateTime(2026, 10, 29, 14, 5, 9)},
+                             {"2026-10-29 14:05:09.1", New DateTime(2026, 10, 29, 14, 5, 9).AddTicks(1000000)},
+                             {"2026-10-29 14:05:09.123", New DateTime(2026, 10, 29, 14, 5, 9).AddTicks(1230000)},
+                             {"2026-10-29 14:05:09.123456", New DateTime(2026, 10, 29, 14, 5, 9).AddTicks(1234560)}}
+                         For Each entree In cas
+                             Dim original = Source()
+                             Using f As New FrmCorrectionProposition(original)
+                                 Controle(Of TextBox)(f, "dateProposee").Text = entree.Key
+                                 Assert.IsTrue(f.AppliquerCorrection(), entree.Key)
+                                 Assert.AreEqual(entree.Value, f.PropositionCorrigee.DateProposee)
+                                 Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                                                 f.PropositionCorrigee.Etat)
+                                 Assert.AreEqual(0, f.ResultatCorrection.Confirmations.Count)
+                                 Assert.AreEqual(New DateTime(2026, 1, 2), original.DateProposee)
+                                 Assert.IsFalse(f.IsHandleCreated)
+                             End Using
+                         Next
+                     End Sub)
+    End Sub
+
+    <TestMethod>
     Public Sub Validation_RejetteValeursInvalidesSansResultatNiDialogue()
         SurThreadSta(Sub()
                          For Each cas In New String()() {
                              New String() {"montant", "0"}, New String() {"montant", "-1"},
                              New String() {"montant", "abc"}, New String() {"montant", "79228162514264337593543950336"},
                              New String() {"dateProposee", "2026-02-30"}, New String() {"dateProposee", ""},
+                             New String() {"dateProposee", "2026-10-29 14:05:09.12345678"},
+                             New String() {"dateProposee", "2026-10-29 24:01"},
                              New String() {"libelle", " "}}
                              Using f As New FrmCorrectionProposition(Source())
                                  Controle(Of TextBox)(f, cas(0)).Text = cas(1)
