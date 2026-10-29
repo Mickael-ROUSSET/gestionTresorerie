@@ -53,7 +53,24 @@ Public NotInheritable Class SessionCorrectionPropositions
                             libelle As String, reference As String) As PropositionCorrection.Resultat
         Dim source = Selectionner(cleSource)
         Dim correction = PropositionCorrection.Corriger(source, dateProposee, montant, sens, libelle, reference)
-        _propositions(indices(cleSource)) = correction.Proposition
+        AppliquerResultatCorrection(correction)
         Return correction
     End Function
+
+    ''' <summary>
+    ''' Applique le résultat d'une correction déjà validée (par exemple issue de
+    ''' FrmCorrectionProposition), sans approuver ni enregistrer le document.
+    ''' Refuse un résultat devenu obsolète pour éviter l'écrasement silencieux.
+    ''' </summary>
+    Public Sub AppliquerResultatCorrection(correction As PropositionCorrection.Resultat)
+        If correction Is Nothing Then Throw New ArgumentNullException(NameOf(correction))
+        Dim actuelle = Selectionner(correction.Avant.CleSource)
+        If Not Object.ReferenceEquals(actuelle, correction.Avant) Then
+            Throw New InvalidOperationException("Correction obsolète : la proposition a déjà changé.")
+        End If
+        If Not String.Equals(correction.Proposition.CleSource, actuelle.CleSource, StringComparison.Ordinal) Then
+            Throw New ArgumentException("L'identité du document doit rester inchangée.", NameOf(correction))
+        End If
+        _propositions(indices(actuelle.CleSource)) = correction.Proposition
+    End Sub
 End Class
