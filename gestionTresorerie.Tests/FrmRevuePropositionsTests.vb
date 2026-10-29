@@ -288,10 +288,10 @@ Public Class FrmRevuePropositionsTests
                          sessionLegitime.Corriger("identite-commune", avant.DateProposee, 77D,
                              avant.Sens, avant.Libelle, avant.Reference)
                          Using rouverte As New FrmRevuePropositions(revue, sessionLegitime)
-                             Dim grille = Grille(rouverte, "grillePropositions")
-                             Assert.AreEqual(77D, grille.Rows(0).Cells("Montant").Value)
+                             Dim grillePropositions = Grille(rouverte, "grillePropositions")
+                             Assert.AreEqual(77D, grillePropositions.Rows(0).Cells("Montant").Value)
                              Assert.AreEqual("En attente de revue humaine",
-                                             grille.Rows(0).Cells("Statut").Value)
+                                             grillePropositions.Rows(0).Cells("Statut").Value)
                          End Using
                          Assert.AreSame(avant, sessionLegitime.PropositionsInitiales(0))
                          Assert.AreEqual(10D, sessionLegitime.PropositionsInitiales(0).Montant)
