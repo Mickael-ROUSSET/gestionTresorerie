@@ -110,6 +110,28 @@ Public Class PropositionDocumentServiceTests
     End Sub
 
     <TestMethod>
+    Public Sub PremiereOccurrenceInvalideAvecCasseEtEspaces_ReserveLaCleSource()
+        ' Même rejetée, la première identité normalisée reste réservée dans ce lot.
+        Dim factureInvalide = FactureFictive()
+        factureInvalide.montant_ttc = -1D
+        Dim resultat = New PropositionDocumentService().Proposer({
+            Entree(factureInvalide, " Facture-777 "),
+            Entree(ChequeFictif(), "FACTURE-777"),
+            Entree(ChequeFictif(), "piece-distincte")})
+
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual("piece-distincte", resultat.Propositions(0).CleSource)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual(0, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual(" Facture-777 ", resultat.Rejets(0).CleSource)
+        Assert.IsTrue(resultat.Rejets(0).Motif.Contains("montant"))
+        Assert.AreEqual(1, resultat.Rejets(1).IndexEntree)
+        Assert.AreEqual("FACTURE-777", resultat.Rejets(1).CleSource)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(1).Motif)
+        Assert.AreEqual(-1D, factureInvalide.montant_ttc)
+    End Sub
+
+    <TestMethod>
     Public Sub AppelsRepetes_SansEtatNiDoublonsSupplementaires()
         Dim service As New PropositionDocumentService()
         Dim lot = {Entree(FactureFictive(), "f"), Entree(ChequeFictif(), "c"), Entree(ChequeFictif(), "f")}
