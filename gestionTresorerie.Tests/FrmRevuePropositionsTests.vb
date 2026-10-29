@@ -228,4 +228,33 @@ Public Class FrmRevuePropositionsTests
                      End Sub)
     End Sub
 
+
+    <TestMethod>
+    Public Sub SessionAvecMemeCleMaisTypeDocumentDifferent_EstRefusee()
+        SurThreadSta(Sub()
+                         Dim facture As New Facture With {.montant_ttc = 10D, .devise = "EUR",
+                             .date_facture = "2026-02-03", .numero_facture = "F-FICTIVE"}
+                         Dim cheque As New Cheque With {.montant_numerique = 10D, .devise = "EUR",
+                             .dateChq = "20260203", .numero_du_cheque = "0000123"}
+                         Dim service As New PropositionDocumentService()
+                         Dim resultatFacture = service.Proposer({
+                             New PropositionDocumentService.Entree(facture, "meme-identite",
+                                 PropositionMouvement.SensMouvement.Debit)})
+                         Dim resultatCheque = service.Proposer({
+                             New PropositionDocumentService.Entree(cheque, "meme-identite",
+                                 PropositionMouvement.SensMouvement.Debit)})
+                         Assert.AreEqual(1, resultatFacture.Propositions.Count)
+                         Assert.AreEqual(1, resultatCheque.Propositions.Count)
+                         Dim session As New SessionCorrectionPropositions(resultatCheque)
+                         Dim erreur = Assert.ThrowsExactly(Of ArgumentException)(
+                             Sub()
+                                 Using invalide As New FrmRevuePropositions(
+                                     New PropositionRevue(resultatFacture), session)
+                                 End Using
+                             End Sub)
+                         Assert.AreEqual("session", erreur.ParamName)
+                         Assert.AreEqual(10D, session.Selectionner("meme-identite").Montant)
+                         Assert.AreEqual("0000123", cheque.numero_du_cheque)
+                     End Sub)
+    End Sub
 End Class
