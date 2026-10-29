@@ -154,4 +154,78 @@ Public Class FrmRevuePropositionsTests
                      End Sub)
     End Sub
 
+
+    <TestMethod>
+    Public Sub SessionFictive_SelectionEtCorrectionRestentEnMemoireSansApprobation()
+        SurThreadSta(Sub()
+                         Dim facture As New Facture With {.montant_ttc = 120.42D, .devise = "EUR",
+                             .date_facture = "2026-02-03", .numero_facture = "F-FICTIVE"}
+                         Dim cheque As New Cheque With {.montant_numerique = 42.12D, .devise = "EUR",
+                             .dateChq = "20260204", .numero_du_cheque = "0000123"}
+                         Dim resultat = New PropositionDocumentService().Proposer({
+                             New PropositionDocumentService.Entree(facture, "facture-fictive", PropositionMouvement.SensMouvement.Debit),
+                             New PropositionDocumentService.Entree(cheque, "cheque-fictif", PropositionMouvement.SensMouvement.Credit)})
+                         Dim session As New SessionCorrectionPropositions(resultat)
+                         Dim originale = session.Selectionner("facture-fictive")
+                         Dim autre = session.Selectionner("cheque-fictif")
+                         Using revue As New FrmRevuePropositions(New PropositionRevue(resultat), session)
+                             Dim grillePropositions = Grille(revue, "grillePropositions")
+                             Dim bouton = DirectCast(revue.Controls.Find("boutonCorriger", True)(0), Button)
+                             Assert.IsTrue(grillePropositions.ReadOnly)
+                             Assert.IsFalse(bouton.Enabled)
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub()
+                                     Using invalide = revue.CreerFormulaireCorrectionSelectionnee()
+                                     End Using
+                                 End Sub)
+                             grillePropositions.Rows(0).Selected = True
+                             Assert.IsTrue(bouton.Enabled)
+                             Using correction = revue.CreerFormulaireCorrectionSelectionnee()
+                                 DirectCast(correction.Controls.Find("montant", True)(0), TextBox).Text =
+                                     99.01D.ToString(CultureInfo.CurrentCulture)
+                                 Assert.IsTrue(correction.AppliquerCorrection())
+                             End Using
+                             Assert.AreEqual(120.42D, grillePropositions.Rows(0).Cells("Montant").Value)
+                             revue.ActualiserPropositions()
+                             Assert.AreEqual(99.01D, grillePropositions.Rows(0).Cells("Montant").Value)
+                             Assert.AreEqual(42.12D, grillePropositions.Rows(1).Cells("Montant").Value)
+                             Assert.AreEqual("En attente de revue humaine",
+                                             grillePropositions.Rows(0).Cells("Statut").Value)
+                             Assert.AreSame(autre, session.Selectionner("cheque-fictif"))
+                             Assert.AreEqual(120.42D, originale.Montant)
+                             Assert.AreEqual(120.42D, facture.montant_ttc)
+                             Assert.IsFalse(revue.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
+
+    <TestMethod>
+    Public Sub SessionIncoherente_EstRefuseeEtLectureSeuleNeCorrigePas()
+        SurThreadSta(Sub()
+                         Dim facture As New Facture With {.montant_ttc = 10D, .devise = "EUR",
+                             .date_facture = "2026-02-03", .numero_facture = "F-TEST"}
+                         Dim service As New PropositionDocumentService()
+                         Dim premier = service.Proposer({
+                             New PropositionDocumentService.Entree(facture, "source-a", PropositionMouvement.SensMouvement.Debit)})
+                         Dim second = service.Proposer({
+                             New PropositionDocumentService.Entree(facture, "source-b", PropositionMouvement.SensMouvement.Debit)})
+                         Dim session As New SessionCorrectionPropositions(second)
+                         Assert.ThrowsExactly(Of ArgumentException)(
+                             Sub()
+                                 Using invalide As New FrmRevuePropositions(New PropositionRevue(premier), session)
+                                 End Using
+                             End Sub)
+                         Using lecture As New FrmRevuePropositions(New PropositionRevue(premier))
+                             Assert.AreEqual(0, lecture.Controls.Find("boutonCorriger", True).Length)
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub()
+                                     Using invalide = lecture.CreerFormulaireCorrectionSelectionnee()
+                                     End Using
+                                 End Sub)
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub() lecture.ActualiserPropositions())
+                         End Using
+                     End Sub)
+    End Sub
+
 End Class

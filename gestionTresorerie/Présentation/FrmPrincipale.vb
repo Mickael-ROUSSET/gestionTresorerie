@@ -5,15 +5,17 @@ Public Class FrmPrincipale
 
     ' Instantané fourni explicitement par un appelant ; conservé en mémoire uniquement.
     Private _revuePropositions As PropositionRevue
+    Private _sessionCorrection As SessionCorrectionPropositions
+    Private ReadOnly _menuRevuePropositions As ToolStripMenuItem
 
     Public Sub New()
         InitializeComponent()
 
-        Dim menuRevue As New ToolStripMenuItem With {
+        _menuRevuePropositions = New ToolStripMenuItem With {
             .Name = "RevuePropositionsToolStripMenuItem",
             .Text = "Revue des propositions (lecture seule)"}
-        AddHandler menuRevue.Click, AddressOf RevuePropositions_Click
-        AnalyseToolStripMenuItem.DropDownItems.Add(menuRevue)
+        AddHandler _menuRevuePropositions.Click, AddressOf RevuePropositions_Click
+        AnalyseToolStripMenuItem.DropDownItems.Add(_menuRevuePropositions)
     End Sub
 
     ''' <summary>
@@ -21,11 +23,44 @@ Public Class FrmPrincipale
     ''' L'appelant doit appeler cette méthode sur le thread de l'interface.
     ''' </summary>
     Public Sub OuvrirRevuePropositions(resultat As PropositionDocumentService.Resultat)
-        If resultat Is Nothing Then Throw New ArgumentNullException(NameOf(resultat))
-
-        _revuePropositions = New PropositionRevue(resultat)
+        PreparerRevuePropositions(resultat)
         AfficherRevuePropositions()
     End Sub
+
+    ''' <summary>
+    ''' Prépare explicitement une revue sans afficher de fenêtre. La correction,
+    ''' facultative, reste exclusivement en mémoire et ne vaut pas approbation.
+    ''' Aucun document, Gmail ou accès SQL n'est chargé par cette méthode.
+    ''' </summary>
+    Public Sub PreparerRevuePropositions(resultat As PropositionDocumentService.Resultat,
+                                         Optional autoriserCorrection As Boolean = False)
+        If resultat Is Nothing Then Throw New ArgumentNullException(NameOf(resultat))
+        Dim nouvelleRevue As New PropositionRevue(resultat)
+        Dim nouvelleSession As SessionCorrectionPropositions = Nothing
+        If autoriserCorrection Then nouvelleSession = New SessionCorrectionPropositions(resultat)
+        _revuePropositions = nouvelleRevue
+        _sessionCorrection = nouvelleSession
+        _menuRevuePropositions.Text = If(autoriserCorrection,
+            "Revue des propositions (correction en mémoire)",
+            "Revue des propositions (lecture seule)")
+    End Sub
+
+    ''' <summary>
+    ''' Entrée explicite pour corriger un lot déjà fourni, sans validation humaine
+    ''' automatique, écriture comptable ni récupération de messages.
+    ''' </summary>
+    Public Sub OuvrirRevuePropositionsAvecCorrection(resultat As PropositionDocumentService.Resultat)
+        PreparerRevuePropositions(resultat, True)
+        AfficherRevuePropositions()
+    End Sub
+
+    ''' <summary>Fabrique la fenêtre utilisée par le menu, sans l'afficher.</summary>
+    Public Function ConstruireFormulaireRevuePropositions() As FrmRevuePropositions
+        If _revuePropositions Is Nothing Then
+            Throw New InvalidOperationException("Aucune proposition n'a été fournie.")
+        End If
+        Return New FrmRevuePropositions(_revuePropositions, _sessionCorrection)
+    End Function
 
     Private Sub RevuePropositions_Click(sender As Object, e As EventArgs)
         If _revuePropositions Is Nothing Then
@@ -41,7 +76,7 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub AfficherRevuePropositions()
-        Using formulaire As New FrmRevuePropositions(_revuePropositions)
+        Using formulaire = ConstruireFormulaireRevuePropositions()
             formulaire.ShowDialog(Me)
         End Using
     End Sub
