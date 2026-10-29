@@ -117,6 +117,49 @@ Public Class PropositionDocumentServiceTests
     End Sub
 
     <TestMethod>
+    Public Sub ParcoursFictif_ConversionExigeConfirmationDuSensEtApprobationHumaine()
+        ' Parcours strictement en mémoire : aucune connexion Gmail ou écriture comptable.
+        Dim facture = FactureFictive()
+        Dim resultat = New PropositionDocumentService().Proposer({
+            Entree(facture, "piece-fictive-001")})
+        Dim revue As New PropositionRevue(resultat)
+        Assert.AreEqual(0, resultat.Rejets.Count)
+        Assert.AreEqual(1, revue.Lignes.Count)
+        Assert.AreEqual(PropositionRevue.StatutRevue.AwaitingHumanReview, revue.Lignes(0).Statut)
+
+        Dim proposition = resultat.Propositions(0)
+        Assert.AreEqual(1, proposition.AvertissementsValidation.Count)
+        ' L'approbation seule ne contourne pas l'avertissement sur le sens.
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() PropositionMouvementValidation.Convertir(
+                proposition, 42, Array.Empty(Of String)(), True, False))
+
+        ' Confirmer le sens ne vaut pas approbation de la proposition.
+        Dim sensConfirme = PropositionMouvementMapper.Mapper(
+            facture, "piece-fictive-001", PropositionMouvement.SensMouvement.Debit, True)
+        Assert.AreEqual(0, sensConfirme.AvertissementsValidation.Count)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() PropositionMouvementValidation.Convertir(
+                sensConfirme, 42, Array.Empty(Of String)(), False, False))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() PropositionMouvementValidation.Convertir(
+                sensConfirme, 42, Array.Empty(Of String)(), True, True))
+
+        ' Les deux confirmations explicites produisent uniquement un objet en mémoire.
+        Dim mouvement = PropositionMouvementValidation.Convertir(
+            sensConfirme, 42, Array.Empty(Of String)(), True, False)
+        Assert.AreEqual(120.42D, mouvement.Montant)
+        Assert.AreEqual("F-001", mouvement.reference)
+        Assert.AreEqual(42, mouvement.idDoc)
+        Assert.IsFalse(mouvement.Sens)
+        Assert.IsFalse(mouvement.Etat)
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine, sensConfirme.Etat)
+        Assert.AreEqual(PropositionRevue.StatutRevue.AwaitingHumanReview, revue.Lignes(0).Statut)
+        Assert.AreEqual("F-001", facture.numero_facture)
+        Assert.AreEqual(120.42D, facture.montant_ttc)
+    End Sub
+
+    <TestMethod>
     Public Sub LotVideAccepte_LotAbsentRejete()
         Dim service As New PropositionDocumentService()
         Dim resultat = service.Proposer(Array.Empty(Of PropositionDocumentService.Entree)())
