@@ -299,4 +299,39 @@ Public Class FrmRevuePropositionsTests
                          Assert.AreEqual(20D, factureEtrangere.montant_ttc)
                      End Sub)
     End Sub
+
+    <TestMethod>
+    Public Sub SessionMemePropositionMaisRejetsDifferents_EstRefusee()
+        SurThreadSta(Sub()
+                         Dim facture As New Facture With {.montant_ttc = 12D, .devise = "EUR",
+                             .date_facture = "2026-02-03", .numero_facture = "F-FICTIVE"}
+                         Dim service As New PropositionDocumentService()
+                         Dim entreeValide As New PropositionDocumentService.Entree(
+                             facture, "facture-commune", PropositionMouvement.SensMouvement.Debit)
+                         Dim lotA = service.Proposer({
+                             entreeValide, DirectCast(Nothing, PropositionDocumentService.Entree)})
+                         Dim lotB = service.Proposer({
+                             entreeValide, New PropositionDocumentService.Entree(
+                                 Nothing, "rejet-different", PropositionMouvement.SensMouvement.Debit)})
+                         Assert.AreEqual(1, lotA.Propositions.Count)
+                         Assert.AreEqual(1, lotB.Propositions.Count)
+                         Assert.AreEqual(1, lotA.Rejets.Count)
+                         Assert.AreEqual(1, lotB.Rejets.Count)
+                         Dim session As New SessionCorrectionPropositions(lotB)
+                         Dim initiale = session.Selectionner("facture-commune")
+                         Dim erreur = Assert.ThrowsExactly(Of ArgumentException)(
+                             Sub()
+                                 Using invalide As New FrmRevuePropositions(New PropositionRevue(lotA), session)
+                                 End Using
+                             End Sub)
+                         Assert.AreEqual("session", erreur.ParamName)
+                         Assert.AreSame(initiale, session.Selectionner("facture-commune"))
+                         Using correcte As New FrmRevuePropositions(New PropositionRevue(lotB), session)
+                             Assert.AreEqual(1, Grille(correcte, "grilleRejets").Rows.Count)
+                             Assert.AreEqual("En attente de revue humaine",
+                                             Grille(correcte, "grillePropositions").Rows(0).Cells("Statut").Value)
+                         End Using
+                         Assert.AreEqual(12D, facture.montant_ttc)
+                     End Sub)
+    End Sub
 End Class
