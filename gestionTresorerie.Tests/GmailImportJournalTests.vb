@@ -40,4 +40,31 @@ Public Class GmailImportJournalTests
         Assert.IsFalse(File.Exists(fileName))
         Assert.IsFalse(journal.IsProcessed(GmailImportJournal.MakeKey("a@gmail.com", 1UI, 1UI)))
     End Sub
+
+    <TestMethod>
+    Public Sub InstancesOuvertesAvantEcriture_NeDupliquentPasLesCles()
+        Dim fileName = TemporaryJournal()
+        Try
+            Dim premiere As New GmailImportJournal(fileName)
+            Dim seconde As New GmailImportJournal(fileName)
+            Dim cleA = GmailImportJournal.MakeKey("fictif@example.invalid", 1UI, 10UI)
+            Dim cleB = GmailImportJournal.MakeKey("fictif@example.invalid", 1UI, 11UI)
+
+            premiere.MarkProcessed(cleA)
+            seconde.MarkProcessed(cleA)
+            seconde.MarkProcessed(cleB)
+            premiere.MarkProcessed(cleB)
+
+            Dim lignes = File.ReadAllLines(fileName)
+            Assert.AreEqual(2, lignes.Length)
+            CollectionAssert.AreEquivalent(New String() {cleA, cleB}, lignes)
+            Assert.IsTrue(premiere.IsProcessed(cleB))
+            Assert.IsTrue(seconde.IsProcessed(cleA))
+            Dim reouvert As New GmailImportJournal(fileName)
+            Assert.IsTrue(reouvert.IsProcessed(cleA))
+            Assert.IsTrue(reouvert.IsProcessed(cleB))
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
 End Class
