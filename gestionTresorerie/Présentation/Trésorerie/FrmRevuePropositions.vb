@@ -2,16 +2,24 @@ Option Strict On
 Option Explicit On
 
 Imports System
+Imports System.Collections.Generic
+Imports System.Linq
 Imports System.Drawing
 Imports System.Windows.Forms
 
 ''' <summary>
-''' Consultation seule d'un instantané PropositionRevue fourni par l'appelant.
-''' Les valeurs sont copiées dans les grilles ; aucun document source n'est conservé.
-''' Aucun traitement métier ni accès à une ressource externe n'est déclenché.
+''' Grilles en lecture seule ; correction explicite des propositions en mémoire.
+''' Sans sources métier fournies et vérifiées, seule la consultation est disponible.
+''' Aucun document source ni accès à une ressource externe.
 ''' </summary>
 Public NotInheritable Class FrmRevuePropositions
     Inherits Form
+
+    Private ReadOnly sources As New Dictionary(Of DataGridViewRow, PropositionMouvement)()
+    Private ReadOnly corriger As New Button With {
+        .Name = "boutonCorriger", .Text = "Corriger la sélection (sans valider)",
+        .AccessibleName = "Corriger la sélection (sans valider)", .AutoSize = True,
+        .Enabled = False, .TabIndex = 2}
 
     Public Sub New(revue As PropositionRevue)
         If revue Is Nothing Then Throw New ArgumentNullException(NameOf(revue))
@@ -49,7 +57,7 @@ Public NotInheritable Class FrmRevuePropositions
 
         Dim fermer As New Button With {
             .Name = "boutonFermer", .Text = "&Fermer", .AccessibleName = "Fermer la revue",
-            .AutoSize = True, .Anchor = AnchorStyles.Right, .TabIndex = 2,
+            .AutoSize = True, .Anchor = AnchorStyles.Right, .TabIndex = 3,
             .DialogResult = DialogResult.Cancel}
         AddHandler fermer.Click, Sub(sender As Object, e As EventArgs) Close()
         CancelButton = fermer
@@ -66,9 +74,68 @@ Public NotInheritable Class FrmRevuePropositions
         disposition.Controls.Add(propositions, 0, 1)
         disposition.Controls.Add(New Label With {.Text = "Entrées rejetées — diagnostics uniquement", .AutoSize = True}, 0, 2)
         disposition.Controls.Add(rejets, 0, 3)
-        disposition.Controls.Add(fermer, 0, 4)
+        Dim actions As New FlowLayoutPanel With {.AutoSize = True, .Dock = DockStyle.Fill}
+        actions.Controls.AddRange(New Control() {corriger, fermer})
+        disposition.Controls.Add(actions, 0, 4)
+        AddHandler propositions.SelectionChanged, Sub() ActualiserAction(propositions)
+        AddHandler corriger.Click, Sub() CorrigerSelection()
         Controls.Add(disposition)
     End Sub
+
+    ''' <summary>Sources déjà parsées, dans l'ordre exact de l'instantané, sans identité ambiguë.</summary>
+    Public Sub New(revue As PropositionRevue, propositions As IEnumerable(Of PropositionMouvement))
+        Me.New(revue)
+        If propositions Is Nothing Then Throw New ArgumentNullException(NameOf(propositions))
+        Dim liste = propositions.ToList()
+        Dim identites As New HashSet(Of String)(StringComparer.Ordinal)
+        If liste.Count <> revue.Lignes.Count Then Throw New ArgumentException("Sources incompatibles avec la revue.", NameOf(propositions))
+        For i As Integer = 0 To liste.Count - 1
+            Dim source = liste(i)
+            Dim ligne = revue.Lignes(i)
+            If source Is Nothing OrElse Not identites.Add(source.CleSource) OrElse
+                source.Etat <> PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine OrElse
+                Not String.Equals(source.CleSource, ligne.CleSource, StringComparison.Ordinal) OrElse
+                Not String.Equals(source.TypeDocument, ligne.TypeDocument, StringComparison.Ordinal) OrElse
+                source.DateProposee <> ligne.DateProposee OrElse source.Montant <> ligne.Montant OrElse
+                source.Sens <> ligne.Sens OrElse Not String.Equals(source.Libelle, ligne.Libelle, StringComparison.Ordinal) OrElse
+                Not String.Equals(source.Reference, ligne.Reference, StringComparison.Ordinal) OrElse
+                Not source.AvertissementsValidation.SequenceEqual(ligne.AvertissementsValidation) Then
+                Throw New ArgumentException("Correspondance source non prouvée.", NameOf(propositions))
+            End If
+        Next
+        Dim grille = DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView)
+        For i As Integer = 0 To liste.Count - 1
+            sources.Add(grille.Rows(i), liste(i))
+        Next
+        ActualiserAction(grille)
+    End Sub
+
+    Private Sub ActualiserAction(grille As DataGridView)
+        corriger.Enabled = grille.SelectedRows.Count = 1 AndAlso sources.ContainsKey(grille.SelectedRows(0))
+    End Sub
+
+    ''' <summary>Correction locale ; le présentateur optionnel permet les tests sans dialogue modal.</summary>
+    Public Function CorrigerSelection(Optional afficher As Func(Of FrmCorrectionProposition, DialogResult) = Nothing) As Boolean
+        Dim grille = DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView)
+        ActualiserAction(grille)
+        If Not corriger.Enabled Then Return False
+        Dim ligne = grille.SelectedRows(0)
+        Dim source = sources(ligne)
+        If source.Etat <> PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine Then Return False
+        Using correction As New FrmCorrectionProposition(source)
+            Dim resultat = If(afficher Is Nothing, correction.ShowDialog(Me), afficher(correction))
+            If resultat <> DialogResult.OK OrElse correction.PropositionCorrigee Is Nothing Then Return False
+            Dim proposition = correction.PropositionCorrigee
+            sources(ligne) = proposition
+            ligne.Cells("DateProposee").Value = proposition.DateProposee
+            ligne.Cells("Montant").Value = proposition.Montant
+            ligne.Cells("Sens").Value = If(proposition.Sens = PropositionMouvement.SensMouvement.Debit, "Débit", "Crédit")
+            ligne.Cells("Libelle").Value = proposition.Libelle
+            ligne.Cells("Reference").Value = proposition.Reference
+            ligne.Cells("Avertissements").Value = String.Join(Environment.NewLine, proposition.AvertissementsValidation)
+            Return True
+        End Using
+    End Function
 
     Private Shared Function CreerGrille(nom As String, description As String, ordre As Integer) As DataGridView
         Dim grille As New DataGridView With {
