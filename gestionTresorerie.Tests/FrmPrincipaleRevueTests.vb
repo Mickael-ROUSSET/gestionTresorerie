@@ -73,7 +73,7 @@ Public Class FrmPrincipaleRevueTests
                                  New Cheque With {.montant_numerique = 12.34D, .devise = "EUR",
                                      .dateChq = "20260204", .numero_du_cheque = "0000123"},
                                  "cheque-fictif", PropositionMouvement.SensMouvement.Credit)})
-                         Using revue As New FrmRevuePropositions(New PropositionRevue(resultat))
+                         Using revue As New FrmApercuPropositions(New PropositionRevue(resultat))
                              Dim disposition = DirectCast(revue.Controls(0), TableLayoutPanel)
                              Assert.AreEqual(1, revue.Controls.Count)
                              Assert.AreEqual(5, disposition.Controls.Count)
