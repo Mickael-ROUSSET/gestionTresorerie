@@ -41,7 +41,7 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub AfficherRevuePropositions()
-        Using formulaire As New FrmRevuePropositions(_revuePropositions)
+        Using formulaire As New FrmApercuPropositions(_revuePropositions)
             formulaire.ShowDialog(Me)
         End Using
     End Sub
