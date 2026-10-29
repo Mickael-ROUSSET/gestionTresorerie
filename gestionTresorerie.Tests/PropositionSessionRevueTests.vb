@@ -126,4 +126,34 @@ Public Class PropositionSessionRevueTests
         Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine, p.Etat)
         Assert.AreEqual(0, session.Audits.Count)
     End Sub
+
+    <TestMethod>
+    Public Sub CorrectionPuisPrevalidation_SansApprobation_NeModifiePasLesAutresPropositions()
+        Dim facture = Source("facture-fictive", {"Montant a verifier"})
+        Dim cheque = Source("cheque-fictif")
+        Dim session As New PropositionSessionRevue({facture, cheque})
+
+        Assert.IsFalse(session.Prevalider(facture.CleSource, 1, Array.Empty(Of String)(), False).EstPrete)
+        Dim confirmation As New PropositionCorrection.ConfirmationAvertissement(
+            PropositionCorrection.Champ.Montant, "Montant a verifier")
+        Dim correction = PropositionCorrection.Corriger(facture, facture.DateProposee, 15D,
+            facture.Sens, facture.Libelle, facture.Reference, {confirmation})
+        session.AppliquerCorrection(facture.CleSource, correction)
+
+        Dim propositionCorrigee = session.Propositions(facture.CleSource)
+        Assert.IsTrue(session.Prevalider(facture.CleSource, 1, Array.Empty(Of String)(), False).EstPrete)
+        Assert.IsFalse(session.Prevalider(facture.CleSource, 1, Array.Empty(Of String)()).EstPrete)
+        Assert.AreEqual(15D, propositionCorrigee.Montant)
+        Assert.AreEqual(0, propositionCorrigee.AvertissementsValidation.Count)
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine, propositionCorrigee.Etat)
+        Assert.AreSame(cheque, session.Propositions(cheque.CleSource))
+        Assert.AreEqual(10D, facture.Montant)
+        Assert.AreEqual(1, facture.AvertissementsValidation.Count)
+        Assert.AreEqual(1, session.Audits.Count)
+        Assert.AreSame(correction, session.Audits(0))
+        Assert.AreSame(facture, correction.Avant)
+        Assert.AreEqual(1, correction.Confirmations.Count)
+        Assert.ThrowsExactly(Of InvalidOperationException)(Sub() session.MarquerApprouvee(facture.CleSource))
+        Assert.ThrowsExactly(Of InvalidOperationException)(Sub() session.MarquerPersistee(facture.CleSource))
+    End Sub
 End Class
