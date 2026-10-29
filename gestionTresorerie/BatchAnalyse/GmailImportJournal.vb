@@ -37,12 +37,23 @@ Public NotInheritable Class GmailImportJournal
         If _processed.Contains(key) Then Return
         Dim folder = Path.GetDirectoryName(Path.GetFullPath(_journalPath))
         Directory.CreateDirectory(folder)
-        Using stream As New FileStream(_journalPath, FileMode.Append, FileAccess.Write, FileShare.Read)
-            Using writer As New StreamWriter(stream, New UTF8Encoding(False))
+        ' Recheck on disk while holding an exclusive lock: another journal instance
+        ' may have recorded the same message after this instance was constructed.
+        Using stream As New FileStream(_journalPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)
+            Using reader As New StreamReader(stream, Encoding.UTF8, True, 1024, True)
+                While Not reader.EndOfStream
+                    If String.Equals(reader.ReadLine(), key, StringComparison.Ordinal) Then
+                        _processed.Add(key)
+                        Return
+                    End If
+                End While
+            End Using
+            stream.Seek(0, SeekOrigin.End)
+            Using writer As New StreamWriter(stream, New UTF8Encoding(False), 1024, True)
                 writer.WriteLine(key)
                 writer.Flush()
-                stream.Flush(True)
             End Using
+            stream.Flush(True)
         End Using
         _processed.Add(key)
     End Sub
