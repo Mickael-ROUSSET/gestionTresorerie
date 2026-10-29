@@ -67,4 +67,33 @@ Public Class GmailImportJournalTests
             If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
         End Try
     End Sub
+
+    <TestMethod>
+    Public Sub VerrouTemporaire_EnregistrementAttendEtNeDupliquePas()
+        Dim fileName = TemporaryJournal()
+        Try
+            Dim journal As New GmailImportJournal(fileName)
+            Dim cle = GmailImportJournal.MakeKey("fictif@example.invalid", 2UI, 21UI)
+            Directory.CreateDirectory(Path.GetDirectoryName(fileName))
+            Dim verrou As New FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)
+            Dim liberation = System.Threading.Tasks.Task.Run(Sub()
+                                                                System.Threading.Thread.Sleep(200)
+                                                                verrou.Dispose()
+                                                            End Sub)
+            Try
+                journal.MarkProcessed(cle)
+                liberation.Wait()
+            Finally
+                liberation.Wait()
+                verrou.Dispose()
+            End Try
+
+            Assert.AreEqual(1, File.ReadAllLines(fileName).Length)
+            Assert.IsTrue(New GmailImportJournal(fileName).IsProcessed(cle))
+            journal.MarkProcessed(cle)
+            Assert.AreEqual(1, File.ReadAllLines(fileName).Length)
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
 End Class
