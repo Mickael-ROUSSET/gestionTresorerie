@@ -375,4 +375,45 @@ Public Class DocumentReviewStoreTests
         End Try
     End Sub
 
+    <TestMethod>
+    Public Sub RecuApprouveSansDonneesCorrigeesValides_EstRefuseSansEcrasement()
+        ' Facture fictive : un recu approuve doit conserver un objet de correction non vide.
+        Dim folder = Path.Combine(Path.GetTempPath(), "review-correction-receipt-" & Guid.NewGuid().ToString("N"))
+        Try
+            Dim fixture = CreateFixture(folder)
+            Dim store As New DocumentReviewStore(fixture.Queue)
+            Dim corrected As New JObject From {{"montant", 12.5}}
+            Assert.IsTrue(store.RecordReview(fixture.Sha, "validateur-fictif",
+                                             DocumentReviewStore.ReviewDecision.ApprouvePourSaisie, corrected))
+            Dim receiptPath = Path.Combine(fixture.Queue, fixture.Sha & ".review.json")
+            Dim original = File.ReadAllText(receiptPath)
+
+            For Each variante As Integer In {0, 1, 2}
+                Dim altered = JObject.Parse(original)
+                Select Case variante
+                    Case 0
+                        altered.Remove("donnees_corrigees")
+                    Case 1
+                        altered("donnees_corrigees") = New JObject()
+                    Case Else
+                        altered("donnees_corrigees") = "contenu non structure"
+                End Select
+                Dim invalid = altered.ToString()
+                File.WriteAllText(receiptPath, invalid)
+                Assert.ThrowsExactly(Of InvalidDataException)(Sub() store.ListPending())
+                Assert.ThrowsExactly(Of InvalidDataException)(
+                    Sub() store.RecordReview(fixture.Sha, "autre-validateur",
+                                             DocumentReviewStore.ReviewDecision.Rejete, Nothing))
+                Assert.AreEqual(invalid, File.ReadAllText(receiptPath))
+            Next
+
+            File.WriteAllText(receiptPath, original)
+            Assert.AreEqual(0, store.ListPending().Count)
+            Assert.AreEqual(original, File.ReadAllText(receiptPath))
+            Assert.AreEqual("Facture de test sans information reelle", File.ReadAllText(fixture.Source))
+        Finally
+            If Directory.Exists(folder) Then Directory.Delete(folder, True)
+        End Try
+    End Sub
+
 End Class
