@@ -3,7 +3,7 @@
 Vue de consultation générée automatiquement à partir du backlog local.
 **Ne pas modifier ce fichier pour piloter l'orchestrateur.**
 
-**Actualisation :** 2026-10-29 13:32 UTC
+**Actualisation :** 2026-10-29 15:54 UTC
 **Objectif :** Link read-only review to corrections and establish safe preapproval gates with offline regression tests; no automatic accounting writes
 
 | Tâche | État | Validation | Commit |
