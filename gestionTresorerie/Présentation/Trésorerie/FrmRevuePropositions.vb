@@ -25,8 +25,9 @@ Public NotInheritable Class FrmRevuePropositions
                 Throw New ArgumentException("Le lot de correction ne correspond pas à la revue.", NameOf(session))
             End If
             For i As Integer = 0 To elements.Count - 1
-                If Not String.Equals(elements(i).CleSource, revue.Lignes(i).CleSource, StringComparison.Ordinal) Then
-                    Throw New ArgumentException("Les identités de propositions diffèrent.", NameOf(session))
+                If Not String.Equals(elements(i).CleSource, revue.Lignes(i).CleSource, StringComparison.Ordinal) OrElse
+                   Not String.Equals(elements(i).TypeDocument, revue.Lignes(i).TypeDocument, StringComparison.Ordinal) Then
+                    Throw New ArgumentException("Les identités ou types de documents diffèrent.", NameOf(session))
                 End If
             Next
         End If
