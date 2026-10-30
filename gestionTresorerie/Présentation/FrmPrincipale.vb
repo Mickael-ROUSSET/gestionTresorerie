@@ -28,22 +28,28 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub RevuePropositions_Click(sender As Object, e As EventArgs)
-        If _revuePropositions Is Nothing Then
-            MessageBox.Show(Me,
-                            "Aucune proposition n'a été fournie actuellement par un appelant autorisé. " &
-                            "Cette consultation en lecture seule ne charge aucune donnée.",
-                            "Revue des propositions (lecture seule)",
-                            MessageBoxButtons.OK, MessageBoxIcon.Information)
-            Return
-        End If
-
         AfficherRevuePropositions()
     End Sub
 
     Private Sub AfficherRevuePropositions()
-        Using formulaire As New FrmRevuePropositions(_revuePropositions)
-            formulaire.ShowDialog(Me)
+        Dim revue = If(_revuePropositions,
+                       New PropositionRevue(New PropositionDocumentService().Proposer(
+                           Array.Empty(Of PropositionDocumentService.Entree)())))
+        ' Sans correspondance source prouvée, ne fournir que l'instantané de lecture.
+        Using formulaire As New FrmRevuePropositions(revue)
+            If revue.Lignes.Count = 0 Then
+                Dim disposition = DirectCast(formulaire.Controls(0), TableLayoutPanel)
+                DirectCast(disposition.GetControlFromPosition(0, 0), Label).Text =
+                    "Aucune proposition issue d'un document validé n'est disponible. " &
+                    "Cette consultation en lecture seule ne charge aucune donnée."
+            End If
+            PresenterRevuePropositions(formulaire)
         End Using
+    End Sub
+
+    ' Point de présentation isolable sans déclencher Load/Closing de la fenêtre principale.
+    Protected Overridable Sub PresenterRevuePropositions(formulaire As FrmRevuePropositions)
+        formulaire.ShowDialog(Me)
     End Sub
 
     ' Variables de classe pour utiliser l'index des colonnes du datagridview

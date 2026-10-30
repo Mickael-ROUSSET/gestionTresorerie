@@ -1,4 +1,4 @@
-Option Strict On
+﻿Option Strict On
 Option Explicit On
 
 Imports System
@@ -105,4 +105,103 @@ Public Class FrmPrincipaleRevueTests
                          End Using
                      End Sub)
     End Sub
+    Private Class PrincipaleIsolee
+        Inherits FrmPrincipale
+
+        Public Property Examiner As Action(Of FrmRevuePropositions)
+        Public Property DerniereRevue As FrmRevuePropositions
+        Public Property NombreOuvertures As Integer
+
+        Protected Overrides Sub PresenterRevuePropositions(formulaire As FrmRevuePropositions)
+            DerniereRevue = formulaire
+            NombreOuvertures += 1
+            Examiner.Invoke(formulaire)
+        End Sub
+    End Class
+
+    Private Shared Sub CliquerRevue(principale As FrmPrincipale)
+        DirectCast(principale.MainMenuStrip.Items.Find(
+            "RevuePropositionsToolStripMenuItem", True)(0), ToolStripMenuItem).PerformClick()
+    End Sub
+
+    Private Shared Sub VerifierLectureSeule(revue As FrmRevuePropositions)
+        Assert.IsNull(revue.Session)
+        Dim disposition = DirectCast(revue.Controls(0), TableLayoutPanel)
+        Dim actions = disposition.Controls.OfType(Of FlowLayoutPanel)().Single()
+        CollectionAssert.AreEquivalent(New String() {"boutonFermer", "boutonCorriger"},
+                                      actions.Controls.Cast(Of Control)().Select(Function(c) c.Name).ToArray())
+        Assert.IsFalse(actions.Controls("boutonCorriger").Enabled)
+        For Each grille In disposition.Controls.OfType(Of DataGridView)()
+            Assert.IsTrue(grille.ReadOnly)
+            Assert.IsFalse(grille.AllowUserToAddRows)
+            Assert.IsFalse(grille.AllowUserToDeleteRows)
+        Next
+    End Sub
+
+    <TestMethod>
+    Public Sub MenuSansResultat_AfficheUneRevueVideEtSeFermeSansChargerLeParent()
+        SurThreadSta(Sub()
+                         Using principale As New PrincipaleIsolee()
+                             principale.Examiner = Sub(revue)
+                                                       VerifierLectureSeule(revue)
+                                                       For Each nom In {"grillePropositions", "grilleRejets"}
+                                                           Assert.AreEqual(0, DirectCast(revue.Controls.Find(nom, True)(0), DataGridView).Rows.Count)
+                                                       Next
+                                                       Dim disposition = DirectCast(revue.Controls(0), TableLayoutPanel)
+                                                       StringAssert.Contains(DirectCast(disposition.GetControlFromPosition(0, 0), Label).Text,
+                                                                             "Aucune proposition")
+                                                       revue.Show()
+                                                       DirectCast(revue.Controls.Find("boutonFermer", True)(0), Button).PerformClick()
+                                                       Assert.IsFalse(revue.Visible)
+                                                       Assert.IsFalse(principale.IsHandleCreated)
+                                                   End Sub
+                             CliquerRevue(principale)
+                             Assert.IsTrue(principale.DerniereRevue.IsDisposed)
+                             CliquerRevue(principale)
+                             Assert.AreEqual(2, principale.NombreOuvertures)
+                             Assert.IsTrue(principale.DerniereRevue.IsDisposed)
+                         End Using
+                     End Sub)
+    End Sub
+
+    <TestMethod>
+    Public Sub ResultatEnMemoire_EstConsultablePuisReouvertDepuisLeMenuSansSourcesDeCorrection()
+        SurThreadSta(Sub()
+                         Dim service As New PropositionDocumentService()
+                         Dim resultat = service.Proposer({New PropositionDocumentService.Entree(
+                             New Cheque With {.montant_numerique = 12.34D, .devise = "EUR",
+                                 .dateChq = "20260204", .numero_du_cheque = "0000123"},
+                             "source-fictive", PropositionMouvement.SensMouvement.Credit)})
+                         Using principale As New PrincipaleIsolee()
+                             principale.Examiner = Sub(revue)
+                                                       VerifierLectureSeule(revue)
+                                                       Dim grille = DirectCast(revue.Controls.Find("grillePropositions", True)(0), DataGridView)
+                                                       Assert.AreEqual(1, grille.Rows.Count)
+                                                       Assert.AreEqual("source-fictive", grille.Rows(0).Cells("CleSource").Value)
+                                                       Assert.AreEqual("0000123", grille.Rows(0).Cells("Reference").Value)
+                                                       grille.Rows(0).Selected = True
+                                                       Assert.IsFalse(revue.CorrigerSelection())
+                                                   End Sub
+                             principale.OuvrirRevuePropositions(resultat)
+                             Dim premiere = principale.DerniereRevue
+                             Assert.IsTrue(premiere.IsDisposed)
+                             CliquerRevue(principale)
+                             Assert.AreNotSame(premiere, principale.DerniereRevue)
+                             Assert.AreEqual(2, principale.NombreOuvertures)
+                             Assert.IsTrue(principale.DerniereRevue.IsDisposed)
+                             Assert.IsFalse(principale.IsHandleCreated)
+                             Assert.AreEqual(12.34D, resultat.Propositions(0).Montant)
+                             ' Un nouveau lot vide remplace le precedent sans reutiliser ses lignes.
+                             principale.Examiner = Sub(revue)
+                                                       VerifierLectureSeule(revue)
+                                                       Assert.AreEqual(0, DirectCast(revue.Controls.Find("grillePropositions", True)(0), DataGridView).Rows.Count)
+                                                       Assert.AreEqual(1, DirectCast(revue.Controls.Find("grilleRejets", True)(0), DataGridView).Rows.Count)
+                                                   End Sub
+                             principale.OuvrirRevuePropositions(service.Proposer({
+                                 New PropositionDocumentService.Entree(Nothing, "source-incertaine", PropositionMouvement.SensMouvement.Credit)}))
+                             CliquerRevue(principale)
+                         End Using
+                     End Sub)
+    End Sub
+
 End Class
