@@ -27,6 +27,46 @@ Public Class FrmPrincipale
         AfficherRevuePropositions()
     End Sub
 
+    ''' <summary>
+    ''' Ouvre une revue avec corrections suivies dans une session en memoire.
+    ''' Aucune approbation, ecriture SQL ou import Gmail n'est effectue ici.
+    ''' </summary>
+    Public Sub OuvrirRevuePropositions(resultat As PropositionDocumentService.Resultat,
+                                      sessionRevue As PropositionSessionRevue)
+        Using formulaire = CreerFenetreRevuePropositions(resultat, sessionRevue)
+            formulaire.ShowDialog(Me)
+        End Using
+    End Sub
+
+    ''' <summary>
+    ''' Construction separable de l'affichage pour verifier le raccordement hors ligne.
+    ''' Le formulaire controle que la session contient les instances exactes du lot.
+    ''' </summary>
+    Public Shared Function CreerFenetreRevuePropositions(resultat As PropositionDocumentService.Resultat,
+                                                         sessionRevue As PropositionSessionRevue) As FrmRevuePropositions
+        If resultat Is Nothing Then Throw New ArgumentNullException(NameOf(resultat))
+        If sessionRevue Is Nothing Then Throw New ArgumentNullException(NameOf(sessionRevue))
+        Return New FrmRevuePropositions(New PropositionRevue(resultat), resultat.Propositions, sessionRevue)
+    End Function
+
+    ''' <summary>
+    ''' Point d'entree hors ligne pour un lot Gmail deja analyse. La fenetre est
+    ''' reconstruite a partir des corrections courantes de la session, sans
+    ''' revenir aux propositions initiales apres une fermeture.
+    ''' Aucun acces Gmail, approbation ou enregistrement comptable.
+    ''' </summary>
+    Public Sub OuvrirRevueDocumentsAnalyses(workflow As GmailDocumentReviewWorkflow)
+        Using formulaire = CreerFenetreRevuePropositions(workflow)
+            formulaire.ShowDialog(Me)
+        End Using
+    End Sub
+
+    ''' <summary>Fabrique testable sans afficher FrmPrincipale ni acceder a SQL.</summary>
+    Public Shared Function CreerFenetreRevuePropositions(workflow As GmailDocumentReviewWorkflow) As FrmRevuePropositions
+        If workflow Is Nothing Then Throw New ArgumentNullException(NameOf(workflow))
+        Return workflow.CreerFenetre()
+    End Function
+
     Private Sub RevuePropositions_Click(sender As Object, e As EventArgs)
         If _revuePropositions Is Nothing Then
             MessageBox.Show(Me,

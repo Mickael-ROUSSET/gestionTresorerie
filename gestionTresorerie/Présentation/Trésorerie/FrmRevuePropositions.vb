@@ -16,6 +16,11 @@ Public NotInheritable Class FrmRevuePropositions
     Inherits Form
 
     Private ReadOnly sources As New Dictionary(Of DataGridViewRow, PropositionMouvement)()
+    Private ReadOnly session As PropositionSessionRevue
+    Private ReadOnly etatCorrections As New Label With {
+        .Name = "etatCorrections", .AutoSize = True,
+        .AccessibleName = "État des corrections et de leur enregistrement",
+        .Text = "Corrections locales : non conservées après fermeture. Aucune opération enregistrée."}
     Private ReadOnly corriger As New Button With {
         .Name = "boutonCorriger", .Text = "Corriger la sélection (sans valider)",
         .AccessibleName = "Corriger la sélection (sans valider)", .AutoSize = True,
@@ -63,12 +68,13 @@ Public NotInheritable Class FrmRevuePropositions
         CancelButton = fermer
 
         Dim disposition As New TableLayoutPanel With {
-            .Dock = DockStyle.Fill, .ColumnCount = 1, .RowCount = 5, .Padding = New Padding(10)}
+            .Dock = DockStyle.Fill, .ColumnCount = 1, .RowCount = 6, .Padding = New Padding(10)}
         disposition.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100.0F))
         disposition.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         disposition.RowStyles.Add(New RowStyle(SizeType.Percent, 65.0F))
         disposition.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         disposition.RowStyles.Add(New RowStyle(SizeType.Percent, 35.0F))
+        disposition.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         disposition.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         disposition.Controls.Add(New Label With {.Text = "Propositions — lecture seule", .AutoSize = True}, 0, 0)
         disposition.Controls.Add(propositions, 0, 1)
@@ -77,6 +83,7 @@ Public NotInheritable Class FrmRevuePropositions
         Dim actions As New FlowLayoutPanel With {.AutoSize = True, .Dock = DockStyle.Fill}
         actions.Controls.AddRange(New Control() {corriger, fermer})
         disposition.Controls.Add(actions, 0, 4)
+        disposition.Controls.Add(etatCorrections, 0, 5)
         AddHandler propositions.SelectionChanged, Sub() ActualiserAction(propositions)
         AddHandler corriger.Click, Sub() CorrigerSelection()
         Controls.Add(disposition)
@@ -84,6 +91,14 @@ Public NotInheritable Class FrmRevuePropositions
 
     ''' <summary>Sources déjà parsées, dans l'ordre exact de l'instantané, sans identité ambiguë.</summary>
     Public Sub New(revue As PropositionRevue, propositions As IEnumerable(Of PropositionMouvement))
+        Me.New(revue, propositions, Nothing)
+    End Sub
+
+    ''' <summary>Associe une session en memoire aux corrections effectuees dans la fenetre.
+    ''' La session doit contenir les memes instances que l'instantane presente.
+    ''' Aucune approbation ou persistance n'est possible depuis cette fenetre.</summary>
+    Public Sub New(revue As PropositionRevue, propositions As IEnumerable(Of PropositionMouvement),
+                   sessionRevue As PropositionSessionRevue)
         Me.New(revue)
         If propositions Is Nothing Then Throw New ArgumentNullException(NameOf(propositions))
         Dim liste = propositions.ToList()
@@ -103,11 +118,31 @@ Public NotInheritable Class FrmRevuePropositions
                 Throw New ArgumentException("Correspondance source non prouvée.", NameOf(propositions))
             End If
         Next
+        If sessionRevue IsNot Nothing Then
+            If sessionRevue.Propositions.Count <> liste.Count Then
+                Throw New ArgumentException("Session incompatible avec la revue.", NameOf(sessionRevue))
+            End If
+            For Each source In liste
+                Dim courante As PropositionMouvement = Nothing
+                If Not sessionRevue.Propositions.TryGetValue(source.CleSource, courante) OrElse
+                   Not Object.ReferenceEquals(courante, source) Then
+                    Throw New ArgumentException("Session incompatible avec la revue.", NameOf(sessionRevue))
+                End If
+            Next
+        End If
+        session = sessionRevue
+        ActualiserEtatCorrections()
         Dim grille = DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView)
         For i As Integer = 0 To liste.Count - 1
             sources.Add(grille.Rows(i), liste(i))
         Next
         ActualiserAction(grille)
+    End Sub
+
+    Private Sub ActualiserEtatCorrections()
+        If session IsNot Nothing Then
+            etatCorrections.Text = $"Corrections tracées en mémoire : {session.Audits.Count}. Aucune opération validée ni enregistrée."
+        End If
     End Sub
 
     Private Sub ActualiserAction(grille As DataGridView)
@@ -126,6 +161,7 @@ Public NotInheritable Class FrmRevuePropositions
             Dim resultat = If(afficher Is Nothing, correction.ShowDialog(Me), afficher(correction))
             If resultat <> DialogResult.OK OrElse correction.PropositionCorrigee Is Nothing Then Return False
             Dim proposition = correction.PropositionCorrigee
+            If session IsNot Nothing Then session.AppliquerCorrection(source.CleSource, correction.ResultatCorrection)
             sources(ligne) = proposition
             ligne.Cells("DateProposee").Value = proposition.DateProposee
             ligne.Cells("Montant").Value = proposition.Montant
@@ -133,6 +169,7 @@ Public NotInheritable Class FrmRevuePropositions
             ligne.Cells("Libelle").Value = proposition.Libelle
             ligne.Cells("Reference").Value = proposition.Reference
             ligne.Cells("Avertissements").Value = String.Join(Environment.NewLine, proposition.AvertissementsValidation)
+            ActualiserEtatCorrections()
             Return True
         End Using
     End Function
