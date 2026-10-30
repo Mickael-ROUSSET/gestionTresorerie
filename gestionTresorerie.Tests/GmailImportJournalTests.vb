@@ -96,4 +96,63 @@ Public Class GmailImportJournalTests
             If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
         End Try
     End Sub
+
+    <TestMethod>
+    Public Sub DeuxInstancesConcurrentes_UneSeuleLignePourLaMemeCle()
+        Dim fileName = TemporaryJournal()
+        Dim depart As New System.Threading.ManualResetEventSlim(False)
+        Dim prets As New System.Threading.CountdownEvent(2)
+        Dim cle = GmailImportJournal.MakeKey("fictif@example.invalid", 3UI, 31UI)
+        Try
+            Dim premiere As New GmailImportJournal(fileName)
+            Dim seconde As New GmailImportJournal(fileName)
+            Dim taches As System.Threading.Tasks.Task() = {
+                System.Threading.Tasks.Task.Factory.StartNew(
+                    Sub()
+                        prets.Signal()
+                        If Not depart.Wait(TimeSpan.FromSeconds(5)) Then Throw New TimeoutException("Départ simultané non déclenché.")
+                        premiere.MarkProcessed(cle)
+                    End Sub, System.Threading.Tasks.TaskCreationOptions.LongRunning),
+                System.Threading.Tasks.Task.Factory.StartNew(
+                    Sub()
+                        prets.Signal()
+                        If Not depart.Wait(TimeSpan.FromSeconds(5)) Then Throw New TimeoutException("Départ simultané non déclenché.")
+                        seconde.MarkProcessed(cle)
+                    End Sub, System.Threading.Tasks.TaskCreationOptions.LongRunning)
+            }
+            Try
+                Assert.IsTrue(prets.Wait(TimeSpan.FromSeconds(5)), "Les deux écritures doivent être prêtes.")
+                depart.Set()
+                Assert.IsTrue(System.Threading.Tasks.Task.WaitAll(taches, TimeSpan.FromSeconds(10)), "Les deux écritures doivent se terminer.")
+                CollectionAssert.AreEqual(New String() {cle}, File.ReadAllLines(fileName))
+                Assert.IsTrue(New GmailImportJournal(fileName).IsProcessed(cle))
+            Finally
+                depart.Set()
+                System.Threading.Tasks.Task.WaitAll(taches, TimeSpan.FromSeconds(10))
+            End Try
+        Finally
+            prets.Dispose()
+            depart.Dispose()
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub VerrouPersistant_EchecSansMarquageEtReprisePossible()
+        Dim fileName = TemporaryJournal()
+        Try
+            Dim journal As New GmailImportJournal(fileName)
+            Dim cle = GmailImportJournal.MakeKey("fictif@example.invalid", 4UI, 41UI)
+            Directory.CreateDirectory(Path.GetDirectoryName(fileName))
+            Using verrou As New FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)
+                Assert.ThrowsExactly(Of IOException)(Sub() journal.MarkProcessed(cle))
+            End Using
+            Assert.IsFalse(journal.IsProcessed(cle))
+            Assert.AreEqual(0, File.ReadAllLines(fileName).Length)
+            journal.MarkProcessed(cle)
+            CollectionAssert.AreEqual(New String() {cle}, File.ReadAllLines(fileName))
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
 End Class
