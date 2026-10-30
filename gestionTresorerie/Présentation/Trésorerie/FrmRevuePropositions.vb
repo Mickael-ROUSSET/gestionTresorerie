@@ -16,6 +16,7 @@ Public NotInheritable Class FrmRevuePropositions
     Inherits Form
 
     Private ReadOnly sources As New Dictionary(Of DataGridViewRow, PropositionMouvement)()
+    Private ReadOnly session As PropositionSessionRevue
     Private ReadOnly corriger As New Button With {
         .Name = "boutonCorriger", .Text = "Corriger la sélection (sans valider)",
         .AccessibleName = "Corriger la sélection (sans valider)", .AutoSize = True,
@@ -84,6 +85,14 @@ Public NotInheritable Class FrmRevuePropositions
 
     ''' <summary>Sources déjà parsées, dans l'ordre exact de l'instantané, sans identité ambiguë.</summary>
     Public Sub New(revue As PropositionRevue, propositions As IEnumerable(Of PropositionMouvement))
+        Me.New(revue, propositions, Nothing)
+    End Sub
+
+    ''' <summary>Associe une session en memoire aux corrections effectuees dans la fenetre.
+    ''' La session doit contenir les memes instances que l'instantane presente.
+    ''' Aucune approbation ou persistance n'est possible depuis cette fenetre.</summary>
+    Public Sub New(revue As PropositionRevue, propositions As IEnumerable(Of PropositionMouvement),
+                   sessionRevue As PropositionSessionRevue)
         Me.New(revue)
         If propositions Is Nothing Then Throw New ArgumentNullException(NameOf(propositions))
         Dim liste = propositions.ToList()
@@ -103,6 +112,19 @@ Public NotInheritable Class FrmRevuePropositions
                 Throw New ArgumentException("Correspondance source non prouvée.", NameOf(propositions))
             End If
         Next
+        If sessionRevue IsNot Nothing Then
+            If sessionRevue.Propositions.Count <> liste.Count Then
+                Throw New ArgumentException("Session incompatible avec la revue.", NameOf(sessionRevue))
+            End If
+            For Each source In liste
+                Dim courante As PropositionMouvement = Nothing
+                If Not sessionRevue.Propositions.TryGetValue(source.CleSource, courante) OrElse
+                   Not Object.ReferenceEquals(courante, source) Then
+                    Throw New ArgumentException("Session incompatible avec la revue.", NameOf(sessionRevue))
+                End If
+            Next
+        End If
+        session = sessionRevue
         Dim grille = DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView)
         For i As Integer = 0 To liste.Count - 1
             sources.Add(grille.Rows(i), liste(i))
@@ -126,6 +148,7 @@ Public NotInheritable Class FrmRevuePropositions
             Dim resultat = If(afficher Is Nothing, correction.ShowDialog(Me), afficher(correction))
             If resultat <> DialogResult.OK OrElse correction.PropositionCorrigee Is Nothing Then Return False
             Dim proposition = correction.PropositionCorrigee
+            If session IsNot Nothing Then session.AppliquerCorrection(source.CleSource, correction.ResultatCorrection)
             sources(ligne) = proposition
             ligne.Cells("DateProposee").Value = proposition.DateProposee
             ligne.Cells("Montant").Value = proposition.Montant
