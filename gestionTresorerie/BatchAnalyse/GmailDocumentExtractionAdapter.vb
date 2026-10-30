@@ -98,6 +98,14 @@ Public NotInheritable Class GmailDocumentExtractionAdapter
             Throw New ArgumentException("Type ou donnees extraites manquants.", NameOf(jsonBrut))
         End If
 
+        ' Une transaction absente ou d'un type inattendu ne constitue pas
+        ' une extraction exploitable : refuser avant le mapping metier.
+        Dim donnees As JObject = DirectCast(racine("donnees_extraites"), JObject)
+        If donnees("transaction") Is Nothing OrElse
+           donnees("transaction").Type <> JTokenType.Object Then
+            Throw New ArgumentException("Transaction extraite manquante ou invalide.", NameOf(jsonBrut))
+        End If
+
         Dim document As DocumentAgumaaa
         Select Case typeJeton.Value(Of String)()
             Case "Facture"
