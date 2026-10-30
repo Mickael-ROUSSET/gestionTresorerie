@@ -238,4 +238,28 @@ Public Class GmailImportJournalTests
             If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
         End Try
     End Sub
+
+    <TestMethod>
+    Public Sub JournalSansFinDeLigne_AjoutConserveDeuxClesDistinctes()
+        Dim fileName = TemporaryJournal()
+        Try
+            Dim cleA = GmailImportJournal.MakeKey("fictif@example.invalid", 9UI, 91UI)
+            Dim cleB = GmailImportJournal.MakeKey("fictif@example.invalid", 9UI, 92UI)
+            Directory.CreateDirectory(Path.GetDirectoryName(fileName))
+            File.WriteAllText(fileName, cleA, New System.Text.UTF8Encoding(False))
+            Dim journal As New GmailImportJournal(fileName)
+
+            ' Un marquage repete ne doit ni dupliquer ni modifier le fichier.
+            journal.MarkProcessed(cleA)
+            Assert.AreEqual(cleA, File.ReadAllText(fileName))
+
+            journal.MarkProcessed(cleB)
+            CollectionAssert.AreEqual(New String() {cleA, cleB}, File.ReadAllLines(fileName))
+            Dim reouvert As New GmailImportJournal(fileName)
+            Assert.IsTrue(reouvert.IsProcessed(cleA))
+            Assert.IsTrue(reouvert.IsProcessed(cleB))
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
 End Class
