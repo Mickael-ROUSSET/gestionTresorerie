@@ -122,4 +122,70 @@ Public Class GmailDocumentPropositionAdapterTests
         Assert.AreEqual(25.5D, facture.montant_ttc)
         Assert.AreEqual(12.75D, cheque.montant_numerique)
     End Sub
+
+    <TestMethod>
+    Public Sub DeuxComptesEtDeuxMessagesMemeUid_PiecesSansCollision()
+        ' Les identifiants IMAP sont locaux a chaque compte et a chaque message.
+        Dim pieces = {
+            New GmailDocumentPropositionAdapter.PieceAnalysee(
+                "alpha@example.invalid", 12UI, 34UI, 0, FactureFictive(), PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentPropositionAdapter.PieceAnalysee(
+                "beta@example.invalid", 12UI, 34UI, 0, FactureFictive(), PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentPropositionAdapter.PieceAnalysee(
+                "alpha@example.invalid", 12UI, 35UI, 0, FactureFictive(), PropositionMouvement.SensMouvement.Debit)}
+        Dim adapter As New GmailDocumentPropositionAdapter()
+        Dim premiere = adapter.Proposer(pieces)
+        Dim reprise = adapter.Proposer(pieces)
+        Assert.AreEqual(0, premiere.Rejets.Count)
+        Assert.AreEqual(3, premiere.Propositions.Count)
+        Assert.AreEqual(0, reprise.Rejets.Count)
+        Assert.AreEqual(3, reprise.Propositions.Count)
+        Dim cles As New System.Collections.Generic.HashSet(Of String)(StringComparer.Ordinal)
+        For i = 0 To premiere.Propositions.Count - 1
+            Dim proposition = premiere.Propositions(i)
+            Assert.IsTrue(cles.Add(proposition.CleSource))
+            Assert.AreEqual(proposition.CleSource, reprise.Propositions(i).CleSource)
+            Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine, proposition.Etat)
+        Next
+        Dim session As New PropositionSessionRevue(premiere.Propositions)
+        For Each cle In cles
+            Assert.ThrowsExactly(Of InvalidOperationException)(Sub() session.MarquerApprouvee(cle))
+            Assert.ThrowsExactly(Of InvalidOperationException)(Sub() session.MarquerPersistee(cle))
+        Next
+    End Sub
+
+    <TestMethod>
+    Public Sub DocumentInvalideDansLot_ConserveRejetsEtPropositionsValides()
+        Dim valide = FactureFictive()
+        Dim deviseInvalide = FactureFictive()
+        deviseInvalide.devise = "USD"
+        Dim dateInvalide = FactureFictive()
+        dateInvalide.date_facture = "date-invalide"
+        Dim pieces = {
+            New GmailDocumentPropositionAdapter.PieceAnalysee(
+                "faux@example.invalid", 12UI, 34UI, 0, valide, PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentPropositionAdapter.PieceAnalysee(
+                "faux@example.invalid", 12UI, 34UI, 1, deviseInvalide, PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentPropositionAdapter.PieceAnalysee(
+                "faux@example.invalid", 12UI, 34UI, 2, dateInvalide, PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentPropositionAdapter.PieceAnalysee(
+                "faux@example.invalid", 12UI, 34UI, 3, ChequeFictif(), PropositionMouvement.SensMouvement.Credit)}
+        Dim resultat = New GmailDocumentPropositionAdapter().Proposer(pieces)
+        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual(1, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual(2, resultat.Rejets(1).IndexEntree)
+        Assert.AreEqual(pieces(1).CleSource, resultat.Rejets(0).CleSource)
+        Assert.AreEqual(pieces(2).CleSource, resultat.Rejets(1).CleSource)
+        Assert.AreEqual(pieces(0).CleSource, resultat.Propositions(0).CleSource)
+        Assert.AreEqual(pieces(3).CleSource, resultat.Propositions(1).CleSource)
+        For Each proposition In resultat.Propositions
+            Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine, proposition.Etat)
+        Next
+        Assert.AreEqual(0, valide.IdMvtDoc)
+        Assert.AreEqual(0, deviseInvalide.IdMvtDoc)
+        Assert.AreEqual(0, dateInvalide.IdMvtDoc)
+        Assert.AreEqual("USD", deviseInvalide.devise)
+        Assert.AreEqual("date-invalide", dateInvalide.date_facture)
+    End Sub
 End Class
