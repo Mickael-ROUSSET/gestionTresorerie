@@ -13,9 +13,15 @@ Public NotInheritable Class GmailImportJournal
         If String.IsNullOrWhiteSpace(journalPath) Then Throw New ArgumentException("Chemin de journal requis.", NameOf(journalPath))
         _journalPath = journalPath
         If File.Exists(journalPath) Then
-            For Each entry In File.ReadLines(journalPath)
-                If entry.Length > 0 Then _processed.Add(entry)
-            Next
+            ' Read a consistent snapshot; an active writer holds an exclusive lock.
+            Using stream As FileStream = OpenJournalWithRetry(journalPath, FileMode.Open, FileAccess.Read, FileShare.Read)
+                Using reader As New StreamReader(stream, Encoding.UTF8, True)
+                    While Not reader.EndOfStream
+                        Dim entry = reader.ReadLine()
+                        If entry.Length > 0 Then _processed.Add(entry)
+                    End While
+                End Using
+            End Using
         End If
     End Sub
 
@@ -32,12 +38,12 @@ Public NotInheritable Class GmailImportJournal
         Return _processed.Contains(key)
     End Function
 
-    Private Shared Function OpenJournalWithRetry(path As String) As FileStream
+    Private Shared Function OpenJournalWithRetry(path As String, mode As FileMode, access As FileAccess, share As FileShare) As FileStream
         ' Another process may briefly hold the journal exclusively. Retry only
         ' Windows sharing/lock violations; other I/O failures remain visible.
         For attempt As Integer = 1 To 20
             Try
-                Return New FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)
+                Return New FileStream(path, mode, access, share)
             Catch ex As IOException
                 Dim win32Code = ex.HResult And &HFFFF
                 If win32Code <> 32 AndAlso win32Code <> 33 Then Throw
@@ -55,7 +61,7 @@ Public NotInheritable Class GmailImportJournal
         Directory.CreateDirectory(folder)
         ' Recheck on disk while holding an exclusive lock: another journal instance
         ' may have recorded the same message after this instance was constructed.
-        Using stream As FileStream = OpenJournalWithRetry(_journalPath)
+        Using stream As FileStream = OpenJournalWithRetry(_journalPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)
             Using reader As New StreamReader(stream, Encoding.UTF8, True, 1024, True)
                 While Not reader.EndOfStream
                     If String.Equals(reader.ReadLine(), key, StringComparison.Ordinal) Then
