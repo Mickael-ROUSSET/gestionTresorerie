@@ -111,4 +111,44 @@ Public Class GmailDocumentReviewWorkflowTests
                          End Using
                      End Sub)
     End Sub
+
+    <TestMethod>
+    Public Sub PointEntreeFrmPrincipale_ReouvreSessionCorrigeeSansValidation()
+        Assert.ThrowsExactly(Of ArgumentNullException)(
+            Sub() FrmPrincipale.CreerFenetreRevuePropositions(
+                DirectCast(Nothing, GmailDocumentReviewWorkflow)))
+        SurThreadSta(Sub()
+                         Dim facture As New Facture With {
+                             .IdDoc = 901, .montant_ttc = 22D, .devise = "EUR",
+                             .date_facture = "2026-03-04", .numero_facture = "FICTIVE-901"}
+                         Dim piece As New GmailDocumentPropositionAdapter.PieceAnalysee(
+                             "simulation@example.invalid", 1UI, 2UI, 0, facture,
+                             PropositionMouvement.SensMouvement.Debit)
+                         Dim workflow = GmailDocumentReviewWorkflow.Preparer(
+                             New GmailDocumentPropositionAdapter.PieceAnalysee() {piece})
+                         Using premiere = FrmPrincipale.CreerFenetreRevuePropositions(workflow)
+                             Dim grille = DirectCast(premiere.Controls.Find("grillePropositions", True)(0), DataGridView)
+                             grille.ClearSelection()
+                             grille.Rows(0).Selected = True
+                             Assert.IsTrue(premiere.CorrigerSelection(Function(dialogue)
+                                                                         DirectCast(dialogue.Controls.Find("montant", True)(0), TextBox).Text = "27"
+                                                                         Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                         Return DialogResult.OK
+                                                                     End Function))
+                             Assert.IsFalse(premiere.IsHandleCreated)
+                         End Using
+                         Using seconde = FrmPrincipale.CreerFenetreRevuePropositions(workflow)
+                             Dim grille = DirectCast(seconde.Controls.Find("grillePropositions", True)(0), DataGridView)
+                             Assert.AreEqual(27D, grille.Rows(0).Cells("Montant").Value)
+                             Assert.AreEqual("En attente de revue humaine", grille.Rows(0).Cells("Statut").Value)
+                             Assert.IsFalse(seconde.IsHandleCreated)
+                         End Using
+                         Assert.AreEqual(1, workflow.SessionRevue.Audits.Count)
+                         Assert.AreEqual(22D, facture.montant_ttc)
+                         Assert.ThrowsExactly(Of InvalidOperationException)(
+                             Sub() workflow.SessionRevue.MarquerApprouvee(piece.CleSource))
+                         Assert.ThrowsExactly(Of InvalidOperationException)(
+                             Sub() workflow.SessionRevue.MarquerPersistee(piece.CleSource))
+                     End Sub)
+    End Sub
 End Class
