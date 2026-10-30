@@ -76,6 +76,22 @@ Public NotInheritable Class GmailDocumentExtractionAdapter
             New List(Of PropositionMouvement)(resultat.Propositions), rejets)
     End Function
 
+    Private Shared Sub VerifierNomsProprietes(jeton As JToken)
+        If TypeOf jeton Is JObject Then
+            Dim noms As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
+            For Each propriete As JProperty In DirectCast(jeton, JObject).Properties()
+                If Not noms.Add(propriete.Name) Then
+                    Throw New ArgumentException("Proprietes JSON ambigues (casse differente).")
+                End If
+                VerifierNomsProprietes(propriete.Value)
+            Next
+        ElseIf TypeOf jeton Is JArray Then
+            For Each element As JToken In DirectCast(jeton, JArray)
+                VerifierNomsProprietes(element)
+            Next
+        End If
+    End Sub
+
     Public Shared Function Extraire(jsonBrut As String) As DocumentAgumaaa
         If String.IsNullOrWhiteSpace(jsonBrut) Then
             Throw New ArgumentException("JSON d'extraction requis.", NameOf(jsonBrut))
@@ -90,6 +106,10 @@ Public NotInheritable Class GmailDocumentExtractionAdapter
         Catch ex As JsonException
             Throw New ArgumentException("JSON d'extraction invalide.", NameOf(jsonBrut), ex)
         End Try
+
+        ' Json.NET peut rapprocher des noms qui ne different que par la casse.
+        ' Une extraction ambigue ne doit jamais choisir implicitement une valeur.
+        VerifierNomsProprietes(racine)
 
         Dim typeJeton = racine("type_document")
         If typeJeton Is Nothing OrElse typeJeton.Type <> JTokenType.String OrElse

@@ -213,6 +213,52 @@ Public Class GmailDocumentExtractionAdapterTests
                      End Sub)
     End Sub
     <TestMethod>
+    Public Sub ProprietesDifferantSeulementParLaCasse_SontRejeteesSansPerdreLeLot()
+        ' Un JSON peut contenir deux noms distincts pour JObject mais ambigus
+        ' pour un mapping insensible a la casse : refuser toute interpretation.
+        Dim montantAmbigu As String = JsonFacture.Replace(
+            """montant_ttc"":""42.50""",
+            """montant_ttc"":""42.50"",""Montant_TTC"":""999.99""")
+        Dim typeAmbigu As String = JsonFacture.Replace(
+            """type_document"":""Facture""",
+            """type_document"":""Facture"",""TYPE_DOCUMENT"":""Cheque""")
+        Dim identiteAmbigue As String = JsonFacture.Replace(
+            """fournisseur_nom"":""Fournisseur fictif""",
+            """fournisseur_nom"":""Fournisseur fictif"",""FOURNISSEUR_NOM"":""Autre""")
+        Assert.AreNotEqual(JsonFacture, montantAmbigu)
+        Assert.AreNotEqual(JsonFacture, typeAmbigu)
+        Assert.AreNotEqual(JsonFacture, identiteAmbigue)
+        For Each json As String In {montantAmbigu, typeAmbigu, identiteAmbigue}
+            Assert.ThrowsExactly(Of ArgumentException)(
+                Sub() GmailDocumentExtractionAdapter.Extraire(json))
+        Next
+
+        Dim pieces As GmailDocumentExtractionAdapter.PieceJson() = {
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 11UI, 12UI, 0, montantAmbigu,
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 11UI, 12UI, 0, JsonFacture,
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 11UI, 12UI, 1, JsonFacture,
+                PropositionMouvement.SensMouvement.Debit)}
+        Dim resultat = GmailDocumentExtractionAdapter.ProposerLot(pieces)
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual(pieces(2).CleSource, resultat.Propositions(0).CleSource)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual(0, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual("Extraction JSON invalide ou non prise en charge.", resultat.Rejets(0).Motif)
+        Assert.AreEqual(1, resultat.Rejets(1).IndexEntree)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(1).Motif)
+        Dim session As New PropositionSessionRevue(resultat.Propositions)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerApprouvee(pieces(2).CleSource))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerPersistee(pieces(2).CleSource))
+    End Sub
+
+    <TestMethod>
     Public Sub TransactionAbsenteOuNonObjet_EstRejeteeSansBloquerLeLot()
         ' Le JSON est syntaxiquement valide mais ne contient pas de transaction
         ' exploitable : il ne doit pas devenir une proposition implicite.
