@@ -89,4 +89,85 @@ Public Class GmailDocumentExtractionAdapterTests
             Sub() GmailDocumentExtractionAdapter.Extraire(
                 "{""type_document"":""Facture""}"))
     End Sub
+
+    <TestMethod>
+    Public Sub LotJsonFictif_RejetsIndexesEtDoublonsSansBlocage()
+        Dim pieces As GmailDocumentExtractionAdapter.PieceJson() = {
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 2UI, 5UI, 0, JsonFacture,
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 2UI, 5UI, 1, "{invalide",
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 2UI, 5UI, 1, JsonCheque,
+                PropositionMouvement.SensMouvement.Credit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 2UI, 5UI, 2, JsonCheque,
+                PropositionMouvement.SensMouvement.Credit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 2UI, 5UI, 3,
+                "{""type_document"":""Autre"",""donnees_extraites"":{}}",
+                PropositionMouvement.SensMouvement.Debit),
+            Nothing}
+        Dim resultat = GmailDocumentExtractionAdapter.ProposerLot(pieces)
+        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual(4, resultat.Rejets.Count)
+        Assert.AreEqual(1, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual("Extraction JSON invalide ou non prise en charge.", resultat.Rejets(0).Motif)
+        Assert.AreEqual(2, resultat.Rejets(1).IndexEntree)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(1).Motif)
+        Assert.AreEqual(4, resultat.Rejets(2).IndexEntree)
+        Assert.AreEqual("Extraction JSON invalide ou non prise en charge.", resultat.Rejets(2).Motif)
+        Assert.AreEqual(5, resultat.Rejets(3).IndexEntree)
+        Assert.AreEqual("Entree absente.", resultat.Rejets(3).Motif)
+        Assert.AreEqual(pieces(0).CleSource, resultat.Propositions(0).CleSource)
+        Assert.AreEqual(pieces(3).CleSource, resultat.Propositions(1).CleSource)
+        Assert.IsFalse(resultat.Rejets(0).Motif.Contains("{invalide"))
+        Assert.ThrowsExactly(Of ArgumentNullException)(
+            Sub() GmailDocumentExtractionAdapter.ProposerLot(Nothing))
+    End Sub
+
+    <TestMethod>
+    Public Sub LotJsonFictif_VersFenetreEtSessionSansApprobation()
+        Assert.ThrowsExactly(Of ArgumentNullException)(
+            Sub() GmailDocumentReviewWorkflow.PreparerDepuisJson(Nothing))
+        SurThreadSta(Sub()
+                         Dim pieces As GmailDocumentExtractionAdapter.PieceJson() = {
+                             New GmailDocumentExtractionAdapter.PieceJson(
+                                 "simulation@example.invalid", 2UI, 6UI, 0, JsonFacture,
+                                 PropositionMouvement.SensMouvement.Debit),
+                             New GmailDocumentExtractionAdapter.PieceJson(
+                                 "simulation@example.invalid", 2UI, 6UI, 1, "{invalide",
+                                 PropositionMouvement.SensMouvement.Debit),
+                             New GmailDocumentExtractionAdapter.PieceJson(
+                                 "simulation@example.invalid", 2UI, 6UI, 2, JsonCheque,
+                                 PropositionMouvement.SensMouvement.Credit)}
+                         Dim workflow = GmailDocumentReviewWorkflow.PreparerDepuisJson(pieces)
+                         Assert.AreEqual(2, workflow.ResultatInitial.Propositions.Count)
+                         Assert.AreEqual(1, workflow.ResultatInitial.Rejets.Count)
+                         Using fenetre = workflow.CreerFenetre()
+                             Dim grille = DirectCast(fenetre.Controls.Find("grillePropositions", True)(0), DataGridView)
+                             Dim rejets = DirectCast(fenetre.Controls.Find("grilleRejets", True)(0), DataGridView)
+                             Assert.AreEqual(2, grille.Rows.Count)
+                             Assert.AreEqual(1, rejets.Rows.Count)
+                             Assert.AreEqual(1, rejets.Rows(0).Cells("IndexEntree").Value)
+                             grille.ClearSelection()
+                             grille.Rows(0).Selected = True
+                             Assert.IsTrue(fenetre.CorrigerSelection(Function(dialogue)
+                                                                         DirectCast(dialogue.Controls.Find("montant", True)(0), TextBox).Text = "43"
+                                                                         Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                         Return DialogResult.OK
+                                                                     End Function))
+                             Assert.IsFalse(fenetre.IsHandleCreated)
+                         End Using
+                         Dim cle = pieces(0).CleSource
+                         Assert.AreEqual(43D, workflow.SessionRevue.Propositions(cle).Montant)
+                         Assert.AreEqual(1, workflow.SessionRevue.Audits.Count)
+                         Assert.ThrowsExactly(Of InvalidOperationException)(
+                             Sub() workflow.SessionRevue.MarquerApprouvee(cle))
+                         Assert.ThrowsExactly(Of InvalidOperationException)(
+                             Sub() workflow.SessionRevue.MarquerPersistee(cle))
+                     End Sub)
+    End Sub
 End Class

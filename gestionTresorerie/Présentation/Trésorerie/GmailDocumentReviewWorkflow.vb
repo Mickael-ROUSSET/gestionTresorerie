@@ -33,6 +33,16 @@ Public NotInheritable Class GmailDocumentReviewWorkflow
     ''' les corrections de la session remplacent les propositions initiales,
     ''' dans le meme ordre ; les rejets restent visibles. Aucune approbation.
     ''' </summary>
+
+    ''' <summary>
+    ''' Revue en memoire de JSON fictifs deja extraits, rejets individuels inclus.
+    ''' Aucune validation ni persistance automatique.
+    ''' </summary>
+    Public Shared Function PreparerDepuisJson(pieces As IEnumerable(Of GmailDocumentExtractionAdapter.PieceJson)) As GmailDocumentReviewWorkflow
+        Dim resultat = GmailDocumentExtractionAdapter.ProposerLot(pieces)
+        Return New GmailDocumentReviewWorkflow(resultat, New PropositionSessionRevue(resultat.Propositions))
+    End Function
+
     Public Function CreerFenetre() As FrmRevuePropositions
         Dim courantes As New List(Of PropositionMouvement)()
         For Each originale In ResultatInitial.Propositions
