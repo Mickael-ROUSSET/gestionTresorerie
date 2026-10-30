@@ -83,7 +83,10 @@ Public NotInheritable Class GmailDocumentExtractionAdapter
 
         Dim racine As JObject
         Try
-            racine = JObject.Parse(jsonBrut)
+            ' Les reponses IA avec des proprietes dupliquees sont ambigues :
+            ' ne jamais choisir silencieusement la derniere valeur (montant, type...).
+            racine = JObject.Parse(jsonBrut, New JsonLoadSettings With {
+                .DuplicatePropertyNameHandling = Newtonsoft.Json.Linq.DuplicatePropertyNameHandling.Error})
         Catch ex As JsonException
             Throw New ArgumentException("JSON d'extraction invalide.", NameOf(jsonBrut), ex)
         End Try

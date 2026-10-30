@@ -91,6 +91,48 @@ Public Class GmailDocumentExtractionAdapterTests
     End Sub
 
     <TestMethod>
+    Public Sub JsonAmbiguAvecProprietesDupliquees_EstRejeteEtLeLotContinue()
+        ' Une extraction IA ne doit pas choisir silencieusement le dernier montant
+        ' ou type de document si une meme propriete apparait deux fois.
+        Dim doublonType As String =
+            "{""type_document"":""Cheque"",""type_document"":""Facture"",""donnees_extraites"":{}}"
+        Dim doublonMontant As String = JsonFacture.Replace(
+            """montant_ttc"":""42.50""",
+            """montant_ttc"":""42.50"",""montant_ttc"":""999.99""")
+
+        Assert.ThrowsExactly(Of ArgumentException)(
+            Sub() GmailDocumentExtractionAdapter.Extraire(doublonType))
+        Assert.ThrowsExactly(Of ArgumentException)(
+            Sub() GmailDocumentExtractionAdapter.Extraire(doublonMontant))
+
+        Dim pieces As GmailDocumentExtractionAdapter.PieceJson() = {
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 8UI, 9UI, 0, doublonType,
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 8UI, 9UI, 1, JsonFacture,
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 8UI, 9UI, 2, doublonMontant,
+                PropositionMouvement.SensMouvement.Debit)}
+        Dim resultat = GmailDocumentExtractionAdapter.ProposerLot(pieces)
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual(pieces(1).CleSource, resultat.Propositions(0).CleSource)
+        Assert.AreEqual(42.5D, resultat.Propositions(0).Montant)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual(0, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual(2, resultat.Rejets(1).IndexEntree)
+        For Each rejet In resultat.Rejets
+            Assert.AreEqual("Extraction JSON invalide ou non prise en charge.", rejet.Motif)
+        Next
+        Dim session As New PropositionSessionRevue(resultat.Propositions)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerApprouvee(pieces(1).CleSource))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerPersistee(pieces(1).CleSource))
+    End Sub
+
+    <TestMethod>
     Public Sub LotJsonFictif_RejetsIndexesEtDoublonsSansBlocage()
         Dim pieces As GmailDocumentExtractionAdapter.PieceJson() = {
             New GmailDocumentExtractionAdapter.PieceJson(
