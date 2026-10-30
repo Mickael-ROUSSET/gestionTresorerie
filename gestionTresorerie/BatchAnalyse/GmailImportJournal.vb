@@ -56,7 +56,8 @@ Public NotInheritable Class GmailImportJournal
 
     Public Sub MarkProcessed(key As String)
         If String.IsNullOrWhiteSpace(key) OrElse key.Contains(vbLf) OrElse key.Contains(vbCr) Then Throw New ArgumentException("Cle de message invalide.", NameOf(key))
-        If _processed.Contains(key) Then Return
+        ' Always recheck the durable journal: the file may have been removed or
+        ' replaced after this instance cached a key.
         Dim folder = Path.GetDirectoryName(Path.GetFullPath(_journalPath))
         Directory.CreateDirectory(folder)
         ' Recheck on disk while holding an exclusive lock: another journal instance
