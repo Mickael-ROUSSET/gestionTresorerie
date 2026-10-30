@@ -300,4 +300,39 @@ Public Class GmailDocumentExtractionAdapterTests
         Assert.ThrowsExactly(Of InvalidOperationException)(
             Sub() session.MarquerPersistee(pieces(3).CleSource))
     End Sub
+
+    <TestMethod>
+    Public Sub MontantAbsentOuZero_DansJsonFictif_NeCreePasDeProposition()
+        ' Une extraction incomplete ne doit jamais generer un mouvement de 0 EUR.
+        ' Les autres pieces du meme lot restent exploitables pour la revue.
+        Dim sansMontant As String = JsonFacture.Replace(
+            """montant_ttc"":""42.50"",", "")
+        Dim montantZero As String = JsonFacture.Replace(
+            """montant_ttc"":""42.50""", """montant_ttc"":""0""")
+        Assert.AreNotEqual(JsonFacture, sansMontant)
+        Assert.AreNotEqual(JsonFacture, montantZero)
+
+        Dim pieces As GmailDocumentExtractionAdapter.PieceJson() = {
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 15UI, 16UI, 0, sansMontant,
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 15UI, 16UI, 1, montantZero,
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 15UI, 16UI, 2, JsonFacture,
+                PropositionMouvement.SensMouvement.Debit)}
+        Dim resultat = GmailDocumentExtractionAdapter.ProposerLot(pieces)
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual(pieces(2).CleSource, resultat.Propositions(0).CleSource)
+        Assert.AreEqual(42.5D, resultat.Propositions(0).Montant)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual(0, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual(1, resultat.Rejets(1).IndexEntree)
+        Dim session As New PropositionSessionRevue(resultat.Propositions)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerApprouvee(pieces(2).CleSource))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerPersistee(pieces(2).CleSource))
+    End Sub
 End Class
