@@ -212,4 +212,46 @@ Public Class GmailDocumentExtractionAdapterTests
                              Sub() workflow.SessionRevue.MarquerPersistee(cle))
                      End Sub)
     End Sub
+    <TestMethod>
+    Public Sub TransactionAbsenteOuNonObjet_EstRejeteeSansBloquerLeLot()
+        ' Le JSON est syntaxiquement valide mais ne contient pas de transaction
+        ' exploitable : il ne doit pas devenir une proposition implicite.
+        Dim sansTransaction As String =
+            "{""type_document"":""Facture"",""donnees_extraites"":{""identite"":{}}}"
+        Dim transactionTexte As String =
+            "{""type_document"":""Facture"",""donnees_extraites"":{""transaction"":""42.50""}}"
+        Assert.ThrowsExactly(Of ArgumentException)(
+            Sub() GmailDocumentExtractionAdapter.Extraire(sansTransaction))
+        Assert.ThrowsExactly(Of ArgumentException)(
+            Sub() GmailDocumentExtractionAdapter.Extraire(transactionTexte))
+
+        Dim pieces As GmailDocumentExtractionAdapter.PieceJson() = {
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 9UI, 10UI, 0, JsonFacture,
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 9UI, 10UI, 1, sansTransaction,
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 9UI, 10UI, 2, transactionTexte,
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 9UI, 10UI, 3, JsonCheque,
+                PropositionMouvement.SensMouvement.Credit)}
+        Dim resultat = GmailDocumentExtractionAdapter.ProposerLot(pieces)
+        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual(pieces(0).CleSource, resultat.Propositions(0).CleSource)
+        Assert.AreEqual(pieces(3).CleSource, resultat.Propositions(1).CleSource)
+        Assert.AreEqual(1, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual(2, resultat.Rejets(1).IndexEntree)
+        For Each rejet In resultat.Rejets
+            Assert.AreEqual("Extraction JSON invalide ou non prise en charge.", rejet.Motif)
+        Next
+        Dim session As New PropositionSessionRevue(resultat.Propositions)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerApprouvee(pieces(0).CleSource))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerPersistee(pieces(3).CleSource))
+    End Sub
 End Class
