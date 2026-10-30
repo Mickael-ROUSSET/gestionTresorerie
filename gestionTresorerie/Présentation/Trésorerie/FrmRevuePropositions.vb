@@ -15,6 +15,8 @@ Imports System.Windows.Forms
 Public NotInheritable Class FrmRevuePropositions
     Inherits Form
 
+    Public ReadOnly Property Session As PropositionSessionRevue
+
     Private ReadOnly sources As New Dictionary(Of DataGridViewRow, PropositionMouvement)()
     Private ReadOnly corriger As New Button With {
         .Name = "boutonCorriger", .Text = "Corriger la sélection (sans valider)",
@@ -33,9 +35,9 @@ Public NotInheritable Class FrmRevuePropositions
 
         Dim propositions = CreerGrille("grillePropositions", "Propositions en lecture seule", 0)
         AjouterColonnes(propositions, {"CleSource", "TypeDocument", "Reference", "DateProposee",
-                                      "Montant", "Sens", "Libelle", "Statut", "Avertissements"},
+                                      "Montant", "Sens", "Libelle", "Statut", "Avertissements", "Prevalidation"},
                          {"Identité du document", "Type", "Référence", "Date proposée",
-                          "Montant (EUR)", "Débit / Crédit", "Libellé", "Statut", "Avertissements de validation"})
+                          "Montant (EUR)", "Débit / Crédit", "Libellé", "Statut", "Avertissements de validation", "Anomalies de prévalidation (sans approbation)"})
         propositions.Columns("DateProposee").ValueType = GetType(DateTime)
         propositions.Columns("DateProposee").DefaultCellStyle.Format = "dd/MM/yyyy"
         propositions.Columns("Montant").ValueType = GetType(Decimal)
@@ -103,11 +105,44 @@ Public NotInheritable Class FrmRevuePropositions
                 Throw New ArgumentException("Correspondance source non prouvée.", NameOf(propositions))
             End If
         Next
+        Session = New PropositionSessionRevue(liste)
         Dim grille = DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView)
         For i As Integer = 0 To liste.Count - 1
             sources.Add(grille.Rows(i), liste(i))
         Next
-        ActualiserAction(grille)
+        ActualiserSession()
+    End Sub
+
+    Public Sub New(session As PropositionSessionRevue, revue As PropositionRevue)
+        Me.New(revue, SourcesSession(session, revue))
+        Me.Session = session
+        ActualiserSession()
+    End Sub
+
+    Private Shared Function SourcesSession(session As PropositionSessionRevue, revue As PropositionRevue) As IEnumerable(Of PropositionMouvement)
+        If session Is Nothing Then Throw New ArgumentNullException(NameOf(session))
+        If revue Is Nothing Then Throw New ArgumentNullException(NameOf(revue))
+        If session.Propositions.Count <> revue.Lignes.Count Then Throw New ArgumentException("Sources incompatibles avec la revue.", NameOf(session))
+        Return revue.Lignes.Select(Function(ligne) If(session.Propositions.ContainsKey(ligne.CleSource), session.Propositions(ligne.CleSource), Nothing))
+    End Function
+
+    ''' <summary>Rafraîchit les valeurs et diagnostics exclusivement en mémoire.</summary>
+    Public Sub ActualiserSession()
+        If Session Is Nothing Then Return
+        For Each entree In sources
+            Dim proposition = Session.Propositions(entree.Value.CleSource)
+            Dim ligne = entree.Key
+            ligne.Cells("DateProposee").Value = proposition.DateProposee
+            ligne.Cells("Montant").Value = proposition.Montant
+            ligne.Cells("Sens").Value = If(proposition.Sens = PropositionMouvement.SensMouvement.Debit, "Débit", "Crédit")
+            ligne.Cells("Libelle").Value = proposition.Libelle
+            ligne.Cells("Reference").Value = proposition.Reference
+            ligne.Cells("Avertissements").Value = String.Join(Environment.NewLine, proposition.AvertissementsValidation)
+            ' Le contexte documentaire est absent : aucun identifiant positif inventé.
+            ligne.Cells("Prevalidation").Value = String.Join(Environment.NewLine,
+                Session.Prevalider(proposition.CleSource, 0, Nothing).Anomalies)
+        Next
+        ActualiserAction(DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView))
     End Sub
 
     Private Sub ActualiserAction(grille As DataGridView)
@@ -120,19 +155,13 @@ Public NotInheritable Class FrmRevuePropositions
         ActualiserAction(grille)
         If Not corriger.Enabled Then Return False
         Dim ligne = grille.SelectedRows(0)
-        Dim source = sources(ligne)
+        Dim source = Session.Propositions(sources(ligne).CleSource)
         If source.Etat <> PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine Then Return False
         Using correction As New FrmCorrectionProposition(source)
             Dim resultat = If(afficher Is Nothing, correction.ShowDialog(Me), afficher(correction))
             If resultat <> DialogResult.OK OrElse correction.PropositionCorrigee Is Nothing Then Return False
-            Dim proposition = correction.PropositionCorrigee
-            sources(ligne) = proposition
-            ligne.Cells("DateProposee").Value = proposition.DateProposee
-            ligne.Cells("Montant").Value = proposition.Montant
-            ligne.Cells("Sens").Value = If(proposition.Sens = PropositionMouvement.SensMouvement.Debit, "Débit", "Crédit")
-            ligne.Cells("Libelle").Value = proposition.Libelle
-            ligne.Cells("Reference").Value = proposition.Reference
-            ligne.Cells("Avertissements").Value = String.Join(Environment.NewLine, proposition.AvertissementsValidation)
+            Session.AppliquerCorrection(source.CleSource, correction.ResultatCorrection)
+            ActualiserSession()
             Return True
         End Using
     End Function

@@ -234,6 +234,84 @@ Public Class FrmRevuePropositionsTests
     End Function
 
     <TestMethod>
+    Public Sub Session_RafraichitCorrectionDiagnosticsEtAnnulationSansPersistance()
+        SurThreadSta(Sub()
+                         Dim lotSource = Lot()
+                         Dim original = lotSource.Propositions(0)
+                         Dim session As New PropositionSessionRevue(lotSource.Propositions)
+                         Using f As New FrmRevuePropositions(session, New PropositionRevue(lotSource))
+                             Assert.AreSame(session, f.Session)
+                             Dim grilleSource = Grille(f, "grillePropositions")
+                             grilleSource.ClearSelection()
+                             grilleSource.Rows(0).Selected = True
+                             Dim avant = CStr(grilleSource.Rows(0).Cells("Prevalidation").Value)
+                             StringAssert.Contains(avant, "DocumentSourceAbsent")
+                             StringAssert.Contains(avant, "IdentitesUtiliseesAbsentes")
+                             StringAssert.Contains(avant, "ReferenceAmbigue")
+                             StringAssert.Contains(avant, "AvertissementsNonResolus")
+                             Assert.IsFalse(f.CorrigerSelection(Function(dialogue)
+                                                                  Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                  Return DialogResult.Cancel
+                                                              End Function))
+                             Assert.AreEqual(0, session.Audits.Count)
+                             Assert.AreSame(original, session.Propositions(original.CleSource))
+                             Assert.IsTrue(f.CorrigerSelection(Function(dialogue)
+                                                                 DirectCast(dialogue.Controls.Find("montant", True)(0), TextBox).Text = "55"
+                                                                 DirectCast(dialogue.Controls.Find("reference", True)(0), TextBox).Text = ""
+                                                                 Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                 Return DialogResult.OK
+                                                             End Function))
+                             Assert.AreEqual(1, session.Audits.Count)
+                             Assert.AreSame(original, session.Audits(0).Avant)
+                             Assert.AreEqual(55D, grilleSource.Rows(0).Cells("Montant").Value)
+                             StringAssert.Contains(CStr(grilleSource.Rows(0).Cells("Prevalidation").Value), "ReferenceVide")
+                             Dim actuelle = session.Propositions(original.CleSource)
+                             session.AppliquerCorrection(original.CleSource, PropositionCorrection.Corriger(
+                                 actuelle, actuelle.DateProposee, 77D, actuelle.Sens, actuelle.Libelle, "000009"))
+                             f.ActualiserSession()
+                             Assert.AreEqual(77D, grilleSource.Rows(0).Cells("Montant").Value)
+                             Assert.AreEqual("000009", grilleSource.Rows(0).Cells("Reference").Value)
+                             Assert.AreEqual(avant, grilleSource.Rows(0).Cells("Prevalidation").Value)
+                             Assert.AreEqual(original.CleSource, grilleSource.Rows(0).Cells("CleSource").Value)
+                             Assert.AreSame(lotSource.Propositions(1), session.Propositions(lotSource.Propositions(1).CleSource))
+                             Assert.AreEqual(12D, original.Montant)
+                             Assert.AreEqual("00001", original.Reference)
+                             Assert.AreEqual(String.Join(Environment.NewLine, original.AvertissementsValidation),
+                                             grilleSource.Rows(0).Cells("Avertissements").Value)
+                             DirectCast(f.CancelButton, Button).PerformClick()
+                             Assert.AreEqual(2, session.Audits.Count)
+                             For Each p In session.Propositions.Values
+                                 Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine, p.Etat)
+                                 Assert.ThrowsExactly(Of InvalidOperationException)(Sub() session.MarquerApprouvee(p.CleSource))
+                                 Assert.ThrowsExactly(Of InvalidOperationException)(Sub() session.MarquerPersistee(p.CleSource))
+                             Next
+                             Assert.AreEqual(2, Boutons(f))
+                             Assert.IsNull(f.AcceptButton)
+                         End Using
+                     End Sub)
+    End Sub
+
+    <TestMethod>
+    Public Sub Mapping_RefuseCollisionsDeCasseEtEspaces()
+        SurThreadSta(Sub()
+                         For Each cle In {"source", " SOURCE "}
+                             Dim lotSource = New PropositionDocumentService().Proposer({
+                                 New PropositionDocumentService.Entree(New Cheque With {.montant_numerique = 12D,
+                                     .devise = "EUR", .dateChq = "20260204", .numero_du_cheque = "00001"},
+                                     "Source", PropositionMouvement.SensMouvement.Debit),
+                                 New PropositionDocumentService.Entree(New Cheque With {.montant_numerique = 24D,
+                                     .devise = "EUR", .dateChq = "20260204", .numero_du_cheque = "00002"},
+                                     cle, PropositionMouvement.SensMouvement.Debit)})
+                             Assert.AreEqual(2, lotSource.Propositions.Count)
+                             Assert.ThrowsExactly(Of ArgumentException)(Sub()
+                                                                          Using f As New FrmRevuePropositions(New PropositionRevue(lotSource), lotSource.Propositions)
+                                                                          End Using
+                                                                      End Sub)
+                         Next
+                     End Sub)
+    End Sub
+
+    <TestMethod>
     Public Sub LotsVideEtEntierementRejete_SontConsultables()
         SurThreadSta(Sub()
                          Dim service As New PropositionDocumentService()
