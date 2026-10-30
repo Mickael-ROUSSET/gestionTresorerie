@@ -105,4 +105,48 @@ Public Class FrmPrincipaleRevueTests
                          End Using
                      End Sub)
     End Sub
+    <TestMethod>
+    Public Sub FabriqueRevueAvecSession_TransmetCorrectionsSansApprobation()
+        SurThreadSta(Sub()
+                         Dim document As New Cheque With {.montant_numerique = 12D,
+                             .devise = "EUR", .dateChq = "20260204", .numero_du_cheque = "FICTIF-001"}
+                         Dim resultat = New PropositionDocumentService().Proposer({
+                             New PropositionDocumentService.Entree(document, "gmail-fictif-1",
+                                 PropositionMouvement.SensMouvement.Debit)})
+                         Dim session As New PropositionSessionRevue(resultat.Propositions)
+                         Assert.ThrowsExactly(Of ArgumentNullException)(
+                             Sub() FrmPrincipale.CreerFenetreRevuePropositions(Nothing, session))
+                         Assert.ThrowsExactly(Of ArgumentNullException)(
+                             Sub() FrmPrincipale.CreerFenetreRevuePropositions(resultat, Nothing))
+                         Using formulaire = FrmPrincipale.CreerFenetreRevuePropositions(resultat, session)
+                             Dim grille = DirectCast(formulaire.Controls.Find("grillePropositions", True)(0), DataGridView)
+                             grille.ClearSelection()
+                             grille.Rows(0).Selected = True
+                             Assert.IsTrue(formulaire.CorrigerSelection(Function(dialogue)
+                                                                           DirectCast(dialogue.Controls.Find("montant", True)(0), TextBox).Text = "25"
+                                                                           Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                           Return DialogResult.OK
+                                                                       End Function))
+                             Assert.AreEqual(25D, session.Propositions("gmail-fictif-1").Montant)
+                             Assert.AreEqual(1, session.Audits.Count)
+                             Assert.AreEqual("En attente de revue humaine", grille.Rows(0).Cells("Statut").Value)
+                             Assert.IsFalse(formulaire.IsHandleCreated)
+                         End Using
+                         Assert.AreEqual(12D, document.montant_numerique)
+                         Assert.ThrowsExactly(Of InvalidOperationException)(
+                             Sub() session.MarquerApprouvee("gmail-fictif-1"))
+                         Assert.ThrowsExactly(Of InvalidOperationException)(
+                             Sub() session.MarquerPersistee("gmail-fictif-1"))
+                         Dim autre = New PropositionDocumentService().Proposer({
+                             New PropositionDocumentService.Entree(document, "gmail-fictif-1",
+                                 PropositionMouvement.SensMouvement.Debit)})
+                         Dim autreSession As New PropositionSessionRevue(autre.Propositions)
+                         Assert.ThrowsExactly(Of ArgumentException)(
+                             Sub()
+                                 Using formulaire = FrmPrincipale.CreerFenetreRevuePropositions(resultat, autreSession)
+                                 End Using
+                             End Sub)
+                     End Sub)
+    End Sub
+
 End Class
