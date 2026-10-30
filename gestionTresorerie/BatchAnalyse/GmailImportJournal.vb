@@ -71,8 +71,17 @@ Public NotInheritable Class GmailImportJournal
                     End If
                 End While
             End Using
+            ' A truncated/imported journal may lack its final line terminator.
+            ' Keep the previous key separate rather than concatenating two keys.
+            Dim needsSeparator As Boolean = False
+            If stream.Length > 0 Then
+                stream.Seek(-1, SeekOrigin.End)
+                Dim lastByte As Integer = stream.ReadByte()
+                needsSeparator = (lastByte <> 10 AndAlso lastByte <> 13)
+            End If
             stream.Seek(0, SeekOrigin.End)
             Using writer As New StreamWriter(stream, New UTF8Encoding(False), 1024, True)
+                If needsSeparator Then writer.WriteLine()
                 writer.WriteLine(key)
                 writer.Flush()
             End Using
