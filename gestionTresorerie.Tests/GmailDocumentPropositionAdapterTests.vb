@@ -77,4 +77,49 @@ Public Class GmailDocumentPropositionAdapterTests
         Assert.AreEqual(0, revue.Lignes.Count)
         Assert.AreEqual(0, revue.Rejets.Count)
     End Sub
+
+    <TestMethod>
+    Public Sub PiecesGmailFictives_CorrectionEtPrevalidation_NeValentJamaisApprobation()
+        Dim facture = FactureFictive()
+        Dim cheque = ChequeFictif()
+        Dim pieces = {
+            New GmailDocumentPropositionAdapter.PieceAnalysee(
+                "faux@example.invalid", 12UI, 34UI, 0, facture, PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentPropositionAdapter.PieceAnalysee(
+                "faux@example.invalid", 12UI, 34UI, 2, cheque, PropositionMouvement.SensMouvement.Credit)}
+        Dim resultat = New GmailDocumentPropositionAdapter().Proposer(pieces)
+        Assert.AreEqual(0, resultat.Rejets.Count)
+        Assert.AreEqual(2, resultat.Propositions.Count)
+        Dim session As New PropositionSessionRevue(resultat.Propositions)
+
+        For i = 0 To resultat.Propositions.Count - 1
+            Dim originale = resultat.Propositions(i)
+            Dim cle = GmailDocumentSourceKey.MakeKey("faux@example.invalid", 12UI, 34UI, If(i = 0, 0, 2))
+            Assert.AreEqual(cle, originale.CleSource)
+            Assert.IsFalse(session.Prevalider(cle, 501 + i, Array.Empty(Of String)(), False).EstPrete)
+
+            ' Une confirmation explicite de chaque avertissement est requise.
+            Dim confirmations As New System.Collections.Generic.List(Of PropositionCorrection.ConfirmationAvertissement)()
+            For Each avertissement In originale.AvertissementsValidation
+                confirmations.Add(New PropositionCorrection.ConfirmationAvertissement(
+                    PropositionCorrection.Champ.Sens, avertissement))
+            Next
+            Dim correction = PropositionCorrection.Corriger(originale,
+                originale.DateProposee.AddDays(1), originale.Montant + 1D,
+                originale.Sens, "Document fictif corrige", originale.Reference, confirmations)
+            session.AppliquerCorrection(cle, correction)
+
+            Assert.AreSame(correction.Proposition, session.Propositions(cle))
+            Assert.IsTrue(session.Prevalider(cle, 501 + i, Array.Empty(Of String)(), False).EstPrete)
+            Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                            session.Propositions(cle).Etat)
+            Assert.ThrowsExactly(Of InvalidOperationException)(Sub() session.MarquerApprouvee(cle))
+            Assert.ThrowsExactly(Of InvalidOperationException)(Sub() session.MarquerPersistee(cle))
+        Next
+        Assert.AreEqual(2, session.Audits.Count)
+        Assert.AreEqual(0, facture.IdMvtDoc)
+        Assert.AreEqual(0, cheque.IdMvtDoc)
+        Assert.AreEqual(25.5D, facture.montant_ttc)
+        Assert.AreEqual(12.75D, cheque.montant_numerique)
+    End Sub
 End Class
