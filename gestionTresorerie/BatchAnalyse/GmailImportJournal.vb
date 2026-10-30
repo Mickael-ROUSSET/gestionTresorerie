@@ -91,41 +91,41 @@ Public NotInheritable Class GmailImportJournal
     End Function
 
     Public Sub MarkProcessed(key As String)
-        If String.IsNullOrWhiteSpace(key) OrElse key.Contains(vbLf) OrElse key.Contains(vbCr) Then Throw New ArgumentException("Cle de message invalide.", NameOf(key))
-        ' Always recheck the durable journal: the file may have been removed or
-        ' replaced after this instance cached a key.
-        Dim folder = Path.GetDirectoryName(Path.GetFullPath(_journalPath))
-        Directory.CreateDirectory(folder)
-        ' Recheck on disk while holding an exclusive lock: another journal instance
-        ' may have recorded the same message after this instance was constructed.
-        Using stream As FileStream = OpenJournalWithRetry(_journalPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)
-            Using reader As New StreamReader(stream, Encoding.UTF8, True, 1024, True)
-                While Not reader.EndOfStream
-                    If String.Equals(reader.ReadLine(), key, StringComparison.Ordinal) Then
-                        SyncLock _cacheLock
-                            _processed.Add(key)
-                        End SyncLock
-                        Return
-                    End If
-                End While
-            End Using
-            ' A truncated/imported journal may lack its final line terminator.
-            ' Keep the previous key separate rather than concatenating two keys.
-            Dim needsSeparator As Boolean = False
-            If stream.Length > 0 Then
-                stream.Seek(-1, SeekOrigin.End)
-                Dim lastByte As Integer = stream.ReadByte()
-                needsSeparator = (lastByte <> 10 AndAlso lastByte <> 13)
-            End If
-            stream.Seek(0, SeekOrigin.End)
-            Using writer As New StreamWriter(stream, New UTF8Encoding(False), 1024, True)
-                If needsSeparator Then writer.WriteLine()
-                writer.WriteLine(key)
-                writer.Flush()
-            End Using
-            stream.Flush(True)
-        End Using
+        ' Use the same lock order as IsProcessed: cache first, then file.
+        ' Otherwise an exclusive writer can deadlock a concurrent refresh.
         SyncLock _cacheLock
+            If String.IsNullOrWhiteSpace(key) OrElse key.Contains(vbLf) OrElse key.Contains(vbCr) Then Throw New ArgumentException("Cle de message invalide.", NameOf(key))
+            ' Always recheck the durable journal: the file may have been removed or
+            ' replaced after this instance cached a key.
+            Dim folder = Path.GetDirectoryName(Path.GetFullPath(_journalPath))
+            Directory.CreateDirectory(folder)
+            ' Recheck on disk while holding an exclusive lock: another journal instance
+            ' may have recorded the same message after this instance was constructed.
+            Using stream As FileStream = OpenJournalWithRetry(_journalPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)
+                Using reader As New StreamReader(stream, Encoding.UTF8, True, 1024, True)
+                    While Not reader.EndOfStream
+                        If String.Equals(reader.ReadLine(), key, StringComparison.Ordinal) Then
+                            _processed.Add(key)
+                            Return
+                        End If
+                    End While
+                End Using
+                ' A truncated/imported journal may lack its final line terminator.
+                ' Keep the previous key separate rather than concatenating two keys.
+                Dim needsSeparator As Boolean = False
+                If stream.Length > 0 Then
+                    stream.Seek(-1, SeekOrigin.End)
+                    Dim lastByte As Integer = stream.ReadByte()
+                    needsSeparator = (lastByte <> 10 AndAlso lastByte <> 13)
+                End If
+                stream.Seek(0, SeekOrigin.End)
+                Using writer As New StreamWriter(stream, New UTF8Encoding(False), 1024, True)
+                    If needsSeparator Then writer.WriteLine()
+                    writer.WriteLine(key)
+                    writer.Flush()
+                End Using
+                stream.Flush(True)
+            End Using
             _processed.Add(key)
         End SyncLock
     End Sub
