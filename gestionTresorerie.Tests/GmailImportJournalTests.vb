@@ -155,4 +155,47 @@ Public Class GmailImportJournalTests
             If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
         End Try
     End Sub
+
+    <TestMethod>
+    Public Sub LectureSousVerrouTemporaire_AttendEtRetrouveLaCle()
+        Dim fileName = TemporaryJournal()
+        Try
+            Dim cle = GmailImportJournal.MakeKey("fictif@example.invalid", 5UI, 51UI)
+            Dim premier As New GmailImportJournal(fileName)
+            premier.MarkProcessed(cle)
+            Dim verrou As New FileStream(fileName, FileMode.Open, FileAccess.ReadWrite, FileShare.None)
+            Dim liberation = System.Threading.Tasks.Task.Run(Sub()
+                                                                System.Threading.Thread.Sleep(200)
+                                                                verrou.Dispose()
+                                                            End Sub)
+            Try
+                Assert.IsTrue(New GmailImportJournal(fileName).IsProcessed(cle))
+                liberation.Wait()
+            Finally
+                liberation.Wait()
+                verrou.Dispose()
+            End Try
+            CollectionAssert.AreEqual(New String() {cle}, File.ReadAllLines(fileName))
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub LectureSousVerrouPersistant_EchouePuisPeutReprendre()
+        Dim fileName = TemporaryJournal()
+        Try
+            Dim cle = GmailImportJournal.MakeKey("fictif@example.invalid", 6UI, 61UI)
+            Dim premier As New GmailImportJournal(fileName)
+            premier.MarkProcessed(cle)
+            Using verrou As New FileStream(fileName, FileMode.Open, FileAccess.ReadWrite, FileShare.None)
+                Assert.ThrowsExactly(Of IOException)(
+                    Sub() Assert.IsTrue(New GmailImportJournal(fileName).IsProcessed(cle)))
+            End Using
+            Assert.IsTrue(New GmailImportJournal(fileName).IsProcessed(cle))
+            CollectionAssert.AreEqual(New String() {cle}, File.ReadAllLines(fileName))
+        Finally
+            If Directory.Exists(Path.GetDirectoryName(fileName)) Then Directory.Delete(Path.GetDirectoryName(fileName), True)
+        End Try
+    End Sub
 End Class
