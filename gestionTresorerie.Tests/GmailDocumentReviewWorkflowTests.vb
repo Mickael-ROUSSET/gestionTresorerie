@@ -51,6 +51,8 @@ Public Class GmailDocumentReviewWorkflowTests
                          Dim cle = pieces(0).CleSource
 
                          Using premiere = workflow.CreerFenetre()
+                             Dim etat = DirectCast(premiere.Controls.Find("etatCorrections", True)(0), Label)
+                             StringAssert.Contains(etat.Text, "Corrections tracées en mémoire : 0")
                              Dim grille = DirectCast(premiere.Controls.Find("grillePropositions", True)(0), DataGridView)
                              grille.ClearSelection()
                              grille.Rows(0).Selected = True
@@ -61,10 +63,14 @@ Public Class GmailDocumentReviewWorkflowTests
                                                                      End Function))
                              Assert.AreEqual(50D, workflow.SessionRevue.Propositions(cle).Montant)
                              Assert.AreEqual(1, workflow.SessionRevue.Audits.Count)
+                             StringAssert.Contains(etat.Text, "Corrections tracées en mémoire : 1")
+                             StringAssert.Contains(etat.Text, "Aucune opération validée ni enregistrée")
                              Assert.IsFalse(premiere.IsHandleCreated)
                          End Using
 
                          Using seconde = workflow.CreerFenetre()
+                             Dim etat = DirectCast(seconde.Controls.Find("etatCorrections", True)(0), Label)
+                             StringAssert.Contains(etat.Text, "Corrections tracées en mémoire : 1")
                              Dim grille = DirectCast(seconde.Controls.Find("grillePropositions", True)(0), DataGridView)
                              Dim rejets = DirectCast(seconde.Controls.Find("grilleRejets", True)(0), DataGridView)
                              Assert.AreEqual(2, grille.Rows.Count)
@@ -81,6 +87,7 @@ Public Class GmailDocumentReviewWorkflowTests
                                                                         Assert.IsTrue(dialogue.AppliquerCorrection())
                                                                         Return DialogResult.OK
                                                                     End Function))
+                             StringAssert.Contains(etat.Text, "Corrections tracées en mémoire : 2")
                              Assert.IsFalse(seconde.IsHandleCreated)
                          End Using
                          Assert.AreEqual(51D, workflow.SessionRevue.Propositions(cle).Montant)
