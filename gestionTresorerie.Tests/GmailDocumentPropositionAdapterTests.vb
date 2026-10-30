@@ -188,4 +188,37 @@ Public Class GmailDocumentPropositionAdapterTests
         Assert.AreEqual("USD", deviseInvalide.devise)
         Assert.AreEqual("date-invalide", dateInvalide.date_facture)
     End Sub
+
+    <TestMethod>
+    Public Sub PieceInvalideReserveSaCle_DoublonRejeteSansContournement()
+        ' Une piece invalide ne doit pas permettre de reutiliser sa cle source
+        ' pour une autre piece du meme lot ; les autres pieces restent traitables.
+        Dim pieces = {
+            New GmailDocumentPropositionAdapter.PieceAnalysee(
+                "faux@example.invalid", 12UI, 34UI, 0, Nothing,
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentPropositionAdapter.PieceAnalysee(
+                "faux@example.invalid", 12UI, 34UI, 0, FactureFictive(),
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentPropositionAdapter.PieceAnalysee(
+                "faux@example.invalid", 12UI, 34UI, 1, ChequeFictif(),
+                PropositionMouvement.SensMouvement.Credit)}
+        Dim resultat = New GmailDocumentPropositionAdapter().Proposer(pieces)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual(0, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual("Document absent.", resultat.Rejets(0).Motif)
+        Assert.AreEqual(1, resultat.Rejets(1).IndexEntree)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(1).Motif)
+        Assert.AreEqual(pieces(0).CleSource, resultat.Rejets(0).CleSource)
+        Assert.AreEqual(pieces(1).CleSource, resultat.Rejets(1).CleSource)
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual(pieces(2).CleSource, resultat.Propositions(0).CleSource)
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                        resultat.Propositions(0).Etat)
+        Dim session As New PropositionSessionRevue(resultat.Propositions)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerApprouvee(pieces(2).CleSource))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerPersistee(pieces(2).CleSource))
+    End Sub
 End Class
