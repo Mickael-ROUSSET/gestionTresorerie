@@ -55,7 +55,7 @@ Public Class FrmPrincipale
     ''' revenir aux propositions initiales apres une fermeture.
     ''' Aucun acces Gmail, approbation ou enregistrement comptable.
     ''' </summary>
-    Public Sub OuvrirRevuePropositions(workflow As GmailDocumentReviewWorkflow)
+    Public Sub OuvrirRevueDocumentsAnalyses(workflow As GmailDocumentReviewWorkflow)
         Using formulaire = CreerFenetreRevuePropositions(workflow)
             formulaire.ShowDialog(Me)
         End Using
