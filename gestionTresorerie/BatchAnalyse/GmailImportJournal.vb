@@ -102,7 +102,9 @@ Public NotInheritable Class GmailImportJournal
             Using reader As New StreamReader(stream, Encoding.UTF8, True, 1024, True)
                 While Not reader.EndOfStream
                     If String.Equals(reader.ReadLine(), key, StringComparison.Ordinal) Then
-                        _processed.Add(key)
+                        SyncLock _cacheLock
+                            _processed.Add(key)
+                        End SyncLock
                         Return
                     End If
                 End While
