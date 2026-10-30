@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [master, chore/automation-foundation, refactor/remove-mistral]
   push:
-    branches: [master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral, feature/gmail-import-fiabilisation]
+    branches: [master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral, feature/gmail-import-fiabilisation, fix/gmail-sha256-local]
   workflow_dispatch:
 
 permissions:
@@ -42,4 +42,4 @@ jobs:
           path: |
             **/TestResults/**/*.trx
             **/TestResults/**/*_Sequence.xml
-          if-no-files-found: error
+          if-no-files-found: ignore

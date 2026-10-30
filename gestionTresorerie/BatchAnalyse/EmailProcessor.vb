@@ -22,7 +22,7 @@ Public Class EmailProcessor
     ''' <summary>
     ''' Point d'entrée principal modularisé
     ''' </summary>
-    Public Shared Sub ProcessAttachments()
+    Public Shared Sub ProcessAttachments(Optional initialImportCutoff As DateTime? = Nothing)
         ' Création du dossier s'il n'existe pas
         LogFile = Path.Combine(LectureProprietes.GetVariable("repRacineAgumaaa"),
             LectureProprietes.GetVariable("repRacineDocuments"),
@@ -34,18 +34,49 @@ Public Class EmailProcessor
         If Not Directory.Exists(_sRepDoc) Then Directory.CreateDirectory(_sRepDoc)
 
         PrepareDirectory(_sRepDoc)
+        ResetSession()
+        Dim journalPath = Path.Combine(_sRepDoc, "gmail_import_journal.txt")
+        Dim journal As GmailImportJournal = Nothing
+        Dim hasJournalEntries As Boolean
+        If Not TryInitializeJournal(journalPath, journal, hasJournalEntries, _rapport) Then
+            SaveFinalReport()
+            Return
+        End If
+        ' Memoriser la date de demarrage : elle doit rester appliquee apres la premiere session.
+        Dim cutoffPath = Path.Combine(_sRepDoc, "gmail_import_cutoff.txt")
+        Dim effectiveCutoff As DateTime?
+        If Not TryResolveInitialImportCutoff(cutoffPath, initialImportCutoff, effectiveCutoff, _rapport) Then
+            SaveFinalReport()
+            Return
+        End If
+        If Not IsImportAllowed(hasJournalEntries, effectiveCutoff) Then
+            _rapport.AppendLine("[ERREUR] Import Gmail initial bloque : journal vide. Fournir explicitement initialImportCutoff (date de debut incluse) a ProcessAttachments pour autoriser l'import initial.")
+            SaveFinalReport()
+            Return
+        End If
 
         Using client As New ImapClient()
             Try
                 ConnectAndAuthenticate(client)
                 Dim inbox = client.Inbox
-                inbox.Open(FolderAccess.ReadWrite)
+                inbox.Open(FolderAccess.ReadOnly)
 
-                Dim uids = inbox.Search(SearchQuery.NotSeen)
-                _statsMailsLus = uids.Count
-
+                ' Parcourir egalement les emails deja lus : le journal determine le travail restant.
+                Dim query = SearchQuery.All
+                If effectiveCutoff.HasValue Then query = SearchQuery.DeliveredAfter(effectiveCutoff.Value.Date)
+                Dim uids = inbox.Search(query)
+                Dim account = LectureProprietes.GetVariable("SmtpUsername")
+                Dim validity As UInteger = inbox.UidValidity
                 For Each uid In uids
-                    ProcessSingleEmail(inbox, uid)
+                    Dim key = GmailImportJournal.MakeKey(account, validity, uid.Id)
+                    If journal.IsProcessed(key) Then Continue For
+                    _statsMailsLus += 1
+                    Try
+                        ProcessSingleEmail(inbox, uid)
+                        journal.MarkProcessed(key)
+                    Catch ex As Exception
+                        LogAndReportError($"Message UID {uid.Id} non traite : {ex.Message}")
+                    End Try
                 Next
 
                 client.Disconnect(True)
@@ -82,32 +113,158 @@ Public Class EmailProcessor
             SaveAttachment(attachment, targetPath, message.From.ToString())
         Next
 
-        inbox.AddFlags(uid, MessageFlags.Seen, True)
+        ' Ne pas modifier le statut lu/non lu : seul le journal fait foi.
     End Sub
 
     Private Shared Sub SaveAttachment(attachment As MimeEntity, targetFolder As String, senderInfo As String)
         ' 1. Récupération et nettoyage du nom
-        Dim fileName As String = If(attachment.ContentDisposition?.FileName, attachment.ContentType.Name)
+        Dim fileName As String = GetAttachmentFileName(attachment.ContentDisposition?.FileName, attachment.ContentType.Name)
         fileName = CleanFileName(fileName)
 
-        ' 2. Gestion des doublons et chemin final
-        Dim fullPath As String = Path.Combine(targetFolder, fileName)
-        fullPath = EnsureUniqueFileName(fullPath)
+        ' Ecrire d'abord dans un fichier temporaire reserve exclusivement.
+        Dim desiredPath = Path.Combine(targetFolder, fileName)
+        Dim temporaryPath = Path.Combine(targetFolder, ".gmail-" & Guid.NewGuid().ToString("N") & ".tmp")
+        Try
+            Using stream As New FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None)
+                If TypeOf attachment Is MessagePart Then
+                    DirectCast(attachment, MessagePart).Message.WriteTo(stream)
+                Else
+                    DirectCast(attachment, MimePart).Content.DecodeTo(stream)
+                End If
+            End Using
 
-        ' 3. Écriture disque
-        Using stream = File.Create(fullPath)
-            If TypeOf attachment Is MessagePart Then
-                DirectCast(attachment, MessagePart).Message.WriteTo(stream)
-            Else
-                DirectCast(attachment, MimePart).Content.DecodeTo(stream)
+            Dim storedPath = AttachmentStorage.StoreTemporaryFile(temporaryPath, desiredPath)
+            If storedPath Is Nothing Then
+                _rapport.AppendLine($"[PJ] Doublon SHA-256 ignoré : {fileName} (De: {senderInfo})")
+                Return
             End If
-        End Using
-
-        _statsTotalPJ += 1
-        _rapport.AppendLine($"[PJ] Enregistré : {Path.GetFileName(fullPath)} (De: {senderInfo})")
+            _statsTotalPJ += 1
+            _rapport.AppendLine($"[PJ] Enregistré : {Path.GetFileName(storedPath)} (De: {senderInfo})")
+        Finally
+            If File.Exists(temporaryPath) Then File.Delete(temporaryPath)
+        End Try
     End Sub
 
     ' --- Utilitaires ---
+
+    ''' <summary>
+    ''' Sans journal initialise, une date de debut explicite est obligatoire.
+    ''' La recherche IMAP utilise le jour inclus (date de reception, sans heure).
+    ''' Un journal initialise conserve la reprise existante, sans limite de date.
+    ''' </summary>
+    Public Shared Function IsImportAllowed(hasJournalEntries As Boolean, initialImportCutoff As DateTime?) As Boolean
+        Return hasJournalEntries OrElse initialImportCutoff.HasValue
+    End Function
+
+    ' Lire toutes les lignes avant toute connexion; une ligne valide ne masque pas une fin corrompue.
+    Private Shared Function TryInitializeJournal(path As String, ByRef journal As GmailImportJournal,
+                                                 ByRef hasEntries As Boolean, report As StringBuilder) As Boolean
+        journal = Nothing
+        hasEntries = False
+        Try
+            Dim stream As FileStream = Nothing
+            Try
+                stream = New FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read)
+            Catch ex As FileNotFoundException
+                ' Un journal absent correspond a un premier import, soumis au cutoff.
+            End Try
+            Using stream
+                If stream IsNot Nothing Then
+                    Using reader As New StreamReader(stream, New UTF8Encoding(False, True), detectEncodingFromByteOrderMarks:=False,
+                                                     bufferSize:=1024, leaveOpen:=True)
+                        Dim firstLine = True
+                        While Not reader.EndOfStream
+                            Dim entry = reader.ReadLine()
+                            If firstLine Then entry = entry.TrimStart(ChrW(&HFEFF))
+                            firstLine = False
+                            If entry.Length = 0 Then Continue While
+                            Dim parts = entry.Split(":"c)
+                            Dim validity, uid As UInteger
+                            If parts.Length <> 3 OrElse
+                                Not UInteger.TryParse(parts(1), Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, validity) OrElse
+                                Not UInteger.TryParse(parts(2), Globalization.NumberStyles.None, Globalization.CultureInfo.InvariantCulture, uid) Then
+                                Throw New FormatException()
+                            End If
+                            Dim account = New UTF8Encoding(False, True).GetString(Convert.FromHexString(parts(0)))
+                            If entry <> GmailImportJournal.MakeKey(account, validity, uid) Then Throw New FormatException()
+                            hasEntries = True
+                        End While
+                    End Using
+                End If
+                ' Garder le fichier en lecture partagee pendant le chargement du journal.
+                journal = New GmailImportJournal(path)
+            End Using
+            Return True
+        Catch ex As Exception When TypeOf ex Is IOException OrElse
+                                   TypeOf ex Is UnauthorizedAccessException OrElse
+                                   TypeOf ex Is Global.System.Security.SecurityException OrElse
+                                   TypeOf ex Is ArgumentException OrElse
+                                   TypeOf ex Is FormatException OrElse
+                                   TypeOf ex Is NotSupportedException
+            journal = Nothing
+            hasEntries = False
+            ' Message borne et sans donnees du journal ni details de chemin provenant de l'exception.
+            report.AppendLine("[ERREUR] Import Gmail bloque : journal invalide ou inaccessible. Verifier gmail_import_journal.txt avant de relancer.")
+            Return False
+        End Try
+    End Function
+
+    ' Conserver la borne de debut entre sessions pour ne jamais importer l'historique par accident.
+    Private Shared Function TryResolveInitialImportCutoff(path As String, requested As DateTime?,
+                                                        ByRef effectiveCutoff As DateTime?, report As StringBuilder) As Boolean
+        effectiveCutoff = Nothing
+        Try
+            effectiveCutoff = ResolveInitialImportCutoff(path, requested)
+            Return True
+        Catch ex As Exception When TypeOf ex Is FormatException OrElse
+                                   TypeOf ex Is IOException OrElse
+                                   TypeOf ex Is UnauthorizedAccessException OrElse
+                                   TypeOf ex Is Global.System.Security.SecurityException OrElse
+                                   TypeOf ex Is InvalidOperationException
+            report.AppendLine($"[ERREUR] Import Gmail bloque : date de debut persistante invalide ou inaccessible. Verifier gmail_import_cutoff.txt avant de relancer. {ex.Message}")
+            Return False
+        End Try
+    End Function
+
+    Public Shared Function ResolveInitialImportCutoff(path As String, requested As DateTime?) As DateTime?
+        Dim contents As String = Nothing
+        Try
+            contents = File.ReadAllText(path)
+        Catch ex As FileNotFoundException
+            ' Aucun cutoff encore enregistre.
+        Catch ex As DirectoryNotFoundException
+            ' Conserver le comportement initial pour un dossier absent.
+        End Try
+        If contents Is Nothing AndAlso requested.HasValue Then
+            Dim stream As FileStream = Nothing
+            Try
+                stream = New FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None)
+            Catch ex As IOException
+                ' Un autre processus peut avoir cree le fichier depuis la lecture initiale.
+                ' Toute valeur illisible ou incomplete doit continuer a bloquer l'import.
+                contents = File.ReadAllText(path)
+            End Try
+            If stream IsNot Nothing Then
+                Using stream
+                    Using writer As New StreamWriter(stream, New UTF8Encoding(False), 1024, leaveOpen:=True)
+                        writer.Write(requested.Value.ToString("yyyy-MM-dd", Globalization.CultureInfo.InvariantCulture))
+                        writer.Flush()
+                        stream.Flush(True)
+                    End Using
+                End Using
+                Return requested.Value.Date
+            End If
+        End If
+        If contents IsNot Nothing Then
+            Dim stored = DateTime.ParseExact(contents.Trim(), "yyyy-MM-dd",
+                Globalization.CultureInfo.InvariantCulture, Globalization.DateTimeStyles.None)
+            If requested.HasValue AndAlso requested.Value.Date <> stored.Date Then
+                Throw New InvalidOperationException("Date de debut Gmail differente de celle deja enregistree.")
+            End If
+            Return stored.Date
+        End If
+        Return Nothing
+    End Function
 
     Private Shared Function GetFolderByDate(dt As DateTime) As String
         Dim pathByDate = Path.Combine(_sRepDoc, dt.ToString("yyyy"), dt.ToString("MM"))
@@ -115,10 +272,40 @@ Public Class EmailProcessor
         Return pathByDate
     End Function
 
+    Private Shared Function GetAttachmentFileName(dispositionName As String, contentTypeName As String) As String
+        If Not String.IsNullOrWhiteSpace(dispositionName) Then Return CleanFileName(dispositionName)
+        If Not String.IsNullOrWhiteSpace(contentTypeName) Then Return CleanFileName(contentTypeName)
+        Return "attachment.bin"
+    End Function
+
     Private Shared Function CleanFileName(name As String) As String
-        For Each c In Path.GetInvalidFileNameChars()
-            name = name.Replace(c, "_"c)
+        If String.IsNullOrWhiteSpace(name) Then Return "attachment.bin"
+
+        ' Appliquer les regles Windows meme si les tests tournent sur un autre OS.
+        Dim cleaned As New StringBuilder(name.Length)
+        For Each c As Char In name
+            If AscW(c) >= 0 AndAlso AscW(c) < 32 OrElse "<>:""/\|?*".IndexOf(c) >= 0 Then
+                cleaned.Append("_"c)
+            Else
+                cleaned.Append(c)
+            End If
         Next
+        name = cleaned.ToString().TrimEnd("."c, " "c)
+        If String.IsNullOrWhiteSpace(name) Then Return "attachment.bin"
+
+        ' Les noms de peripheriques restent reserves avec une ou plusieurs extensions.
+        Dim basename = name.Split("."c)(0).TrimEnd(" "c)
+        Dim reserved = basename.Equals("CON", StringComparison.OrdinalIgnoreCase) OrElse
+            basename.Equals("PRN", StringComparison.OrdinalIgnoreCase) OrElse
+            basename.Equals("AUX", StringComparison.OrdinalIgnoreCase) OrElse
+            basename.Equals("NUL", StringComparison.OrdinalIgnoreCase)
+        If basename.Length = 4 Then
+            reserved = reserved OrElse
+                ((basename.StartsWith("COM", StringComparison.OrdinalIgnoreCase) OrElse
+                  basename.StartsWith("LPT", StringComparison.OrdinalIgnoreCase)) AndAlso
+                 basename(3) >= "1"c AndAlso basename(3) <= "9"c)
+        End If
+        If reserved Then name = "_" & name
         Return name
     End Function
 
@@ -136,8 +323,20 @@ Public Class EmailProcessor
     End Function
 
     Private Shared Sub LogAndReportError(msg As String)
-        _rapport.AppendLine($"[ERREUR] {msg}")
-        File.AppendAllText("traitement_emails.log", $"{DateTime.Now} | CRITIQUE: {msg}{vbCrLf}")
+        AppendErrorToLogAndReport(LogFile, msg, _rapport)
+    End Sub
+
+    Private Shared Sub AppendErrorToLogAndReport(logPath As String, msg As String, report As StringBuilder)
+        report.AppendLine($"[ERREUR] {msg}")
+        Try
+            File.AppendAllText(logPath, $"{DateTime.Now} | CRITIQUE: {msg}{vbCrLf}")
+        Catch ex As Exception When TypeOf ex Is IOException OrElse
+                                   TypeOf ex Is UnauthorizedAccessException OrElse
+                                   TypeOf ex Is ArgumentException OrElse
+                                   TypeOf ex Is NotSupportedException OrElse
+                                   TypeOf ex Is Global.System.Security.SecurityException
+            report.AppendLine($"[ERREUR JOURNAL] Ecriture du journal impossible : {ex.Message}")
+        End Try
     End Sub
 
     Private Shared Sub ResetSession()
@@ -158,8 +357,25 @@ Public Class EmailProcessor
         _rapport.AppendLine($"- Emails avec PJ  : {_statsMailsAvecPJ}")
         _rapport.AppendLine($"- PJ enregistrées : {_statsTotalPJ}")
         _rapport.AppendLine("================================================")
-        File.WriteAllText("Dernier_Rapport_Agumaaa.txt", _rapport.ToString())
-        Logger.INFO(_rapport.ToString)
+        WriteFinalReport(_sRepDoc, _rapport.ToString(), AddressOf Logger.INFO)
+    End Sub
+
+    Private Shared Sub WriteFinalReport(reportDirectory As String, report As String, logReport As Action(Of String))
+        ' Le rapport est un diagnostic : ses erreurs ne doivent pas masquer l'echec Gmail.
+        Try
+            If String.IsNullOrWhiteSpace(reportDirectory) Then
+                Throw New ArgumentException("Dossier du rapport absent.", NameOf(reportDirectory))
+            End If
+            File.WriteAllText(Path.Combine(reportDirectory, "Dernier_Rapport_Agumaaa.txt"), report)
+        Catch ex As Exception
+            ' Conserver le rapport et l'erreur initiale, meme si le fichier est inaccessible.
+        End Try
+
+        Try
+            logReport(report)
+        Catch ex As Exception
+            ' La journalisation peut elle aussi echouer pendant le traitement d'une erreur.
+        End Try
     End Sub
 
     Private Shared Sub LogMessage(msg As String)

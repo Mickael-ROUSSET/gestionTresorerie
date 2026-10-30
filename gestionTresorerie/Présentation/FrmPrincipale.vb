@@ -3,6 +3,55 @@
 Public Class FrmPrincipale
     Inherits System.Windows.Forms.Form
 
+    ' Instantané fourni explicitement par un appelant ; conservé en mémoire uniquement.
+    Private _revuePropositions As PropositionRevue
+
+    Public Sub New()
+        InitializeComponent()
+
+        Dim menuRevue As New ToolStripMenuItem With {
+            .Name = "RevuePropositionsToolStripMenuItem",
+            .Text = "Revue des propositions (lecture seule)"}
+        AddHandler menuRevue.Click, AddressOf RevuePropositions_Click
+        AnalyseToolStripMenuItem.DropDownItems.Add(menuRevue)
+    End Sub
+
+    ''' <summary>
+    ''' Ouvre une consultation du résultat fourni, sans chargement ni écriture externe.
+    ''' L'appelant doit appeler cette méthode sur le thread de l'interface.
+    ''' </summary>
+    Public Sub OuvrirRevuePropositions(resultat As PropositionDocumentService.Resultat)
+        If resultat Is Nothing Then Throw New ArgumentNullException(NameOf(resultat))
+
+        _revuePropositions = New PropositionRevue(resultat)
+        AfficherRevuePropositions()
+    End Sub
+
+    Private Sub RevuePropositions_Click(sender As Object, e As EventArgs)
+        AfficherRevuePropositions()
+    End Sub
+
+    Private Sub AfficherRevuePropositions()
+        Dim revue = If(_revuePropositions,
+                       New PropositionRevue(New PropositionDocumentService().Proposer(
+                           Array.Empty(Of PropositionDocumentService.Entree)())))
+        ' Sans correspondance source prouvée, ne fournir que l'instantané de lecture.
+        Using formulaire As New FrmRevuePropositions(revue)
+            If revue.Lignes.Count = 0 Then
+                Dim disposition = DirectCast(formulaire.Controls(0), TableLayoutPanel)
+                DirectCast(disposition.GetControlFromPosition(0, 0), Label).Text =
+                    "Aucune proposition issue d'un document validé n'est disponible. " &
+                    "Cette consultation en lecture seule ne charge aucune donnée."
+            End If
+            PresenterRevuePropositions(formulaire)
+        End Using
+    End Sub
+
+    ' Point de présentation isolable sans déclencher Load/Closing de la fenêtre principale.
+    Protected Overridable Sub PresenterRevuePropositions(formulaire As FrmRevuePropositions)
+        formulaire.ShowDialog(Me)
+    End Sub
+
     ' Variables de classe pour utiliser l'index des colonnes du datagridview
     Private _icolEtat As Integer
     Private _icolEtatMasque As Integer
