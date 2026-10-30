@@ -3,7 +3,7 @@
 Vue de consultation générée automatiquement à partir du backlog local.
 **Ne pas modifier ce fichier pour piloter l'orchestrateur.**
 
-**Actualisation :** 2026-10-30 19:36 UTC
+**Actualisation :** 2026-10-30 20:32 UTC
 **Objectif :** Link read-only review to corrections and establish safe preapproval gates with offline regression tests; no automatic accounting writes
 
 | Tâche | État | Validation | Commit |
@@ -13,7 +13,7 @@ Vue de consultation générée automatiquement à partir du backlog local.
 | `treasury-review-session-115` | Publiée | build OK, test OK | [`e2fb1939726f`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/e2fb1939726f) |
 | `treasury-review-endtoend-tests-116` | Publiée | build OK, test OK | [`9a7ddbb2b7a8`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/9a7ddbb2b7a8) |
 | `treasury-ui-session-integration-118` | Publiée | build OK, test OK | [`c026623c6064`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/c026623c6064) |
-| `treasury-main-review-navigation-119` | À faire |  | — |
+| `treasury-main-review-navigation-119` | Publiée | build OK, test OK | [`ab3c6d45867c`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/ab3c6d45867c) |
 | `treasury-document-review-pipeline-120` | À faire |  | — |
 | `treasury-readonly-acceptance-121` | À faire |  | — |
 | `treasury-persistence-design-117` | Désactivée (sécurité) |  | — |
