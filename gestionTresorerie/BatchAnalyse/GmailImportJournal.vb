@@ -8,21 +8,14 @@ Imports System.Text
 Public NotInheritable Class GmailImportJournal
     Private ReadOnly _journalPath As String
     Private ReadOnly _processed As New HashSet(Of String)(StringComparer.Ordinal)
+    Private ReadOnly _cacheLock As New Object()
+    Private _cachedLength As Long = -1
+    Private _cachedWriteUtc As DateTime = DateTime.MinValue
 
     Public Sub New(journalPath As String)
         If String.IsNullOrWhiteSpace(journalPath) Then Throw New ArgumentException("Chemin de journal requis.", NameOf(journalPath))
         _journalPath = journalPath
-        If File.Exists(journalPath) Then
-            ' Read a consistent snapshot; an active writer holds an exclusive lock.
-            Using stream As FileStream = OpenJournalWithRetry(journalPath, FileMode.Open, FileAccess.Read, FileShare.Read)
-                Using reader As New StreamReader(stream, Encoding.UTF8, True)
-                    While Not reader.EndOfStream
-                        Dim entry = reader.ReadLine()
-                        If entry.Length > 0 Then _processed.Add(entry)
-                    End While
-                End Using
-            End Using
-        End If
+        RefreshIfChanged()
     End Sub
 
     Public Shared Function MakeKey(account As String, uidValidity As UInteger, uid As UInteger) As String
@@ -34,8 +27,51 @@ Public NotInheritable Class GmailImportJournal
                uid.ToString(Globalization.CultureInfo.InvariantCulture)
     End Function
 
+    ''' <summary>
+    ''' Refreshes a stale snapshot when another instance updates the journal.
+    ''' Unchanged files retain O(1) membership checks, including for large journals.
+    ''' </summary>
+    Private Sub RefreshIfChanged()
+        SyncLock _cacheLock
+            If Not File.Exists(_journalPath) Then
+                _processed.Clear()
+                _cachedLength = -1
+                _cachedWriteUtc = DateTime.MinValue
+                Return
+            End If
+
+            Dim info As New FileInfo(_journalPath)
+            ' Capture metadata BEFORE reading: a concurrent later write must
+            ' invalidate the snapshot on the next check, not be hidden by it.
+            Dim currentLength = info.Length
+            Dim currentWriteUtc = info.LastWriteTimeUtc
+            If currentLength = _cachedLength AndAlso currentWriteUtc = _cachedWriteUtc Then Return
+
+            Dim refreshed As New HashSet(Of String)(StringComparer.Ordinal)
+            ' Writers use FileShare.None; never cache a partially written journal.
+            Using stream As FileStream = OpenJournalWithRetry(_journalPath, FileMode.Open, FileAccess.Read, FileShare.Read)
+                Using reader As New StreamReader(stream, Encoding.UTF8, True)
+                    While Not reader.EndOfStream
+                        Dim entry = reader.ReadLine()
+                        If entry.Length > 0 Then refreshed.Add(entry)
+                    End While
+                End Using
+            End Using
+
+            _processed.Clear()
+            For Each entry In refreshed
+                _processed.Add(entry)
+            Next
+            _cachedLength = currentLength
+            _cachedWriteUtc = currentWriteUtc
+        End SyncLock
+    End Sub
+
     Public Function IsProcessed(key As String) As Boolean
-        Return _processed.Contains(key)
+        RefreshIfChanged()
+        SyncLock _cacheLock
+            Return _processed.Contains(key)
+        End SyncLock
     End Function
 
     Private Shared Function OpenJournalWithRetry(path As String, mode As FileMode, access As FileAccess, share As FileShare) As FileStream
@@ -87,6 +123,8 @@ Public NotInheritable Class GmailImportJournal
             End Using
             stream.Flush(True)
         End Using
-        _processed.Add(key)
+        SyncLock _cacheLock
+            _processed.Add(key)
+        End SyncLock
     End Sub
 End Class
