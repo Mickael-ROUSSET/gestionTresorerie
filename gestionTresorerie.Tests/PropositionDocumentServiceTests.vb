@@ -1,4 +1,4 @@
-Option Strict On
+﻿Option Strict On
 Option Explicit On
 
 Imports System
@@ -21,6 +21,34 @@ Public Class PropositionDocumentServiceTests
                                    Optional sens As PropositionMouvement.SensMouvement = PropositionMouvement.SensMouvement.Debit) As PropositionDocumentService.Entree
         Return New PropositionDocumentService.Entree(document, cle, sens)
     End Function
+
+    <TestMethod>
+    Public Sub IdentifiantDocumentDuplique_RejeteMemeAvecObjetsEtClesDifferents()
+        Dim facture = FactureFictive()
+        Dim cheque = ChequeFictif()
+        facture.IdDoc = 27
+        cheque.IdDoc = 27
+        Dim resultat = New PropositionDocumentService().Proposer({Entree(facture, "a"), Entree(cheque, "b")})
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual(1, resultat.Rejets.Count)
+        Assert.AreEqual("Identifiant document duplique dans le lot.", resultat.Rejets(0).Motif)
+        Assert.AreEqual(27, resultat.Sources(0).IdDoc)
+    End Sub
+
+    <TestMethod>
+    Public Sub MemeObjetSousDeuxIdentites_RejeteSansEtatEntreAppels()
+        Dim document = FactureFictive()
+        Dim service As New PropositionDocumentService()
+        For repetition = 1 To 2
+            Dim resultat = service.Proposer({Entree(document, "a"), Entree(document, "b"), Entree(ChequeFictif(), "c")})
+            Assert.AreEqual(2, resultat.Propositions.Count)
+            Assert.AreEqual(2, resultat.Sources.Count)
+            Assert.AreEqual(1, resultat.Rejets.Count)
+            Assert.AreEqual(1, resultat.Rejets(0).IndexEntree)
+            Assert.AreEqual("b", resultat.Rejets(0).CleSource)
+            Assert.AreEqual("Document deja present dans le lot sous une autre cle source.", resultat.Rejets(0).Motif)
+        Next
+    End Sub
 
     <TestMethod>
     Public Sub LotMixte_RetourneDesPropositionsNonApprouveesSansModifierLesDocuments()

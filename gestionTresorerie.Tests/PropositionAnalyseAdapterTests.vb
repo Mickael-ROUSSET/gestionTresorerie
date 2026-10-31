@@ -1,4 +1,4 @@
-Option Strict On
+﻿Option Strict On
 Option Explicit On
 
 Imports System
@@ -85,7 +85,7 @@ Public Class PropositionAnalyseAdapterTests
         Dim lot = {
             New PropositionDocumentService.Entree(document, "source", PropositionMouvement.SensMouvement.Debit),
             New PropositionDocumentService.Entree(document, "source", PropositionMouvement.SensMouvement.Credit),
-            New PropositionDocumentService.Entree(document, "SOURCE", PropositionMouvement.SensMouvement.Credit)}
+            New PropositionDocumentService.Entree(FactureFictive(), "SOURCE", PropositionMouvement.SensMouvement.Credit)}
         Dim adapter As New PropositionAnalyseAdapter()
         For repetition = 1 To 2
             Dim revue = adapter.PreparerRevue(lot)
@@ -126,6 +126,80 @@ Public Class PropositionAnalyseAdapterTests
         Assert.AreEqual(0, revue.Rejets.Count)
         Assert.ThrowsExactly(Of ArgumentNullException)(Sub() adapter.Proposer(Nothing))
         Assert.ThrowsExactly(Of ArgumentNullException)(Sub() adapter.PreparerRevue(Nothing))
+    End Sub
+
+    <TestMethod>
+    Public Sub DocumentsAnalyses_CorrespondanceExacteEtProvenanceConservee()
+        Dim facture = FactureFictive()
+        facture.IdDoc = 42
+        Dim cheque = ChequeFictif()
+        Dim adapter As New PropositionAnalyseAdapter()
+        Dim resultat = adapter.ProposerDocuments({facture, cheque}, {
+            New PropositionDocumentService.Entree(cheque, " C-001 ", PropositionMouvement.SensMouvement.Credit, "origine cheque"),
+            New PropositionDocumentService.Entree(facture, "F-001", PropositionMouvement.SensMouvement.Debit, "origine facture")})
+        Assert.AreEqual(0, resultat.Rejets.Count)
+        Assert.AreEqual("F-001", resultat.Propositions(0).CleSource)
+        Assert.AreEqual(" C-001 ", resultat.Propositions(1).CleSource)
+        Assert.AreEqual("0000123", resultat.Propositions(1).Reference)
+        facture.IdDoc = 999
+        facture.CheminDoc = "modifie"
+        Assert.AreEqual(42, resultat.Sources(0).IdDoc)
+        Assert.AreEqual("chemin-fictif-inutilise", resultat.Sources(0).CheminDoc)
+        Assert.AreEqual("origine facture", resultat.Sources(0).Provenance)
+        Assert.AreEqual(" C-001 ", resultat.Sources(1).CleSource)
+    End Sub
+
+    <TestMethod>
+    Public Sub DocumentsAnalyses_RejetteCorrespondancesAbsentesAmbiguesEtEtrangeres()
+        Dim facture = FactureFictive()
+        Dim cheque = ChequeFictif()
+        Dim resultat = New PropositionAnalyseAdapter().ProposerDocuments({facture, cheque}, {
+            New PropositionDocumentService.Entree(facture, "a", PropositionMouvement.SensMouvement.Debit),
+            New PropositionDocumentService.Entree(facture, "b", PropositionMouvement.SensMouvement.Credit),
+            New PropositionDocumentService.Entree(FactureFictive(), "etranger", PropositionMouvement.SensMouvement.Debit)})
+        Assert.AreEqual(0, resultat.Propositions.Count)
+        Assert.AreEqual(0, resultat.Sources.Count)
+        Assert.AreEqual(3, resultat.Rejets.Count)
+        Assert.AreEqual("Correspondance source ambigue.", resultat.Rejets(0).Motif)
+        Assert.AreEqual("Correspondance source absente.", resultat.Rejets(1).Motif)
+        Assert.AreEqual("etranger", resultat.Rejets(2).CleSource)
+        Assert.AreEqual("Correspondance sans document du lot.", resultat.Rejets(2).Motif)
+    End Sub
+
+    <TestMethod>
+    Public Sub DocumentsAnalyses_DoublonsEtAppelsRepetes()
+        Dim facture = FactureFictive()
+        Dim cheque = ChequeFictif()
+        Dim adapter As New PropositionAnalyseAdapter()
+        Dim mappings = {
+            New PropositionDocumentService.Entree(facture, "exact", PropositionMouvement.SensMouvement.Debit),
+            New PropositionDocumentService.Entree(cheque, "exact", PropositionMouvement.SensMouvement.Credit)}
+        For repetition = 1 To 2
+            Dim resultat = adapter.ProposerDocuments({facture, cheque, facture}, mappings)
+            Assert.AreEqual(1, resultat.Propositions.Count)
+            Assert.AreEqual(2, resultat.Rejets.Count)
+            Assert.AreEqual(1, resultat.Rejets(0).IndexEntree)
+            Assert.AreEqual(2, resultat.Rejets(1).IndexEntree)
+            Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(0).Motif)
+            Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(1).Motif)
+        Next
+    End Sub
+
+    <TestMethod>
+    Public Sub DocumentsAnalyses_CollectionsNullesVidesEtElementsNuls()
+        Dim adapter As New PropositionAnalyseAdapter()
+        Dim vide = Array.Empty(Of PropositionDocumentService.Entree)()
+        Assert.ThrowsExactly(Of ArgumentNullException)(Sub() adapter.ProposerDocuments(Nothing, vide))
+        Assert.ThrowsExactly(Of ArgumentNullException)(Sub() adapter.ProposerDocuments({FactureFictive()}, Nothing))
+        Dim resultat = adapter.ProposerDocuments(Array.Empty(Of DocumentAgumaaa)(), vide)
+        Assert.AreEqual(0, resultat.Propositions.Count)
+        Assert.AreEqual(0, resultat.Sources.Count)
+        Assert.AreEqual(0, resultat.Rejets.Count)
+        resultat = adapter.ProposerDocuments(New DocumentAgumaaa() {Nothing}, New PropositionDocumentService.Entree() {Nothing})
+        Assert.AreEqual(0, resultat.Propositions.Count)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual("Correspondance source absente.", resultat.Rejets(0).Motif)
+        Assert.AreEqual("Correspondance sans document du lot.", resultat.Rejets(1).Motif)
     End Sub
 
     Private NotInheritable Class DocumentNonPrisEnCharge

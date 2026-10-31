@@ -134,6 +134,11 @@ Public Class PropositionWorkflowTests
         dateImpossible.date_facture = "2026-02-30"
         Dim dateAbsente = NouveauCheque()
         dateAbsente.dateChq = Nothing
+        ' Distinct synthetic documents must have distinct nonzero IdDoc values.
+        zero.IdDoc = 201
+        negatif.IdDoc = 202
+        dateImpossible.IdDoc = 203
+        dateAbsente.IdDoc = 204
         Dim resultat = New PropositionAnalyseAdapter().Proposer({Entree(zero, "zero"),
             Entree(negatif, "negatif"), Entree(dateImpossible, "date-impossible"),
             Entree(dateAbsente, "date-absente"), Entree(NouvelleFacture(), "valide")})
