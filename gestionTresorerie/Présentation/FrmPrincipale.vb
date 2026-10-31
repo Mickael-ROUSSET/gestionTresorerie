@@ -88,6 +88,20 @@ Public Class FrmPrincipale
         _menuRevueDocumentsAnalyses.Enabled = workflow IsNot Nothing
     End Sub
 
+    ''' <summary>
+    ''' Raccorde des JSON fictifs deja extraits au menu de revue humaine.
+    ''' Aucun message Gmail, fichier ou SQL n'est consulte ou modifie.
+    ''' Le resultat reste en memoire, sans approbation ni enregistrement.
+    ''' </summary>
+    Public Function PreparerRevueDocumentsJsonFictifs(
+        pieces As System.Collections.Generic.IEnumerable(Of GmailDocumentExtractionAdapter.PieceJson)
+    ) As GmailDocumentReviewWorkflow
+        If pieces Is Nothing Then Throw New ArgumentNullException(NameOf(pieces))
+        Dim workflow = GmailDocumentReviewWorkflow.PreparerDepuisJson(pieces)
+        DefinirWorkflowDocumentsAnalyses(workflow)
+        Return workflow
+    End Function
+
     Private Sub RevueDocumentsAnalyses_Click(sender As Object, e As EventArgs)
         If _workflowDocumentsAnalyses Is Nothing Then Return
         OuvrirRevueDocumentsAnalyses(_workflowDocumentsAnalyses)
