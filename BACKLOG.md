@@ -3,8 +3,8 @@
 Vue de consultation générée automatiquement à partir du backlog local.
 **Ne pas modifier ce fichier pour piloter l'orchestrateur.**
 
-**Actualisation :** 2026-10-31 17:32 UTC
-**Objectif :** Link read-only review to corrections and establish safe preapproval gates with offline regression tests; no automatic accounting writes
+**Actualisation :** 2026-10-31 18:50 UTC
+**Objectif :** Deliver an offline-tested Windows read-only workflow from existing Gmail-imported/analyzed documents through proposal review, diagnostics and cancellation; no automatic accounting writes or live Gmail calls during development.
 
 | Tâche | État | Validation | Commit |
 |---|---|---|---|
@@ -16,6 +16,10 @@ Vue de consultation générée automatiquement à partir du backlog local.
 | `treasury-main-review-navigation-119` | Publiée | build OK, test OK | [`ab3c6d45867c`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/ab3c6d45867c) |
 | `treasury-document-review-pipeline-120` | Bloquée : failed-test | build OK, test échec | — |
 | `treasury-readonly-acceptance-121` | Publiée | build OK, test OK | [`0ed00529a628`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/0ed00529a628) |
+| `treasury-gmail-import-boundary-122` | Publiée | build OK, test OK | [`52a5fcd7ad4a`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/52a5fcd7ad4a) |
+| `treasury-document-review-handoff-123` | À faire |  | — |
+| `treasury-main-ui-journey-124` | À faire |  | — |
+| `treasury-windows-release-readiness-125` | À faire |  | — |
 | `treasury-persistence-design-117` | Désactivée (sécurité) |  | — |
 
 ## Règles
