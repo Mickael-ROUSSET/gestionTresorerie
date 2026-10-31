@@ -324,4 +324,47 @@ Public Class FrmRevuePropositionsTests
                      End Sub)
     End Sub
 
+
+    <TestMethod>
+    Public Sub CorrectionSurAutreLignePendantDialogue_NeBloquePasSelectionEtPreserveDeuxAudits()
+        ' Une modification externe d'une autre proposition ne doit pas
+        ' invalider le dialogue en cours sur la ligne selectionnee.
+        SurThreadSta(Sub()
+                         Dim resultat = Lot()
+                         Dim session As New PropositionSessionRevue(resultat.Propositions)
+                         Dim premiere = resultat.Propositions(0)
+                         Dim seconde = resultat.Propositions(1)
+                         Using formulaire As New FrmRevuePropositions(
+                             New PropositionRevue(resultat), resultat.Propositions, session)
+                             Dim grille = Grille(formulaire, "grillePropositions")
+                             grille.ClearSelection()
+                             grille.Rows(0).Selected = True
+
+                             Assert.IsTrue(formulaire.CorrigerSelection(Function(dialogue)
+                                                                           Dim externe = PropositionCorrection.Corriger(
+                                                                               seconde, seconde.DateProposee, 35D,
+                                                                               seconde.Sens, seconde.Libelle, seconde.Reference)
+                                                                           session.AppliquerCorrection(seconde.CleSource, externe)
+                                                                           DirectCast(dialogue.Controls.Find("montant", True)(0), TextBox).Text = "48"
+                                                                           Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                           Return DialogResult.OK
+                                                                       End Function))
+                             Assert.AreEqual(48D, session.Propositions(premiere.CleSource).Montant)
+                             Assert.AreEqual(35D, session.Propositions(seconde.CleSource).Montant)
+                             Assert.AreEqual(2, session.Audits.Count)
+                             Assert.AreEqual(seconde.CleSource, session.Audits(0).Avant.CleSource)
+                             Assert.AreEqual(premiere.CleSource, session.Audits(1).Avant.CleSource)
+                             Assert.AreEqual(48D, grille.Rows(0).Cells("Montant").Value)
+                             formulaire.ActualiserSession()
+                             Assert.AreEqual(35D, grille.Rows(1).Cells("Montant").Value)
+                             Assert.AreEqual("En attente de revue humaine", grille.Rows(0).Cells("Statut").Value)
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub() session.MarquerApprouvee(premiere.CleSource))
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub() session.MarquerPersistee(seconde.CleSource))
+                             Assert.IsFalse(formulaire.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
+
 End Class
