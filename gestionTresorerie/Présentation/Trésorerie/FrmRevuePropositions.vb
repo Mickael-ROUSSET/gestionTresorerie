@@ -38,9 +38,10 @@ Public NotInheritable Class FrmRevuePropositions
 
         Dim propositions = CreerGrille("grillePropositions", "Propositions en lecture seule", 0)
         AjouterColonnes(propositions, {"CleSource", "TypeDocument", "Reference", "DateProposee",
-                                      "Montant", "Sens", "Libelle", "Statut", "Avertissements"},
+                                      "Montant", "Sens", "Libelle", "Statut", "Avertissements", "Prevalidation"},
                          {"Identité du document", "Type", "Référence", "Date proposée",
-                          "Montant (EUR)", "Débit / Crédit", "Libellé", "Statut", "Avertissements de validation"})
+                          "Montant (EUR)", "Débit / Crédit", "Libellé", "Statut", "Avertissements de validation",
+                          "Anomalies de prévalidation (diagnostic uniquement)"})
         propositions.Columns("DateProposee").ValueType = GetType(DateTime)
         propositions.Columns("DateProposee").DefaultCellStyle.Format = "dd/MM/yyyy"
         propositions.Columns("Montant").ValueType = GetType(Decimal)
@@ -50,7 +51,8 @@ Public NotInheritable Class FrmRevuePropositions
                                   ligne.DateProposee, ligne.Montant,
                                   If(ligne.Sens = PropositionMouvement.SensMouvement.Debit, "Débit", "Crédit"),
                                   ligne.Libelle, "En attente de revue humaine",
-                                  String.Join(Environment.NewLine, ligne.AvertissementsValidation))
+                                  String.Join(Environment.NewLine, ligne.AvertissementsValidation),
+                                  "Contexte documentaire non fourni")
         Next
 
         Dim rejets = CreerGrille("grilleRejets", "Diagnostics des entrées rejetées en lecture seule", 1)
@@ -136,7 +138,19 @@ Public NotInheritable Class FrmRevuePropositions
         For i As Integer = 0 To liste.Count - 1
             sources.Add(grille.Rows(i), liste(i))
         Next
+        ActualiserDiagnosticsPrevalidation()
         ActualiserAction(grille)
+    End Sub
+
+    ''' <summary>Diagnostic en lecture seule. Sans identifiant de document ni historique
+    ''' d'identités fourni, la proposition ne peut jamais être considérée approuvée.</summary>
+    Private Sub ActualiserDiagnosticsPrevalidation()
+        If session Is Nothing Then Return
+        For Each entree In sources
+            Dim diagnostic = session.Prevalider(entree.Value.CleSource, 0, Nothing)
+            entree.Key.Cells("Prevalidation").Value = String.Join(Environment.NewLine,
+                diagnostic.Anomalies.Select(Function(anomalie) anomalie.ToString()))
+        Next
     End Sub
 
     Private Sub ActualiserEtatCorrections()
@@ -169,6 +183,7 @@ Public NotInheritable Class FrmRevuePropositions
             ligne.Cells("Libelle").Value = proposition.Libelle
             ligne.Cells("Reference").Value = proposition.Reference
             ligne.Cells("Avertissements").Value = String.Join(Environment.NewLine, proposition.AvertissementsValidation)
+            ActualiserDiagnosticsPrevalidation()
             ActualiserEtatCorrections()
             Return True
         End Using
