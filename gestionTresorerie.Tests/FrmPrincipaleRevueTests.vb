@@ -161,7 +161,7 @@ Public Class FrmPrincipaleRevueTests
 
         Protected Overrides Sub PresenterRevueDocumentsAnalyses(formulaire As FrmRevuePropositions)
             NombrePresentations += 1
-            Examiner(formulaire)
+            Examiner.Invoke(formulaire)
         End Sub
     End Class
 
