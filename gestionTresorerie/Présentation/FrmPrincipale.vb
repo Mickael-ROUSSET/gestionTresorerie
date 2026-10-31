@@ -96,6 +96,9 @@ Public Class FrmPrincipale
     Public Function PreparerRevueDocumentsJsonFictifs(
         pieces As System.Collections.Generic.IEnumerable(Of GmailDocumentExtractionAdapter.PieceJson)
     ) As GmailDocumentReviewWorkflow
+        ' Une nouvelle preparation invalide ne doit pas laisser accessible
+        ' l'ancien lot dans le menu : comportement de securite fail-closed.
+        DefinirWorkflowDocumentsAnalyses(Nothing)
         If pieces Is Nothing Then Throw New ArgumentNullException(NameOf(pieces))
         Dim workflow = GmailDocumentReviewWorkflow.PreparerDepuisJson(pieces)
         DefinirWorkflowDocumentsAnalyses(workflow)
