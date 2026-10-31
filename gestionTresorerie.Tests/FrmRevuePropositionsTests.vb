@@ -255,24 +255,24 @@ Public Class FrmRevuePropositionsTests
                          Dim session As New PropositionSessionRevue(resultat.Propositions)
                          Dim originale = resultat.Propositions(0)
                          Using formulaire As New FrmRevuePropositions(revue, resultat.Propositions, session)
-                             Dim grille = Grille(formulaire, "grillePropositions")
-                             grille.ClearSelection()
-                             grille.Rows(0).Selected = True
+                             Dim grillePropositions = Grille(formulaire, "grillePropositions")
+                             grillePropositions.ClearSelection()
+                             grillePropositions.Rows(0).Selected = True
 
                              ' Une autre action a corrigé la session sans rafraîchir la fenêtre.
                              Dim externe = PropositionCorrection.Corriger(originale, originale.DateProposee,
                                  35D, originale.Sens, originale.Libelle, originale.Reference)
                              session.AppliquerCorrection(originale.CleSource, externe)
-                             Assert.AreEqual(12D, grille.Rows(0).Cells("Montant").Value)
+                             Assert.AreEqual(12D, grillePropositions.Rows(0).Cells("Montant").Value)
 
                              Assert.IsTrue(formulaire.CorrigerSelection(Function(dialogue)
                                                                            DirectCast(dialogue.Controls.Find("montant", True)(0), TextBox).Text = "48"
                                                                            Assert.IsTrue(dialogue.AppliquerCorrection())
                                                                            Return DialogResult.OK
                                                                        End Function))
-                             Assert.AreEqual(48D, grille.Rows(0).Cells("Montant").Value)
-                             Assert.AreEqual(24D, grille.Rows(1).Cells("Montant").Value)
-                             Assert.AreEqual("En attente de revue humaine", grille.Rows(0).Cells("Statut").Value)
+                             Assert.AreEqual(48D, grillePropositions.Rows(0).Cells("Montant").Value)
+                             Assert.AreEqual(24D, grillePropositions.Rows(1).Cells("Montant").Value)
+                             Assert.AreEqual("En attente de revue humaine", grillePropositions.Rows(0).Cells("Statut").Value)
                              Assert.AreEqual(48D, session.Propositions(originale.CleSource).Montant)
                              Assert.AreEqual(2, session.Audits.Count)
                              Assert.AreSame(originale, session.Audits(0).Avant)
