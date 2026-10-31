@@ -5,6 +5,11 @@ Public Class FrmPrincipale
 
     ' Instantané fourni explicitement par un appelant ; conservé en mémoire uniquement.
     Private _revuePropositions As PropositionRevue
+    Private _workflowDocumentsAnalyses As GmailDocumentReviewWorkflow
+    Private ReadOnly _menuRevueDocumentsAnalyses As New ToolStripMenuItem With {
+        .Name = "RevueDocumentsAnalysesToolStripMenuItem",
+        .Text = "Revue des documents préparés (simulation)",
+        .Enabled = False}
 
     Public Sub New()
         InitializeComponent()
@@ -14,6 +19,8 @@ Public Class FrmPrincipale
             .Text = "Revue des propositions (lecture seule)"}
         AddHandler menuRevue.Click, AddressOf RevuePropositions_Click
         AnalyseToolStripMenuItem.DropDownItems.Add(menuRevue)
+        AddHandler _menuRevueDocumentsAnalyses.Click, AddressOf RevueDocumentsAnalyses_Click
+        AnalyseToolStripMenuItem.DropDownItems.Add(_menuRevueDocumentsAnalyses)
     End Sub
 
     ''' <summary>
@@ -66,6 +73,20 @@ Public Class FrmPrincipale
         If workflow Is Nothing Then Throw New ArgumentNullException(NameOf(workflow))
         Return workflow.CreerFenetre()
     End Function
+
+    ''' <summary>
+    ''' Rend accessible depuis le menu un lot deja prepare en memoire.
+    ''' Rien n'est importe, approuve ou enregistre ; Nothing retire le lot.
+    ''' </summary>
+    Public Sub DefinirWorkflowDocumentsAnalyses(workflow As GmailDocumentReviewWorkflow)
+        _workflowDocumentsAnalyses = workflow
+        _menuRevueDocumentsAnalyses.Enabled = workflow IsNot Nothing
+    End Sub
+
+    Private Sub RevueDocumentsAnalyses_Click(sender As Object, e As EventArgs)
+        If _workflowDocumentsAnalyses Is Nothing Then Return
+        OuvrirRevueDocumentsAnalyses(_workflowDocumentsAnalyses)
+    End Sub
 
     Private Sub RevuePropositions_Click(sender As Object, e As EventArgs)
         If _revuePropositions Is Nothing Then
