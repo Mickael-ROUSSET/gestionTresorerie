@@ -102,6 +102,77 @@ Public Class PropositionWorkflowTests
     End Function
 
     <TestMethod>
+    Public Sub ParcoursDocumentsAnalyses_AnnulationPuisSessionConservee_ErreursSansMutation()
+        Dim cheque = NouveauCheque()
+        cheque.CheminDoc = "document-synthetique-inexistant"
+        Dim autre = NouvelleFacture()
+        Dim resultat = New PropositionAnalyseAdapter().ProposerDocuments(
+            New DocumentAgumaaa() {cheque, autre},
+            {Entree(autre, "facture"), Entree(cheque, "cheque")})
+        Assert.AreEqual(0, resultat.Rejets.Count)
+        Assert.AreEqual("cheque", resultat.Sources(0).CleSource)
+        Assert.AreEqual(102, resultat.Sources(0).IdDoc)
+        Assert.AreEqual(cheque.CheminDoc, resultat.Sources(0).CheminDoc)
+        Dim revue As New PropositionRevue(resultat)
+        Dim session As New PropositionSessionRevue(resultat.Propositions)
+        Dim originale = session.Propositions("cheque")
+        Assert.AreEqual("0000123", revue.Lignes(0).Reference)
+        Dim correction = Corriger(originale)
+
+        ' Preparing a correction and cancelling it must leave no audit or mutation.
+        session.AppliquerCorrection("cheque", Nothing)
+        Assert.AreSame(originale, session.Propositions("cheque"))
+        Assert.AreEqual(0, session.Audits.Count)
+        session.AppliquerCorrection("cheque", correction)
+        Dim conservee = session.Propositions("cheque")
+        Assert.AreSame(correction.Proposition, conservee)
+        Assert.IsTrue(session.Prevalider("cheque", resultat.Sources(0).IdDoc,
+            Array.Empty(Of String)(), False).EstPrete)
+        Assert.IsTrue(session.Prevalider("cheque", 102, Array.Empty(Of String)(), False).EstPrete)
+
+        Dim obsolete = Assert.ThrowsExactly(Of ArgumentException)(
+            Sub() session.AppliquerCorrection("cheque", correction))
+        StringAssert.Contains(obsolete.Message, "Correction incompatible avec la selection courante.")
+        Dim selection = Assert.ThrowsExactly(Of ArgumentException)(
+            Sub() session.AppliquerCorrection(" CHEQUE ", Nothing))
+        StringAssert.Contains(selection.Message, "Selection source exacte obligatoire.")
+        Dim approbation = Assert.ThrowsExactly(Of InvalidOperationException)(Sub() session.MarquerApprouvee("cheque"))
+        StringAssert.Contains(approbation.Message, "ne peut pas approuver")
+        Dim persistance = Assert.ThrowsExactly(Of InvalidOperationException)(Sub() session.MarquerPersistee("cheque"))
+        StringAssert.Contains(persistance.Message, "ne peut pas persister")
+        Assert.AreSame(conservee, session.Propositions("cheque"))
+        Assert.AreEqual(1, session.Audits.Count)
+        Assert.AreSame(originale, session.Audits(0).Avant)
+        Assert.AreSame(resultat.Propositions(1), session.Propositions("facture"))
+        VerifierIdentite(conservee, "cheque", "CHEQUE")
+        Assert.AreEqual("0000123", conservee.Reference)
+        Assert.AreEqual(42.12D, cheque.montant_numerique)
+        Assert.AreEqual(0, cheque.IdMvtDoc)
+        Assert.AreEqual("document-synthetique-inexistant", cheque.CheminDoc)
+    End Sub
+
+    <TestMethod>
+    Public Sub DocumentsDupliques_RejetsLisiblesPuisParcoursDeLaSeuleSourceValide()
+        Dim document = NouveauCheque()
+        Dim memeIdentifiant = NouvelleFacture()
+        memeIdentifiant.IdDoc = document.IdDoc
+        Dim resultat = New PropositionAnalyseAdapter().Proposer({
+            Entree(document, "original"), Entree(document, "autre-cle"),
+            Entree(memeIdentifiant, "autre-document")})
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual("Document deja present dans le lot sous une autre cle source.", resultat.Rejets(0).Motif)
+        Assert.AreEqual("Identifiant document duplique dans le lot.", resultat.Rejets(1).Motif)
+        Assert.AreEqual("autre-cle", resultat.Rejets(0).CleSource)
+        Assert.AreEqual("autre-document", resultat.Rejets(1).CleSource)
+        Dim session = Parcourir(resultat)
+        Assert.AreEqual(1, session.Propositions.Count)
+        VerifierIdentite(session.Propositions("original"), "original", "CHEQUE")
+        Assert.AreEqual(0, document.IdMvtDoc)
+        Assert.AreEqual(0, memeIdentifiant.IdMvtDoc)
+    End Sub
+
+    <TestMethod>
     Public Sub LotMixte_IdentitesEtZerosInitiauxConserves_JamaisApprouve()
         Dim facture = NouvelleFacture()
         Dim cheque = NouveauCheque()

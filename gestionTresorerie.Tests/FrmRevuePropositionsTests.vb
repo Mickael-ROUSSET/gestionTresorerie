@@ -31,6 +31,76 @@ Public Class FrmRevuePropositionsTests
     End Function
 
     <TestMethod>
+    Public Sub ParcoursAnalyseAffichageCorrectionPrevalidation_FermetureConserveLaSession()
+        SurThreadSta(Sub()
+                         Dim document As New ChequeSansFichier With {.IdDoc = 901,
+                             .montant_numerique = 12.34D, .devise = "EUR", .dateChq = "20260204",
+                             .numero_du_cheque = "000009", .CheminDoc = "source-synthetique-inexistante"}
+                         Dim resultat = New PropositionAnalyseAdapter().ProposerDocuments(
+                             New DocumentAgumaaa() {document},
+                             {New PropositionDocumentService.Entree(document, "source-synthetique",
+                                 PropositionMouvement.SensMouvement.Debit)})
+                         Assert.AreEqual(0, resultat.Rejets.Count)
+                         Dim originale = resultat.Propositions(0)
+                         Dim session As New PropositionSessionRevue(resultat.Propositions)
+                         Using f As New FrmRevuePropositions(session, New PropositionRevue(resultat))
+                             Dim grilleSource = Grille(f, "grillePropositions")
+                             Assert.AreEqual("000009", grilleSource.Rows(0).Cells("Reference").Value)
+                             grilleSource.Rows(0).Selected = True
+                             Assert.IsFalse(f.CorrigerSelection(Function(dialogue)
+                                                                  DirectCast(dialogue.Controls.Find("montant", True)(0), TextBox).Text = "20"
+                                                                  Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                  Return DialogResult.Cancel
+                                                              End Function))
+                             Assert.AreSame(originale, session.Propositions(originale.CleSource))
+                             Assert.AreEqual(0, session.Audits.Count)
+                             Assert.AreEqual(12.34D, grilleSource.Rows(0).Cells("Montant").Value)
+                             Assert.IsTrue(f.CorrigerSelection(Function(dialogue)
+                                                                 DirectCast(dialogue.Controls.Find("montant", True)(0), TextBox).Text = "25"
+                                                                 Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                 Return DialogResult.OK
+                                                             End Function))
+                             Assert.AreEqual(25D, grilleSource.Rows(0).Cells("Montant").Value)
+                             Assert.AreEqual(originale.CleSource, grilleSource.Rows(0).Cells("CleSource").Value)
+                             Assert.AreEqual(originale.TypeDocument, grilleSource.Rows(0).Cells("TypeDocument").Value)
+                             Dim diagnostic = session.Prevalider(originale.CleSource, document.IdDoc,
+                                 Array.Empty(Of String)(), False)
+                             Assert.IsFalse(diagnostic.EstPrete)
+                             CollectionAssert.Contains(New System.Collections.Generic.List(Of PropositionPrevalidation.Anomalie)(diagnostic.Anomalies),
+                                 PropositionPrevalidation.Anomalie.AvertissementsNonResolus)
+                             Assert.IsTrue(grilleSource.ReadOnly)
+                             Assert.IsNull(f.AcceptButton)
+                             Assert.IsFalse(f.IsHandleCreated)
+                             f.Close()
+                         End Using
+                         Dim conservee = session.Propositions(originale.CleSource)
+                         Assert.AreEqual(25D, conservee.Montant)
+                         Assert.AreEqual("000009", conservee.Reference)
+                         Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine, conservee.Etat)
+                         Assert.AreEqual(1, session.Audits.Count)
+                         Assert.AreSame(originale, session.Audits(0).Avant)
+                         Assert.AreSame(conservee, session.Audits(0).Proposition)
+                         Assert.ThrowsExactly(Of InvalidOperationException)(Sub() session.MarquerApprouvee(originale.CleSource))
+                         Assert.ThrowsExactly(Of InvalidOperationException)(Sub() session.MarquerPersistee(originale.CleSource))
+                         Assert.AreEqual(12.34D, document.montant_numerique)
+                         Assert.AreEqual("000009", document.numero_du_cheque)
+                         Assert.AreEqual(0, document.IdMvtDoc)
+                         Assert.AreEqual(0, document.Renommages)
+                     End Sub)
+    End Sub
+
+    Private NotInheritable Class ChequeSansFichier
+        Inherits Cheque
+
+        Public Property Renommages As Integer
+
+        Public Overrides Function RenommerFichier(sNomFichier As String, Optional sNouveauNom As String = "") As String
+            Renommages += 1
+            Throw New AssertFailedException("Aucune ecriture de fichier autorisee dans ce parcours.")
+        End Function
+    End Class
+
+    <TestMethod>
     Public Sub Constructeur_RefuseUneRevueAbsente()
         SurThreadSta(Sub()
                          Dim erreur = Assert.ThrowsExactly(Of ArgumentNullException)(
