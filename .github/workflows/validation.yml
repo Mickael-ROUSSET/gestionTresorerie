@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [master, chore/automation-foundation, refactor/remove-mistral, fix/gmail-sha256-local]
   push:
-    branches: [master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral, feature/gmail-import-fiabilisation, fix/gmail-sha256-local, test/gmail-document-source-key-20261030]
+    branches: [master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral, feature/gmail-import-fiabilisation, fix/gmail-sha256-local, test/gmail-document-source-key-20261030, test/port-document-identity-20261101]
   workflow_dispatch:
 
 permissions:
