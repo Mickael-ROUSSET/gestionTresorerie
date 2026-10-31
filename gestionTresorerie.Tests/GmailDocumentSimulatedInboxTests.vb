@@ -112,6 +112,42 @@ Public Class GmailDocumentSimulatedInboxTests
         Next
     End Sub
 
+    <TestMethod>
+    Public Sub UidValidityRenouvele_MemeUidResteDeuxDocumentsDistincts()
+        ' Apres recreation d'une boite IMAP, un UID peut etre reutilise.
+        ' UIDVALIDITY doit donc rester une partie de l'identite de source.
+        Dim compte = "simulation@example.invalid"
+        Dim messages As GmailDocumentSimulatedInbox.MessageFictif() = {
+            New GmailDocumentSimulatedInbox.MessageFictif(
+                compte, 40UI, 50UI,
+                New GmailDocumentSimulatedInbox.PieceFictive() {
+                    New GmailDocumentSimulatedInbox.PieceFictive(
+                        JsonFacture, PropositionMouvement.SensMouvement.Debit)}),
+            New GmailDocumentSimulatedInbox.MessageFictif(
+                compte, 41UI, 50UI,
+                New GmailDocumentSimulatedInbox.PieceFictive() {
+                    New GmailDocumentSimulatedInbox.PieceFictive(
+                        JsonCheque, PropositionMouvement.SensMouvement.Credit)})}
+
+        Dim workflow = GmailDocumentSimulatedInbox.PreparerRevue(messages)
+        Dim premiereCle = GmailDocumentSourceKey.MakeKey(compte, 40UI, 50UI, 0)
+        Dim secondeCle = GmailDocumentSourceKey.MakeKey(compte, 41UI, 50UI, 0)
+        Assert.AreNotEqual(premiereCle, secondeCle)
+        Assert.AreEqual(2, workflow.ResultatInitial.Propositions.Count)
+        Assert.AreEqual(0, workflow.ResultatInitial.Rejets.Count)
+        Assert.AreEqual(premiereCle, workflow.ResultatInitial.Propositions(0).CleSource)
+        Assert.AreEqual(secondeCle, workflow.ResultatInitial.Propositions(1).CleSource)
+        Assert.AreEqual(0, workflow.SessionRevue.Audits.Count)
+        For Each cle In {premiereCle, secondeCle}
+            Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                            workflow.SessionRevue.Propositions(cle).Etat)
+            Assert.ThrowsExactly(Of InvalidOperationException)(
+                Sub() workflow.SessionRevue.MarquerApprouvee(cle))
+            Assert.ThrowsExactly(Of InvalidOperationException)(
+                Sub() workflow.SessionRevue.MarquerPersistee(cle))
+        Next
+    End Sub
+
     ' Ne jamais afficher FrmPrincipale : son chargement peut acceder a SQL.
     Private Shared Sub SurThreadSta(action As Action)
         Dim erreur As Exception = Nothing
