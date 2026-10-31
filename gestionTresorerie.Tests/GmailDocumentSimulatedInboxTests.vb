@@ -283,4 +283,42 @@ Public Class GmailDocumentSimulatedInboxTests
                              Sub() workflow.SessionRevue.MarquerPersistee(cle))
                      End Sub)
     End Sub
+
+    <TestMethod>
+    Public Sub CorrectionAnnulee_ApresPreparationNeModifieNiSessionNiAudit()
+        ' Meme si une correction fictive a ete preparee dans le dialogue,
+        ' Annuler ne doit pas modifier la proposition ni son audit.
+        SurThreadSta(Sub()
+                         Dim compte = "simulation@example.invalid"
+                         Dim message = New GmailDocumentSimulatedInbox.MessageFictif(
+                             compte, 71UI, 72UI,
+                             New GmailDocumentSimulatedInbox.PieceFictive() {
+                                 New GmailDocumentSimulatedInbox.PieceFictive(
+                                     JsonFacture, PropositionMouvement.SensMouvement.Debit)})
+                         Dim workflow = GmailDocumentSimulatedInbox.PreparerRevue(
+                             New GmailDocumentSimulatedInbox.MessageFictif() {message})
+                         Dim cle = GmailDocumentSourceKey.MakeKey(compte, 71UI, 72UI, 0)
+                         Using fenetre = workflow.CreerFenetre()
+                             Dim grille = DirectCast(
+                                 fenetre.Controls.Find("grillePropositions", True)(0), DataGridView)
+                             grille.ClearSelection()
+                             grille.Rows(0).Selected = True
+                             Assert.IsFalse(fenetre.CorrigerSelection(Function(dialogue)
+                                                                         DirectCast(
+                                                                             dialogue.Controls.Find("montant", True)(0),
+                                                                             TextBox).Text = "99"
+                                                                         Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                         Return DialogResult.Cancel
+                                                                     End Function))
+                             Assert.AreEqual(42.5D, grille.Rows(0).Cells("Montant").Value)
+                         End Using
+                         Assert.AreEqual(42.5D, workflow.SessionRevue.Propositions(cle).Montant)
+                         Assert.AreEqual(0, workflow.SessionRevue.Audits.Count)
+                         Assert.AreEqual(42.5D, workflow.ResultatInitial.Propositions(0).Montant)
+                         Assert.ThrowsExactly(Of InvalidOperationException)(
+                             Sub() workflow.SessionRevue.MarquerApprouvee(cle))
+                         Assert.ThrowsExactly(Of InvalidOperationException)(
+                             Sub() workflow.SessionRevue.MarquerPersistee(cle))
+                     End Sub)
+    End Sub
 End Class
