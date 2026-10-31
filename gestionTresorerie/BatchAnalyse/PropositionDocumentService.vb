@@ -44,6 +44,8 @@ Public NotInheritable Class PropositionDocumentService
     ''' <summary>
     ''' Conserve l'ordre d'entree. Les cles sont comparees exactement (Ordinal), sans normalisation.
     ''' La premiere occurrence reserve la cle, meme invalide ; les suivantes sont rejetees.
+    ''' Un document ne peut etre propose deux fois sous des cles differentes :
+    ''' comparaison par reference et, si non nul, par IdDoc.
     ''' Aucun etat n'est conserve entre appels : un meme lot retourne les memes valeurs.
     ''' Une erreur de validation est isolee par document ; une erreur d'enumeration reste visible.
     ''' </summary>
@@ -52,6 +54,8 @@ Public NotInheritable Class PropositionDocumentService
         Dim propositions As New List(Of PropositionMouvement)()
         Dim rejets As New List(Of Rejet)()
         Dim cles As New HashSet(Of String)(StringComparer.Ordinal)
+        Dim documents As New HashSet(Of DocumentAgumaaa)(ReferenceEqualityComparer.Instance)
+        Dim identifiants As New HashSet(Of Integer)()
         Dim index As Integer = 0
         For Each entree In entrees
             Dim cle = If(entree Is Nothing, Nothing, entree.CleSource)
@@ -60,6 +64,10 @@ Public NotInheritable Class PropositionDocumentService
                 If String.IsNullOrWhiteSpace(cle) Then Throw New ArgumentException("Cle source obligatoire.")
                 If Not cles.Add(cle) Then Throw New ArgumentException("Cle source dupliquee dans le lot.")
                 If entree.Document Is Nothing Then Throw New ArgumentException("Document absent.")
+                If Not documents.Add(entree.Document) Then Throw New ArgumentException("Document deja present dans le lot sous une autre cle source.")
+                If entree.Document.IdDoc <> 0 AndAlso Not identifiants.Add(entree.Document.IdDoc) Then
+                    Throw New ArgumentException("Identifiant document duplique dans le lot.")
+                End If
                 If TypeOf entree.Document Is Facture Then
                     propositions.Add(PropositionMouvementMapper.Mapper(
                         DirectCast(entree.Document, Facture), cle, entree.Sens))
