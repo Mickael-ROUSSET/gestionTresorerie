@@ -234,4 +234,75 @@ Public Class FrmPrincipaleRevueTests
                      End Sub)
     End Sub
 
+
+    <TestMethod>
+    Public Sub MenuDocumentsSimules_RecoitJsonFictifsEtConserveCorrectionsSansSQL()
+        ' JSON deja extrait : aucun compte Gmail ni fichier reel n'est utilise.
+        SurThreadSta(Sub()
+                         Using principale As New PrincipaleSimulationIsolee()
+                             Dim menu = DirectCast(principale.MainMenuStrip.Items.Find(
+                                 "RevueDocumentsAnalysesToolStripMenuItem", True)(0), ToolStripMenuItem)
+                             Assert.IsFalse(menu.Enabled)
+                             Assert.ThrowsExactly(Of ArgumentNullException)(
+                                 Sub() principale.PreparerRevueDocumentsJsonFictifs(Nothing))
+                             Assert.IsFalse(menu.Enabled)
+
+                             Dim jsonFacture As String =
+                                 "{""type_document"":""Facture"",""donnees_extraites"":{" &
+                                 """identite"":{""fournisseur_nom"":""Fictif""}," &
+                                 """transaction"":{""montant_ttc"":""42.50"",""devise"":""EUR""," &
+                                 """date_facture"":""2026-04-01"",""numero_facture"":""SIM-42""}}}"
+                             Dim valide As New GmailDocumentExtractionAdapter.PieceJson(
+                                 "simulation@example.invalid", 8UI, 9UI, 0, jsonFacture,
+                                 PropositionMouvement.SensMouvement.Debit)
+                             Dim invalide As New GmailDocumentExtractionAdapter.PieceJson(
+                                 "simulation@example.invalid", 8UI, 9UI, 1, "{invalide",
+                                 PropositionMouvement.SensMouvement.Debit)
+                             Dim workflow = principale.PreparerRevueDocumentsJsonFictifs(
+                                 New GmailDocumentExtractionAdapter.PieceJson() {valide, invalide})
+                             Assert.IsTrue(menu.Enabled)
+                             Assert.AreEqual(1, workflow.ResultatInitial.Propositions.Count)
+                             Assert.AreEqual(1, workflow.ResultatInitial.Rejets.Count)
+
+                             principale.Examiner = Sub(formulaire)
+                                                       Dim grille = DirectCast(formulaire.Controls.Find(
+                                                           "grillePropositions", True)(0), DataGridView)
+                                                       Dim rejets = DirectCast(formulaire.Controls.Find(
+                                                           "grilleRejets", True)(0), DataGridView)
+                                                       Assert.AreEqual(1, grille.Rows.Count)
+                                                       Assert.AreEqual(1, rejets.Rows.Count)
+                                                       Assert.AreEqual(42.5D, grille.Rows(0).Cells("Montant").Value)
+                                                       grille.ClearSelection()
+                                                       grille.Rows(0).Selected = True
+                                                       Assert.IsTrue(formulaire.CorrigerSelection(Function(dialogue)
+                                                                                                     DirectCast(dialogue.Controls.Find(
+                                                                                                         "montant", True)(0), TextBox).Text = "45"
+                                                                                                     Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                                                     Return DialogResult.OK
+                                                                                                 End Function))
+                                                       Assert.IsFalse(formulaire.IsHandleCreated)
+                                                   End Sub
+                             menu.PerformClick()
+                             Assert.AreEqual(45D, workflow.SessionRevue.Propositions(valide.CleSource).Montant)
+                             Assert.AreEqual(1, workflow.SessionRevue.Audits.Count)
+                             principale.Examiner = Sub(formulaire)
+                                                       Dim grille = DirectCast(formulaire.Controls.Find(
+                                                           "grillePropositions", True)(0), DataGridView)
+                                                       Assert.AreEqual(45D, grille.Rows(0).Cells("Montant").Value)
+                                                       Assert.AreEqual("En attente de revue humaine",
+                                                                       grille.Rows(0).Cells("Statut").Value)
+                                                       Assert.IsFalse(formulaire.IsHandleCreated)
+                                                   End Sub
+                             menu.PerformClick()
+                             Assert.AreEqual(2, principale.NombrePresentations)
+                             Assert.AreEqual(1, workflow.SessionRevue.Audits.Count)
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub() workflow.SessionRevue.MarquerApprouvee(valide.CleSource))
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub() workflow.SessionRevue.MarquerPersistee(valide.CleSource))
+                             Assert.IsFalse(principale.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
+
 End Class
