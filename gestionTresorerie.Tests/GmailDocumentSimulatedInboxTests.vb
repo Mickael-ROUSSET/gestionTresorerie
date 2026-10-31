@@ -148,6 +148,31 @@ Public Class GmailDocumentSimulatedInboxTests
         Next
     End Sub
 
+    <TestMethod>
+    Public Sub IdentitesImapInvalides_SontRefuseesAvantLaRevue()
+        ' Les identites IMAP non fiables ne doivent produire aucune proposition.
+        Dim pieces As GmailDocumentSimulatedInbox.PieceFictive() = {
+            New GmailDocumentSimulatedInbox.PieceFictive(
+                JsonFacture, PropositionMouvement.SensMouvement.Debit)}
+        For Each compte As String In New String() {Nothing, "", "  "}
+            Dim message = New GmailDocumentSimulatedInbox.MessageFictif(
+                compte, 1UI, 2UI, pieces)
+            Assert.ThrowsExactly(Of ArgumentException)(
+                Sub() GmailDocumentSimulatedInbox.PreparerRevue(
+                    New GmailDocumentSimulatedInbox.MessageFictif() {message}))
+        Next
+        Dim sansUidValidity = New GmailDocumentSimulatedInbox.MessageFictif(
+            "simulation@example.invalid", 0UI, 2UI, pieces)
+        Assert.ThrowsExactly(Of ArgumentOutOfRangeException)(
+            Sub() GmailDocumentSimulatedInbox.PreparerRevue(
+                New GmailDocumentSimulatedInbox.MessageFictif() {sansUidValidity}))
+        Dim sansUid = New GmailDocumentSimulatedInbox.MessageFictif(
+            "simulation@example.invalid", 1UI, 0UI, pieces)
+        Assert.ThrowsExactly(Of ArgumentOutOfRangeException)(
+            Sub() GmailDocumentSimulatedInbox.PreparerRevue(
+                New GmailDocumentSimulatedInbox.MessageFictif() {sansUid}))
+    End Sub
+
     ' Ne jamais afficher FrmPrincipale : son chargement peut acceder a SQL.
     Private Shared Sub SurThreadSta(action As Action)
         Dim erreur As Exception = Nothing
