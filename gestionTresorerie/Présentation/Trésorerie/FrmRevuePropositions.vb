@@ -201,7 +201,17 @@ Public NotInheritable Class FrmRevuePropositions
             Dim resultat = If(afficher Is Nothing, correction.ShowDialog(Me), afficher(correction))
             If resultat <> DialogResult.OK OrElse correction.PropositionCorrigee Is Nothing Then Return False
             Dim proposition = correction.PropositionCorrigee
-            If session IsNot Nothing Then session.AppliquerCorrection(source.CleSource, correction.ResultatCorrection)
+            If session IsNot Nothing Then
+                ' Une correction externe pendant le dialogue rend la proposition affichée obsolète.
+                ' Ne pas écraser cette correction ; rafraîchir la revue sans valider.
+                Dim courante As PropositionMouvement = Nothing
+                If Not session.Propositions.TryGetValue(source.CleSource, courante) OrElse
+                   Not Object.ReferenceEquals(courante, source) Then
+                    ActualiserSession()
+                    Return False
+                End If
+                session.AppliquerCorrection(source.CleSource, correction.ResultatCorrection)
+            End If
             sources(ligne) = proposition
             ligne.Cells("DateProposee").Value = proposition.DateProposee
             ligne.Cells("Montant").Value = proposition.Montant
