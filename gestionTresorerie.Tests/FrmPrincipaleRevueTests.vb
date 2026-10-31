@@ -313,4 +313,40 @@ Public Class FrmPrincipaleRevueTests
                      End Sub)
     End Sub
 
+
+    <TestMethod>
+    Public Sub MenuDocumentsSimules_LotEntierementInvalide_ConserveLesRejetsVisibles()
+        ' Un lot sans proposition exploitable doit rester consultable pour
+        ' expliquer les rejets, sans autoriser une validation ou une ecriture.
+        SurThreadSta(Sub()
+                         Using principale As New PrincipaleSimulationIsolee()
+                             Dim menu = DirectCast(principale.MainMenuStrip.Items.Find(
+                                 "RevueDocumentsAnalysesToolStripMenuItem", True)(0), ToolStripMenuItem)
+                             Dim piece As New GmailDocumentExtractionAdapter.PieceJson(
+                                 "simulation@example.invalid", 8UI, 9UI, 0, "{invalide",
+                                 PropositionMouvement.SensMouvement.Debit)
+                             Dim workflow = principale.PreparerRevueDocumentsJsonFictifs(
+                                 New GmailDocumentExtractionAdapter.PieceJson() {piece})
+                             Assert.AreEqual(0, workflow.ResultatInitial.Propositions.Count)
+                             Assert.AreEqual(1, workflow.ResultatInitial.Rejets.Count)
+                             Assert.IsTrue(menu.Enabled)
+
+                             principale.Examiner = Sub(formulaire)
+                                                       Dim propositions = DirectCast(formulaire.Controls.Find(
+                                                           "grillePropositions", True)(0), DataGridView)
+                                                       Dim rejets = DirectCast(formulaire.Controls.Find(
+                                                           "grilleRejets", True)(0), DataGridView)
+                                                       Assert.AreEqual(0, propositions.Rows.Count)
+                                                       Assert.AreEqual(1, rejets.Rows.Count)
+                                                       Assert.AreEqual(0, rejets.Rows(0).Cells("IndexEntree").Value)
+                                                       Assert.IsFalse(formulaire.IsHandleCreated)
+                                                   End Sub
+                             menu.PerformClick()
+                             Assert.AreEqual(1, principale.NombrePresentations)
+                             Assert.AreEqual(0, workflow.SessionRevue.Audits.Count)
+                             Assert.IsFalse(principale.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
+
 End Class
