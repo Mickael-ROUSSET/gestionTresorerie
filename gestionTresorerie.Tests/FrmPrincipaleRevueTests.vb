@@ -300,6 +300,14 @@ Public Class FrmPrincipaleRevueTests
                                  Sub() workflow.SessionRevue.MarquerApprouvee(valide.CleSource))
                              Assert.ThrowsExactly(Of InvalidOperationException)(
                                  Sub() workflow.SessionRevue.MarquerPersistee(valide.CleSource))
+                             ' Un nouveau lot absent ne doit pas laisser l'ancien lot
+                             ' accessible depuis le menu de la fenetre principale.
+                             Assert.ThrowsExactly(Of ArgumentNullException)(
+                                 Sub() principale.PreparerRevueDocumentsJsonFictifs(Nothing))
+                             Assert.IsFalse(menu.Enabled)
+                             menu.PerformClick()
+                             Assert.AreEqual(2, principale.NombrePresentations)
+                             Assert.AreEqual(1, workflow.SessionRevue.Audits.Count)
                              Assert.IsFalse(principale.IsHandleCreated)
                          End Using
                      End Sub)
