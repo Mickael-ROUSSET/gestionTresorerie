@@ -64,8 +64,13 @@ Public Class FrmPrincipale
     ''' </summary>
     Public Sub OuvrirRevueDocumentsAnalyses(workflow As GmailDocumentReviewWorkflow)
         Using formulaire = CreerFenetreRevuePropositions(workflow)
-            formulaire.ShowDialog(Me)
+            PresenterRevueDocumentsAnalyses(formulaire)
         End Using
+    End Sub
+
+    ''' <summary>Point de presentation isolable sans afficher le parent ni acceder a SQL.</summary>
+    Protected Overridable Sub PresenterRevueDocumentsAnalyses(formulaire As FrmRevuePropositions)
+        formulaire.ShowDialog(Me)
     End Sub
 
     ''' <summary>Fabrique testable sans afficher FrmPrincipale ni acceder a SQL.</summary>
