@@ -336,9 +336,9 @@ Public Class FrmRevuePropositionsTests
                          Dim seconde = resultat.Propositions(1)
                          Using formulaire As New FrmRevuePropositions(
                              New PropositionRevue(resultat), resultat.Propositions, session)
-                             Dim grille = Grille(formulaire, "grillePropositions")
-                             grille.ClearSelection()
-                             grille.Rows(0).Selected = True
+                             Dim grillePropositions = Grille(formulaire, "grillePropositions")
+                             grillePropositions.ClearSelection()
+                             grillePropositions.Rows(0).Selected = True
 
                              Assert.IsTrue(formulaire.CorrigerSelection(Function(dialogue)
                                                                            Dim externe = PropositionCorrection.Corriger(
@@ -354,10 +354,10 @@ Public Class FrmRevuePropositionsTests
                              Assert.AreEqual(2, session.Audits.Count)
                              Assert.AreEqual(seconde.CleSource, session.Audits(0).Avant.CleSource)
                              Assert.AreEqual(premiere.CleSource, session.Audits(1).Avant.CleSource)
-                             Assert.AreEqual(48D, grille.Rows(0).Cells("Montant").Value)
+                             Assert.AreEqual(48D, grillePropositions.Rows(0).Cells("Montant").Value)
                              formulaire.ActualiserSession()
-                             Assert.AreEqual(35D, grille.Rows(1).Cells("Montant").Value)
-                             Assert.AreEqual("En attente de revue humaine", grille.Rows(0).Cells("Statut").Value)
+                             Assert.AreEqual(35D, grillePropositions.Rows(1).Cells("Montant").Value)
+                             Assert.AreEqual("En attente de revue humaine", grillePropositions.Rows(0).Cells("Statut").Value)
                              Assert.ThrowsExactly(Of InvalidOperationException)(
                                  Sub() session.MarquerApprouvee(premiere.CleSource))
                              Assert.ThrowsExactly(Of InvalidOperationException)(
