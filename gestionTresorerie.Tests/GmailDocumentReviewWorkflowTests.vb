@@ -103,6 +103,58 @@ Public Class GmailDocumentReviewWorkflowTests
     End Sub
 
     <TestMethod>
+    Public Sub CorrectionExterne_ActualiserSessionMetAJourLaGrilleEtPermetNouvelleCorrection()
+        SurThreadSta(Sub()
+                         Dim facture As New Facture With {
+                             .IdDoc = 903, .montant_ttc = 18D, .devise = "EUR",
+                             .date_facture = "2026-04-01", .numero_facture = "FICTIVE-903"}
+                         Dim piece As New GmailDocumentPropositionAdapter.PieceAnalysee(
+                             "simulation@example.invalid", 4UI, 5UI, 0, facture,
+                             PropositionMouvement.SensMouvement.Debit)
+                         Dim workflow = GmailDocumentReviewWorkflow.Preparer(
+                             New GmailDocumentPropositionAdapter.PieceAnalysee() {piece})
+                         Dim cle = piece.CleSource
+                         Using fenetre = workflow.CreerFenetre()
+                             Dim grille = DirectCast(fenetre.Controls.Find("grillePropositions", True)(0), DataGridView)
+                             Assert.AreEqual(18D, grille.Rows(0).Cells("Montant").Value)
+                             Dim originale = workflow.SessionRevue.Propositions(cle)
+                             Dim confirmations As New System.Collections.Generic.List(Of PropositionCorrection.ConfirmationAvertissement)()
+                             For Each avertissement In originale.AvertissementsValidation
+                                 confirmations.Add(New PropositionCorrection.ConfirmationAvertissement(
+                                     PropositionCorrection.Champ.Sens, avertissement))
+                             Next
+                             Dim correction = PropositionCorrection.Corriger(originale,
+                                 originale.DateProposee, 26D, originale.Sens,
+                                 originale.Libelle, originale.Reference, confirmations)
+                             workflow.SessionRevue.AppliquerCorrection(cle, correction)
+                             Assert.AreEqual(18D, grille.Rows(0).Cells("Montant").Value)
+                             fenetre.ActualiserSession()
+                             Assert.AreEqual(26D, grille.Rows(0).Cells("Montant").Value)
+                             Assert.AreEqual(1, workflow.SessionRevue.Audits.Count)
+                             Assert.AreEqual("En attente de revue humaine", grille.Rows(0).Cells("Statut").Value)
+                             Dim etat = DirectCast(fenetre.Controls.Find("etatCorrections", True)(0), Label)
+                             StringAssert.Contains(etat.Text, "Corrections tracées en mémoire : 1")
+                             grille.ClearSelection()
+                             grille.Rows(0).Selected = True
+                             Assert.IsTrue(fenetre.CorrigerSelection(Function(dialogue)
+                                                                        DirectCast(dialogue.Controls.Find("montant", True)(0), TextBox).Text = "27"
+                                                                        Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                        Return DialogResult.OK
+                                                                    End Function))
+                             Assert.AreEqual(27D, workflow.SessionRevue.Propositions(cle).Montant)
+                             Assert.AreEqual(2, workflow.SessionRevue.Audits.Count)
+                             Assert.IsFalse(fenetre.IsHandleCreated)
+                         End Using
+                         Assert.AreEqual(18D, facture.montant_ttc)
+                         Assert.AreEqual(0, facture.IdMvtDoc)
+                         Assert.ThrowsExactly(Of InvalidOperationException)(
+                             Sub() workflow.SessionRevue.MarquerApprouvee(cle))
+                         Assert.ThrowsExactly(Of InvalidOperationException)(
+                             Sub() workflow.SessionRevue.MarquerPersistee(cle))
+                     End Sub)
+    End Sub
+
+    <TestMethod>
     Public Sub LotAbsentRefuse_LotVideAfficheSansEcriture()
         Assert.ThrowsExactly(Of ArgumentNullException)(
             Sub() GmailDocumentReviewWorkflow.Preparer(Nothing))
