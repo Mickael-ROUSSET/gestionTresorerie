@@ -205,6 +205,50 @@ Public Class GmailDocumentSimulatedInboxTests
         Assert.AreEqual(0, workflow.SessionRevue.Audits.Count)
     End Sub
 
+
+    <TestMethod>
+    Public Sub RevueFictive_PrevalidationResteBloquanteApresCorrection()
+        ' Le diagnostic est informatif : sans document source et identites connues,
+        ' la correction humaine ne doit jamais autoriser une approbation.
+        SurThreadSta(Sub()
+                         Dim message = New GmailDocumentSimulatedInbox.MessageFictif(
+                             "simulation@example.invalid", 30UI, 31UI,
+                             New GmailDocumentSimulatedInbox.PieceFictive() {
+                                 New GmailDocumentSimulatedInbox.PieceFictive(
+                                     JsonCheque, PropositionMouvement.SensMouvement.Debit)})
+                         Dim workflow = GmailDocumentSimulatedInbox.PreparerRevue(
+                             New GmailDocumentSimulatedInbox.MessageFictif() {message})
+                         Dim cle = workflow.ResultatInitial.Propositions(0).CleSource
+                         Using fenetre = workflow.CreerFenetre()
+                             Dim grille = DirectCast(
+                                 fenetre.Controls.Find("grillePropositions", True)(0), DataGridView)
+                             Dim diagnosticInitial = CStr(grille.Rows(0).Cells("Prevalidation").Value)
+                             StringAssert.Contains(diagnosticInitial, "DocumentSourceAbsent")
+                             StringAssert.Contains(diagnosticInitial, "IdentitesUtiliseesAbsentes")
+                             grille.ClearSelection()
+                             grille.Rows(0).Selected = True
+                             Assert.IsTrue(fenetre.CorrigerSelection(Function(dialogue)
+                                                                       DirectCast(
+                                                                           dialogue.Controls.Find("reference", True)(0),
+                                                                           TextBox).Text = ""
+                                                                       Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                       Return DialogResult.OK
+                                                                   End Function))
+                             Dim diagnosticCorrige = CStr(grille.Rows(0).Cells("Prevalidation").Value)
+                             StringAssert.Contains(diagnosticCorrige, "ReferenceVide")
+                             StringAssert.Contains(diagnosticCorrige, "DocumentSourceAbsent")
+                             Assert.AreEqual(1, workflow.SessionRevue.Audits.Count)
+                             Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                                             workflow.SessionRevue.Propositions(cle).Etat)
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub() workflow.SessionRevue.MarquerApprouvee(cle))
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub() workflow.SessionRevue.MarquerPersistee(cle))
+                             Assert.IsFalse(fenetre.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
+
     ' Ne jamais afficher FrmPrincipale : son chargement peut acceder a SQL.
     Private Shared Sub SurThreadSta(action As Action)
         Dim erreur As Exception = Nothing
