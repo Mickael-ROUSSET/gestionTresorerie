@@ -153,6 +153,29 @@ Public NotInheritable Class FrmRevuePropositions
         Next
     End Sub
 
+    ''' <summary>Reprend les corrections faites ailleurs dans la session en mémoire.
+    ''' Ne valide, n'approuve et n'enregistre aucune proposition.</summary>
+    Public Sub ActualiserSession()
+        If session Is Nothing Then Return
+        For Each ligne As DataGridViewRow In sources.Keys.ToArray()
+            Dim cle = sources(ligne).CleSource
+            Dim courante As PropositionMouvement = Nothing
+            If Not session.Propositions.TryGetValue(cle, courante) OrElse courante Is Nothing Then
+                Throw New InvalidOperationException("Proposition absente de la session.")
+            End If
+            sources(ligne) = courante
+            ligne.Cells("DateProposee").Value = courante.DateProposee
+            ligne.Cells("Montant").Value = courante.Montant
+            ligne.Cells("Sens").Value = If(courante.Sens = PropositionMouvement.SensMouvement.Debit, "Débit", "Crédit")
+            ligne.Cells("Libelle").Value = courante.Libelle
+            ligne.Cells("Reference").Value = courante.Reference
+            ligne.Cells("Avertissements").Value = String.Join(Environment.NewLine, courante.AvertissementsValidation)
+        Next
+        ActualiserDiagnosticsPrevalidation()
+        ActualiserEtatCorrections()
+        ActualiserAction(DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView))
+    End Sub
+
     Private Sub ActualiserEtatCorrections()
         If session IsNot Nothing Then
             etatCorrections.Text = $"Corrections tracées en mémoire : {session.Audits.Count}. Aucune opération validée ni enregistrée."
