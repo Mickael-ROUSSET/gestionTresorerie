@@ -59,8 +59,10 @@ Public Class GmailDocumentSimulatedInboxTests
         Assert.ThrowsExactly(Of ArgumentNullException)(
             Sub() GmailDocumentSimulatedInbox.PreparerRevue(Nothing))
         Assert.ThrowsExactly(Of ArgumentNullException)(
-            Sub() New GmailDocumentSimulatedInbox.MessageFictif(
-                "simulation@example.invalid", 1UI, 2UI, Nothing))
+            Sub()
+                Dim message = New GmailDocumentSimulatedInbox.MessageFictif(
+                    "simulation@example.invalid", 1UI, 2UI, Nothing)
+            End Sub)
         Assert.ThrowsExactly(Of ArgumentException)(
             Sub() GmailDocumentSimulatedInbox.PreparerRevue(
                 New GmailDocumentSimulatedInbox.MessageFictif() {Nothing}))
