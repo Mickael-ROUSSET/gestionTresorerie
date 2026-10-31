@@ -85,7 +85,7 @@ Public Class PropositionAnalyseAdapterTests
         Dim lot = {
             New PropositionDocumentService.Entree(document, "source", PropositionMouvement.SensMouvement.Debit),
             New PropositionDocumentService.Entree(document, "source", PropositionMouvement.SensMouvement.Credit),
-            New PropositionDocumentService.Entree(document, "SOURCE", PropositionMouvement.SensMouvement.Credit)}
+            New PropositionDocumentService.Entree(FactureFictive(), "SOURCE", PropositionMouvement.SensMouvement.Credit)}
         Dim adapter As New PropositionAnalyseAdapter()
         For repetition = 1 To 2
             Dim revue = adapter.PreparerRevue(lot)
