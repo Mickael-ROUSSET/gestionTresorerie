@@ -152,4 +152,29 @@ Public Class FrmPrincipaleRevueTests
                      End Sub)
     End Sub
 
+
+    <TestMethod>
+    Public Sub MenuDocumentsSimules_DesactiveSansLotEtReactivableSansAccesExterne()
+        ' Aucun clic : un ShowDialog sur FrmPrincipale declencherait son chargement SQL.
+        SurThreadSta(Sub()
+                         Using principale As New FrmPrincipale()
+                             Dim menus = principale.MainMenuStrip.Items.Find(
+                                 "RevueDocumentsAnalysesToolStripMenuItem", True)
+                             Assert.AreEqual(1, menus.Length)
+                             Dim menu = DirectCast(menus(0), ToolStripMenuItem)
+                             Assert.AreEqual("Revue des documents préparés (simulation)", menu.Text)
+                             Assert.AreEqual("AnalyseToolStripMenuItem", menu.OwnerItem.Name)
+                             Assert.IsFalse(menu.Enabled)
+                             Dim workflow = GmailDocumentReviewWorkflow.Preparer(
+                                 Array.Empty(Of GmailDocumentPropositionAdapter.PieceAnalysee)())
+                             principale.DefinirWorkflowDocumentsAnalyses(workflow)
+                             Assert.IsTrue(menu.Enabled)
+                             Assert.AreEqual(0, workflow.ResultatInitial.Propositions.Count)
+                             Assert.AreEqual(0, workflow.SessionRevue.Audits.Count)
+                             principale.DefinirWorkflowDocumentsAnalyses(Nothing)
+                             Assert.IsFalse(menu.Enabled)
+                             Assert.IsFalse(principale.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
 End Class
