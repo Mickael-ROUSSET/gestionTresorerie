@@ -71,6 +71,47 @@ Public Class GmailDocumentSimulatedInboxTests
                 New GmailDocumentSimulatedInbox.MessageFictif() {Nothing}))
     End Sub
 
+    <TestMethod>
+    Public Sub MessagesRejoues_MemeUidEtCompteNormalise_NeCreentPasDeuxPropositions()
+        ' Un même UID IMAP rejoué ne doit jamais produire une deuxième opération.
+        ' Un autre UID du même compte reste traitable dans le même lot fictif.
+        Dim messages As GmailDocumentSimulatedInbox.MessageFictif() = {
+            New GmailDocumentSimulatedInbox.MessageFictif(
+                "SIMULATION@example.invalid", 40UI, 50UI,
+                New GmailDocumentSimulatedInbox.PieceFictive() {
+                    New GmailDocumentSimulatedInbox.PieceFictive(
+                        JsonFacture, PropositionMouvement.SensMouvement.Debit)}),
+            New GmailDocumentSimulatedInbox.MessageFictif(
+                " simulation@example.invalid ", 40UI, 50UI,
+                New GmailDocumentSimulatedInbox.PieceFictive() {
+                    New GmailDocumentSimulatedInbox.PieceFictive(
+                        JsonCheque, PropositionMouvement.SensMouvement.Credit)}),
+            New GmailDocumentSimulatedInbox.MessageFictif(
+                "simulation@example.invalid", 40UI, 51UI,
+                New GmailDocumentSimulatedInbox.PieceFictive() {
+                    New GmailDocumentSimulatedInbox.PieceFictive(
+                        JsonCheque, PropositionMouvement.SensMouvement.Credit)})}
+
+        Dim workflow = GmailDocumentSimulatedInbox.PreparerRevue(messages)
+        Assert.AreEqual(2, workflow.ResultatInitial.Propositions.Count)
+        Assert.AreEqual(1, workflow.ResultatInitial.Rejets.Count)
+        Dim rejet = workflow.ResultatInitial.Rejets(0)
+        Assert.AreEqual(1, rejet.IndexEntree)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", rejet.Motif)
+        Assert.AreEqual(workflow.ResultatInitial.Propositions(0).CleSource, rejet.CleSource)
+        Assert.AreNotEqual(workflow.ResultatInitial.Propositions(0).CleSource,
+                           workflow.ResultatInitial.Propositions(1).CleSource)
+        Assert.AreEqual(0, workflow.SessionRevue.Audits.Count)
+        For Each proposition In workflow.ResultatInitial.Propositions
+            Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                            proposition.Etat)
+            Assert.ThrowsExactly(Of InvalidOperationException)(
+                Sub() workflow.SessionRevue.MarquerApprouvee(proposition.CleSource))
+            Assert.ThrowsExactly(Of InvalidOperationException)(
+                Sub() workflow.SessionRevue.MarquerPersistee(proposition.CleSource))
+        Next
+    End Sub
+
     ' Ne jamais afficher FrmPrincipale : son chargement peut acceder a SQL.
     Private Shared Sub SurThreadSta(action As Action)
         Dim erreur As Exception = Nothing
