@@ -153,11 +153,23 @@ Public Class FrmPrincipaleRevueTests
     End Sub
 
 
+    Private NotInheritable Class PrincipaleSimulationIsolee
+        Inherits FrmPrincipale
+
+        Public Property Examiner As Action(Of FrmRevuePropositions)
+        Public Property NombrePresentations As Integer
+
+        Protected Overrides Sub PresenterRevueDocumentsAnalyses(formulaire As FrmRevuePropositions)
+            NombrePresentations += 1
+            Examiner(formulaire)
+        End Sub
+    End Class
+
     <TestMethod>
-    Public Sub MenuDocumentsSimules_DesactiveSansLotEtReactivableSansAccesExterne()
-        ' Aucun clic : un ShowDialog sur FrmPrincipale declencherait son chargement SQL.
+    Public Sub MenuDocumentsSimules_DesactiveSansLotPuisRouvreCorrectionsSansSQL()
+        ' Le presentateur est isole : jamais de Show, Load ou Closing de FrmPrincipale.
         SurThreadSta(Sub()
-                         Using principale As New FrmPrincipale()
+                         Using principale As New PrincipaleSimulationIsolee()
                              Dim menus = principale.MainMenuStrip.Items.Find(
                                  "RevueDocumentsAnalysesToolStripMenuItem", True)
                              Assert.AreEqual(1, menus.Length)
@@ -165,16 +177,61 @@ Public Class FrmPrincipaleRevueTests
                              Assert.AreEqual("Revue des documents préparés (simulation)", menu.Text)
                              Assert.AreEqual("AnalyseToolStripMenuItem", menu.OwnerItem.Name)
                              Assert.IsFalse(menu.Enabled)
+
+                             Dim facture As New Facture With {
+                                 .IdDoc = 950, .montant_ttc = 42D, .devise = "EUR",
+                                 .date_facture = "2026-04-01", .numero_facture = "FICTIVE-950"}
+                             Dim piece As New GmailDocumentPropositionAdapter.PieceAnalysee(
+                                 "simulation@example.invalid", 1UI, 2UI, 0, facture,
+                                 PropositionMouvement.SensMouvement.Debit)
                              Dim workflow = GmailDocumentReviewWorkflow.Preparer(
-                                 Array.Empty(Of GmailDocumentPropositionAdapter.PieceAnalysee)())
+                                 New GmailDocumentPropositionAdapter.PieceAnalysee() {piece})
                              principale.DefinirWorkflowDocumentsAnalyses(workflow)
                              Assert.IsTrue(menu.Enabled)
-                             Assert.AreEqual(0, workflow.ResultatInitial.Propositions.Count)
-                             Assert.AreEqual(0, workflow.SessionRevue.Audits.Count)
+                             principale.Examiner = Sub(formulaire)
+                                                       Dim grille = DirectCast(
+                                                           formulaire.Controls.Find("grillePropositions", True)(0),
+                                                           DataGridView)
+                                                       Assert.AreEqual(1, grille.Rows.Count)
+                                                       Assert.AreEqual(42D, grille.Rows(0).Cells("Montant").Value)
+                                                       grille.ClearSelection()
+                                                       grille.Rows(0).Selected = True
+                                                       Assert.IsTrue(formulaire.CorrigerSelection(Function(dialogue)
+                                                                                                     DirectCast(
+                                                                                                         dialogue.Controls.Find("montant", True)(0),
+                                                                                                         TextBox).Text = "44"
+                                                                                                     Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                                                     Return DialogResult.OK
+                                                                                                 End Function))
+                                                       Assert.IsFalse(formulaire.IsHandleCreated)
+                                                   End Sub
+                             menu.PerformClick()
+                             Assert.AreEqual(1, principale.NombrePresentations)
+                             Assert.AreEqual(44D, workflow.SessionRevue.Propositions(piece.CleSource).Montant)
+                             Assert.AreEqual(1, workflow.SessionRevue.Audits.Count)
+
+                             principale.Examiner = Sub(formulaire)
+                                                       Dim grille = DirectCast(
+                                                           formulaire.Controls.Find("grillePropositions", True)(0),
+                                                           DataGridView)
+                                                       Assert.AreEqual(44D, grille.Rows(0).Cells("Montant").Value)
+                                                       Assert.AreEqual("En attente de revue humaine",
+                                                                       grille.Rows(0).Cells("Statut").Value)
+                                                       Assert.IsFalse(formulaire.IsHandleCreated)
+                                                   End Sub
+                             menu.PerformClick()
+                             Assert.AreEqual(2, principale.NombrePresentations)
+                             Assert.AreEqual(1, workflow.SessionRevue.Audits.Count)
+                             Assert.AreEqual(42D, facture.montant_ttc)
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub() workflow.SessionRevue.MarquerApprouvee(piece.CleSource))
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub() workflow.SessionRevue.MarquerPersistee(piece.CleSource))
                              principale.DefinirWorkflowDocumentsAnalyses(Nothing)
                              Assert.IsFalse(menu.Enabled)
                              Assert.IsFalse(principale.IsHandleCreated)
                          End Using
                      End Sub)
     End Sub
+
 End Class
