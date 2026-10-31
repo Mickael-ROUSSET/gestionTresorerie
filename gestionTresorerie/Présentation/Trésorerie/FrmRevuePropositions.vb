@@ -189,6 +189,9 @@ Public NotInheritable Class FrmRevuePropositions
     ''' <summary>Correction locale ; le présentateur optionnel permet les tests sans dialogue modal.</summary>
     Public Function CorrigerSelection(Optional afficher As Func(Of FrmCorrectionProposition, DialogResult) = Nothing) As Boolean
         Dim grille = DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView)
+        ' Une correction externe peut avoir remplacé l'instance depuis l'ouverture.
+        ' Synchroniser avant de construire le dialogue pour éviter une correction obsolète.
+        If session IsNot Nothing Then ActualiserSession()
         ActualiserAction(grille)
         If Not corriger.Enabled Then Return False
         Dim ligne = grille.SelectedRows(0)
