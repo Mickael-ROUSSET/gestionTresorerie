@@ -5,6 +5,84 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 <TestClass>
 Public Class EmailProcessorFileNameTests
+    Private Shared Function TraiterMessage(uid As UInteger, processMessage As Action,
+                                          markProcessed As Action, reportError As Action(Of String)) As Boolean
+        Dim method = GetType(EmailProcessor).GetMethod("TryProcessMessage", BindingFlags.NonPublic Or BindingFlags.Static)
+        Assert.IsNotNull(method)
+        Return CBool(method.Invoke(Nothing, New Object() {New MailKit.UniqueId(uid), processMessage, markProcessed, reportError}))
+    End Function
+
+    <TestMethod>
+    Public Sub TryProcessMessage_Succes_ValideSeulementApresTraitement()
+        Dim events As New List(Of String)()
+        Assert.IsTrue(TraiterMessage(34UI, Sub() events.Add("traitement"),
+                                    Sub() events.Add("journal"), Sub(value) events.Add(value)))
+        CollectionAssert.AreEqual(New String() {"traitement", "journal"}, events)
+    End Sub
+
+    <TestMethod>
+    <DataRow(False)>
+    <DataRow(True)>
+    Public Sub TryProcessMessage_Echec_ResteReprenableEtNeBloquePasLeSuivant(journalFailure As Boolean)
+        Dim events As New List(Of String)()
+        Dim errors As New List(Of String)()
+        Dim processMessage As Action =
+            Sub()
+                events.Add("traitement")
+                If Not journalFailure Then Throw New IOException("contenu prive" & vbCrLf & "diagnostic injecte")
+            End Sub
+        Dim markProcessed As Action =
+            Sub()
+                events.Add("journal")
+                Throw New IOException("chemin prive" & vbCrLf & "diagnostic injecte")
+            End Sub
+
+        Assert.IsFalse(TraiterMessage(34UI, processMessage, markProcessed, Sub(value) errors.Add(value)))
+        CollectionAssert.AreEqual(If(journalFailure, New String() {"traitement", "journal"},
+                                    New String() {"traitement"}), events)
+        CollectionAssert.AreEqual(New String() {
+            "Message UID 34 non traite : traitement ou validation du journal impossible. Reprise au prochain import."}, errors)
+
+        ' Le message suivant et la reprise du message en echec peuvent tous deux aboutir.
+        Dim validated As New List(Of UInteger)()
+        For Each uid In New UInteger() {35UI, 34UI}
+            Assert.IsTrue(TraiterMessage(uid, Sub() events.Add("reprise"),
+                                        Sub() validated.Add(uid), Sub(value) errors.Add(value)))
+        Next
+        CollectionAssert.AreEqual(New UInteger() {35UI, 34UI}, validated)
+        Assert.AreEqual(1, errors.Count)
+    End Sub
+
+    <TestMethod>
+    Public Sub TryProcessMessage_EchecDuRapport_NeBloquePasLesUidSuivants()
+        Dim processed As New List(Of UInteger)()
+        Dim validated As New List(Of UInteger)()
+        Dim reports As Integer = 0
+        Dim failingReporter As Action(Of String) =
+            Sub(message)
+                reports += 1
+                Throw New IOException("rapport fictif indisponible")
+            End Sub
+        Dim failingProcessing As Action =
+            Sub()
+                Throw New IOException("piece jointe fictive invalide")
+            End Sub
+
+        Assert.IsFalse(TraiterMessage(81UI, failingProcessing,
+                                     Sub() validated.Add(81UI), failingReporter))
+        Assert.AreEqual(1, reports)
+        Assert.AreEqual(0, validated.Count)
+
+        ' Le message suivant et une reprise ulterieure restent possibles.
+        Assert.IsTrue(TraiterMessage(82UI, Sub() processed.Add(82UI),
+                                    Sub() validated.Add(82UI), failingReporter))
+        Assert.IsTrue(TraiterMessage(81UI, Sub() processed.Add(81UI),
+                                    Sub() validated.Add(81UI), failingReporter))
+        CollectionAssert.AreEqual(New UInteger() {82UI, 81UI}, processed)
+        CollectionAssert.AreEqual(New UInteger() {82UI, 81UI}, validated)
+        Assert.AreEqual(1, reports)
+    End Sub
+
     Private Shared Function InitialiserJournal(path As String, expected As Boolean, hasEntries As Boolean) As GmailImportJournal
         Dim method = GetType(EmailProcessor).GetMethod("TryInitializeJournal", BindingFlags.NonPublic Or BindingFlags.Static)
         Assert.IsNotNull(method)

@@ -71,12 +71,8 @@ Public Class EmailProcessor
                     Dim key = GmailImportJournal.MakeKey(account, validity, uid.Id)
                     If journal.IsProcessed(key) Then Continue For
                     _statsMailsLus += 1
-                    Try
-                        ProcessSingleEmail(inbox, uid)
-                        journal.MarkProcessed(key)
-                    Catch ex As Exception
-                        LogAndReportError($"Message UID {uid.Id} non traite : {ex.Message}")
-                    End Try
+                    TryProcessMessage(uid, Sub() ProcessSingleEmail(inbox, uid),
+                                      Sub() journal.MarkProcessed(key), AddressOf LogAndReportError)
                 Next
 
                 client.Disconnect(True)
@@ -89,6 +85,28 @@ Public Class EmailProcessor
     End Sub
 
     ' --- Sous-Modules Spécialisés ---
+
+    ' Le journal ne valide qu'un traitement complet. Un echec reste a reprendre.
+    ' Les delegues permettent de verifier ce chemin sans connexion ni stockage reel.
+    Private Shared Function TryProcessMessage(uid As UniqueId, processMessage As Action,
+                                             markProcessed As Action, reportError As Action(Of String)) As Boolean
+        Try
+            processMessage()
+            markProcessed()
+        Catch ex As Exception
+            ' Le texte d'une exception peut contenir des donnees du message ou des chemins prives.
+            Try
+                reportError("Message UID " & uid.Id.ToString(Globalization.CultureInfo.InvariantCulture) &
+                            " non traite : traitement ou validation du journal impossible. Reprise au prochain import.")
+            Catch reportFailure As Exception
+                ' Un journal d'erreurs indisponible ne doit pas interrompre les UID suivants.
+                ' Le message en echec n'est pas marque comme traite par ce chemin.
+                Return False
+            End Try
+            Return False
+        End Try
+        Return True
+    End Function
 
     Private Shared Sub ConnectAndAuthenticate(ByRef client As ImapClient)
         client.Connect("imap.gmail.com", 993, True)
