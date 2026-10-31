@@ -248,6 +248,42 @@ Public Class FrmRevuePropositionsTests
     End Sub
 
     <TestMethod>
+    Public Sub CorrectionExternePendantDialogue_RefuseCorrectionObsoleteSansEcraserAudit()
+        SurThreadSta(Sub()
+                         Dim resultat = Lot()
+                         Dim revue As New PropositionRevue(resultat)
+                         Dim session As New PropositionSessionRevue(resultat.Propositions)
+                         Dim originale = resultat.Propositions(0)
+                         Using formulaire As New FrmRevuePropositions(revue, resultat.Propositions, session)
+                             Dim grillePropositions = Grille(formulaire, "grillePropositions")
+                             grillePropositions.ClearSelection()
+                             grillePropositions.Rows(0).Selected = True
+                             Assert.IsFalse(formulaire.CorrigerSelection(Function(dialogue)
+                                                                            Dim externe = PropositionCorrection.Corriger(
+                                                                                originale, originale.DateProposee,
+                                                                                35D, originale.Sens, originale.Libelle,
+                                                                                originale.Reference)
+                                                                            session.AppliquerCorrection(originale.CleSource, externe)
+                                                                            DirectCast(dialogue.Controls.Find("montant", True)(0), TextBox).Text = "48"
+                                                                            Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                            Return DialogResult.OK
+                                                                        End Function))
+                             Assert.AreEqual(35D, grillePropositions.Rows(0).Cells("Montant").Value)
+                             Assert.AreEqual("En attente de revue humaine", grillePropositions.Rows(0).Cells("Statut").Value)
+                             Assert.AreEqual(35D, session.Propositions(originale.CleSource).Montant)
+                             Assert.AreEqual(1, session.Audits.Count)
+                             Assert.AreSame(originale, session.Audits(0).Avant)
+                             Assert.AreEqual(12D, originale.Montant)
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub() session.MarquerApprouvee(originale.CleSource))
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub() session.MarquerPersistee(originale.CleSource))
+                             Assert.IsFalse(formulaire.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
+
+    <TestMethod>
     Public Sub CorrectionExterneAvantClic_ReprendVersionCouranteEtConserveLesDeuxAudits()
         SurThreadSta(Sub()
                          Dim resultat = Lot()
