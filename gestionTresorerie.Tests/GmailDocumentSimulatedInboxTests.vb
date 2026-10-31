@@ -173,6 +173,38 @@ Public Class GmailDocumentSimulatedInboxTests
                 New GmailDocumentSimulatedInbox.MessageFictif() {sansUid}))
     End Sub
 
+    <TestMethod>
+    Public Sub MessageSansPiece_IdentiteImapToujoursValidee()
+        ' Un message vide ne doit pas contourner la validation de son identite IMAP.
+        Dim aucunePiece = Array.Empty(Of GmailDocumentSimulatedInbox.PieceFictive)()
+        For Each compte As String In New String() {Nothing, "", "  "}
+            Dim invalide = New GmailDocumentSimulatedInbox.MessageFictif(
+                compte, 1UI, 2UI, aucunePiece)
+            Assert.ThrowsExactly(Of ArgumentException)(
+                Sub() GmailDocumentSimulatedInbox.PreparerRevue(
+                    New GmailDocumentSimulatedInbox.MessageFictif() {invalide}))
+        Next
+
+        Dim sansUidValidity = New GmailDocumentSimulatedInbox.MessageFictif(
+            "simulation@example.invalid", 0UI, 2UI, aucunePiece)
+        Assert.ThrowsExactly(Of ArgumentOutOfRangeException)(
+            Sub() GmailDocumentSimulatedInbox.PreparerRevue(
+                New GmailDocumentSimulatedInbox.MessageFictif() {sansUidValidity}))
+        Dim sansUid = New GmailDocumentSimulatedInbox.MessageFictif(
+            "simulation@example.invalid", 1UI, 0UI, aucunePiece)
+        Assert.ThrowsExactly(Of ArgumentOutOfRangeException)(
+            Sub() GmailDocumentSimulatedInbox.PreparerRevue(
+                New GmailDocumentSimulatedInbox.MessageFictif() {sansUid}))
+
+        Dim valide = New GmailDocumentSimulatedInbox.MessageFictif(
+            "simulation@example.invalid", 1UI, 2UI, aucunePiece)
+        Dim workflow = GmailDocumentSimulatedInbox.PreparerRevue(
+            New GmailDocumentSimulatedInbox.MessageFictif() {valide})
+        Assert.AreEqual(0, workflow.ResultatInitial.Propositions.Count)
+        Assert.AreEqual(0, workflow.ResultatInitial.Rejets.Count)
+        Assert.AreEqual(0, workflow.SessionRevue.Audits.Count)
+    End Sub
+
     ' Ne jamais afficher FrmPrincipale : son chargement peut acceder a SQL.
     Private Shared Sub SurThreadSta(action As Action)
         Dim erreur As Exception = Nothing

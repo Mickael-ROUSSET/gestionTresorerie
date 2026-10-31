@@ -48,6 +48,9 @@ Public NotInheritable Class GmailDocumentSimulatedInbox
         Dim pieces As New List(Of GmailDocumentExtractionAdapter.PieceJson)()
         For Each message In messages
             If message Is Nothing Then Throw New ArgumentException("Message fictif absent.", NameOf(messages))
+            ' Valider aussi les messages sans pieces : aucune extraction ne doit contourner
+            ' les controles d'identite IMAP du journal d'import.
+            GmailImportJournal.MakeKey(message.Compte, message.UidValidity, message.Uid)
             For index As Integer = 0 To message.Pieces.Count - 1
                 Dim piece = message.Pieces(index)
                 Dim json As String = If(piece Is Nothing, Nothing, piece.JsonExtraction)
