@@ -53,6 +53,36 @@ Public Class EmailProcessorFileNameTests
         Assert.AreEqual(1, errors.Count)
     End Sub
 
+    <TestMethod>
+    Public Sub TryProcessMessage_EchecDuRapport_NeBloquePasLesUidSuivants()
+        Dim processed As New List(Of UInteger)()
+        Dim validated As New List(Of UInteger)()
+        Dim reports As Integer = 0
+        Dim failingReporter As Action(Of String) =
+            Sub(message)
+                reports += 1
+                Throw New IOException("rapport fictif indisponible")
+            End Sub
+        Dim failingProcessing As Action =
+            Sub()
+                Throw New IOException("piece jointe fictive invalide")
+            End Sub
+
+        Assert.IsFalse(TraiterMessage(81UI, failingProcessing,
+                                     Sub() validated.Add(81UI), failingReporter))
+        Assert.AreEqual(1, reports)
+        Assert.AreEqual(0, validated.Count)
+
+        ' Le message suivant et une reprise ulterieure restent possibles.
+        Assert.IsTrue(TraiterMessage(82UI, Sub() processed.Add(82UI),
+                                    Sub() validated.Add(82UI), failingReporter))
+        Assert.IsTrue(TraiterMessage(81UI, Sub() processed.Add(81UI),
+                                    Sub() validated.Add(81UI), failingReporter))
+        CollectionAssert.AreEqual(New UInteger() {82UI, 81UI}, processed)
+        CollectionAssert.AreEqual(New UInteger() {82UI, 81UI}, validated)
+        Assert.AreEqual(1, reports)
+    End Sub
+
     Private Shared Function InitialiserJournal(path As String, expected As Boolean, hasEntries As Boolean) As GmailImportJournal
         Dim method = GetType(EmailProcessor).GetMethod("TryInitializeJournal", BindingFlags.NonPublic Or BindingFlags.Static)
         Assert.IsNotNull(method)
