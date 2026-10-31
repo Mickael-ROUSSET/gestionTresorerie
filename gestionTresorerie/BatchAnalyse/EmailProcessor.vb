@@ -95,8 +95,14 @@ Public Class EmailProcessor
             markProcessed()
         Catch ex As Exception
             ' Le texte d'une exception peut contenir des donnees du message ou des chemins prives.
-            reportError("Message UID " & uid.Id.ToString(Globalization.CultureInfo.InvariantCulture) &
-                        " non traite : traitement ou validation du journal impossible. Reprise au prochain import.")
+            Try
+                reportError("Message UID " & uid.Id.ToString(Globalization.CultureInfo.InvariantCulture) &
+                            " non traite : traitement ou validation du journal impossible. Reprise au prochain import.")
+            Catch reportFailure As Exception
+                ' Un journal d'erreurs indisponible ne doit pas interrompre les UID suivants.
+                ' Le message en echec n'est pas marque comme traite par ce chemin.
+                Return False
+            End Try
             Return False
         End Try
         Return True
