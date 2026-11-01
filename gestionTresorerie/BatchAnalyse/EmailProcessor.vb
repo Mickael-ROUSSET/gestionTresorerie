@@ -77,11 +77,17 @@ Public Class EmailProcessor
 
                 client.Disconnect(True)
             Catch ex As Exception
-                LogAndReportError(ex.Message)
+                ReportImapFailure(ex, AddressOf LogAndReportError)
             Finally
                 SaveFinalReport()
             End Try
         End Using
+    End Sub
+
+    ' Ne jamais recopier les exceptions IMAP : elles peuvent contenir des secrets ou des chemins.
+    Private Shared Sub ReportImapFailure(failure As Exception, reportError As Action(Of String))
+        If failure Is Nothing Then Throw New ArgumentNullException(NameOf(failure))
+        reportError("Connexion ou traitement IMAP interrompu. Verifier la configuration Gmail et relancer.")
     End Sub
 
     ' --- Sous-Modules Spécialisés ---
@@ -353,7 +359,7 @@ Public Class EmailProcessor
                                    TypeOf ex Is ArgumentException OrElse
                                    TypeOf ex Is NotSupportedException OrElse
                                    TypeOf ex Is Global.System.Security.SecurityException
-            report.AppendLine($"[ERREUR JOURNAL] Ecriture du journal impossible : {ex.Message}")
+            report.AppendLine("[ERREUR JOURNAL] Ecriture du journal impossible.")
         End Try
     End Sub
 
