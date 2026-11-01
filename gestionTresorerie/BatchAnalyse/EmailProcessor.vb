@@ -341,7 +341,8 @@ Public Class EmailProcessor
         Dim code As Integer = AscW(ch)
         Return code = &H61C OrElse code = &H200E OrElse code = &H200F OrElse
             (code >= &H202A AndAlso code <= &H202E) OrElse
-            (code >= &H2066 AndAlso code <= &H2069)
+            (code >= &H2066 AndAlso code <= &H2069) OrElse
+            (code >= &H206A AndAlso code <= &H206F)
     End Function
 
     ' Un nom d'expediteur MIME n'est pas une ligne de journal fiable :
