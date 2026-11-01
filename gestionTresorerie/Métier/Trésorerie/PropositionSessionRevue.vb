@@ -11,6 +11,7 @@ Imports System.Collections.ObjectModel
 Public NotInheritable Class PropositionSessionRevue
     Private ReadOnly courantes As New Dictionary(Of String, PropositionMouvement)(StringComparer.Ordinal)
     Private ReadOnly historique As New List(Of PropositionCorrection.Resultat)()
+    Private ReadOnly examens As New Dictionary(Of String, PropositionMouvement)(StringComparer.Ordinal)
 
     Public Sub New(propositions As IEnumerable(Of PropositionMouvement))
         If propositions Is Nothing Then Throw New ArgumentNullException(NameOf(propositions))
@@ -32,6 +33,31 @@ Public NotInheritable Class PropositionSessionRevue
     Public ReadOnly Property Propositions As IReadOnlyDictionary(Of String, PropositionMouvement)
     Public ReadOnly Property Audits As IReadOnlyList(Of PropositionCorrection.Resultat)
 
+    ''' <summary>Nombre d'examens humains explicitement confirmes dans cette session.
+    ''' Ne constitue ni une prevalidation, ni une approbation, ni une ecriture.</summary>
+    Public ReadOnly Property NombreExamensConfirmes As Integer
+        Get
+            Return examens.Count
+        End Get
+    End Property
+
+    Public Function EstExamenConfirme(cleSource As String) As Boolean
+        Dim courante = Selectionner(cleSource)
+        Dim examinee As PropositionMouvement = Nothing
+        Return examens.TryGetValue(cleSource, examinee) AndAlso
+            Object.ReferenceEquals(courante, examinee)
+    End Function
+
+    ''' <summary>Trace uniquement l'examen explicite de la version courante en memoire.
+    ''' Une version ancienne ou issue d'une autre session ne peut etre confirmee.</summary>
+    Public Sub ConfirmerExamen(cleSource As String, propositionExaminee As PropositionMouvement)
+        Dim courante = Selectionner(cleSource)
+        If propositionExaminee Is Nothing OrElse Not Object.ReferenceEquals(courante, propositionExaminee) Then
+            Throw New ArgumentException("Examen de la version courante obligatoire.", NameOf(propositionExaminee))
+        End If
+        examens(cleSource) = courante
+    End Sub
+
     Private Function Selectionner(cleSource As String) As PropositionMouvement
         Dim proposition As PropositionMouvement = Nothing
         If cleSource Is Nothing OrElse Not courantes.TryGetValue(cleSource, proposition) Then
@@ -52,6 +78,7 @@ Public NotInheritable Class PropositionSessionRevue
             Throw New ArgumentException("Correction incompatible avec la selection courante.", NameOf(correction))
         End If
         courantes(cleSource) = correction.Proposition
+        examens.Remove(cleSource) ' Toute correction rend caduc l'examen de la version precedente.
         historique.Add(correction)
     End Sub
 
