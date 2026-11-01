@@ -126,4 +126,32 @@ Public Class PropositionSessionRevueTests
         Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine, p.Etat)
         Assert.AreEqual(0, session.Audits.Count)
     End Sub
+    <TestMethod>
+    Public Sub ExamenExplicite_RefuseUneVersionEtrangereEtEstRevoqueParCorrection()
+        Dim sourceInitiale = Source()
+        Dim autre = Source("autre")
+        Dim session As New PropositionSessionRevue({sourceInitiale, autre})
+        Assert.AreEqual(0, session.NombreExamensConfirmes)
+        Assert.IsFalse(session.EstExamenConfirme(sourceInitiale.CleSource))
+        Assert.ThrowsExactly(Of ArgumentException)(
+            Sub() session.ConfirmerExamen(sourceInitiale.CleSource, autre))
+        session.ConfirmerExamen(sourceInitiale.CleSource, sourceInitiale)
+        Assert.IsTrue(session.EstExamenConfirme(sourceInitiale.CleSource))
+        Assert.AreEqual(1, session.NombreExamensConfirmes)
+        Assert.AreEqual(0, session.Audits.Count)
+
+        Dim correction = Corriger(sourceInitiale, 25D)
+        session.AppliquerCorrection(sourceInitiale.CleSource, correction)
+        Assert.IsFalse(session.EstExamenConfirme(sourceInitiale.CleSource))
+        Assert.AreEqual(0, session.NombreExamensConfirmes)
+        Assert.ThrowsExactly(Of ArgumentException)(
+            Sub() session.ConfirmerExamen(sourceInitiale.CleSource, sourceInitiale))
+        session.ConfirmerExamen(sourceInitiale.CleSource, correction.Proposition)
+        Assert.IsTrue(session.EstExamenConfirme(sourceInitiale.CleSource))
+        Assert.AreEqual(1, session.Audits.Count)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerApprouvee(sourceInitiale.CleSource))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerPersistee(sourceInitiale.CleSource))
+    End Sub
 End Class
