@@ -143,7 +143,8 @@ Public NotInheritable Class FrmRevuePropositions
         For i As Integer = 0 To liste.Count - 1
             sources.Add(grille.Rows(i), liste(i))
         Next
-        ActualiserDiagnosticsPrevalidation()
+        ' Une reouverture doit restaurer aussi les examens confirmes en memoire.
+        ActualiserSession()
         ActualiserAction(grille)
     End Sub
 
