@@ -3,7 +3,7 @@
 Vue de consultation générée automatiquement à partir du backlog local.
 **Ne pas modifier ce fichier pour piloter l'orchestrateur.**
 
-**Actualisation :** 2026-10-31 21:32 UTC
+**Actualisation :** 2026-11-01 12:21 UTC
 **Objectif :** Deliver an offline-tested Windows read-only workflow from existing Gmail-imported/analyzed documents through proposal review, diagnostics and cancellation; no automatic accounting writes or live Gmail calls during development.
 
 | Tâche | État | Validation | Commit |
