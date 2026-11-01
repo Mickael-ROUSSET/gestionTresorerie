@@ -454,4 +454,60 @@ Public Class FrmPrincipaleRevueTests
                      End Sub)
     End Sub
 
+
+    <TestMethod>
+    Public Sub MenuDemonstration_EffacerRetireLeLotEtLesCorrectionsSansSQL()
+        ' L'effacement ne valide rien et interdit de rouvrir l'ancien lot.
+        ' Relancer la demonstration cree une session vierge en memoire.
+        SurThreadSta(Sub()
+                         Using principale As New PrincipaleSimulationIsolee()
+                             Dim demo = DirectCast(principale.MainMenuStrip.Items.Find(
+                                 "DemoDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
+                             Dim revue = DirectCast(principale.MainMenuStrip.Items.Find(
+                                 "RevueDocumentsAnalysesToolStripMenuItem", True)(0), ToolStripMenuItem)
+                             Dim effacer = DirectCast(principale.MainMenuStrip.Items.Find(
+                                 "EffacerDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
+                             Assert.IsFalse(effacer.Enabled)
+                             Assert.AreEqual("AnalyseToolStripMenuItem", effacer.OwnerItem.Name)
+
+                             principale.Examiner = Sub(formulaire)
+                                                       Dim grille = DirectCast(formulaire.Controls.Find(
+                                                           "grillePropositions", True)(0), DataGridView)
+                                                       grille.ClearSelection()
+                                                       grille.Rows(0).Selected = True
+                                                       Assert.IsTrue(formulaire.CorrigerSelection(Function(dialogue)
+                                                                                                     DirectCast(dialogue.Controls.Find(
+                                                                                                         "montant", True)(0), TextBox).Text = "55"
+                                                                                                     Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                                                     Return DialogResult.OK
+                                                                                                 End Function))
+                                                   End Sub
+                             demo.PerformClick()
+                             Assert.AreEqual(1, principale.NombrePresentations)
+                             Assert.IsTrue(revue.Enabled)
+                             Assert.IsTrue(effacer.Enabled)
+
+                             effacer.PerformClick()
+                             Assert.IsFalse(revue.Enabled)
+                             Assert.IsFalse(effacer.Enabled)
+                             revue.PerformClick()
+                             Assert.AreEqual(1, principale.NombrePresentations)
+
+                             principale.Examiner = Sub(formulaire)
+                                                       Dim grille = DirectCast(formulaire.Controls.Find(
+                                                           "grillePropositions", True)(0), DataGridView)
+                                                       Assert.AreEqual(42.5D, grille.Rows(0).Cells("Montant").Value)
+                                                       Assert.AreEqual("En attente de revue humaine",
+                                                                       grille.Rows(0).Cells("Statut").Value)
+                                                       Assert.IsFalse(formulaire.IsHandleCreated)
+                                                   End Sub
+                             demo.PerformClick()
+                             Assert.AreEqual(2, principale.NombrePresentations)
+                             Assert.IsTrue(revue.Enabled)
+                             Assert.IsTrue(effacer.Enabled)
+                             Assert.IsFalse(principale.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
+
 End Class
