@@ -328,7 +328,7 @@ Public Class EmailProcessor
             reserved = reserved OrElse
                 ((basename.StartsWith("COM", StringComparison.OrdinalIgnoreCase) OrElse
                   basename.StartsWith("LPT", StringComparison.OrdinalIgnoreCase)) AndAlso
-                 basename(3) >= "1"c AndAlso basename(3) <= "9"c)
+                 ("123456789" & ChrW(&HB9) & ChrW(&HB2) & ChrW(&HB3)).IndexOf(basename(3)) >= 0)
         End If
         If reserved Then name = "_" & name
         Return name
