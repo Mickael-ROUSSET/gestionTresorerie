@@ -50,6 +50,25 @@ Public Class PropositionDocumentServiceTests
     End Sub
 
     <TestMethod>
+    Public Sub IdentifiantsNonAttribuesZero_AccepteDocumentsDistincts()
+        ' IdDoc = 0 signifie non attribue : deux objets distincts restent admissibles.
+        Dim premiere = FactureFictive()
+        Dim seconde = FactureFictive()
+        Assert.AreEqual(0, premiere.IdDoc)
+        Assert.AreEqual(0, seconde.IdDoc)
+        Dim resultat = New PropositionDocumentService().Proposer({
+            Entree(premiere, "message-1/piece-0"),
+            Entree(seconde, "message-2/piece-0")})
+        Assert.AreEqual(0, resultat.Rejets.Count)
+        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual("message-1/piece-0", resultat.Propositions(0).CleSource)
+        Assert.AreEqual("message-2/piece-0", resultat.Propositions(1).CleSource)
+        For Each proposition In resultat.Propositions
+            Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine, proposition.Etat)
+        Next
+    End Sub
+
+    <TestMethod>
     Public Sub LotMixte_RetourneDesPropositionsNonApprouveesSansModifierLesDocuments()
         Dim facture = FactureFictive()
         Dim cheque = ChequeFictif()
