@@ -3,8 +3,8 @@
 Vue de consultation générée automatiquement à partir du backlog local.
 **Ne pas modifier ce fichier pour piloter l'orchestrateur.**
 
-**Actualisation :** 2026-11-01 17:32 UTC
-**Objectif :** Deliver an offline-tested Windows read-only workflow from existing Gmail-imported/analyzed documents through proposal review, diagnostics and cancellation; no automatic accounting writes or live Gmail calls during development.
+**Actualisation :** 2026-11-01 20:32 UTC
+**Objectif :** Prepare safe first-use of the real Windows application: startup diagnostics, opt-in Gmail readiness, usable review workflow, offline acceptance tests and manual release gates. No live production deployment or accounting writes.
 
 | Tâche | État | Validation | Commit |
 |---|---|---|---|
@@ -18,8 +18,12 @@ Vue de consultation générée automatiquement à partir du backlog local.
 | `treasury-readonly-acceptance-121` | Publiée | build OK, test OK | [`0ed00529a628`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/0ed00529a628) |
 | `treasury-gmail-import-boundary-122` | Publiée | build OK, test OK | [`52a5fcd7ad4a`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/52a5fcd7ad4a) |
 | `treasury-document-review-handoff-123` | Bloquée : failed-test | build OK, test échec | — |
-| `treasury-main-ui-journey-124` | À faire |  | — |
-| `treasury-windows-release-readiness-125` | À faire |  | — |
+| `treasury-main-ui-journey-124` | Publiée | build OK, test OK | [`12b2c90ac3bc`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/12b2c90ac3bc) |
+| `treasury-windows-release-readiness-125` | Publiée | build OK, test OK | [`5c6254709ea7`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/5c6254709ea7) |
+| `treasury-windows-startup-smoke-126` | À faire |  | — |
+| `treasury-gmail-connection-readiness-127` | À faire |  | — |
+| `treasury-first-use-review-128` | À faire |  | — |
+| `treasury-windows-acceptance-129` | À faire |  | — |
 | `treasury-persistence-design-117` | Désactivée (sécurité) |  | — |
 
 ## Règles
