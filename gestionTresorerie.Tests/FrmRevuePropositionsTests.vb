@@ -381,15 +381,15 @@ Public Class FrmRevuePropositionsTests
                          Dim session As New PropositionSessionRevue(resultat.Propositions)
                          Using formulaire As New FrmRevuePropositions(
                              New PropositionRevue(resultat), resultat.Propositions, session)
-                             Dim grille = Grille(formulaire, "grillePropositions")
+                             Dim tableau = Grille(formulaire, "grillePropositions")
                              Dim confirmer = DirectCast(formulaire.Controls.Find("boutonConfirmerExamen", True)(0), Button)
-                             grille.ClearSelection()
-                             grille.Rows(0).Selected = True
+                             tableau.ClearSelection()
+                             tableau.Rows(0).Selected = True
                              Assert.IsTrue(confirmer.Enabled)
                              Assert.IsTrue(formulaire.ConfirmerExamenSelection())
                              Assert.AreEqual(1, session.NombreExamensConfirmes)
                              Assert.AreEqual("Examen confirmé (sans approbation)",
-                                             grille.Rows(0).Cells("Statut").Value)
+                                             tableau.Rows(0).Cells("Statut").Value)
                              Assert.IsFalse(confirmer.Enabled)
                              Assert.IsFalse(formulaire.ConfirmerExamenSelection())
                              Assert.AreEqual(0, session.Audits.Count)
@@ -397,16 +397,16 @@ Public Class FrmRevuePropositionsTests
 
                          Using reouverture As New FrmRevuePropositions(
                              New PropositionRevue(resultat), resultat.Propositions, session)
-                             Dim grille = Grille(reouverture, "grillePropositions")
+                             Dim tableau = Grille(reouverture, "grillePropositions")
                              Assert.AreEqual("Examen confirmé (sans approbation)",
-                                             grille.Rows(0).Cells("Statut").Value)
+                                             tableau.Rows(0).Cells("Statut").Value)
                              Dim correction = PropositionCorrection.Corriger(
                                  proposition, proposition.DateProposee, 55D, proposition.Sens,
                                  proposition.Libelle, proposition.Reference)
                              session.AppliquerCorrection(proposition.CleSource, correction)
                              reouverture.ActualiserSession()
                              Assert.AreEqual("En attente de revue humaine",
-                                             grille.Rows(0).Cells("Statut").Value)
+                                             tableau.Rows(0).Cells("Statut").Value)
                              Assert.IsTrue(DirectCast(reouverture.Controls.Find(
                                  "boutonConfirmerExamen", True)(0), Button).Enabled)
                              Assert.IsFalse(session.EstExamenConfirme(proposition.CleSource))
