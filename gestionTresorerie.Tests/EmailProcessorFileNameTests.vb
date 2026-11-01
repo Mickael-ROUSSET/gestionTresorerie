@@ -482,6 +482,55 @@ Public Class EmailProcessorFileNameTests
     End Sub
 
     <TestMethod>
+    Public Sub SanitizeSenderForReport_InterditLesFaussesLignesDeRapport()
+        Dim entree = "fictif@example.invalid" & vbCrLf & "[ERREUR] entree injectee" &
+            ChrW(&H2028) & "suite" & ChrW(&H2029) & "fin" & vbTab
+        Dim resultat = AppelerUtilitaire("SanitizeSenderForReport", entree)
+        Assert.AreEqual("fictif@example.invalid__[ERREUR] entree injectee_suite_fin_", resultat)
+        Assert.IsFalse(resultat.Contains(vbCr, StringComparison.Ordinal))
+        Assert.IsFalse(resultat.Contains(vbLf, StringComparison.Ordinal))
+        Assert.IsFalse(resultat.Contains(ChrW(&H2028)))
+        Assert.IsFalse(resultat.Contains(ChrW(&H2029)))
+        Assert.AreEqual("inconnu", AppelerUtilitaire("SanitizeSenderForReport", New String() {Nothing}))
+        Assert.AreEqual("inconnu", AppelerUtilitaire("SanitizeSenderForReport", " " & vbTab))
+        Assert.AreEqual(160, AppelerUtilitaire("SanitizeSenderForReport", New String("x"c, 1000)).Length)
+    End Sub
+
+    <TestMethod>
+    Public Sub CleanFileName_InterditLesSeparateursDeLigneDansLesRapports()
+        ' Ces caracteres sont valides dans certains noms Unicode mais ne doivent
+        ' jamais introduire de nouvelle ligne dans un rapport de pieces jointes.
+        For Each caractere As Char In New Char() {ChrW(&H7F), ChrW(&H85), ChrW(&H2028), ChrW(&H2029)}
+            Dim nom = "facture" & caractere & "2026.pdf"
+            Dim attendu = "facture_2026.pdf"
+            Assert.AreEqual(attendu, AppelerUtilitaire("CleanFileName", nom))
+            Assert.AreEqual(attendu, AppelerUtilitaire("GetAttachmentFileName", nom, Nothing))
+            Assert.AreEqual(attendu, AppelerUtilitaire("GetAttachmentFileName", Nothing, nom))
+            Assert.AreEqual(attendu, AppelerUtilitaire("CleanFileName", attendu))
+        Next
+    End Sub
+
+    <TestMethod>
+    Public Sub NomsMime_AucunControleBidiNeMasqueLesIdentitesDansLesRapports()
+        ' Donnees exclusivement fictives : les controles bidi ne doivent pas
+        ' inverser visuellement un nom de piece ou un expediteur dans le rapport.
+        For Each caractere As Char In New Char() {
+            ChrW(&H61C), ChrW(&H200E), ChrW(&H200F),
+            ChrW(&H202A), ChrW(&H202E), ChrW(&H2066), ChrW(&H2069),
+            ChrW(&H206A), ChrW(&H206B), ChrW(&H206C),
+            ChrW(&H206D), ChrW(&H206E), ChrW(&H206F)}
+            Dim nom = "facture" & caractere & "2026.pdf"
+            Assert.AreEqual("facture_2026.pdf", AppelerUtilitaire("CleanFileName", nom))
+            Assert.AreEqual("facture_2026.pdf", AppelerUtilitaire("GetAttachmentFileName", nom, Nothing))
+            Dim expediteur = "fictif" & caractere & "@example.invalid"
+            Assert.AreEqual("fictif_@example.invalid",
+                            AppelerUtilitaire("SanitizeSenderForReport", expediteur))
+        Next
+        ' Les lettres ordinaires des langues RTL ne doivent pas etre supprimees.
+        Assert.AreEqual("مرحبا.pdf", AppelerUtilitaire("CleanFileName", "مرحبا.pdf"))
+    End Sub
+
+    <TestMethod>
     Public Sub CleanFileName_RemplaceLesCaracteresInterdits()
         Dim nettoye = AppelerUtilitaire("CleanFileName", "facture:2026?.pdf")
 
