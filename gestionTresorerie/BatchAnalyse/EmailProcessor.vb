@@ -77,11 +77,17 @@ Public Class EmailProcessor
 
                 client.Disconnect(True)
             Catch ex As Exception
-                LogAndReportError(ex.Message)
+                ReportImapFailure(ex, AddressOf LogAndReportError)
             Finally
                 SaveFinalReport()
             End Try
         End Using
+    End Sub
+
+    ' Ne jamais recopier les exceptions IMAP : elles peuvent contenir des secrets ou des chemins.
+    Private Shared Sub ReportImapFailure(failure As Exception, reportError As Action(Of String))
+        If failure Is Nothing Then Throw New ArgumentNullException(NameOf(failure))
+        reportError("Connexion ou traitement IMAP interrompu. Verifier la configuration Gmail et relancer.")
     End Sub
 
     ' --- Sous-Modules Spécialisés ---
@@ -138,6 +144,7 @@ Public Class EmailProcessor
         ' 1. Récupération et nettoyage du nom
         Dim fileName As String = GetAttachmentFileName(attachment.ContentDisposition?.FileName, attachment.ContentType.Name)
         fileName = CleanFileName(fileName)
+        Dim safeSender = SanitizeSenderForReport(senderInfo)
 
         ' Ecrire d'abord dans un fichier temporaire reserve exclusivement.
         Dim desiredPath = Path.Combine(targetFolder, fileName)
@@ -153,11 +160,11 @@ Public Class EmailProcessor
 
             Dim storedPath = AttachmentStorage.StoreTemporaryFile(temporaryPath, desiredPath)
             If storedPath Is Nothing Then
-                _rapport.AppendLine($"[PJ] Doublon SHA-256 ignoré : {fileName} (De: {senderInfo})")
+                _rapport.AppendLine($"[PJ] Doublon SHA-256 ignoré : {fileName} (De: {safeSender})")
                 Return
             End If
             _statsTotalPJ += 1
-            _rapport.AppendLine($"[PJ] Enregistré : {Path.GetFileName(storedPath)} (De: {senderInfo})")
+            _rapport.AppendLine($"[PJ] Enregistré : {Path.GetFileName(storedPath)} (De: {safeSender})")
         Finally
             If File.Exists(temporaryPath) Then File.Delete(temporaryPath)
         End Try
@@ -239,7 +246,7 @@ Public Class EmailProcessor
                                    TypeOf ex Is UnauthorizedAccessException OrElse
                                    TypeOf ex Is Global.System.Security.SecurityException OrElse
                                    TypeOf ex Is InvalidOperationException
-            report.AppendLine($"[ERREUR] Import Gmail bloque : date de debut persistante invalide ou inaccessible. Verifier gmail_import_cutoff.txt avant de relancer. {ex.Message}")
+            report.AppendLine("[ERREUR] Import Gmail bloque : date de debut persistante invalide ou inaccessible. Verifier gmail_import_cutoff.txt avant de relancer.")
             Return False
         End Try
     End Function
@@ -302,7 +309,7 @@ Public Class EmailProcessor
         ' Appliquer les regles Windows meme si les tests tournent sur un autre OS.
         Dim cleaned As New StringBuilder(name.Length)
         For Each c As Char In name
-            If AscW(c) >= 0 AndAlso AscW(c) < 32 OrElse "<>:""/\|?*".IndexOf(c) >= 0 Then
+            If Char.IsControl(c) OrElse c = ChrW(&H2028) OrElse c = ChrW(&H2029) OrElse IsBidiFormattingControl(c) OrElse "<>:""/\|?*".IndexOf(c) >= 0 Then
                 cleaned.Append("_"c)
             Else
                 cleaned.Append(c)
@@ -321,10 +328,36 @@ Public Class EmailProcessor
             reserved = reserved OrElse
                 ((basename.StartsWith("COM", StringComparison.OrdinalIgnoreCase) OrElse
                   basename.StartsWith("LPT", StringComparison.OrdinalIgnoreCase)) AndAlso
-                 basename(3) >= "1"c AndAlso basename(3) <= "9"c)
+                 ("123456789" & ChrW(&HB9) & ChrW(&HB2) & ChrW(&HB3)).IndexOf(basename(3)) >= 0)
         End If
         If reserved Then name = "_" & name
         Return name
+    End Function
+
+    ' Neutraliser uniquement les marqueurs de direction bidirectionnelle pouvant
+    ' masquer un nom ou une extension dans les rapports, sans alterer les lettres RTL.
+    Private Shared Function IsBidiFormattingControl(ch As Char) As Boolean
+        Dim code As Integer = AscW(ch)
+        Return code = &H61C OrElse code = &H200E OrElse code = &H200F OrElse
+            (code >= &H202A AndAlso code <= &H202E) OrElse
+            (code >= &H2066 AndAlso code <= &H2069) OrElse
+            (code >= &H206A AndAlso code <= &H206F)
+    End Function
+
+    ' Un nom d'expediteur MIME n'est pas une ligne de journal fiable :
+    ' supprimer les retours et separateurs Unicode, et borner sa longueur.
+    Private Shared Function SanitizeSenderForReport(senderInfo As String) As String
+        If String.IsNullOrWhiteSpace(senderInfo) Then Return "inconnu"
+        Dim result As New StringBuilder()
+        For Each ch As Char In senderInfo
+            If result.Length >= 160 Then Exit For
+            If Char.IsControl(ch) OrElse ch = ChrW(&H2028) OrElse ch = ChrW(&H2029) OrElse IsBidiFormattingControl(ch) Then
+                result.Append("_"c)
+            Else
+                result.Append(ch)
+            End If
+        Next
+        Return result.ToString()
     End Function
 
     Private Shared Function EnsureUniqueFileName(pathFile As String) As String
@@ -353,7 +386,7 @@ Public Class EmailProcessor
                                    TypeOf ex Is ArgumentException OrElse
                                    TypeOf ex Is NotSupportedException OrElse
                                    TypeOf ex Is Global.System.Security.SecurityException
-            report.AppendLine($"[ERREUR JOURNAL] Ecriture du journal impossible : {ex.Message}")
+            report.AppendLine("[ERREUR JOURNAL] Ecriture du journal impossible.")
         End Try
     End Sub
 

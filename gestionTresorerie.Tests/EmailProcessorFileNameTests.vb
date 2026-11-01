@@ -83,6 +83,24 @@ Public Class EmailProcessorFileNameTests
         Assert.AreEqual(1, reports)
     End Sub
 
+    <TestMethod>
+    Public Sub ReportImapFailure_ExceptionFictiveAvecDonneesPrivees_NeDivulgueRien()
+        Dim secretFictif = "C:\\Users\\prive\\secret.txt" & vbCrLf & "utilisateur@example.invalid"
+        Dim reports As New List(Of String)()
+        Dim method = GetType(EmailProcessor).GetMethod("ReportImapFailure", BindingFlags.NonPublic Or BindingFlags.Static)
+        Assert.IsNotNull(method)
+        For Each failure As Exception In New Exception() {
+            New IOException(secretFictif), New UnauthorizedAccessException(secretFictif)}
+            method.Invoke(Nothing, New Object() {failure, CType(Sub(value As String) reports.Add(value), Action(Of String))})
+        Next
+        Assert.AreEqual(2, reports.Count)
+        For Each message In reports
+            Assert.AreEqual("Connexion ou traitement IMAP interrompu. Verifier la configuration Gmail et relancer.", message)
+            Assert.IsFalse(message.Contains("example.invalid", StringComparison.Ordinal))
+            Assert.IsFalse(message.Contains("secret.txt", StringComparison.Ordinal))
+        Next
+    End Sub
+
     Private Shared Function InitialiserJournal(path As String, expected As Boolean, hasEntries As Boolean) As GmailImportJournal
         Dim method = GetType(EmailProcessor).GetMethod("TryInitializeJournal", BindingFlags.NonPublic Or BindingFlags.Static)
         Assert.IsNotNull(method)
@@ -253,6 +271,7 @@ Public Class EmailProcessorFileNameTests
 
             StringAssert.StartsWith(report.ToString(), "[ERREUR] Erreur initiale fictive" & Environment.NewLine)
             StringAssert.Contains(report.ToString(), "[ERREUR JOURNAL]")
+            Assert.IsFalse(report.ToString().Contains(logPath, StringComparison.Ordinal), "Le chemin prive ne doit pas figurer dans le rapport.")
             Assert.AreEqual("Entree precedente", File.ReadAllText(logPath))
         Finally
             Directory.Delete(folder, True)
@@ -385,6 +404,29 @@ Public Class EmailProcessorFileNameTests
     End Sub
 
     <TestMethod>
+    Public Sub TryResolveInitialImportCutoff_NeDivulguePasLeContenuInvalide()
+        Dim folder = Path.Combine(Path.GetTempPath(), "GmailCutoffTests_" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            Dim cutoffFile = Path.Combine(folder, "cutoff.txt")
+            Const contenuPrive As String = "DONNEE_CONFIDENTIELLE_FICTIVE_2026"
+            File.WriteAllText(cutoffFile, contenuPrive)
+            Dim methode = GetType(EmailProcessor).GetMethod("TryResolveInitialImportCutoff", BindingFlags.NonPublic Or BindingFlags.Static)
+            Assert.IsNotNull(methode)
+            Dim rapport As New System.Text.StringBuilder()
+            Dim arguments As Object() = {cutoffFile, Nothing, Nothing, rapport}
+            Assert.IsFalse(CBool(methode.Invoke(Nothing, arguments)))
+            Assert.IsNull(arguments(2))
+            StringAssert.Contains(rapport.ToString(), "gmail_import_cutoff.txt")
+            Assert.IsFalse(rapport.ToString().Contains(contenuPrive, StringComparison.Ordinal))
+            Assert.IsFalse(rapport.ToString().Contains(cutoffFile, StringComparison.Ordinal))
+            Assert.AreEqual(contenuPrive, File.ReadAllText(cutoffFile))
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
     Public Sub TryResolveInitialImportCutoff_FichierVerrouille_BloqueEtRapporteErreur()
         Dim folder = Path.Combine(Path.GetTempPath(), "GmailCutoffTests_" & Guid.NewGuid().ToString("N"))
         Directory.CreateDirectory(folder)
@@ -409,6 +451,7 @@ Public Class EmailProcessorFileNameTests
             Assert.IsNull(arguments(2), "Aucune date de repli ne doit autoriser l'import.")
             StringAssert.Contains(report.ToString(), "[ERREUR] Import Gmail bloque")
             StringAssert.Contains(report.ToString(), "gmail_import_cutoff.txt")
+            Assert.IsFalse(report.ToString().Contains(cutoffFile, StringComparison.Ordinal), "Le chemin prive ne doit pas figurer dans le rapport.")
         Next
     End Sub
 
@@ -435,6 +478,22 @@ Public Class EmailProcessorFileNameTests
         For Each dispositionName In New String() {Nothing, String.Empty, " " & vbTab}
             Assert.AreEqual(nomOrdinaire, AppelerUtilitaire("GetAttachmentFileName", dispositionName, nomOrdinaire))
         Next
+    End Sub
+
+    <TestMethod>
+    Public Sub SanitizeSenderForReport_InterditLesFaussesLignesDeRapport()
+        ' Aucune connexion IMAP : les valeurs d'expediteur sont fictives.
+        Dim entree = "fictif@example.invalid" & vbCrLf & "[ERREUR] entree injectee" &
+            ChrW(&H2028) & "suite" & ChrW(&H2029) & "fin" & vbTab
+        Dim resultat = AppelerUtilitaire("SanitizeSenderForReport", entree)
+        Assert.AreEqual("fictif@example.invalid__[ERREUR] entree injectee_suite_fin_", resultat)
+        Assert.IsFalse(resultat.Contains(vbCr, StringComparison.Ordinal))
+        Assert.IsFalse(resultat.Contains(vbLf, StringComparison.Ordinal))
+        Assert.IsFalse(resultat.Contains(ChrW(&H2028)))
+        Assert.IsFalse(resultat.Contains(ChrW(&H2029)))
+        Assert.AreEqual("inconnu", AppelerUtilitaire("SanitizeSenderForReport", New String() {Nothing}))
+        Assert.AreEqual("inconnu", AppelerUtilitaire("SanitizeSenderForReport", " " & vbTab))
+        Assert.AreEqual(160, AppelerUtilitaire("SanitizeSenderForReport", New String("x"c, 1000)).Length)
     End Sub
 
     <TestMethod>
@@ -493,6 +552,59 @@ Public Class EmailProcessorFileNameTests
         Next
         Assert.AreEqual("a_________b", AppelerUtilitaire("CleanFileName", "a<>:""/\|?*b"))
         Assert.AreEqual("attachment.bin", AppelerUtilitaire("GetAttachmentFileName", "..", "valide.pdf"))
+    End Sub
+
+    <TestMethod>
+    Public Sub CleanFileName_InterditLesSeparateursDeLigneDansLesRapports()
+        ' Ces caracteres sont valides dans certains noms Unicode mais ne doivent
+        ' jamais introduire de nouvelle ligne dans un rapport de pieces jointes.
+        For Each caractere As Char In New Char() {ChrW(&H7F), ChrW(&H85), ChrW(&H2028), ChrW(&H2029)}
+            Dim nom = "facture" & caractere & "2026.pdf"
+            Dim attendu = "facture_2026.pdf"
+            Assert.AreEqual(attendu, AppelerUtilitaire("CleanFileName", nom))
+            Assert.AreEqual(attendu, AppelerUtilitaire("GetAttachmentFileName", nom, Nothing))
+            Assert.AreEqual(attendu, AppelerUtilitaire("GetAttachmentFileName", Nothing, nom))
+            Assert.AreEqual(attendu, AppelerUtilitaire("CleanFileName", attendu))
+        Next
+    End Sub
+
+    <TestMethod>
+    Public Sub NomsMime_AucunControleBidiNeMasqueLesIdentitesDansLesRapports()
+        ' Donnees exclusivement fictives : les controles bidi ne doivent pas
+        ' inverser visuellement un nom de piece ou un expediteur dans le rapport.
+        For Each caractere As Char In New Char() {
+            ChrW(&H61C), ChrW(&H200E), ChrW(&H200F),
+            ChrW(&H202A), ChrW(&H202E), ChrW(&H2066), ChrW(&H2069),
+            ChrW(&H206A), ChrW(&H206B), ChrW(&H206C),
+            ChrW(&H206D), ChrW(&H206E), ChrW(&H206F)}
+            Dim nom = "facture" & caractere & "2026.pdf"
+            Assert.AreEqual("facture_2026.pdf", AppelerUtilitaire("CleanFileName", nom))
+            Assert.AreEqual("facture_2026.pdf", AppelerUtilitaire("GetAttachmentFileName", nom, Nothing))
+            Dim expediteur = "fictif" & caractere & "@example.invalid"
+            Assert.AreEqual("fictif_@example.invalid",
+                            AppelerUtilitaire("SanitizeSenderForReport", expediteur))
+        Next
+        ' Les lettres ordinaires des langues RTL ne doivent pas etre supprimees.
+        Assert.AreEqual("مرحبا.pdf", AppelerUtilitaire("CleanFileName", "مرحبا.pdf"))
+    End Sub
+
+    <TestMethod>
+    Public Sub CleanFileName_NomsDosCOMLPTAvecChiffresExposants_SontNeutralises()
+        ' Windows reserve aussi COM¹, COM², COM³ et LPT¹, LPT², LPT³.
+        ' Les chiffres exposes restent valides dans les autres noms.
+        For Each prefixe In New String() {"COM", "LPT"}
+            For Each chiffre In New Char() {ChrW(&HB9), ChrW(&HB2), ChrW(&HB3)}
+                For Each suffixe In New String() {"", ".pdf", ".tar.gz", " .txt"}
+                    Dim nom = prefixe.ToLowerInvariant() & chiffre & suffixe
+                    Dim attendu = "_" & nom
+                    Assert.AreEqual(attendu, AppelerUtilitaire("CleanFileName", nom))
+                    Assert.AreEqual(attendu, AppelerUtilitaire("GetAttachmentFileName", nom, Nothing))
+                    Assert.AreEqual(attendu, AppelerUtilitaire("CleanFileName", attendu))
+                Next
+                Assert.AreEqual("facture" & chiffre & ".pdf",
+                                AppelerUtilitaire("CleanFileName", "facture" & chiffre & ".pdf"))
+            Next
+        Next
     End Sub
 
     <TestMethod>
