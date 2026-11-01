@@ -13,6 +13,10 @@ Public Class FrmPrincipale
     Private ReadOnly _menuDemoDocuments As New ToolStripMenuItem With {
         .Name = "DemoDocumentsFictifsToolStripMenuItem",
         .Text = "Ouvrir une démonstration (documents fictifs, hors ligne)"}
+    Private ReadOnly _menuEffacerDocumentsFictifs As New ToolStripMenuItem With {
+        .Name = "EffacerDocumentsFictifsToolStripMenuItem",
+        .Text = "Effacer les propositions fictives en mémoire",
+        .Enabled = False}
 
     Public Sub New()
         InitializeComponent()
@@ -26,6 +30,8 @@ Public Class FrmPrincipale
         AnalyseToolStripMenuItem.DropDownItems.Add(_menuRevueDocumentsAnalyses)
         AddHandler _menuDemoDocuments.Click, AddressOf DemoDocumentsFictifs_Click
         AnalyseToolStripMenuItem.DropDownItems.Add(_menuDemoDocuments)
+        AddHandler _menuEffacerDocumentsFictifs.Click, AddressOf EffacerDocumentsFictifs_Click
+        AnalyseToolStripMenuItem.DropDownItems.Add(_menuEffacerDocumentsFictifs)
     End Sub
 
     ''' <summary>
@@ -91,6 +97,7 @@ Public Class FrmPrincipale
     Public Sub DefinirWorkflowDocumentsAnalyses(workflow As GmailDocumentReviewWorkflow)
         _workflowDocumentsAnalyses = workflow
         _menuRevueDocumentsAnalyses.Enabled = workflow IsNot Nothing
+        _menuEffacerDocumentsFictifs.Enabled = workflow IsNot Nothing
     End Sub
 
     ''' <summary>
@@ -146,6 +153,11 @@ Public Class FrmPrincipale
         Dim workflow = PreparerRevueMessagesFictifs(
             New GmailDocumentSimulatedInbox.MessageFictif() {message})
         OuvrirRevueDocumentsAnalyses(workflow)
+    End Sub
+
+    ''' <summary>Oublie le lot fictif et ses corrections locales, sans accès externe.</summary>
+    Private Sub EffacerDocumentsFictifs_Click(sender As Object, e As EventArgs)
+        DefinirWorkflowDocumentsAnalyses(Nothing)
     End Sub
 
     Private Sub RevueDocumentsAnalyses_Click(sender As Object, e As EventArgs)
