@@ -247,8 +247,9 @@ Public NotInheritable Class FrmRevuePropositions
             ligne.Cells("Libelle").Value = proposition.Libelle
             ligne.Cells("Reference").Value = proposition.Reference
             ligne.Cells("Avertissements").Value = String.Join(Environment.NewLine, proposition.AvertissementsValidation)
-            ActualiserDiagnosticsPrevalidation()
-            ActualiserEtatCorrections()
+            ' Rafraichir aussi le statut d'examen : toute correction revoque
+            ' la confirmation precedente, meme sans fermeture de la fenetre.
+            If session IsNot Nothing Then ActualiserSession()
             Return True
         End Using
     End Function
