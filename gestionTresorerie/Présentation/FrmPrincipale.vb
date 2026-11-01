@@ -37,12 +37,6 @@ Public Class FrmPrincipale
                            Array.Empty(Of PropositionDocumentService.Entree)())))
         ' Sans correspondance source prouvée, ne fournir que l'instantané de lecture.
         Using formulaire As New FrmRevuePropositions(revue)
-            If revue.Lignes.Count = 0 Then
-                Dim disposition = DirectCast(formulaire.Controls(0), TableLayoutPanel)
-                DirectCast(disposition.GetControlFromPosition(0, 0), Label).Text =
-                    "Aucune proposition issue d'un document validé n'est disponible. " &
-                    "Cette consultation en lecture seule ne charge aucune donnée."
-            End If
             PresenterRevuePropositions(formulaire)
         End Using
     End Sub

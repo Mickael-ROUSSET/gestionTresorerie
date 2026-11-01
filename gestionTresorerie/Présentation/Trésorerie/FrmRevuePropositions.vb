@@ -72,7 +72,12 @@ Public NotInheritable Class FrmRevuePropositions
         disposition.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         disposition.RowStyles.Add(New RowStyle(SizeType.Percent, 35.0F))
         disposition.RowStyles.Add(New RowStyle(SizeType.AutoSize))
-        disposition.Controls.Add(New Label With {.Text = "Propositions — lecture seule", .AutoSize = True}, 0, 0)
+        disposition.Controls.Add(New Label With {
+            .Name = "etatRevue", .AutoSize = True,
+            .Text = If(revue.Lignes.Count = 0,
+                "Aucune proposition issue d'un document validé n'est disponible. " &
+                "Cette consultation en lecture seule ne charge aucune donnée.",
+                "Propositions — lecture seule")}, 0, 0)
         disposition.Controls.Add(propositions, 0, 1)
         disposition.Controls.Add(New Label With {.Text = "Entrées rejetées — diagnostics uniquement", .AutoSize = True}, 0, 2)
         disposition.Controls.Add(rejets, 0, 3)
@@ -146,7 +151,8 @@ Public NotInheritable Class FrmRevuePropositions
     End Sub
 
     Private Sub ActualiserAction(grille As DataGridView)
-        corriger.Enabled = grille.SelectedRows.Count = 1 AndAlso sources.ContainsKey(grille.SelectedRows(0))
+        corriger.Enabled = Session IsNot Nothing AndAlso grille.SelectedRows.Count = 1 AndAlso
+            sources.ContainsKey(grille.SelectedRows(0))
     End Sub
 
     ''' <summary>Correction locale ; le présentateur optionnel permet les tests sans dialogue modal.</summary>
@@ -157,12 +163,23 @@ Public NotInheritable Class FrmRevuePropositions
         Dim ligne = grille.SelectedRows(0)
         Dim source = Session.Propositions(sources(ligne).CleSource)
         If source.Etat <> PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine Then Return False
+        Dim etat = DirectCast(Controls.Find("etatRevue", True)(0), Label)
+        etat.Text = "Propositions — lecture seule"
+        etat.ForeColor = SystemColors.ControlText
         Using correction As New FrmCorrectionProposition(source)
-            Dim resultat = If(afficher Is Nothing, correction.ShowDialog(Me), afficher(correction))
-            If resultat <> DialogResult.OK OrElse correction.PropositionCorrigee Is Nothing Then Return False
-            Session.AppliquerCorrection(source.CleSource, correction.ResultatCorrection)
-            ActualiserSession()
-            Return True
+            Try
+                Dim resultat = If(afficher Is Nothing, correction.ShowDialog(Me), afficher(correction))
+                If resultat <> DialogResult.OK OrElse correction.PropositionCorrigee Is Nothing Then Return False
+                Session.AppliquerCorrection(source.CleSource, correction.ResultatCorrection)
+                ActualiserSession()
+                Return True
+            Catch ex As Exception
+                ' Ne pas afficher le détail technique susceptible de contenir des données privées.
+                etat.Text = "La correction n'a pas pu être terminée. Consultez les valeurs en mémoire avant de réessayer."
+                etat.ForeColor = Color.Firebrick
+                ActualiserSession()
+                Return False
+            End Try
         End Using
     End Function
 

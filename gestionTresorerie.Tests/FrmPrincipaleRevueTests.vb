@@ -150,6 +150,10 @@ Public Class FrmPrincipaleRevueTests
                                                        Dim disposition = DirectCast(revue.Controls(0), TableLayoutPanel)
                                                        StringAssert.Contains(DirectCast(disposition.GetControlFromPosition(0, 0), Label).Text,
                                                                              "Aucune proposition")
+                                                       Assert.AreSame(revue.Controls.Find("etatRevue", True)(0),
+                                                                      disposition.GetControlFromPosition(0, 0))
+                                                       Assert.IsNull(revue.AcceptButton)
+                                                       Assert.AreSame(DirectCast(revue.Controls.Find("boutonFermer", True)(0), IButtonControl), revue.CancelButton)
                                                        revue.Show()
                                                        DirectCast(revue.Controls.Find("boutonFermer", True)(0), Button).PerformClick()
                                                        Assert.IsFalse(revue.Visible)

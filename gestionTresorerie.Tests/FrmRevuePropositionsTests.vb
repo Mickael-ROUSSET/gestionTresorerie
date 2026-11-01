@@ -10,7 +10,7 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 <TestClass>
 Public Class FrmRevuePropositionsTests
-    ' Construction et inspection sans Show, Application.Run ou boucle de messages.
+    ' Exécution STA isolée ; seuls les formulaires de revue sans accès externe sont affichés.
     Private Shared Sub SurThreadSta(action As Action)
         Dim erreur As Exception = Nothing
         Dim thread As New Thread(Sub()
@@ -29,6 +29,65 @@ Public Class FrmRevuePropositionsTests
     Private Shared Function Grille(formulaire As Form, nom As String) As DataGridView
         Return DirectCast(formulaire.Controls.Find(nom, True)(0), DataGridView)
     End Function
+
+    <TestMethod>
+    Public Sub CorrectionEnErreur_AfficheUnMessageSansDetailPriveEtPermetAnnulationEtFermeture()
+        SurThreadSta(Sub()
+                         Dim resultat = Lot()
+                         Dim session As New PropositionSessionRevue(resultat.Propositions)
+                         Using f As New FrmRevuePropositions(session, New PropositionRevue(resultat))
+                             Dim grilleSource = Grille(f, "grillePropositions")
+                             grilleSource.ClearSelection()
+                             grilleSource.Rows(0).Selected = True
+                             Dim originale = session.Propositions(resultat.Propositions(0).CleSource)
+                             Assert.IsFalse(f.CorrigerSelection(Function(dialogue)
+                                                                  Throw New InvalidOperationException("detail-prive-a-ne-pas-afficher")
+                                                              End Function))
+                             Dim etat = DirectCast(f.Controls.Find("etatRevue", True)(0), Label)
+                             StringAssert.Contains(etat.Text, "La correction n'a pas pu être terminée")
+                             Assert.IsFalse(etat.Text.Contains("detail-prive"))
+                             Assert.AreSame(originale, session.Propositions(originale.CleSource))
+                             Assert.AreEqual(0, session.Audits.Count)
+                             Assert.AreEqual(originale.Montant, grilleSource.Rows(0).Cells("Montant").Value)
+                             f.Show()
+                             Assert.IsTrue(etat.Visible)
+                             Assert.IsFalse(f.CorrigerSelection(Function(dialogue) DialogResult.Cancel))
+                             Assert.AreEqual("Propositions — lecture seule", etat.Text)
+                             DirectCast(f.CancelButton, Button).PerformClick()
+                             Assert.IsFalse(f.Visible)
+                             Assert.AreEqual(0, session.Audits.Count)
+                             Assert.AreSame(originale, session.Propositions(originale.CleSource))
+                         End Using
+                     End Sub)
+    End Sub
+
+    <TestMethod>
+    Public Sub CorrectionDevenueObsolete_AfficheLeRefusEtLesValeursCourantes()
+        SurThreadSta(Sub()
+                         Dim resultat = Lot()
+                         Dim originale = resultat.Propositions(0)
+                         Dim session As New PropositionSessionRevue(resultat.Propositions)
+                         Using f As New FrmRevuePropositions(session, New PropositionRevue(resultat))
+                             Dim grilleSource = Grille(f, "grillePropositions")
+                             grilleSource.ClearSelection()
+                             grilleSource.Rows(0).Selected = True
+                             Dim correctionPreparee As Boolean
+                             Assert.IsFalse(f.CorrigerSelection(Function(dialogue)
+                                                                  correctionPreparee = dialogue.AppliquerCorrection()
+                                                                  session.AppliquerCorrection(originale.CleSource,
+                                                                      PropositionCorrection.Corriger(originale, originale.DateProposee,
+                                                                          77D, originale.Sens, originale.Libelle, originale.Reference))
+                                                                  Return DialogResult.OK
+                                                              End Function))
+                             Assert.IsTrue(correctionPreparee)
+                             StringAssert.Contains(DirectCast(f.Controls.Find("etatRevue", True)(0), Label).Text,
+                                                   "La correction n'a pas pu être terminée")
+                             Assert.AreEqual(1, session.Audits.Count)
+                             Assert.AreEqual(77D, session.Propositions(originale.CleSource).Montant)
+                             Assert.AreEqual(77D, grilleSource.Rows(0).Cells("Montant").Value)
+                         End Using
+                     End Sub)
+    End Sub
 
     <TestMethod>
     Public Sub ParcoursAnalyseAffichageCorrectionPrevalidation_FermetureConserveLaSession()
