@@ -469,4 +469,62 @@ Public Class GmailDocumentExtractionAdapterTests
             Sub() session.MarquerPersistee(pieces(3).CleSource))
     End Sub
 
+
+    <TestMethod>
+    Public Sub JsonFictifReouverture_ConserveCorrectionEtRejetSansApprobation()
+        ' Parcours complet hors ligne : extraction, correction humaine, fermeture et reouverture.
+        ' Une piece rejetee ne doit pas disparaitre lorsque la session est reconstruite.
+        SurThreadSta(Sub()
+                         Dim pieces As GmailDocumentExtractionAdapter.PieceJson() = {
+                             New GmailDocumentExtractionAdapter.PieceJson(
+                                 "simulation@example.invalid", 61UI, 62UI, 0, JsonFacture,
+                                 PropositionMouvement.SensMouvement.Debit),
+                             New GmailDocumentExtractionAdapter.PieceJson(
+                                 "simulation@example.invalid", 61UI, 62UI, 1, "{invalide",
+                                 PropositionMouvement.SensMouvement.Debit),
+                             New GmailDocumentExtractionAdapter.PieceJson(
+                                 "simulation@example.invalid", 61UI, 62UI, 2, JsonCheque,
+                                 PropositionMouvement.SensMouvement.Credit)}
+                         Dim workflow = GmailDocumentReviewWorkflow.PreparerDepuisJson(pieces)
+                         Assert.AreEqual(2, workflow.ResultatInitial.Propositions.Count)
+                         Assert.AreEqual(1, workflow.ResultatInitial.Rejets.Count)
+                         Dim cle = pieces(0).CleSource
+
+                         Using premiere = workflow.CreerFenetre()
+                             Dim grille = DirectCast(premiere.Controls.Find("grillePropositions", True)(0), DataGridView)
+                             grille.ClearSelection()
+                             grille.Rows(0).Selected = True
+                             Assert.IsTrue(premiere.CorrigerSelection(Function(dialogue)
+                                                                         DirectCast(dialogue.Controls.Find("montant", True)(0), TextBox).Text = "47"
+                                                                         Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                         Return DialogResult.OK
+                                                                     End Function))
+                             Assert.IsFalse(premiere.IsHandleCreated)
+                         End Using
+
+                         Using seconde = workflow.CreerFenetre()
+                             Dim grille = DirectCast(seconde.Controls.Find("grillePropositions", True)(0), DataGridView)
+                             Dim rejets = DirectCast(seconde.Controls.Find("grilleRejets", True)(0), DataGridView)
+                             Assert.AreEqual(2, grille.Rows.Count)
+                             Assert.AreEqual(cle, grille.Rows(0).Cells("CleSource").Value)
+                             Assert.AreEqual(47D, grille.Rows(0).Cells("Montant").Value)
+                             Assert.AreEqual(15.25D, grille.Rows(1).Cells("Montant").Value)
+                             Assert.AreEqual("En attente de revue humaine", grille.Rows(0).Cells("Statut").Value)
+                             Assert.AreEqual(1, rejets.Rows.Count)
+                             Assert.AreEqual(1, rejets.Rows(0).Cells("IndexEntree").Value)
+                             Assert.AreEqual("Extraction JSON invalide ou non prise en charge.",
+                                             rejets.Rows(0).Cells("Motif").Value)
+                             Assert.IsFalse(seconde.IsHandleCreated)
+                         End Using
+
+                         Assert.AreEqual(42.5D, workflow.ResultatInitial.Propositions(0).Montant)
+                         Assert.AreEqual(47D, workflow.SessionRevue.Propositions(cle).Montant)
+                         Assert.AreEqual(1, workflow.SessionRevue.Audits.Count)
+                         Assert.ThrowsExactly(Of InvalidOperationException)(
+                             Sub() workflow.SessionRevue.MarquerApprouvee(cle))
+                         Assert.ThrowsExactly(Of InvalidOperationException)(
+                             Sub() workflow.SessionRevue.MarquerPersistee(cle))
+                     End Sub)
+    End Sub
+
 End Class
