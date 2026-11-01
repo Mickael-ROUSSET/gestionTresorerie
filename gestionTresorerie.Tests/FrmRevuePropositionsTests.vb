@@ -371,12 +371,13 @@ Public Class FrmRevuePropositionsTests
     <TestMethod>
     Public Sub ExamenHumainDepuisLaRevue_ResteEnMemoireEtEstInvalideParCorrection()
         SurThreadSta(Sub()
-                         Dim proposition As New PropositionMouvement(
-                             "fictif-001", "FACTURE", New DateTime(2026, 4, 1), 42.5D,
-                             PropositionMouvement.SensMouvement.Debit, "Facture fictive", "SIM-001")
-                         Dim resultat As New PropositionDocumentService.Resultat(
-                             New List(Of PropositionMouvement) From {proposition},
-                             New List(Of PropositionDocumentService.Rejet)())
+                         Dim resultat = New PropositionDocumentService().Proposer({
+                             New PropositionDocumentService.Entree(
+                                 New Facture With {.IdDoc = 801, .montant_ttc = 42.5D,
+                                     .devise = "EUR", .date_facture = "2026-04-01",
+                                     .numero_facture = "SIM-001"},
+                                 "fictif-001", PropositionMouvement.SensMouvement.Debit)})
+                         Dim proposition = resultat.Propositions(0)
                          Dim session As New PropositionSessionRevue(resultat.Propositions)
                          Using formulaire As New FrmRevuePropositions(
                              New PropositionRevue(resultat), resultat.Propositions, session)
