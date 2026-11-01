@@ -10,6 +10,9 @@ Public Class FrmPrincipale
         .Name = "RevueDocumentsAnalysesToolStripMenuItem",
         .Text = "Revue des documents préparés (simulation)",
         .Enabled = False}
+    Private ReadOnly _menuDemoDocuments As New ToolStripMenuItem With {
+        .Name = "DemoDocumentsFictifsToolStripMenuItem",
+        .Text = "Ouvrir une démonstration (documents fictifs, hors ligne)"}
 
     Public Sub New()
         InitializeComponent()
@@ -21,6 +24,8 @@ Public Class FrmPrincipale
         AnalyseToolStripMenuItem.DropDownItems.Add(menuRevue)
         AddHandler _menuRevueDocumentsAnalyses.Click, AddressOf RevueDocumentsAnalyses_Click
         AnalyseToolStripMenuItem.DropDownItems.Add(_menuRevueDocumentsAnalyses)
+        AddHandler _menuDemoDocuments.Click, AddressOf DemoDocumentsFictifs_Click
+        AnalyseToolStripMenuItem.DropDownItems.Add(_menuDemoDocuments)
     End Sub
 
     ''' <summary>
@@ -119,6 +124,29 @@ Public Class FrmPrincipale
         DefinirWorkflowDocumentsAnalyses(workflow)
         Return workflow
     End Function
+
+    ''' <summary>
+    ''' Démonstration activable depuis l'interface : données exclusivement fictives
+    ''' en mémoire, sans connexion Gmail, lecture de fichier ni écriture SQL.
+    ''' Relancer la démonstration remplace le lot précédent ; la revue reste sans approbation.
+    ''' </summary>
+    Private Sub DemoDocumentsFictifs_Click(sender As Object, e As EventArgs)
+        Dim jsonFacture As String =
+            "{""type_document"":""Facture"",""donnees_extraites"":{" &
+            """identite"":{""fournisseur_nom"":""Exemple fictif""}," &
+            """transaction"":{""montant_ttc"":""42.50"",""devise"":""EUR""," &
+            """date_facture"":""2026-04-01"",""numero_facture"":""DEMO-001""}}}"
+        Dim message As New GmailDocumentSimulatedInbox.MessageFictif(
+            "demo@example.invalid", 1UI, 1UI,
+            New GmailDocumentSimulatedInbox.PieceFictive() {
+                New GmailDocumentSimulatedInbox.PieceFictive(
+                    jsonFacture, PropositionMouvement.SensMouvement.Debit),
+                New GmailDocumentSimulatedInbox.PieceFictive(
+                    "{invalide", PropositionMouvement.SensMouvement.Debit)})
+        Dim workflow = PreparerRevueMessagesFictifs(
+            New GmailDocumentSimulatedInbox.MessageFictif() {message})
+        OuvrirRevueDocumentsAnalyses(workflow)
+    End Sub
 
     Private Sub RevueDocumentsAnalyses_Click(sender As Object, e As EventArgs)
         If _workflowDocumentsAnalyses Is Nothing Then Return
