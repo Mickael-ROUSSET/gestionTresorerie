@@ -62,28 +62,52 @@ Public Class FrmPrincipale
     Private _icolNumeroRemise As Integer
 
     Private Sub FrmPrincipale_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Dim etape As String = "environnement"
+        Dim conseil As String = "Vérifiez la sélection envAgumaaa (DEV / TEST / PROD) avant de relancer."
         Try
-            EnvironmentManager.LoadEnvironment()
-            Logger.INFO("Environnement actif : " & EnvironmentManager.GetEnvironmentLabel())
-            StatusLabelEnv.Text = "Environnement : " & EnvironmentManager.GetEnvironmentLabel
-
-            'Initialisation de la lecture des propriétés
-            Dim lectureProprietes As New LectureProprietes()
-            'Lecture du niveau de log demandé
-            Logger.SetLogLevel(LectureProprietes.GetVariable(Constantes.Environnement.NiveauLog))
-            Logger.DBG("Initialisation de : {lectureProprietes}")
-            'Chargement des secrets de l'application
-            GlobalSettings.Initialize()
-            'Récupère le rang des colonnes du datagridview
+            ChargerEnvironnementDemarrage()
+            etape = "configuration"
+            conseil = "Vérifiez les paramètres d'installation et le niveau de log (DBG / INFO / WARN / ERR)."
+            ChargerConfigurationDemarrage()
+            etape = "secrets"
+            conseil = "Vérifiez la présence des variables utilisateur requises (AGUMAAA_GEMINI_API_KEY, SmtpPassword, cleApiTmdb), sans communiquer leurs valeurs."
+            ChargerSecretsDemarrage()
+            etape = "grille SQL"
+            conseil = "Vérifiez la configuration de la base de test isolée, les droits de lecture et la disponibilité de SQL Server."
             initIndiceColDgv()
-            'Charger dgvPrincipale avec le contenu de la table mouvements
-            Call ChargerDgvPrincipale()
+            ChargerDgvPrincipale(propagerErreur:=True)
         Catch ex As Exception
-            ' Gestion des erreurs
-            MessageBox.Show($"Une erreur est survenue lors de l'initialisation : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
-            Logger.ERR($"Une erreur est survenue lors de l'initialisation : {ex.Message}")
+            ' Message et InnerException peuvent contenir des secrets ou du SQL.
+            StatusLabelEnv.Text = "Initialisation interrompue : " & etape
+            PresenterDiagnosticDemarrage("Initialisation interrompue à l'étape : " & etape & "." &
+                vbCrLf & conseil & vbCrLf &
+                "Les étapes suivantes n'ont pas été exécutées. Fermez la fenêtre avant de réessayer.")
         End Try
     End Sub
+
+    ' Isolation du vrai Load pour les tests STA sans paramètres, secrets ou SQL réels.
+    Protected Overridable Sub ChargerEnvironnementDemarrage()
+        EnvironmentManager.LoadEnvironment()
+        StatusLabelEnv.Text = "Environnement : " & EnvironmentManager.GetEnvironmentLabel()
+    End Sub
+
+    Protected Overridable Sub ChargerConfigurationDemarrage()
+        Dim lectureProprietes As New LectureProprietes()
+        Logger.SetLogLevel(LectureProprietes.GetVariable(Constantes.Environnement.NiveauLog))
+    End Sub
+
+    Protected Overridable Sub ChargerSecretsDemarrage()
+        GlobalSettings.Initialize()
+    End Sub
+
+    Protected Overridable Sub PresenterDiagnosticDemarrage(message As String)
+        ' Le journal peut lui-même être indisponible : ne pas en dépendre ici.
+        MessageBox.Show(Me, message, "Démarrage incomplet", MessageBoxButtons.OK, MessageBoxIcon.Error)
+    End Sub
+
+    Protected Overridable Function ChargerDonneesPrincipales() As DataTable
+        Return SqlCommandBuilder.ExecuteDataTable(Constantes.DataBases.Agumaaa, "sqlSelectMouvementsLibelles")
+    End Function
     Private Sub initIndiceColDgv()
 
         'Récupère le rang des colonnes du datagridview
@@ -103,18 +127,16 @@ Public Class FrmPrincipale
             _icolNumeroRemise = .Columns("colNumeroRemise").Index
         End With
     End Sub
-    Private Sub ChargerDgvPrincipale()
+    Private Sub ChargerDgvPrincipale(Optional propagerErreur As Boolean = False)
         Try
-            Dim dataTable As DataTable =
-            SqlCommandBuilder.ExecuteDataTable(
-                Constantes.DataBases.Agumaaa,
-                "sqlSelectMouvementsLibelles")
+            Dim dataTable As DataTable = ChargerDonneesPrincipales()
 
             dgvPrincipale.DataSource = dataTable
 
             AjouterColonneEtatImage()
 
         Catch ex As Exception
+            If propagerErreur Then Throw
             Logger.ERR($"Erreur lors du chargement de la grille principale : {ex.Message}")
             MessageBox.Show("Erreur lors du chargement de la grille principale : " & ex.Message,
                         "Erreur",
@@ -146,7 +168,8 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub FrmMain_Closing(sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
-        ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).Dispose()
+        ' ExecuteDataTable libère ses connexions locales avec Using.
+        ' Ne pas créer de singleton SQL à la fermeture, même après un échec de démarrage.
     End Sub
     Private Sub BtnConsultation_Click(sender As Object, e As EventArgs)
         ChargerDgvPrincipale()

@@ -13,6 +13,97 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 Public Class FrmPrincipaleRevueTests
     <TestMethod>
     <TestCategory("OfflineWindowsAcceptance")>
+    <DataRow("environnement", "envAgumaaa", 1)>
+    <DataRow("configuration", "niveau de log", 2)>
+    <DataRow("secrets", "SmtpPassword", 3)>
+    <DataRow("grille SQL", "droits de lecture", 4)>
+    Public Sub Demarrage_EchecDiagnostiqueSansDetailsSensiblesNiEtapesSuivantes(
+        etape As String, conseil As String, nombreEtapes As Integer)
+        SurThreadSta(Sub()
+                         Using principale As New PrincipaleDemarrageIsolee With {.EtapeEnEchec = etape}
+                             Dim grille = DirectCast(principale.Controls.Find("dgvPrincipale", True)(0), DataGridView)
+                             Dim sourceInitiale = grille.DataSource
+                             principale.Show()
+                             Assert.IsTrue(principale.Visible)
+                             CollectionAssert.AreEqual(
+                                 New String() {"environnement", "configuration", "secrets", "grille SQL"}.Take(nombreEtapes).ToArray(),
+                                 principale.Etapes.ToArray())
+                             Assert.AreEqual(1, principale.Diagnostics.Count)
+                             Dim diagnostic = principale.Diagnostics.Single()
+                             StringAssert.Contains(diagnostic, "étape : " & etape)
+                             StringAssert.Contains(diagnostic, conseil)
+                             StringAssert.Contains(diagnostic, "Fermez la fenêtre")
+                             Assert.IsFalse(diagnostic.Contains("secret-fictif"))
+                             Assert.IsFalse(diagnostic.Contains("serveur-fictif"))
+                             Assert.AreSame(sourceInitiale, grille.DataSource)
+                             principale.Close()
+                             Assert.IsTrue(principale.IsDisposed)
+                             Assert.AreEqual(nombreEtapes, principale.Etapes.Count)
+                             Assert.AreEqual(1, principale.Diagnostics.Count)
+                         End Using
+                     End Sub)
+    End Sub
+
+    <TestMethod>
+    <TestCategory("OfflineWindowsAcceptance")>
+    Public Sub Demarrage_ReussiteChargeLaGrilleFictiveSansDiagnosticEtFerme()
+        SurThreadSta(Sub()
+                         Using principale As New PrincipaleDemarrageIsolee()
+                             principale.Show()
+                             CollectionAssert.AreEqual(
+                                 New String() {"environnement", "configuration", "secrets", "grille SQL"},
+                                 principale.Etapes.ToArray())
+                             Assert.AreEqual(0, principale.Diagnostics.Count)
+                             Dim grille = DirectCast(principale.Controls.Find("dgvPrincipale", True)(0), DataGridView)
+                             Assert.AreSame(principale.Donnees, grille.DataSource)
+                             Assert.IsTrue(principale.Visible)
+                             principale.Close()
+                             Assert.IsTrue(principale.IsDisposed)
+                             Assert.AreEqual(4, principale.Etapes.Count)
+                         End Using
+                     End Sub)
+    End Sub
+
+    Private Class PrincipaleDemarrageIsolee
+        Inherits FrmPrincipale
+
+        Public Property EtapeEnEchec As String
+        Public ReadOnly Etapes As New System.Collections.Generic.List(Of String)
+        Public ReadOnly Diagnostics As New System.Collections.Generic.List(Of String)
+        Public ReadOnly Donnees As New System.Data.DataTable()
+
+        Private Sub Executer(etape As String)
+            Etapes.Add(etape)
+            If etape = EtapeEnEchec Then
+                Throw New InvalidOperationException("Password=secret-fictif;Server=serveur-fictif",
+                    New Exception("secret-fictif"))
+            End If
+        End Sub
+
+        Protected Overrides Sub ChargerEnvironnementDemarrage()
+            Executer("environnement")
+        End Sub
+
+        Protected Overrides Sub ChargerConfigurationDemarrage()
+            Executer("configuration")
+        End Sub
+
+        Protected Overrides Sub ChargerSecretsDemarrage()
+            Executer("secrets")
+        End Sub
+
+        Protected Overrides Function ChargerDonneesPrincipales() As System.Data.DataTable
+            Executer("grille SQL")
+            Return Donnees
+        End Function
+
+        Protected Overrides Sub PresenterDiagnosticDemarrage(message As String)
+            Diagnostics.Add(message)
+        End Sub
+    End Class
+
+    <TestMethod>
+    <TestCategory("OfflineWindowsAcceptance")>
     Public Sub LotAvecDoublonEtTypeInconnu_DiagnosticsConsultablesSansChargerLeParent()
         SurThreadSta(Sub()
                          Dim cheque As New Cheque With {.IdDoc = 901, .montant_numerique = 12.34D,
@@ -62,7 +153,7 @@ Public Class FrmPrincipaleRevueTests
                      End Sub)
     End Sub
 
-    ' Aucun Show/Close : Load et Closing du formulaire principal accèdent à la base.
+    ' Les tests de revue n'affichent pas le parent ; seuls les tests de démarrage isolent Load.
     Private Shared Sub SurThreadSta(action As Action)
         Dim erreur As Exception = Nothing
         Dim thread As New Thread(Sub()
