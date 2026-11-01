@@ -52,7 +52,7 @@ Public Class FrmRevuePropositionsTests
                              f.Show()
                              Assert.IsTrue(etat.Visible)
                              Assert.IsFalse(f.CorrigerSelection(Function(dialogue) DialogResult.Cancel))
-                             Assert.AreEqual("Propositions — lecture seule", etat.Text)
+                             StringAssert.Contains(etat.Text, "Annuler une correction conserve les valeurs précédentes")
                              DirectCast(f.CancelButton, Button).PerformClick()
                              Assert.IsFalse(f.Visible)
                              Assert.AreEqual(0, session.Audits.Count)
@@ -223,7 +223,7 @@ Public Class FrmRevuePropositionsTests
                                  Next
                              Next
                              Dim fermer = DirectCast(formulaire.Controls.Find("boutonFermer", True)(0), Button)
-                             Assert.AreEqual("&Fermer", fermer.Text)
+                             Assert.AreEqual("&Fermer (sans enregistrer)", fermer.Text)
                              Assert.AreSame(fermer, formulaire.CancelButton)
                              Assert.AreEqual(DialogResult.Cancel, fermer.DialogResult)
                              Dim corriger = DirectCast(formulaire.Controls.Find("boutonCorriger", True)(0), Button)
@@ -449,8 +449,52 @@ Public Class FrmRevuePropositionsTests
                              Using formulaire As New FrmRevuePropositions(New PropositionRevue(resultat))
                                  Assert.AreEqual(0, Grille(formulaire, "grillePropositions").Rows.Count)
                                  Assert.AreEqual(resultat.Rejets.Count, Grille(formulaire, "grilleRejets").Rows.Count)
+                                 Dim etat = DirectCast(formulaire.Controls.Find("etatRevue", True)(0), Label)
+                                 StringAssert.Contains(etat.Text, If(resultat.Rejets.Count = 0,
+                                     "aucun lot exploitable", "toutes les entrées du lot ont été rejetées"),
+                                     "Manuel hors ligne : ouvrir un lot vide puis rejeté ; distinguer absence de lot et diagnostics à corriger.")
+                                 Dim diagnostic = DirectCast(formulaire.Controls.Find("etatDiagnostics", True)(0), Label)
+                                 StringAssert.Contains(diagnostic.Text, If(resultat.Rejets.Count = 0,
+                                     "Aucune entrée rejetée", "index (base 0)"))
+                                 Assert.IsFalse(formulaire.Controls.Find("boutonCorriger", True)(0).Enabled)
                              End Using
                          Next
+                     End Sub)
+    End Sub
+
+    <TestMethod>
+    <TestCategory("OfflineWindowsAcceptance")>
+    Public Sub ManuelHorsLigne_LireIdentiteSource_CorrigerPuisAnnuler_ConserveInstructionsEtOriginal()
+        SurThreadSta(Sub()
+                         Dim resultat = Lot()
+                         Dim originale = resultat.Propositions(0)
+                         Using f As New FrmRevuePropositions(New PropositionRevue(resultat), resultat.Propositions)
+                             Dim grilleSource = Grille(f, "grillePropositions")
+                             Assert.IsTrue(grilleSource.Columns("CleSource").Visible)
+                             Assert.IsTrue(grilleSource.Columns("CleSource").Frozen,
+                                 "Manuel : faire défiler horizontalement ; l'identité source reste visible.")
+                             Assert.AreEqual(originale.CleSource, grilleSource.Rows(0).Cells("CleSource").Value)
+                             Dim instructions = DirectCast(f.Controls.Find("etatRevue", True)(0), Label).Text
+                             grilleSource.ClearSelection()
+                             grilleSource.Rows(0).Selected = True
+                             Assert.IsFalse(f.CorrigerSelection(Function(dialogue)
+                                                                  DirectCast(dialogue.Controls.Find("montant", True)(0), TextBox).Text = "55"
+                                                                  Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                  Return DialogResult.Cancel
+                                                              End Function),
+                                 "Manuel : Corriger la sélection, changer le montant, puis Annuler ; aucune correction retenue.")
+                             Assert.AreSame(originale, f.Session.Propositions(originale.CleSource))
+                             Assert.AreEqual(0, f.Session.Audits.Count)
+                             Assert.AreEqual(originale.Montant, grilleSource.Rows(0).Cells("Montant").Value)
+                             Assert.AreEqual(instructions, DirectCast(f.Controls.Find("etatRevue", True)(0), Label).Text)
+                             f.Show()
+                             f.ClientSize = New System.Drawing.Size(700, 450)
+                             Assert.IsTrue(f.Controls.Find("etatRevue", True)(0).Visible,
+                                 "Manuel : à 700 x 450 et avec le zoom Windows, vérifier le retour à la ligne et les grilles ; fermer sans enregistrer.")
+                             DirectCast(f.CancelButton, Button).PerformClick()
+                             Assert.IsFalse(f.Visible)
+                             Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine, originale.Etat)
+                         End Using
                      End Sub)
     End Sub
 End Class

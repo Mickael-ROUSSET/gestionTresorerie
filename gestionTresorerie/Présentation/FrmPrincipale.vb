@@ -11,7 +11,8 @@ Public Class FrmPrincipale
 
         Dim menuRevue As New ToolStripMenuItem With {
             .Name = "RevuePropositionsToolStripMenuItem",
-            .Text = "Revue des propositions (lecture seule)"}
+            .Text = "Revue des propositions (lecture seule)",
+            .ToolTipText = "Consulter le lot fourni en mémoire ou les instructions pour fournir des documents analysés et vérifiés."}
         AddHandler menuRevue.Click, AddressOf RevuePropositions_Click
         AnalyseToolStripMenuItem.DropDownItems.Add(menuRevue)
     End Sub
@@ -19,6 +20,8 @@ Public Class FrmPrincipale
     ''' <summary>
     ''' Ouvre une consultation du résultat fourni, sans chargement ni écriture externe.
     ''' L'appelant doit appeler cette méthode sur le thread de l'interface.
+    ''' Fournir le résultat de PropositionAnalyseAdapter.Proposer après vérification des
+    ''' documents analysés, de leur clé source et du sens débit/crédit. Aucun import ici.
     ''' </summary>
     Public Sub OuvrirRevuePropositions(resultat As PropositionDocumentService.Resultat)
         If resultat Is Nothing Then Throw New ArgumentNullException(NameOf(resultat))

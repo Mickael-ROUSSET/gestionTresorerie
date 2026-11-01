@@ -228,7 +228,8 @@ Public Class FrmPrincipaleRevueTests
                              Assert.AreEqual(DialogResult.Cancel, fermer.DialogResult)
                              Dim corriger = boutons.Single(Function(b) b.Name = "boutonCorriger")
                              Assert.IsFalse(corriger.Enabled)
-                             Assert.IsFalse(boutons.Any(Function(b) b.Text.ToLowerInvariant().Contains("approuver") OrElse b.Text.ToLowerInvariant().Contains("enregistrer")))
+                             Assert.AreEqual("&Fermer (sans enregistrer)", fermer.Text)
+                             Assert.IsFalse(boutons.Where(Function(b) b IsNot fermer).Any(Function(b) b.Text.ToLowerInvariant().Contains("approuver") OrElse b.Text.ToLowerInvariant().Contains("enregistrer")))
                              Dim grilles = disposition.Controls.OfType(Of DataGridView)().ToArray()
                              Assert.AreEqual(2, grilles.Length)
                              For Each grille In grilles
@@ -292,6 +293,13 @@ Public Class FrmPrincipaleRevueTests
                                                        Dim disposition = DirectCast(revue.Controls(0), TableLayoutPanel)
                                                        StringAssert.Contains(DirectCast(disposition.GetControlFromPosition(0, 0), Label).Text,
                                                                              "Aucune proposition")
+                                                       Dim aide = DirectCast(revue.Controls.Find("etatRevue", True)(0), Label)
+                                                       For Each instruction In {"documents déjà analysés", "clé source", "débit/crédit",
+                                                           "PropositionAnalyseAdapter.Proposer", "FrmPrincipale.OuvrirRevuePropositions(resultat)",
+                                                           "ne permet pas de sélectionner", "sans approbation ni enregistrement"}
+                                                           StringAssert.Contains(aide.Text, instruction,
+                                                               "Manuel hors ligne : Analyse > Revue ; lire comment faire fournir un lot vérifié, puis Fermer sans enregistrer.")
+                                                       Next
                                                        Assert.AreSame(revue.Controls.Find("etatRevue", True)(0),
                                                                       disposition.GetControlFromPosition(0, 0))
                                                        Assert.IsNull(revue.AcceptButton)

@@ -18,6 +18,7 @@ Public NotInheritable Class FrmRevuePropositions
     Public ReadOnly Property Session As PropositionSessionRevue
 
     Private ReadOnly sources As New Dictionary(Of DataGridViewRow, PropositionMouvement)()
+    Private ReadOnly instructionsRevue As String
     Private ReadOnly corriger As New Button With {
         .Name = "boutonCorriger", .Text = "Corriger la sélection (sans valider)",
         .AccessibleName = "Corriger la sélection (sans valider)", .AutoSize = True,
@@ -42,6 +43,8 @@ Public NotInheritable Class FrmRevuePropositions
         propositions.Columns("DateProposee").DefaultCellStyle.Format = "dd/MM/yyyy"
         propositions.Columns("Montant").ValueType = GetType(Decimal)
         propositions.Columns("Montant").DefaultCellStyle.Format = "N2"
+        propositions.Columns("CleSource").Frozen = True
+        propositions.Columns("CleSource").ToolTipText = "Clé fournie avec le document analysé ; à rapprocher du document vérifié par l'opérateur."
         For Each ligne In revue.Lignes
             propositions.Rows.Add(ligne.CleSource, ligne.TypeDocument, ligne.Reference,
                                   ligne.DateProposee, ligne.Montant,
@@ -58,7 +61,7 @@ Public NotInheritable Class FrmRevuePropositions
         Next
 
         Dim fermer As New Button With {
-            .Name = "boutonFermer", .Text = "&Fermer", .AccessibleName = "Fermer la revue",
+            .Name = "boutonFermer", .Text = "&Fermer (sans enregistrer)", .AccessibleName = "Fermer la revue sans enregistrer",
             .AutoSize = True, .Anchor = AnchorStyles.Right, .TabIndex = 3,
             .DialogResult = DialogResult.Cancel}
         AddHandler fermer.Click, Sub(sender As Object, e As EventArgs) Close()
@@ -73,13 +76,24 @@ Public NotInheritable Class FrmRevuePropositions
         disposition.RowStyles.Add(New RowStyle(SizeType.Percent, 35.0F))
         disposition.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         disposition.Controls.Add(New Label With {
-            .Name = "etatRevue", .AutoSize = True,
+            .Name = "etatRevue", .AutoSize = True, .MaximumSize = New Size(ClientSize.Width - 40, 0),
             .Text = If(revue.Lignes.Count = 0,
-                "Aucune proposition issue d'un document validé n'est disponible. " &
-                "Cette consultation en lecture seule ne charge aucune donnée.",
-                "Propositions — lecture seule")}, 0, 0)
+                If(revue.Rejets.Count = 0,
+                   "Aucune proposition : aucun lot exploitable n'a été fourni à cette revue.",
+                   "Aucune proposition : toutes les entrées du lot ont été rejetées. Consultez les diagnostics ci-dessous."),
+                $"{revue.Lignes.Count} proposition(s) — lecture seule") & Environment.NewLine &
+                "Pour fournir un lot : faites vérifier les documents déjà analysés, leur clé source et le sens débit/crédit. " &
+                "L'application appelante doit utiliser PropositionAnalyseAdapter.Proposer puis FrmPrincipale.OuvrirRevuePropositions(resultat). " &
+                "Ce menu ne permet pas de sélectionner ou d'analyser des fichiers." & Environment.NewLine &
+                "Rapprochez l'identité du document de chaque ligne de sa source vérifiée. " &
+                "La correction nécessite des sources correspondantes vérifiées ; elle reste en mémoire, sans approbation ni enregistrement. " &
+                "Annuler une correction conserve les valeurs précédentes. Fermer n'enregistre rien."}, 0, 0)
         disposition.Controls.Add(propositions, 0, 1)
-        disposition.Controls.Add(New Label With {.Text = "Entrées rejetées — diagnostics uniquement", .AutoSize = True}, 0, 2)
+        disposition.Controls.Add(New Label With {
+            .Name = "etatDiagnostics", .Text = If(revue.Rejets.Count = 0,
+                "Aucune entrée rejetée dans le lot fourni (cela ne vaut pas approbation).",
+                $"{revue.Rejets.Count} entrée(s) rejetée(s) — rapprochez l'index (base 0) et l'identité de la source ; vérifiez le motif avant de fournir un nouveau lot."),
+            .AutoSize = True, .MaximumSize = New Size(ClientSize.Width - 40, 0)}, 0, 2)
         disposition.Controls.Add(rejets, 0, 3)
         Dim actions As New FlowLayoutPanel With {.AutoSize = True, .Dock = DockStyle.Fill}
         actions.Controls.AddRange(New Control() {corriger, fermer})
@@ -87,6 +101,12 @@ Public NotInheritable Class FrmRevuePropositions
         AddHandler propositions.SelectionChanged, Sub() ActualiserAction(propositions)
         AddHandler corriger.Click, Sub() CorrigerSelection()
         Controls.Add(disposition)
+        instructionsRevue = DirectCast(Controls.Find("etatRevue", True)(0), Label).Text
+        AddHandler disposition.SizeChanged, Sub()
+                                               For Each etiquette In disposition.Controls.OfType(Of Label)()
+                                                   etiquette.MaximumSize = New Size(Math.Max(1, disposition.ClientSize.Width - 20), 0)
+                                               Next
+                                           End Sub
     End Sub
 
     ''' <summary>Sources déjà parsées, dans l'ordre exact de l'instantané, sans identité ambiguë.</summary>
@@ -164,7 +184,7 @@ Public NotInheritable Class FrmRevuePropositions
         Dim source = Session.Propositions(sources(ligne).CleSource)
         If source.Etat <> PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine Then Return False
         Dim etat = DirectCast(Controls.Find("etatRevue", True)(0), Label)
-        etat.Text = "Propositions — lecture seule"
+        etat.Text = instructionsRevue
         etat.ForeColor = SystemColors.ControlText
         Using correction As New FrmCorrectionProposition(source)
             Try
