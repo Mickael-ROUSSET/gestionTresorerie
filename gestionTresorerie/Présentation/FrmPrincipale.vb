@@ -105,6 +105,21 @@ Public Class FrmPrincipale
         Return workflow
     End Function
 
+    ''' <summary>
+    ''' Raccorde des messages IMAP strictement fictifs au menu de revue.
+    ''' Les pieces et JSON sont deja en memoire : aucun acces Gmail, fichier ou SQL.
+    ''' Une tentative invalide retire l'ancien lot pour eviter une revue obsolete.
+    ''' </summary>
+    Public Function PreparerRevueMessagesFictifs(
+        messages As System.Collections.Generic.IEnumerable(Of GmailDocumentSimulatedInbox.MessageFictif)
+    ) As GmailDocumentReviewWorkflow
+        DefinirWorkflowDocumentsAnalyses(Nothing)
+        If messages Is Nothing Then Throw New ArgumentNullException(NameOf(messages))
+        Dim workflow = GmailDocumentSimulatedInbox.PreparerRevue(messages)
+        DefinirWorkflowDocumentsAnalyses(workflow)
+        Return workflow
+    End Function
+
     Private Sub RevueDocumentsAnalyses_Click(sender As Object, e As EventArgs)
         If _workflowDocumentsAnalyses Is Nothing Then Return
         OuvrirRevueDocumentsAnalyses(_workflowDocumentsAnalyses)
