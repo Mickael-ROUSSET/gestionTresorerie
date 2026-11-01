@@ -83,6 +83,24 @@ Public Class EmailProcessorFileNameTests
         Assert.AreEqual(1, reports)
     End Sub
 
+    <TestMethod>
+    Public Sub ReportImapFailure_ExceptionFictiveAvecDonneesPrivees_NeDivulgueRien()
+        Dim secretFictif = "C:\\Users\\prive\\secret.txt" & vbCrLf & "utilisateur@example.invalid"
+        Dim reports As New List(Of String)()
+        Dim method = GetType(EmailProcessor).GetMethod("ReportImapFailure", BindingFlags.NonPublic Or BindingFlags.Static)
+        Assert.IsNotNull(method)
+        For Each failure As Exception In New Exception() {
+            New IOException(secretFictif), New UnauthorizedAccessException(secretFictif)}
+            method.Invoke(Nothing, New Object() {failure, CType(Sub(value As String) reports.Add(value), Action(Of String))})
+        Next
+        Assert.AreEqual(2, reports.Count)
+        For Each message In reports
+            Assert.AreEqual("Connexion ou traitement IMAP interrompu. Verifier la configuration Gmail et relancer.", message)
+            Assert.IsFalse(message.Contains("example.invalid", StringComparison.Ordinal))
+            Assert.IsFalse(message.Contains("secret.txt", StringComparison.Ordinal))
+        Next
+    End Sub
+
     Private Shared Function InitialiserJournal(path As String, expected As Boolean, hasEntries As Boolean) As GmailImportJournal
         Dim method = GetType(EmailProcessor).GetMethod("TryInitializeJournal", BindingFlags.NonPublic Or BindingFlags.Static)
         Assert.IsNotNull(method)
@@ -253,6 +271,7 @@ Public Class EmailProcessorFileNameTests
 
             StringAssert.StartsWith(report.ToString(), "[ERREUR] Erreur initiale fictive" & Environment.NewLine)
             StringAssert.Contains(report.ToString(), "[ERREUR JOURNAL]")
+            Assert.IsFalse(report.ToString().Contains(logPath, StringComparison.Ordinal), "Le chemin prive ne doit pas figurer dans le rapport.")
             Assert.AreEqual("Entree precedente", File.ReadAllText(logPath))
         Finally
             Directory.Delete(folder, True)
