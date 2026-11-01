@@ -431,4 +431,42 @@ Public Class GmailDocumentExtractionAdapterTests
         Assert.ThrowsExactly(Of InvalidOperationException)(
             Sub() session.MarquerPersistee(pieces(2).CleSource))
     End Sub
+
+    <TestMethod>
+    Public Sub RacinesJsonNonObjets_SontRejeteesSansDivulgationEtSansValidation()
+        ' Une extraction IA peut renvoyer du JSON valide mais pas un objet.
+        ' Isoler ces reponses sans exposer le contenu ni perdre la piece suivante.
+        Const marqueur As String = "DONNEE_PRIVEE_FICTIVE_RACINE_JSON"
+        Dim jsonTexte As String = """" & marqueur & """"
+        Dim pieces As GmailDocumentExtractionAdapter.PieceJson() = {
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 51UI, 52UI, 0, "[]",
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 51UI, 52UI, 1, "null",
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 51UI, 52UI, 2, jsonTexte,
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 51UI, 52UI, 3, JsonFacture,
+                PropositionMouvement.SensMouvement.Debit)}
+        Dim resultat = GmailDocumentExtractionAdapter.ProposerLot(pieces)
+        Assert.AreEqual(3, resultat.Rejets.Count)
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        For index As Integer = 0 To 2
+            Assert.AreEqual(index, resultat.Rejets(index).IndexEntree)
+            Assert.AreEqual(pieces(index).CleSource, resultat.Rejets(index).CleSource)
+            Assert.AreEqual("Extraction JSON invalide ou non prise en charge.",
+                            resultat.Rejets(index).Motif)
+            Assert.IsFalse(resultat.Rejets(index).Motif.Contains(marqueur, StringComparison.Ordinal))
+        Next
+        Assert.AreEqual(pieces(3).CleSource, resultat.Propositions(0).CleSource)
+        Dim session As New PropositionSessionRevue(resultat.Propositions)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerApprouvee(pieces(3).CleSource))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerPersistee(pieces(3).CleSource))
+    End Sub
+
 End Class
