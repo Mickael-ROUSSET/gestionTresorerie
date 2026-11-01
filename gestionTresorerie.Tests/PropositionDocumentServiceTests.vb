@@ -170,4 +170,39 @@ Public Class PropositionDocumentServiceTests
         Assert.AreEqual(0, resultat.Rejets.Count)
         Assert.ThrowsExactly(Of ArgumentNullException)(Sub() service.Proposer(Nothing))
     End Sub
+    <TestMethod>
+    Public Sub DocumentInvalideReserveSonIdentifiant_SecondRejeteEtTroisiemeConserve()
+        ' Un document fictif invalide ne libere pas son IdDoc pour un autre objet du lot.
+        Dim invalide = FactureFictive()
+        invalide.IdDoc = 27
+        invalide.montant_ttc = -1D
+        Dim doublon = ChequeFictif()
+        doublon.IdDoc = 27
+        Dim distinct = ChequeFictif()
+        distinct.IdDoc = 28
+
+        Dim resultat = New PropositionDocumentService().Proposer({
+            Entree(invalide, "piece-invalide"),
+            Entree(doublon, "piece-meme-id"),
+            Entree(distinct, "piece-distincte")})
+
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual("piece-distincte", resultat.Propositions(0).CleSource)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual(0, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual("piece-invalide", resultat.Rejets(0).CleSource)
+        Assert.AreEqual(1, resultat.Rejets(1).IndexEntree)
+        Assert.AreEqual("piece-meme-id", resultat.Rejets(1).CleSource)
+        Assert.AreEqual("Identifiant document duplique dans le lot.", resultat.Rejets(1).Motif)
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                        resultat.Propositions(0).Etat)
+        Dim session As New PropositionSessionRevue(resultat.Propositions)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerApprouvee("piece-distincte"))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerPersistee("piece-distincte"))
+        Assert.AreEqual(-1D, invalide.montant_ttc)
+        Assert.AreEqual(0, distinct.IdMvtDoc)
+    End Sub
+
 End Class
