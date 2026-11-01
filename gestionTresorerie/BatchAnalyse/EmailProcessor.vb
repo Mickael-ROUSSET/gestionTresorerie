@@ -77,11 +77,18 @@ Public Class EmailProcessor
 
                 client.Disconnect(True)
             Catch ex As Exception
-                LogAndReportError(ex.Message)
+                ReportImapFailure(ex, AddressOf LogAndReportError)
             Finally
                 SaveFinalReport()
             End Try
         End Using
+    End Sub
+
+    ' Une exception IMAP peut contenir des adresses, des chemins ou des secrets.
+    ' Ne transmettre au rapport et au journal qu'un diagnostic borne.
+    Private Shared Sub ReportImapFailure(failure As Exception, reportError As Action(Of String))
+        If failure Is Nothing Then Throw New ArgumentNullException(NameOf(failure))
+        reportError("Connexion ou traitement IMAP interrompu. Verifier la configuration Gmail et relancer.")
     End Sub
 
     ' --- Sous-Modules Spécialisés ---
