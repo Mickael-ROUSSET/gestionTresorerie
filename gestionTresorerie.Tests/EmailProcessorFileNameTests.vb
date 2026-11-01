@@ -511,6 +511,24 @@ Public Class EmailProcessorFileNameTests
     End Sub
 
     <TestMethod>
+    Public Sub NomsMime_AucunControleBidiNeMasqueLesIdentitesDansLesRapports()
+        ' Donnees exclusivement fictives : les controles bidi ne doivent pas
+        ' inverser visuellement un nom de piece ou un expediteur dans le rapport.
+        For Each caractere As Char In New Char() {
+            ChrW(&H61C), ChrW(&H200E), ChrW(&H200F),
+            ChrW(&H202A), ChrW(&H202E), ChrW(&H2066), ChrW(&H2069)}
+            Dim nom = "facture" & caractere & "2026.pdf"
+            Assert.AreEqual("facture_2026.pdf", AppelerUtilitaire("CleanFileName", nom))
+            Assert.AreEqual("facture_2026.pdf", AppelerUtilitaire("GetAttachmentFileName", nom, Nothing))
+            Dim expediteur = "fictif" & caractere & "@example.invalid"
+            Assert.AreEqual("fictif_@example.invalid",
+                            AppelerUtilitaire("SanitizeSenderForReport", expediteur))
+        Next
+        ' Les lettres ordinaires des langues RTL ne doivent pas etre supprimees.
+        Assert.AreEqual("مرحبا.pdf", AppelerUtilitaire("CleanFileName", "مرحبا.pdf"))
+    End Sub
+
+    <TestMethod>
     Public Sub CleanFileName_RemplaceLesCaracteresInterdits()
         Dim nettoye = AppelerUtilitaire("CleanFileName", "facture:2026?.pdf")
 
