@@ -404,6 +404,29 @@ Public Class EmailProcessorFileNameTests
     End Sub
 
     <TestMethod>
+    Public Sub TryResolveInitialImportCutoff_NeDivulguePasLeContenuInvalide()
+        Dim folder = Path.Combine(Path.GetTempPath(), "GmailCutoffTests_" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(folder)
+        Try
+            Dim cutoffFile = Path.Combine(folder, "cutoff.txt")
+            Const contenuPrive As String = "DONNEE_CONFIDENTIELLE_FICTIVE_2026"
+            File.WriteAllText(cutoffFile, contenuPrive)
+            Dim methode = GetType(EmailProcessor).GetMethod("TryResolveInitialImportCutoff", BindingFlags.NonPublic Or BindingFlags.Static)
+            Assert.IsNotNull(methode)
+            Dim rapport As New System.Text.StringBuilder()
+            Dim arguments As Object() = {cutoffFile, Nothing, Nothing, rapport}
+            Assert.IsFalse(CBool(methode.Invoke(Nothing, arguments)))
+            Assert.IsNull(arguments(2))
+            StringAssert.Contains(rapport.ToString(), "gmail_import_cutoff.txt")
+            Assert.IsFalse(rapport.ToString().Contains(contenuPrive, StringComparison.Ordinal))
+            Assert.IsFalse(rapport.ToString().Contains(cutoffFile, StringComparison.Ordinal))
+            Assert.AreEqual(contenuPrive, File.ReadAllText(cutoffFile))
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
     Public Sub TryResolveInitialImportCutoff_FichierVerrouille_BloqueEtRapporteErreur()
         Dim folder = Path.Combine(Path.GetTempPath(), "GmailCutoffTests_" & Guid.NewGuid().ToString("N"))
         Directory.CreateDirectory(folder)
@@ -428,6 +451,7 @@ Public Class EmailProcessorFileNameTests
             Assert.IsNull(arguments(2), "Aucune date de repli ne doit autoriser l'import.")
             StringAssert.Contains(report.ToString(), "[ERREUR] Import Gmail bloque")
             StringAssert.Contains(report.ToString(), "gmail_import_cutoff.txt")
+            Assert.IsFalse(report.ToString().Contains(cutoffFile, StringComparison.Ordinal), "Le chemin prive ne doit pas figurer dans le rapport.")
         Next
     End Sub
 
