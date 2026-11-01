@@ -23,6 +23,52 @@ Public Class PropositionDocumentServiceTests
     End Function
 
     <TestMethod>
+    Public Sub IdentifiantDocumentDuplique_RejeteMemeAvecObjetsEtClesDifferents()
+        Dim facture = FactureFictive()
+        Dim cheque = ChequeFictif()
+        facture.IdDoc = 27
+        cheque.IdDoc = 27
+        Dim resultat = New PropositionDocumentService().Proposer({Entree(facture, "a"), Entree(cheque, "b")})
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual(1, resultat.Rejets.Count)
+        Assert.AreEqual(1, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual("Identifiant document duplique dans le lot.", resultat.Rejets(0).Motif)
+    End Sub
+
+    <TestMethod>
+    Public Sub MemeObjetSousDeuxIdentites_RejeteSansEtatEntreAppels()
+        Dim document = FactureFictive()
+        Dim service As New PropositionDocumentService()
+        For repetition = 1 To 2
+            Dim resultat = service.Proposer({Entree(document, "a"), Entree(document, "b"), Entree(ChequeFictif(), "c")})
+            Assert.AreEqual(2, resultat.Propositions.Count)
+            Assert.AreEqual(1, resultat.Rejets.Count)
+            Assert.AreEqual(1, resultat.Rejets(0).IndexEntree)
+            Assert.AreEqual("b", resultat.Rejets(0).CleSource)
+            Assert.AreEqual("Document deja present dans le lot sous une autre cle source.", resultat.Rejets(0).Motif)
+        Next
+    End Sub
+
+    <TestMethod>
+    Public Sub IdentifiantsNonAttribuesZero_AccepteDocumentsDistincts()
+        ' IdDoc = 0 signifie non attribue : deux objets distincts restent admissibles.
+        Dim premiere = FactureFictive()
+        Dim seconde = FactureFictive()
+        Assert.AreEqual(0, premiere.IdDoc)
+        Assert.AreEqual(0, seconde.IdDoc)
+        Dim resultat = New PropositionDocumentService().Proposer({
+            Entree(premiere, "message-1/piece-0"),
+            Entree(seconde, "message-2/piece-0")})
+        Assert.AreEqual(0, resultat.Rejets.Count)
+        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual("message-1/piece-0", resultat.Propositions(0).CleSource)
+        Assert.AreEqual("message-2/piece-0", resultat.Propositions(1).CleSource)
+        For Each proposition In resultat.Propositions
+            Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine, proposition.Etat)
+        Next
+    End Sub
+
+    <TestMethod>
     Public Sub LotMixte_RetourneDesPropositionsNonApprouveesSansModifierLesDocuments()
         Dim facture = FactureFictive()
         Dim cheque = ChequeFictif()
@@ -124,4 +170,67 @@ Public Class PropositionDocumentServiceTests
         Assert.AreEqual(0, resultat.Rejets.Count)
         Assert.ThrowsExactly(Of ArgumentNullException)(Sub() service.Proposer(Nothing))
     End Sub
+    <TestMethod>
+    Public Sub DocumentInvalideReserveSonIdentifiant_SecondRejeteEtTroisiemeConserve()
+        ' Un document fictif invalide ne libere pas son IdDoc pour un autre objet du lot.
+        Dim invalide = FactureFictive()
+        invalide.IdDoc = 27
+        invalide.montant_ttc = -1D
+        Dim doublon = ChequeFictif()
+        doublon.IdDoc = 27
+        Dim distinct = ChequeFictif()
+        distinct.IdDoc = 28
+
+        Dim resultat = New PropositionDocumentService().Proposer({
+            Entree(invalide, "piece-invalide"),
+            Entree(doublon, "piece-meme-id"),
+            Entree(distinct, "piece-distincte")})
+
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual("piece-distincte", resultat.Propositions(0).CleSource)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual(0, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual("piece-invalide", resultat.Rejets(0).CleSource)
+        Assert.AreEqual(1, resultat.Rejets(1).IndexEntree)
+        Assert.AreEqual("piece-meme-id", resultat.Rejets(1).CleSource)
+        Assert.AreEqual("Identifiant document duplique dans le lot.", resultat.Rejets(1).Motif)
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                        resultat.Propositions(0).Etat)
+        Dim session As New PropositionSessionRevue(resultat.Propositions)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerApprouvee("piece-distincte"))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerPersistee("piece-distincte"))
+        Assert.AreEqual(-1D, invalide.montant_ttc)
+        Assert.AreEqual(0, distinct.IdMvtDoc)
+    End Sub
+
+    <TestMethod>
+    Public Sub DocumentInvalideSansId_ReserveSaReferenceEtIsoleLeDocumentSuivant()
+        ' Meme avec IdDoc = 0, une piece invalide reserve sa reference dans ce lot.
+        Dim invalide = FactureFictive()
+        invalide.montant_ttc = 0D
+        Assert.AreEqual(0, invalide.IdDoc)
+        Dim distinct = ChequeFictif()
+
+        Dim resultat = New PropositionDocumentService().Proposer({
+            Entree(invalide, "invalide"),
+            Entree(invalide, "meme-objet-autre-cle"),
+            Entree(distinct, "valide")})
+
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual("valide", resultat.Propositions(0).CleSource)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual(0, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual("invalide", resultat.Rejets(0).CleSource)
+        Assert.AreEqual(1, resultat.Rejets(1).IndexEntree)
+        Assert.AreEqual("meme-objet-autre-cle", resultat.Rejets(1).CleSource)
+        Assert.AreEqual("Document deja present dans le lot sous une autre cle source.",
+                        resultat.Rejets(1).Motif)
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                        resultat.Propositions(0).Etat)
+        Assert.AreEqual(0D, invalide.montant_ttc)
+        Assert.AreEqual(0, distinct.IdMvtDoc)
+    End Sub
+
 End Class

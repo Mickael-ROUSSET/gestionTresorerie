@@ -126,13 +126,19 @@ Public Class GmailDocumentPropositionAdapterTests
     <TestMethod>
     Public Sub DeuxComptesEtDeuxMessagesMemeUid_PiecesSansCollision()
         ' Les identifiants IMAP sont locaux a chaque compte et a chaque message.
+        ' Chaque pièce fictive de compte/message distinct possède un IdDoc distinct.
+        Dim factureAlpha = FactureFictive()
+        Dim factureBeta = FactureFictive()
+        factureBeta.IdDoc = 503
+        Dim factureSuivante = FactureFictive()
+        factureSuivante.IdDoc = 504
         Dim pieces = {
             New GmailDocumentPropositionAdapter.PieceAnalysee(
-                "alpha@example.invalid", 12UI, 34UI, 0, FactureFictive(), PropositionMouvement.SensMouvement.Debit),
+                "alpha@example.invalid", 12UI, 34UI, 0, factureAlpha, PropositionMouvement.SensMouvement.Debit),
             New GmailDocumentPropositionAdapter.PieceAnalysee(
-                "beta@example.invalid", 12UI, 34UI, 0, FactureFictive(), PropositionMouvement.SensMouvement.Debit),
+                "beta@example.invalid", 12UI, 34UI, 0, factureBeta, PropositionMouvement.SensMouvement.Debit),
             New GmailDocumentPropositionAdapter.PieceAnalysee(
-                "alpha@example.invalid", 12UI, 35UI, 0, FactureFictive(), PropositionMouvement.SensMouvement.Debit)}
+                "alpha@example.invalid", 12UI, 35UI, 0, factureSuivante, PropositionMouvement.SensMouvement.Debit)}
         Dim adapter As New GmailDocumentPropositionAdapter()
         Dim premiere = adapter.Proposer(pieces)
         Dim reprise = adapter.Proposer(pieces)
