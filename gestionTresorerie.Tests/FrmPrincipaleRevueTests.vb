@@ -417,4 +417,41 @@ Public Class FrmPrincipaleRevueTests
                      End Sub)
     End Sub
 
+    <TestMethod>
+    Public Sub MenuDemonstration_OuvreUneRevueFictiveDepuisLEcranPrincipalSansSQL()
+        ' Le clic reste entièrement en mémoire : aucune ouverture du parent,
+        ' aucun compte Gmail, aucune base comptable et aucune approbation.
+        SurThreadSta(Sub()
+                         Using principale As New PrincipaleSimulationIsolee()
+                             Dim demo = DirectCast(principale.MainMenuStrip.Items.Find(
+                                 "DemoDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
+                             Dim revue = DirectCast(principale.MainMenuStrip.Items.Find(
+                                 "RevueDocumentsAnalysesToolStripMenuItem", True)(0), ToolStripMenuItem)
+                             Assert.IsTrue(demo.Enabled)
+                             Assert.IsFalse(revue.Enabled)
+                             Assert.AreEqual("AnalyseToolStripMenuItem", demo.OwnerItem.Name)
+                             principale.Examiner = Sub(formulaire)
+                                                       Dim propositions = DirectCast(formulaire.Controls.Find(
+                                                           "grillePropositions", True)(0), DataGridView)
+                                                       Dim rejets = DirectCast(formulaire.Controls.Find(
+                                                           "grilleRejets", True)(0), DataGridView)
+                                                       Assert.AreEqual(1, propositions.Rows.Count)
+                                                       Assert.AreEqual(1, rejets.Rows.Count)
+                                                       Assert.AreEqual("DEMO-001", propositions.Rows(0).Cells("Reference").Value)
+                                                       Assert.AreEqual(42.5D, propositions.Rows(0).Cells("Montant").Value)
+                                                       Assert.AreEqual("En attente de revue humaine",
+                                                                       propositions.Rows(0).Cells("Statut").Value)
+                                                       Assert.AreEqual(1, rejets.Rows(0).Cells("IndexEntree").Value)
+                                                       Assert.IsFalse(formulaire.IsHandleCreated)
+                                                   End Sub
+                             demo.PerformClick()
+                             Assert.AreEqual(1, principale.NombrePresentations)
+                             Assert.IsTrue(revue.Enabled)
+                             revue.PerformClick()
+                             Assert.AreEqual(2, principale.NombrePresentations)
+                             Assert.IsFalse(principale.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
+
 End Class
