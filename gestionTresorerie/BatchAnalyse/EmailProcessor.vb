@@ -145,6 +145,7 @@ Public Class EmailProcessor
         ' 1. Récupération et nettoyage du nom
         Dim fileName As String = GetAttachmentFileName(attachment.ContentDisposition?.FileName, attachment.ContentType.Name)
         fileName = CleanFileName(fileName)
+        Dim safeSender = SanitizeSenderForReport(senderInfo)
 
         ' Ecrire d'abord dans un fichier temporaire reserve exclusivement.
         Dim desiredPath = Path.Combine(targetFolder, fileName)
@@ -160,11 +161,11 @@ Public Class EmailProcessor
 
             Dim storedPath = AttachmentStorage.StoreTemporaryFile(temporaryPath, desiredPath)
             If storedPath Is Nothing Then
-                _rapport.AppendLine($"[PJ] Doublon SHA-256 ignoré : {fileName} (De: {senderInfo})")
+                _rapport.AppendLine($"[PJ] Doublon SHA-256 ignoré : {fileName} (De: {safeSender})")
                 Return
             End If
             _statsTotalPJ += 1
-            _rapport.AppendLine($"[PJ] Enregistré : {Path.GetFileName(storedPath)} (De: {senderInfo})")
+            _rapport.AppendLine($"[PJ] Enregistré : {Path.GetFileName(storedPath)} (De: {safeSender})")
         Finally
             If File.Exists(temporaryPath) Then File.Delete(temporaryPath)
         End Try
@@ -332,6 +333,22 @@ Public Class EmailProcessor
         End If
         If reserved Then name = "_" & name
         Return name
+    End Function
+
+    ' Un nom d'expediteur MIME n'est pas une ligne de journal fiable :
+    ' supprimer les retours et separateurs Unicode, et borner sa longueur.
+    Private Shared Function SanitizeSenderForReport(senderInfo As String) As String
+        If String.IsNullOrWhiteSpace(senderInfo) Then Return "inconnu"
+        Dim result As New StringBuilder()
+        For Each ch As Char In senderInfo
+            If result.Length >= 160 Then Exit For
+            If Char.IsControl(ch) OrElse ch = ChrW(&H2028) OrElse ch = ChrW(&H2029) Then
+                result.Append("_"c)
+            Else
+                result.Append(ch)
+            End If
+        Next
+        Return result.ToString()
     End Function
 
     Private Shared Function EnsureUniqueFileName(pathFile As String) As String
