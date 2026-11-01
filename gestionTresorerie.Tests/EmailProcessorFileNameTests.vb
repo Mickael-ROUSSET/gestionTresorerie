@@ -6,6 +6,85 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 <TestClass>
 Public Class EmailProcessorFileNameTests
     <TestMethod>
+    Public Sub ProcessAttachments_SansActivationExplicite_NeTouchePasAuxRessources()
+        ' Ce chemin doit sortir avant toute lecture de configuration ou ecriture.
+        EmailProcessor.ProcessAttachments()
+        EmailProcessor.ProcessAttachments(New DateTime(2026, 10, 1))
+    End Sub
+
+    <TestMethod>
+    Public Sub ValidateGmailConfiguration_DonneesFictives_ValideSansAccesExterne()
+        Dim method = GetType(EmailProcessor).GetMethod("ValidateGmailConfiguration", BindingFlags.NonPublic Or BindingFlags.Static)
+        Assert.IsNotNull(method)
+        Const account As String = "offline@example.invalid"
+        Const password As String = "FAUX_SECRET_HORS_LIGNE"
+        Assert.IsNull(method.Invoke(Nothing, New Object() {account, password}))
+        For Each invalid In New String() {Nothing, "", " ", "adresse-invalide", "Nom <offline@example.invalid>", account & vbCrLf}
+            Dim diagnostic = CStr(method.Invoke(Nothing, New Object() {invalid, password}))
+            StringAssert.Contains(diagnostic, "SmtpUsername")
+            Assert.IsFalse(diagnostic.Contains(password, StringComparison.Ordinal))
+            Assert.IsFalse(diagnostic.Contains(account, StringComparison.Ordinal))
+            If Not String.IsNullOrWhiteSpace(invalid) Then Assert.IsFalse(diagnostic.Contains(invalid, StringComparison.Ordinal))
+        Next
+        For Each invalid In New String() {Nothing, "", " ", password & vbCrLf, password & ChrW(0)}
+            Dim diagnostic = CStr(method.Invoke(Nothing, New Object() {account, invalid}))
+            StringAssert.Contains(diagnostic, "mot de passe d'application")
+            Assert.IsFalse(diagnostic.Contains(password, StringComparison.Ordinal))
+            Assert.IsFalse(diagnostic.Contains(account, StringComparison.Ordinal))
+        Next
+    End Sub
+
+    <TestMethod>
+    Public Sub ConnectAndAuthenticate_ClientSimule_UtiliseTlsEtLesParametresValides()
+        Dim client As New Moq.Mock(Of MailKit.Net.Imap.IImapClient)(Moq.MockBehavior.Strict)
+        Dim events As New List(Of String)()
+        client.Setup(Sub(c) c.Connect("imap.gmail.com", 993, True, System.Threading.CancellationToken.None)).Callback(Sub() events.Add("TLS"))
+        client.Setup(Sub(c) c.Authenticate("offline@example.invalid", "FAUX_SECRET", System.Threading.CancellationToken.None)).Callback(Sub() events.Add("auth"))
+        Dim method = GetType(EmailProcessor).GetMethod("ConnectAndAuthenticate", BindingFlags.NonPublic Or BindingFlags.Static)
+        Assert.IsNotNull(method)
+        method.Invoke(Nothing, New Object() {client.Object, "offline@example.invalid", "FAUX_SECRET"})
+        CollectionAssert.AreEqual(New String() {"TLS", "auth"}, events)
+        client.VerifyAll()
+        client.VerifyNoOtherCalls()
+    End Sub
+
+    <TestMethod>
+    Public Sub ConnectAndAuthenticate_ReseauIndisponible_NeTentePasAuthentification()
+        Dim client As New Moq.Mock(Of MailKit.Net.Imap.IImapClient)(Moq.MockBehavior.Strict)
+        client.Setup(Sub(c) c.Connect("imap.gmail.com", 993, True, System.Threading.CancellationToken.None)).Throws(New System.Net.Sockets.SocketException())
+        Dim method = GetType(EmailProcessor).GetMethod("ConnectAndAuthenticate", BindingFlags.NonPublic Or BindingFlags.Static)
+        Assert.IsNotNull(method)
+        Dim failure = Assert.ThrowsExactly(Of TargetInvocationException)(
+            Sub() method.Invoke(Nothing, New Object() {client.Object, "offline@example.invalid", "FAUX_SECRET"}))
+        Assert.IsInstanceOfType(Of System.Net.Sockets.SocketException)(failure.InnerException)
+        client.Verify(Sub(c) c.Connect("imap.gmail.com", 993, True, System.Threading.CancellationToken.None), Moq.Times.Once())
+        client.VerifyNoOtherCalls()
+    End Sub
+
+    <TestMethod>
+    Public Sub ReportImapFailure_DiagnosticsActionnables_SansDetailsPrives()
+        Const secret As String = "FAUX_SECRET offline@example.invalid C:\prive" & vbCrLf & "INJECTION"
+        Dim failures As Exception() = {
+            New MailKit.Security.AuthenticationException(secret),
+            New System.Security.Authentication.AuthenticationException(secret),
+            New TimeoutException(secret),
+            New System.Net.Sockets.SocketException()}
+        Dim expected = {"mot de passe d'application", "ne pas desactiver la validation TLS", "imap.gmail.com:993", "imap.gmail.com:993"}
+        Dim method = GetType(EmailProcessor).GetMethod("ReportImapFailure", BindingFlags.NonPublic Or BindingFlags.Static)
+        Assert.IsNotNull(method)
+        For index = 0 To failures.Length - 1
+            Dim messages As New List(Of String)()
+            Dim report As Action(Of String) = Sub(value) messages.Add(value)
+            method.Invoke(Nothing, New Object() {failures(index), report})
+            Assert.AreEqual(1, messages.Count)
+            StringAssert.Contains(messages(0), expected(index))
+            For Each privateValue In New String() {"FAUX_SECRET", "offline@example.invalid", "C:\prive", "INJECTION", vbCr, vbLf}
+                Assert.IsFalse(messages(0).Contains(privateValue, StringComparison.Ordinal))
+            Next
+        Next
+    End Sub
+
+    <TestMethod>
     <TestCategory("OfflineWindowsAcceptance")>
     <DataRow("facture été 日本語.pdf", "facture été 日本語.pdf")>
     <DataRow("..\facture.pdf", "facture.pdf")>

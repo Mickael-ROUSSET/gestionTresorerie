@@ -22,7 +22,24 @@ Public Class EmailProcessor
     ''' <summary>
     ''' Point d'entrée principal modularisé
     ''' </summary>
-    Public Shared Sub ProcessAttachments(Optional initialImportCutoff As DateTime? = Nothing)
+    Public Shared Sub ProcessAttachments(Optional initialImportCutoff As DateTime? = Nothing,
+                                         Optional enableRealGmail As Boolean = False)
+        ' Aucun acces aux parametres, dossiers ou reseau sans activation explicite.
+        If Not enableRealGmail Then Return
+        Dim account As String = Nothing
+        Dim password As String = Nothing
+        Dim configurationError As String = Nothing
+        Try
+            account = LectureProprietes.GetVariable("SmtpUsername")
+            password = GlobalSettings.GmailPassword
+            configurationError = ValidateGmailConfiguration(account, password)
+        Catch ex As Exception
+            configurationError = "Configuration Gmail inaccessible. Verifier SmtpUsername et le mot de passe d'application dans les parametres locaux."
+        End Try
+        If configurationError IsNot Nothing Then
+            Diagnostics.Trace.TraceError(configurationError)
+            Return
+        End If
         ' Création du dossier s'il n'existe pas
         LogFile = Path.Combine(LectureProprietes.GetVariable("repRacineAgumaaa"),
             LectureProprietes.GetVariable("repRacineDocuments"),
@@ -57,7 +74,7 @@ Public Class EmailProcessor
 
         Using client As New ImapClient()
             Try
-                ConnectAndAuthenticate(client)
+                ConnectAndAuthenticate(client, account, password)
                 Dim inbox = client.Inbox
                 inbox.Open(FolderAccess.ReadOnly)
 
@@ -65,7 +82,6 @@ Public Class EmailProcessor
                 Dim query = SearchQuery.All
                 If effectiveCutoff.HasValue Then query = SearchQuery.DeliveredAfter(effectiveCutoff.Value.Date)
                 Dim uids = inbox.Search(query)
-                Dim account = LectureProprietes.GetVariable("SmtpUsername")
                 Dim validity As UInteger = inbox.UidValidity
                 For Each uid In uids
                     Dim key = GmailImportJournal.MakeKey(account, validity, uid.Id)
@@ -88,8 +104,36 @@ Public Class EmailProcessor
     ' Ne transmettre au rapport et au journal qu'un diagnostic borne.
     Private Shared Sub ReportImapFailure(failure As Exception, reportError As Action(Of String))
         If failure Is Nothing Then Throw New ArgumentNullException(NameOf(failure))
+        If TypeOf failure Is MailKit.Security.AuthenticationException Then
+            reportError("Authentification Gmail refusee. Verifier le compte et le mot de passe d'application dans les parametres locaux.")
+            Return
+        End If
+        If TypeOf failure Is MailKit.Security.SslHandshakeException OrElse
+           TypeOf failure Is System.Security.Authentication.AuthenticationException Then
+            reportError("Connexion TLS Gmail impossible. Verifier la date du poste, les certificats et le proxy ; ne pas desactiver la validation TLS.")
+            Return
+        End If
+        If TypeOf failure Is System.Net.Sockets.SocketException OrElse TypeOf failure Is TimeoutException Then
+            reportError("Serveur IMAP Gmail inaccessible ou delai depasse. Verifier DNS, reseau et pare-feu pour imap.gmail.com:993.")
+            Return
+        End If
         reportError("Connexion ou traitement IMAP interrompu. Verifier la configuration Gmail et relancer.")
     End Sub
+
+    ' Validation pure : ni lecture de secrets, ni connexion, ni ecriture de fichiers.
+    Private Shared Function ValidateGmailConfiguration(account As String, password As String) As String
+        Dim address As System.Net.Mail.MailAddress = Nothing
+        If String.IsNullOrWhiteSpace(account) OrElse
+           Not System.Net.Mail.MailAddress.TryCreate(account, address) OrElse
+           Not String.Equals(address.Address, account, StringComparison.Ordinal) OrElse
+           account.Any(Function(c) Char.IsWhiteSpace(c) OrElse Char.IsControl(c)) Then
+            Return "Configuration Gmail invalide. Renseigner SmtpUsername avec une adresse email seule."
+        End If
+        If String.IsNullOrWhiteSpace(password) OrElse password.Any(Function(c) Char.IsControl(c)) Then
+            Return "Configuration Gmail invalide. Renseigner le mot de passe d'application dans les parametres locaux (sans caracteres de controle)."
+        End If
+        Return Nothing
+    End Function
 
     ' --- Sous-Modules Spécialisés ---
 
@@ -115,10 +159,9 @@ Public Class EmailProcessor
         Return True
     End Function
 
-    Private Shared Sub ConnectAndAuthenticate(ByRef client As ImapClient)
+    Private Shared Sub ConnectAndAuthenticate(client As IImapClient, account As String, password As String)
         client.Connect("imap.gmail.com", 993, True)
-        'client.Authenticate(LectureProprietes.GetVariable("SmtpUsername"), LectureProprietes.GetVariable("SmtpPassword"))
-        client.Authenticate(LectureProprietes.GetVariable("SmtpUsername"), GlobalSettings.GmailPassword)
+        client.Authenticate(account, password)
     End Sub
 
     Private Shared Sub ProcessSingleEmail(inbox As IMailFolder, uid As UniqueId)
