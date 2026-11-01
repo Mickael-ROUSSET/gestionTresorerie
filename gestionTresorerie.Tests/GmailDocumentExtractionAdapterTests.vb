@@ -396,4 +396,39 @@ Public Class GmailDocumentExtractionAdapterTests
         Assert.ThrowsExactly(Of InvalidOperationException)(
             Sub() session.MarquerPersistee(pieces(1).CleSource))
     End Sub
+    <TestMethod>
+    Public Sub JsonValideMaisInexploitable_RejetSansDivulgationEtAutrePiecePreservee()
+        ' Une extraction syntaxiquement valide peut aussi contenir une donnee privee.
+        ' Le rejet ne doit pas reproduire cette donnee, meme hors erreur de parsing.
+        Const secretFictif As String = "MARQUEUR_CONFIDENTIEL_FICTIF_20261101"
+        Dim typeInconnu As String =
+            "{""type_document"":""" & secretFictif & """,""donnees_extraites"":{""transaction"":{}}}"
+        Dim transactionInvalide As String =
+            "{""type_document"":""Facture"",""donnees_extraites"":{""transaction"":""" & secretFictif & """}}"
+        Dim pieces As GmailDocumentExtractionAdapter.PieceJson() = {
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 31UI, 32UI, 0, typeInconnu,
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 31UI, 32UI, 1, transactionInvalide,
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 31UI, 32UI, 2, JsonFacture,
+                PropositionMouvement.SensMouvement.Debit)}
+        Dim resultat = GmailDocumentExtractionAdapter.ProposerLot(pieces)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual(pieces(2).CleSource, resultat.Propositions(0).CleSource)
+        For index As Integer = 0 To 1
+            Assert.AreEqual(index, resultat.Rejets(index).IndexEntree)
+            Assert.AreEqual(pieces(index).CleSource, resultat.Rejets(index).CleSource)
+            Assert.AreEqual("Extraction JSON invalide ou non prise en charge.", resultat.Rejets(index).Motif)
+            Assert.IsFalse(resultat.Rejets(index).Motif.Contains(secretFictif, StringComparison.Ordinal))
+        Next
+        Dim session As New PropositionSessionRevue(resultat.Propositions)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerApprouvee(pieces(2).CleSource))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerPersistee(pieces(2).CleSource))
+    End Sub
 End Class
