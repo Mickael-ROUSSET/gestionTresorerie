@@ -555,6 +555,59 @@ Public Class EmailProcessorFileNameTests
     End Sub
 
     <TestMethod>
+    Public Sub CleanFileName_InterditLesSeparateursDeLigneDansLesRapports()
+        ' Ces caracteres sont valides dans certains noms Unicode mais ne doivent
+        ' jamais introduire de nouvelle ligne dans un rapport de pieces jointes.
+        For Each caractere As Char In New Char() {ChrW(&H7F), ChrW(&H85), ChrW(&H2028), ChrW(&H2029)}
+            Dim nom = "facture" & caractere & "2026.pdf"
+            Dim attendu = "facture_2026.pdf"
+            Assert.AreEqual(attendu, AppelerUtilitaire("CleanFileName", nom))
+            Assert.AreEqual(attendu, AppelerUtilitaire("GetAttachmentFileName", nom, Nothing))
+            Assert.AreEqual(attendu, AppelerUtilitaire("GetAttachmentFileName", Nothing, nom))
+            Assert.AreEqual(attendu, AppelerUtilitaire("CleanFileName", attendu))
+        Next
+    End Sub
+
+    <TestMethod>
+    Public Sub NomsMime_AucunControleBidiNeMasqueLesIdentitesDansLesRapports()
+        ' Donnees exclusivement fictives : les controles bidi ne doivent pas
+        ' inverser visuellement un nom de piece ou un expediteur dans le rapport.
+        For Each caractere As Char In New Char() {
+            ChrW(&H61C), ChrW(&H200E), ChrW(&H200F),
+            ChrW(&H202A), ChrW(&H202E), ChrW(&H2066), ChrW(&H2069),
+            ChrW(&H206A), ChrW(&H206B), ChrW(&H206C),
+            ChrW(&H206D), ChrW(&H206E), ChrW(&H206F)}
+            Dim nom = "facture" & caractere & "2026.pdf"
+            Assert.AreEqual("facture_2026.pdf", AppelerUtilitaire("CleanFileName", nom))
+            Assert.AreEqual("facture_2026.pdf", AppelerUtilitaire("GetAttachmentFileName", nom, Nothing))
+            Dim expediteur = "fictif" & caractere & "@example.invalid"
+            Assert.AreEqual("fictif_@example.invalid",
+                            AppelerUtilitaire("SanitizeSenderForReport", expediteur))
+        Next
+        ' Les lettres ordinaires des langues RTL ne doivent pas etre supprimees.
+        Assert.AreEqual("مرحبا.pdf", AppelerUtilitaire("CleanFileName", "مرحبا.pdf"))
+    End Sub
+
+    <TestMethod>
+    Public Sub CleanFileName_NomsDosCOMLPTAvecChiffresExposants_SontNeutralises()
+        ' Windows reserve aussi COM¹, COM², COM³ et LPT¹, LPT², LPT³.
+        ' Les chiffres exposes restent valides dans les autres noms.
+        For Each prefixe In New String() {"COM", "LPT"}
+            For Each chiffre In New Char() {ChrW(&HB9), ChrW(&HB2), ChrW(&HB3)}
+                For Each suffixe In New String() {"", ".pdf", ".tar.gz", " .txt"}
+                    Dim nom = prefixe.ToLowerInvariant() & chiffre & suffixe
+                    Dim attendu = "_" & nom
+                    Assert.AreEqual(attendu, AppelerUtilitaire("CleanFileName", nom))
+                    Assert.AreEqual(attendu, AppelerUtilitaire("GetAttachmentFileName", nom, Nothing))
+                    Assert.AreEqual(attendu, AppelerUtilitaire("CleanFileName", attendu))
+                Next
+                Assert.AreEqual("facture" & chiffre & ".pdf",
+                                AppelerUtilitaire("CleanFileName", "facture" & chiffre & ".pdf"))
+            Next
+        Next
+    End Sub
+
+    <TestMethod>
     Public Sub EnsureUniqueFileName_ConserveUnCheminLibre()
         Dim chemin = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") & ".pdf")
 
