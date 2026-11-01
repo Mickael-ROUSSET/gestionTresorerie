@@ -45,7 +45,8 @@ Public NotInheritable Class PropositionAnalyseAdapter
             If mapping Is Nothing OrElse Not lot.Exists(Function(document) document IsNot Nothing AndAlso
                                                         Object.ReferenceEquals(document, mapping.Document)) Then
                 entrees.Add(New PropositionDocumentService.Entree(Nothing, If(mapping Is Nothing, Nothing, mapping.CleSource),
-                    PropositionMouvement.SensMouvement.Debit) With {.ErreurCorrespondance = "Correspondance sans document du lot."})
+                    PropositionMouvement.SensMouvement.Debit, If(mapping Is Nothing, Nothing, mapping.Provenance)) With {
+                    .ErreurCorrespondance = "Correspondance sans document du lot."})
             End If
         Next
         Return Proposer(entrees)

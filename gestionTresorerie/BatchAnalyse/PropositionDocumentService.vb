@@ -24,15 +24,18 @@ Public NotInheritable Class PropositionDocumentService
     End Class
 
     Public NotInheritable Class Rejet
-        Public Sub New(indexEntree As Integer, cleSource As String, motif As String)
+        Public Sub New(indexEntree As Integer, cleSource As String, motif As String,
+                       Optional provenance As String = Nothing)
             Me.IndexEntree = indexEntree
             Me.CleSource = cleSource
             Me.Motif = motif
+            Me.Provenance = provenance
         End Sub
 
         Public ReadOnly Property IndexEntree As Integer
         Public ReadOnly Property CleSource As String
         Public ReadOnly Property Motif As String
+        Public ReadOnly Property Provenance As String
     End Class
 
     ''' <summary>Instantane de provenance, sans reference au document analyse.</summary>
@@ -94,6 +97,8 @@ Public NotInheritable Class PropositionDocumentService
                 If entree.Document.IdDoc <> 0 AndAlso Not identifiants.Add(entree.Document.IdDoc) Then
                     Throw New ArgumentException("Identifiant document duplique dans le lot.")
                 End If
+                ' Seuls les contrats exacts sont connus : un sous-type exige un mapping explicite.
+                ' Ne jamais deduire le type depuis le chemin, la categorie ou les metadonnees.
                 If TypeOf entree.Document Is Facture Then
                     propositions.Add(PropositionMouvementMapper.Mapper(
                         DirectCast(entree.Document, Facture), cle, entree.Sens))
@@ -101,12 +106,12 @@ Public NotInheritable Class PropositionDocumentService
                     propositions.Add(PropositionMouvementMapper.Mapper(
                         DirectCast(entree.Document, Cheque), cle, entree.Sens))
                 Else
-                    Throw New ArgumentException("Type de document non pris en charge.")
+                    Throw New ArgumentException("Type de document inconnu ou ambigu : fournir une Facture ou un Cheque exact, ou definir un mapping explicite pour ce type.")
                 End If
                 sources.Add(New SourceProposition(index, entree))
             Catch ex As ArgumentException
                 ' Messages locaux ou validations du mapper, sans journalisation du document.
-                rejets.Add(New Rejet(index, cle, ex.Message))
+                rejets.Add(New Rejet(index, cle, ex.Message, If(entree Is Nothing, Nothing, entree.Provenance)))
             End Try
             index += 1
         Next

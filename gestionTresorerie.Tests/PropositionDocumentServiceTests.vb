@@ -1,4 +1,4 @@
-﻿Option Strict On
+Option Strict On
 Option Explicit On
 
 Imports System
@@ -22,6 +22,31 @@ Public Class PropositionDocumentServiceTests
         Return New PropositionDocumentService.Entree(document, cle, sens)
     End Function
 
+    <TestMethod>
+    Public Sub SousTypesCompatibles_AcceptesAvecProvenanceEtReservationDeCle()
+        ' Test doubles inherit Facture/Cheque; polymorphic mapping must remain supported.
+        Dim facture As New FactureSpecialisee With {.montant_ttc = 120D, .devise = "EUR", .date_facture = "2026-02-03"}
+        Dim cheque As New ChequeSpecialise With {.montant_numerique = 42D, .devise = "EUR", .dateChq = "20260203"}
+        Dim resultat = New PropositionDocumentService().Proposer({
+            New PropositionDocumentService.Entree(facture, " source ", PropositionMouvement.SensMouvement.Debit, " origine "),
+            Entree(ChequeFictif(), " source "), Entree(cheque, "cheque"), Entree(FactureFictive(), "valide")})
+        Assert.AreEqual(3, resultat.Propositions.Count)
+        Assert.AreEqual(3, resultat.Sources.Count)
+        Assert.AreEqual(" source ", resultat.Propositions(0).CleSource)
+        Assert.AreEqual(" origine ", resultat.Sources(0).Provenance)
+        Assert.AreEqual("cheque", resultat.Propositions(1).CleSource)
+        Assert.AreEqual("valide", resultat.Propositions(2).CleSource)
+        Assert.AreEqual(1, resultat.Rejets.Count)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(0).Motif)
+    End Sub
+
+    Private NotInheritable Class FactureSpecialisee
+        Inherits Facture
+    End Class
+
+    Private NotInheritable Class ChequeSpecialise
+        Inherits Cheque
+    End Class
     <TestMethod>
     Public Sub IdentifiantDocumentDuplique_RejeteMemeAvecObjetsEtClesDifferents()
         Dim facture = FactureFictive()

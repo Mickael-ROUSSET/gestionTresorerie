@@ -19,6 +19,26 @@ Public Class PropositionAnalyseAdapterTests
     End Function
 
     <TestMethod>
+    Public Sub DocumentsAnalyses_TypeInconnuEtSourceEtrangereConserventLeurProvenance()
+        Dim inconnu As New DocumentNonPrisEnCharge With {
+            .CategorieDoc = "Facture", .CheminDoc = "facture.pdf"}
+        Dim resultat = New PropositionAnalyseAdapter().ProposerDocuments({inconnu}, {
+            New PropositionDocumentService.Entree(inconnu, " inconnu ", PropositionMouvement.SensMouvement.Debit, " analyse "),
+            New PropositionDocumentService.Entree(ChequeFictif(), "etranger", PropositionMouvement.SensMouvement.Credit, "autre analyse")})
+        Assert.AreEqual(0, resultat.Propositions.Count)
+        Assert.AreEqual(0, resultat.Sources.Count)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual(" inconnu ", resultat.Rejets(0).CleSource)
+        Assert.AreEqual(" analyse ", resultat.Rejets(0).Provenance)
+        StringAssert.Contains(resultat.Rejets(0).Motif, "mapping explicite")
+        Assert.AreEqual("etranger", resultat.Rejets(1).CleSource)
+        Assert.AreEqual("autre analyse", resultat.Rejets(1).Provenance)
+        Assert.AreEqual("Correspondance sans document du lot.", resultat.Rejets(1).Motif)
+        Assert.AreEqual(0, inconnu.IdDoc)
+        Assert.AreEqual("facture.pdf", inconnu.CheminDoc)
+    End Sub
+
+    <TestMethod>
     Public Sub LotMixte_RespecteLesClesEtSensExplicitesSansModifierLesSources()
         Dim facture = FactureFictive()
         Dim cheque = ChequeFictif()
