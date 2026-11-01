@@ -370,4 +370,30 @@ Public Class GmailDocumentExtractionAdapterTests
         Assert.ThrowsExactly(Of InvalidOperationException)(
             Sub() session.MarquerPersistee(pieces(2).CleSource))
     End Sub
+
+    <TestMethod>
+    Public Sub JsonMalformeAvecMarqueurFictif_RejetSansDivulgationEtLotPoursuivi()
+        ' Une erreur de parsing ne doit jamais exposer le JSON source dans les rejets.
+        Const marqueur As String = "DONNEE_PRIVEE_FICTIVE_NE_PAS_JOURNALISER"
+        Dim pieces As GmailDocumentExtractionAdapter.PieceJson() = {
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 21UI, 22UI, 0, "{invalide:" & marqueur,
+                PropositionMouvement.SensMouvement.Debit),
+            New GmailDocumentExtractionAdapter.PieceJson(
+                "simulation@example.invalid", 21UI, 22UI, 1, JsonFacture,
+                PropositionMouvement.SensMouvement.Debit)}
+        Dim resultat = GmailDocumentExtractionAdapter.ProposerLot(pieces)
+        Assert.AreEqual(1, resultat.Rejets.Count)
+        Assert.AreEqual(0, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual(pieces(0).CleSource, resultat.Rejets(0).CleSource)
+        Assert.AreEqual("Extraction JSON invalide ou non prise en charge.", resultat.Rejets(0).Motif)
+        Assert.IsFalse(resultat.Rejets(0).Motif.Contains(marqueur, StringComparison.Ordinal))
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual(pieces(1).CleSource, resultat.Propositions(0).CleSource)
+        Dim session As New PropositionSessionRevue(resultat.Propositions)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerApprouvee(pieces(1).CleSource))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerPersistee(pieces(1).CleSource))
+    End Sub
 End Class
