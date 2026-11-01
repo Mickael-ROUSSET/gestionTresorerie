@@ -497,6 +497,20 @@ Public Class EmailProcessorFileNameTests
     End Sub
 
     <TestMethod>
+    Public Sub CleanFileName_InterditLesSeparateursDeLigneDansLesRapports()
+        ' Ces caracteres sont valides dans certains noms Unicode mais ne doivent
+        ' jamais introduire de nouvelle ligne dans un rapport de pieces jointes.
+        For Each caractere As Char In New Char() {ChrW(&H7F), ChrW(&H85), ChrW(&H2028), ChrW(&H2029)}
+            Dim nom = "facture" & caractere & "2026.pdf"
+            Dim attendu = "facture_2026.pdf"
+            Assert.AreEqual(attendu, AppelerUtilitaire("CleanFileName", nom))
+            Assert.AreEqual(attendu, AppelerUtilitaire("GetAttachmentFileName", nom, Nothing))
+            Assert.AreEqual(attendu, AppelerUtilitaire("GetAttachmentFileName", Nothing, nom))
+            Assert.AreEqual(attendu, AppelerUtilitaire("CleanFileName", attendu))
+        Next
+    End Sub
+
+    <TestMethod>
     Public Sub CleanFileName_RemplaceLesCaracteresInterdits()
         Dim nettoye = AppelerUtilitaire("CleanFileName", "facture:2026?.pdf")
 
