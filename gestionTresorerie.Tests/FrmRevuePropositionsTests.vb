@@ -102,7 +102,9 @@ Public Class FrmRevuePropositionsTests
                              Assert.AreEqual("Corriger la sélection (sans valider)", corriger.Text)
                              Assert.IsFalse(corriger.Enabled)
                              Assert.IsNull(formulaire.AcceptButton)
-                             Assert.AreEqual(2, Boutons(formulaire))
+                             Assert.AreEqual(3, Boutons(formulaire))
+                             Assert.IsFalse(DirectCast(formulaire.Controls.Find(
+                                 "boutonConfirmerExamen", True)(0), Button).Enabled)
                              Assert.IsFalse(formulaire.IsHandleCreated)
                          End Using
                          Assert.AreEqual(120.42D, facture.montant_ttc)
@@ -222,7 +224,7 @@ Public Class FrmRevuePropositionsTests
                              For Each colonne As DataGridViewColumn In grillePropositions.Columns
                                  Assert.IsTrue(colonne.ReadOnly)
                              Next
-                             Assert.AreEqual(2, Boutons(f))
+                             Assert.AreEqual(3, Boutons(f))
                              Assert.IsNull(f.AcceptButton)
                              Assert.IsFalse(f.IsHandleCreated)
                          End Using
@@ -407,6 +409,8 @@ Public Class FrmRevuePropositionsTests
                              reouverture.ActualiserSession()
                              Assert.AreEqual("En attente de revue humaine",
                                              tableau.Rows(0).Cells("Statut").Value)
+                             tableau.ClearSelection()
+                             tableau.Rows(0).Selected = True
                              Assert.IsTrue(DirectCast(reouverture.Controls.Find(
                                  "boutonConfirmerExamen", True)(0), Button).Enabled)
                              Assert.IsFalse(session.EstExamenConfirme(proposition.CleSource))
