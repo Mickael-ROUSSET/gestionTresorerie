@@ -5,6 +5,41 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 <TestClass>
 Public Class EmailProcessorFileNameTests
+    <TestMethod>
+    <TestCategory("OfflineWindowsAcceptance")>
+    <DataRow("facture été 日本語.pdf", "facture été 日本語.pdf")>
+    <DataRow("..\facture.pdf", "facture.pdf")>
+    <DataRow("CON.pdf", "CON.pdf")>
+    <DataRow("facture.pdf:flux", "facture.pdf:flux")>
+    Public Sub PieceJointeMime_AllerRetourHorsLigne_VerifieLeNomEtLeContenu(nom As String, attendu As String)
+        ' Public MIME APIs only: no ProcessAttachments, credentials or IMAP client.
+        ' BodyBuilder removes directory components but retains reserved/stream names.
+        ' Windows sanitization remains covered
+        ' by the existing CleanFileName tests below, not by this round-trip test.
+        Using message As New MimeKit.MimeMessage()
+            Dim builder As New MimeKit.BodyBuilder()
+            builder.Attachments.Add(nom, New Byte() {1, 2, 3})
+            message.Body = builder.ToMessageBody()
+            Using buffer As New MemoryStream()
+                message.WriteTo(buffer)
+                buffer.Position = 0
+                Using relu = MimeKit.MimeMessage.Load(buffer)
+                    Dim nombre = 0
+                    For Each piece In relu.Attachments
+                        Dim fichier = DirectCast(piece, MimeKit.MimePart)
+                        Assert.AreEqual(attendu, fichier.FileName)
+                        Using contenu As New MemoryStream()
+                            fichier.Content.DecodeTo(contenu)
+                            CollectionAssert.AreEqual(New Byte() {1, 2, 3}, contenu.ToArray())
+                        End Using
+                        nombre += 1
+                    Next
+                    Assert.AreEqual(1, nombre)
+                End Using
+            End Using
+        End Using
+    End Sub
+
     Private Shared Function TraiterMessage(uid As UInteger, processMessage As Action,
                                           markProcessed As Action, reportError As Action(Of String)) As Boolean
         Dim method = GetType(EmailProcessor).GetMethod("TryProcessMessage", BindingFlags.NonPublic Or BindingFlags.Static)

@@ -11,6 +11,57 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 <TestClass>
 Public Class FrmPrincipaleRevueTests
+    <TestMethod>
+    <TestCategory("OfflineWindowsAcceptance")>
+    Public Sub LotAvecDoublonEtTypeInconnu_DiagnosticsConsultablesSansChargerLeParent()
+        SurThreadSta(Sub()
+                         Dim cheque As New Cheque With {.IdDoc = 901, .montant_numerique = 12.34D,
+                             .devise = "EUR", .dateChq = "20260204", .numero_du_cheque = "0000123"}
+                         ' Le nom facture.pdf ne suffit pas pour reconnaitre le type du document.
+                         Dim inconnu = New Moq.Mock(Of DocumentAgumaaa)(Moq.MockBehavior.Strict).Object
+                         inconnu.CheminDoc = "facture.pdf"
+                         Dim resultat = New PropositionAnalyseAdapter().Proposer({
+                             New PropositionDocumentService.Entree(cheque, "valide", PropositionMouvement.SensMouvement.Debit),
+                             New PropositionDocumentService.Entree(cheque, "doublon", PropositionMouvement.SensMouvement.Debit),
+                             New PropositionDocumentService.Entree(inconnu, "inconnu", PropositionMouvement.SensMouvement.Debit)})
+                         Assert.AreEqual(1, resultat.Propositions.Count)
+                         Assert.AreEqual(2, resultat.Rejets.Count)
+                         StringAssert.Contains(resultat.Rejets(0).Motif, "Document deja present")
+                         StringAssert.Contains(resultat.Rejets(1).Motif, "Type de document inconnu ou ambigu")
+                         Using principale As New PrincipaleIsolee()
+                             principale.Examiner = Sub(revue)
+                                                       VerifierLectureSeule(revue)
+                                                       Assert.IsNull(revue.AcceptButton)
+                                                       Dim rejets = DirectCast(revue.Controls.Find("grilleRejets", True)(0), DataGridView)
+                                                       Assert.AreEqual(2, rejets.Rows.Count)
+                                                       For i = 0 To resultat.Rejets.Count - 1
+                                                           Assert.AreEqual(resultat.Rejets(i).IndexEntree, rejets.Rows(i).Cells("IndexEntree").Value)
+                                                           Assert.AreEqual(resultat.Rejets(i).CleSource, rejets.Rows(i).Cells("CleSource").Value)
+                                                           Assert.AreEqual(resultat.Rejets(i).Motif, rejets.Rows(i).Cells("Motif").Value)
+                                                       Next
+                                                       Dim grille = DirectCast(revue.Controls.Find("grillePropositions", True)(0), DataGridView)
+                                                       Assert.AreEqual(1, grille.Rows.Count)
+                                                       grille.CurrentCell = grille.Rows(0).Cells("Reference")
+                                                       Assert.IsFalse(revue.CorrigerSelection())
+                                                       revue.Show()
+                                                       DirectCast(revue.CancelButton, Button).PerformClick()
+                                                       Assert.IsFalse(revue.Visible)
+                                                       Assert.IsFalse(principale.IsHandleCreated)
+                                                   End Sub
+                             principale.OuvrirRevuePropositions(resultat)
+                             CliquerRevue(principale)
+                             Assert.AreEqual(2, principale.NombreOuvertures)
+                             Assert.IsTrue(principale.DerniereRevue.IsDisposed)
+                         End Using
+                         Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine, resultat.Propositions(0).Etat)
+                         Assert.AreEqual(0, cheque.IdMvtDoc)
+                         Assert.AreEqual(0, inconnu.IdMvtDoc)
+                         Assert.AreEqual(12.34D, cheque.montant_numerique)
+                         Assert.AreEqual("0000123", cheque.numero_du_cheque)
+                         Assert.AreEqual("facture.pdf", inconnu.CheminDoc)
+                     End Sub)
+    End Sub
+
     ' Aucun Show/Close : Load et Closing du formulaire principal accèdent à la base.
     Private Shared Sub SurThreadSta(action As Action)
         Dim erreur As Exception = Nothing

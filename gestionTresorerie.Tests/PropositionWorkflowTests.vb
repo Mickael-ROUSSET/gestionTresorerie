@@ -8,6 +8,41 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 <TestClass>
 Public Class PropositionWorkflowTests
+    <TestMethod>
+    <TestCategory("OfflineWindowsAcceptance")>
+    Public Sub PrevalidationPuisAnnulation_NeValidentEtNePersistentJamais()
+        Dim document = NouveauCheque()
+        Dim resultat = New PropositionAnalyseAdapter().Proposer({Entree(document, "cheque")})
+        Dim session As New PropositionSessionRevue(resultat.Propositions)
+        Dim originale = session.Propositions("cheque")
+        Assert.IsFalse(session.Prevalider("cheque", document.IdDoc, Array.Empty(Of String)(), False).EstPrete)
+
+        ' Une correction preparee puis annulee ne leve pas les avertissements.
+        Dim correction = Corriger(originale)
+        session.AppliquerCorrection("cheque", Nothing)
+        Assert.AreSame(originale, session.Propositions("cheque"))
+        Assert.AreEqual(0, session.Audits.Count)
+        Assert.IsFalse(session.Prevalider("cheque", document.IdDoc, Array.Empty(Of String)(), False).EstPrete)
+        session.AppliquerCorrection("cheque", correction)
+
+        For repetition = 1 To 2
+            Assert.IsFalse(session.Prevalider("cheque", 0, Array.Empty(Of String)(), False).EstPrete)
+            Assert.IsFalse(session.Prevalider("cheque", document.IdDoc, Nothing, False).EstPrete)
+            Assert.IsFalse(session.Prevalider("cheque", document.IdDoc, {" CHEQUE "}, False).EstPrete)
+            Assert.IsFalse(session.Prevalider("cheque", document.IdDoc, Array.Empty(Of String)()).EstPrete)
+            Assert.IsTrue(session.Prevalider("cheque", document.IdDoc, Array.Empty(Of String)(), False).EstPrete)
+            session.AppliquerCorrection("cheque", Nothing)
+            Assert.ThrowsExactly(Of InvalidOperationException)(Sub() session.MarquerApprouvee("cheque"))
+            Assert.ThrowsExactly(Of InvalidOperationException)(Sub() session.MarquerPersistee("cheque"))
+            Assert.AreSame(correction.Proposition, session.Propositions("cheque"))
+            VerifierIdentite(session.Propositions("cheque"), "cheque", "CHEQUE")
+            Assert.AreEqual(1, session.Audits.Count)
+            Assert.AreEqual(0, document.IdMvtDoc)
+            Assert.AreEqual(42.12D, document.montant_numerique)
+            Assert.AreEqual("0000123", document.numero_du_cheque)
+        Next
+    End Sub
+
     ' Only in-memory constructors and pure workflow APIs are called. No forms,
     ' repositories, configuration, document loading or external services are used.
     ' Renaming is the overridable I/O boundary; static SQL/network APIs cannot
