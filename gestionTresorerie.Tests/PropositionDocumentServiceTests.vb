@@ -205,4 +205,32 @@ Public Class PropositionDocumentServiceTests
         Assert.AreEqual(0, distinct.IdMvtDoc)
     End Sub
 
+    <TestMethod>
+    Public Sub DocumentInvalideSansId_ReserveSaReferenceEtIsoleLeDocumentSuivant()
+        ' Meme avec IdDoc = 0, une piece invalide reserve sa reference dans ce lot.
+        Dim invalide = FactureFictive()
+        invalide.montant_ttc = 0D
+        Assert.AreEqual(0, invalide.IdDoc)
+        Dim distinct = ChequeFictif()
+
+        Dim resultat = New PropositionDocumentService().Proposer({
+            Entree(invalide, "invalide"),
+            Entree(invalide, "meme-objet-autre-cle"),
+            Entree(distinct, "valide")})
+
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual("valide", resultat.Propositions(0).CleSource)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual(0, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual("invalide", resultat.Rejets(0).CleSource)
+        Assert.AreEqual(1, resultat.Rejets(1).IndexEntree)
+        Assert.AreEqual("meme-objet-autre-cle", resultat.Rejets(1).CleSource)
+        Assert.AreEqual("Document deja present dans le lot sous une autre cle source.",
+                        resultat.Rejets(1).Motif)
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                        resultat.Propositions(0).Etat)
+        Assert.AreEqual(0D, invalide.montant_ttc)
+        Assert.AreEqual(0, distinct.IdMvtDoc)
+    End Sub
+
 End Class
