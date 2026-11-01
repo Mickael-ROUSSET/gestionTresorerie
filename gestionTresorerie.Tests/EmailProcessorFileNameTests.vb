@@ -481,6 +481,22 @@ Public Class EmailProcessorFileNameTests
     End Sub
 
     <TestMethod>
+    Public Sub SanitizeSenderForReport_InterditLesFaussesLignesDeRapport()
+        ' Aucune connexion IMAP : les valeurs d'expediteur sont fictives.
+        Dim entree = "fictif@example.invalid" & vbCrLf & "[ERREUR] entree injectee" &
+            ChrW(&H2028) & "suite" & ChrW(&H2029) & "fin" & vbTab
+        Dim resultat = AppelerUtilitaire("SanitizeSenderForReport", entree)
+        Assert.AreEqual("fictif@example.invalid__[ERREUR] entree injectee_suite_fin_", resultat)
+        Assert.IsFalse(resultat.Contains(vbCr, StringComparison.Ordinal))
+        Assert.IsFalse(resultat.Contains(vbLf, StringComparison.Ordinal))
+        Assert.IsFalse(resultat.Contains(ChrW(&H2028)))
+        Assert.IsFalse(resultat.Contains(ChrW(&H2029)))
+        Assert.AreEqual("inconnu", AppelerUtilitaire("SanitizeSenderForReport", New String() {Nothing}))
+        Assert.AreEqual("inconnu", AppelerUtilitaire("SanitizeSenderForReport", " " & vbTab))
+        Assert.AreEqual(160, AppelerUtilitaire("SanitizeSenderForReport", New String("x"c, 1000)).Length)
+    End Sub
+
+    <TestMethod>
     Public Sub CleanFileName_RemplaceLesCaracteresInterdits()
         Dim nettoye = AppelerUtilitaire("CleanFileName", "facture:2026?.pdf")
 
