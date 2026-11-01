@@ -25,6 +25,10 @@ Public NotInheritable Class FrmRevuePropositions
         .Name = "boutonCorriger", .Text = "Corriger la sélection (sans valider)",
         .AccessibleName = "Corriger la sélection (sans valider)", .AutoSize = True,
         .Enabled = False, .TabIndex = 2}
+    Private ReadOnly confirmerExamen As New Button With {
+        .Name = "boutonConfirmerExamen", .Text = "Confirmer l'examen (mémoire uniquement)",
+        .AccessibleName = "Confirmer l'examen humain sans approbation ni enregistrement",
+        .AutoSize = True, .Enabled = False, .TabIndex = 3}
 
     Public Sub New(revue As PropositionRevue)
         If revue Is Nothing Then Throw New ArgumentNullException(NameOf(revue))
@@ -83,11 +87,12 @@ Public NotInheritable Class FrmRevuePropositions
         disposition.Controls.Add(New Label With {.Text = "Entrées rejetées — diagnostics uniquement", .AutoSize = True}, 0, 2)
         disposition.Controls.Add(rejets, 0, 3)
         Dim actions As New FlowLayoutPanel With {.AutoSize = True, .Dock = DockStyle.Fill}
-        actions.Controls.AddRange(New Control() {corriger, fermer})
+        actions.Controls.AddRange(New Control() {corriger, confirmerExamen, fermer})
         disposition.Controls.Add(actions, 0, 4)
         disposition.Controls.Add(etatCorrections, 0, 5)
         AddHandler propositions.SelectionChanged, Sub() ActualiserAction(propositions)
         AddHandler corriger.Click, Sub() CorrigerSelection()
+        AddHandler confirmerExamen.Click, Sub() ConfirmerExamenSelection()
         Controls.Add(disposition)
     End Sub
 
@@ -169,6 +174,8 @@ Public NotInheritable Class FrmRevuePropositions
             ligne.Cells("Sens").Value = If(courante.Sens = PropositionMouvement.SensMouvement.Debit, "Débit", "Crédit")
             ligne.Cells("Libelle").Value = courante.Libelle
             ligne.Cells("Reference").Value = courante.Reference
+            ligne.Cells("Statut").Value = If(session.EstExamenConfirme(cle),
+                "Examen confirmé (sans approbation)", "En attente de revue humaine")
             ligne.Cells("Avertissements").Value = String.Join(Environment.NewLine, courante.AvertissementsValidation)
         Next
         ActualiserDiagnosticsPrevalidation()
@@ -178,13 +185,33 @@ Public NotInheritable Class FrmRevuePropositions
 
     Private Sub ActualiserEtatCorrections()
         If session IsNot Nothing Then
-            etatCorrections.Text = $"Corrections tracées en mémoire : {session.Audits.Count}. Aucune opération validée ni enregistrée."
+            etatCorrections.Text = $"Corrections tracées en mémoire : {session.Audits.Count}. " &
+                $"Examens confirmés : {session.NombreExamensConfirmes} (sans approbation). " &
+                "Aucune opération validée ni enregistrée."
         End If
     End Sub
 
     Private Sub ActualiserAction(grille As DataGridView)
-        corriger.Enabled = grille.SelectedRows.Count = 1 AndAlso sources.ContainsKey(grille.SelectedRows(0))
+        Dim selectionUnique = grille.SelectedRows.Count = 1 AndAlso sources.ContainsKey(grille.SelectedRows(0))
+        corriger.Enabled = selectionUnique
+        confirmerExamen.Enabled = False
+        If selectionUnique AndAlso session IsNot Nothing Then
+            confirmerExamen.Enabled = Not session.EstExamenConfirme(sources(grille.SelectedRows(0)).CleSource)
+        End If
     End Sub
+
+    ''' <summary>Accuse reception de l'examen humain, sans approbation ni SQL.
+    ''' La confirmation ne concerne que la version actuellement affichee.</summary>
+    Public Function ConfirmerExamenSelection() As Boolean
+        If session Is Nothing Then Return False
+        ActualiserSession()
+        If Not confirmerExamen.Enabled Then Return False
+        Dim grille = DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView)
+        Dim source = sources(grille.SelectedRows(0))
+        session.ConfirmerExamen(source.CleSource, source)
+        ActualiserSession()
+        Return True
+    End Function
 
     ''' <summary>Correction locale ; le présentateur optionnel permet les tests sans dialogue modal.</summary>
     Public Function CorrigerSelection(Optional afficher As Func(Of FrmCorrectionProposition, DialogResult) = Nothing) As Boolean
