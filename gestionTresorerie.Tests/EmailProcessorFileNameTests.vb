@@ -491,7 +491,7 @@ Public Class EmailProcessorFileNameTests
         Assert.IsFalse(resultat.Contains(vbLf, StringComparison.Ordinal))
         Assert.IsFalse(resultat.Contains(ChrW(&H2028)))
         Assert.IsFalse(resultat.Contains(ChrW(&H2029)))
-        Assert.AreEqual("inconnu", AppelerUtilitaire("SanitizeSenderForReport", Nothing))
+        Assert.AreEqual("inconnu", AppelerUtilitaire("SanitizeSenderForReport", New String() {Nothing}))
         Assert.AreEqual("inconnu", AppelerUtilitaire("SanitizeSenderForReport", " " & vbTab))
         Assert.AreEqual(160, AppelerUtilitaire("SanitizeSenderForReport", New String("x"c, 1000)).Length)
     End Sub
