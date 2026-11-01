@@ -310,7 +310,7 @@ Public Class EmailProcessor
         ' Appliquer les regles Windows meme si les tests tournent sur un autre OS.
         Dim cleaned As New StringBuilder(name.Length)
         For Each c As Char In name
-            If AscW(c) >= 0 AndAlso AscW(c) < 32 OrElse "<>:""/\|?*".IndexOf(c) >= 0 Then
+            If Char.IsControl(c) OrElse c = ChrW(&H2028) OrElse c = ChrW(&H2029) OrElse "<>:""/\|?*".IndexOf(c) >= 0 Then
                 cleaned.Append("_"c)
             Else
                 cleaned.Append(c)
