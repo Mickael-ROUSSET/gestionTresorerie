@@ -310,7 +310,7 @@ Public Class EmailProcessor
         ' Appliquer les regles Windows meme si les tests tournent sur un autre OS.
         Dim cleaned As New StringBuilder(name.Length)
         For Each c As Char In name
-            If Char.IsControl(c) OrElse c = ChrW(&H2028) OrElse c = ChrW(&H2029) OrElse "<>:""/\|?*".IndexOf(c) >= 0 Then
+            If Char.IsControl(c) OrElse c = ChrW(&H2028) OrElse c = ChrW(&H2029) OrElse IsBidiFormattingControl(c) OrElse "<>:""/\|?*".IndexOf(c) >= 0 Then
                 cleaned.Append("_"c)
             Else
                 cleaned.Append(c)
@@ -335,6 +335,15 @@ Public Class EmailProcessor
         Return name
     End Function
 
+    ' Neutraliser uniquement les marqueurs de direction bidirectionnelle pouvant
+    ' masquer un nom ou une extension dans les rapports, sans alterer les lettres RTL.
+    Private Shared Function IsBidiFormattingControl(ch As Char) As Boolean
+        Dim code As Integer = AscW(ch)
+        Return code = &H61C OrElse code = &H200E OrElse code = &H200F OrElse
+            (code >= &H202A AndAlso code <= &H202E) OrElse
+            (code >= &H2066 AndAlso code <= &H2069)
+    End Function
+
     ' Un nom d'expediteur MIME n'est pas une ligne de journal fiable :
     ' supprimer les retours et separateurs Unicode, et borner sa longueur.
     Private Shared Function SanitizeSenderForReport(senderInfo As String) As String
@@ -342,7 +351,7 @@ Public Class EmailProcessor
         Dim result As New StringBuilder()
         For Each ch As Char In senderInfo
             If result.Length >= 160 Then Exit For
-            If Char.IsControl(ch) OrElse ch = ChrW(&H2028) OrElse ch = ChrW(&H2029) Then
+            If Char.IsControl(ch) OrElse ch = ChrW(&H2028) OrElse ch = ChrW(&H2029) OrElse IsBidiFormattingControl(ch) Then
                 result.Append("_"c)
             Else
                 result.Append(ch)
