@@ -2,6 +2,7 @@ Option Strict On
 Option Explicit On
 
 Imports System
+Imports System.Collections.Generic
 Imports System.Runtime.ExceptionServices
 Imports System.Threading
 Imports System.Windows.Forms
@@ -367,4 +368,52 @@ Public Class FrmRevuePropositionsTests
                      End Sub)
     End Sub
 
+    <TestMethod>
+    Public Sub ExamenHumainDepuisLaRevue_ResteEnMemoireEtEstInvalideParCorrection()
+        SurThreadSta(Sub()
+                         Dim proposition As New PropositionMouvement(
+                             "fictif-001", "FACTURE", New DateTime(2026, 4, 1), 42.5D,
+                             PropositionMouvement.SensMouvement.Debit, "Facture fictive", "SIM-001")
+                         Dim resultat As New PropositionDocumentService.Resultat(
+                             New List(Of PropositionMouvement) From {proposition},
+                             New List(Of PropositionDocumentService.Rejet)())
+                         Dim session As New PropositionSessionRevue(resultat.Propositions)
+                         Using formulaire As New FrmRevuePropositions(
+                             New PropositionRevue(resultat), resultat.Propositions, session)
+                             Dim grille = Grille(formulaire, "grillePropositions")
+                             Dim confirmer = DirectCast(formulaire.Controls.Find("boutonConfirmerExamen", True)(0), Button)
+                             grille.ClearSelection()
+                             grille.Rows(0).Selected = True
+                             Assert.IsTrue(confirmer.Enabled)
+                             Assert.IsTrue(formulaire.ConfirmerExamenSelection())
+                             Assert.AreEqual(1, session.NombreExamensConfirmes)
+                             Assert.AreEqual("Examen confirmé (sans approbation)",
+                                             grille.Rows(0).Cells("Statut").Value)
+                             Assert.IsFalse(confirmer.Enabled)
+                             Assert.IsFalse(formulaire.ConfirmerExamenSelection())
+                             Assert.AreEqual(0, session.Audits.Count)
+                         End Using
+
+                         Using reouverture As New FrmRevuePropositions(
+                             New PropositionRevue(resultat), resultat.Propositions, session)
+                             Dim grille = Grille(reouverture, "grillePropositions")
+                             Assert.AreEqual("Examen confirmé (sans approbation)",
+                                             grille.Rows(0).Cells("Statut").Value)
+                             Dim correction = PropositionCorrection.Corriger(
+                                 proposition, proposition.DateProposee, 55D, proposition.Sens,
+                                 proposition.Libelle, proposition.Reference)
+                             session.AppliquerCorrection(proposition.CleSource, correction)
+                             reouverture.ActualiserSession()
+                             Assert.AreEqual("En attente de revue humaine",
+                                             grille.Rows(0).Cells("Statut").Value)
+                             Assert.IsTrue(DirectCast(reouverture.Controls.Find(
+                                 "boutonConfirmerExamen", True)(0), Button).Enabled)
+                             Assert.IsFalse(session.EstExamenConfirme(proposition.CleSource))
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub() session.MarquerApprouvee(proposition.CleSource))
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub() session.MarquerPersistee(proposition.CleSource))
+                         End Using
+                     End Sub)
+    End Sub
 End Class
