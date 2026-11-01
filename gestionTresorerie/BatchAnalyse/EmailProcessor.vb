@@ -245,7 +245,7 @@ Public Class EmailProcessor
                                    TypeOf ex Is UnauthorizedAccessException OrElse
                                    TypeOf ex Is Global.System.Security.SecurityException OrElse
                                    TypeOf ex Is InvalidOperationException
-            report.AppendLine($"[ERREUR] Import Gmail bloque : date de debut persistante invalide ou inaccessible. Verifier gmail_import_cutoff.txt avant de relancer. {ex.Message}")
+            report.AppendLine("[ERREUR] Import Gmail bloque : date de debut persistante invalide ou inaccessible. Verifier gmail_import_cutoff.txt avant de relancer.")
             Return False
         End Try
     End Function
