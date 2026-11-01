@@ -516,7 +516,9 @@ Public Class EmailProcessorFileNameTests
         ' inverser visuellement un nom de piece ou un expediteur dans le rapport.
         For Each caractere As Char In New Char() {
             ChrW(&H61C), ChrW(&H200E), ChrW(&H200F),
-            ChrW(&H202A), ChrW(&H202E), ChrW(&H2066), ChrW(&H2069)}
+            ChrW(&H202A), ChrW(&H202E), ChrW(&H2066), ChrW(&H2069),
+            ChrW(&H206A), ChrW(&H206B), ChrW(&H206C),
+            ChrW(&H206D), ChrW(&H206E), ChrW(&H206F)}
             Dim nom = "facture" & caractere & "2026.pdf"
             Assert.AreEqual("facture_2026.pdf", AppelerUtilitaire("CleanFileName", nom))
             Assert.AreEqual("facture_2026.pdf", AppelerUtilitaire("GetAttachmentFileName", nom, Nothing))
