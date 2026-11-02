@@ -65,6 +65,25 @@ Public NotInheritable Class PropositionDocumentService
         Public ReadOnly Property Sources As IReadOnlyList(Of SourceProposition)
         Public ReadOnly Property Propositions As IReadOnlyList(Of PropositionMouvement)
         Public ReadOnly Property Rejets As IReadOnlyList(Of Rejet)
+
+        ''' <summary>Rapproche uniquement les valeurs d'un instantane en memoire :
+        ''' cle exacte, identifiant positif et provenance explicite.
+        ''' Ce diagnostic ne prouve ni l'existence ni l'authenticite d'un document
+        ''' externe ; il n'autorise aucune validation ni ecriture comptable.</summary>
+        Public Function CorrespondanceIdentiteDocumentaire(cleSource As String,
+                                                           idDocumentSource As Integer,
+                                                           provenance As String) As Boolean
+            If String.IsNullOrWhiteSpace(cleSource) OrElse idDocumentSource <= 0 OrElse
+               String.IsNullOrWhiteSpace(provenance) Then Return False
+            For Each source In Sources
+                If String.Equals(source.CleSource, cleSource, StringComparison.Ordinal) Then
+                    Return source.IdDoc = idDocumentSource AndAlso
+                           Not String.IsNullOrWhiteSpace(source.Provenance) AndAlso
+                           String.Equals(source.Provenance, provenance, StringComparison.Ordinal)
+                End If
+            Next
+            Return False
+        End Function
     End Class
 
     ''' <summary>
