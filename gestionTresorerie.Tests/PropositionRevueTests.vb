@@ -100,6 +100,36 @@ Public Class PropositionRevueTests
     End Sub
 
     <TestMethod>
+    Public Sub Lignes_ConserventIdentiteEtProvenanceMalgreUnRejetIntermediaire()
+        Dim facture = FactureFictive()
+        facture.IdDoc = 101
+        Dim cheque As New Cheque With {.montant_numerique = 42.12D, .devise = "EUR",
+            .dateChq = "20260204", .numero_du_cheque = "0000123"}
+        cheque.IdDoc = 102
+        Dim resultat = New PropositionDocumentService().Proposer({
+            New PropositionDocumentService.Entree(facture, "facture", PropositionMouvement.SensMouvement.Debit,
+                "Gmail simule / facture"),
+            New PropositionDocumentService.Entree(Nothing, "rejete", PropositionMouvement.SensMouvement.Debit,
+                "Gmail simule / piece invalide"),
+            New PropositionDocumentService.Entree(cheque, "cheque", PropositionMouvement.SensMouvement.Credit,
+                "Gmail simule / cheque")})
+        Dim revue As New PropositionRevue(resultat)
+
+        Assert.AreEqual(2, revue.Lignes.Count)
+        Assert.AreEqual(1, revue.Rejets.Count)
+        Assert.AreEqual(0, revue.Lignes(0).IndexEntree)
+        Assert.AreEqual(101, revue.Lignes(0).IdDocumentSource)
+        Assert.AreEqual("Gmail simule / facture", revue.Lignes(0).Provenance)
+        Assert.AreEqual(1, revue.Rejets(0).IndexEntree)
+        Assert.AreEqual(2, revue.Lignes(1).IndexEntree)
+        Assert.AreEqual(102, revue.Lignes(1).IdDocumentSource)
+        Assert.AreEqual("Gmail simule / cheque", revue.Lignes(1).Provenance)
+        facture.IdDoc = 999
+        Assert.AreEqual(101, revue.Lignes(0).IdDocumentSource)
+        Assert.AreEqual(PropositionRevue.StatutRevue.AwaitingHumanReview, revue.Lignes(0).Statut)
+    End Sub
+
+    <TestMethod>
     Public Sub CollectionsEtProprietes_SontEnLectureSeule()
         Dim revue As New PropositionRevue(New PropositionDocumentService().Proposer({
             Entree(FactureFictive(), "source"), Nothing}))
