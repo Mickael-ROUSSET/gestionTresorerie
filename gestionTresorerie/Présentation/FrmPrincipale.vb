@@ -33,6 +33,11 @@ Public Class FrmPrincipale
             Array.Exists(System.Environment.GetCommandLineArgs(),
                          Function(arg) String.Equals(arg, "--demo", StringComparison.OrdinalIgnoreCase))
 #End If
+        If _modeDemonstration Then
+            ' Le code My.Settings genere peut sauvegarder automatiquement user.config
+            ' a la fermeture. Ne jamais toucher aux parametres de l'utilisateur en demo.
+            My.Application.SaveMySettingsOnExit = False
+        End If
         InitializeComponent()
 
         Dim menuRevue As New ToolStripMenuItem With {
