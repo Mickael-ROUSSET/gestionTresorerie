@@ -91,9 +91,13 @@ Public NotInheritable Class PropositionDocumentService
             Dim cle = If(entree Is Nothing, Nothing, entree.CleSource)
             Try
                 If entree Is Nothing Then Throw New ArgumentException("Entree absente.")
+                ' Une cle renseignee est reservee meme si la correspondance est invalide :
+                ' un rejet ne doit pas permettre de reutiliser la meme identite source.
+                If Not String.IsNullOrWhiteSpace(cle) AndAlso Not cles.Add(cle.Trim()) Then
+                    Throw New ArgumentException("Cle source dupliquee dans le lot.")
+                End If
                 If entree.ErreurCorrespondance IsNot Nothing Then Throw New ArgumentException(entree.ErreurCorrespondance)
                 If String.IsNullOrWhiteSpace(cle) Then Throw New ArgumentException("Cle source obligatoire.")
-                If Not cles.Add(cle.Trim()) Then Throw New ArgumentException("Cle source dupliquee dans le lot.")
                 If entree.Document Is Nothing Then Throw New ArgumentException("Document absent.")
                 If Not documents.Add(entree.Document) Then Throw New ArgumentException("Document deja present dans le lot sous une autre cle source.")
                 If entree.Document.IdDoc <> 0 AndAlso Not identifiants.Add(entree.Document.IdDoc) Then
