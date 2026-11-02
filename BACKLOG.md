@@ -3,7 +3,7 @@
 Vue de consultation générée automatiquement à partir du backlog local.
 **Ne pas modifier ce fichier pour piloter l'orchestrateur.**
 
-**Actualisation :** 2026-11-02 00:42 UTC
+**Actualisation :** 2026-11-02 15:32 UTC
 **Objectif :** Prepare safe first-use of the real Windows application: startup diagnostics, opt-in Gmail readiness, usable review workflow, offline acceptance tests and manual release gates. No live production deployment or accounting writes.
 
 | Tâche | État | Validation | Commit |
@@ -23,7 +23,7 @@ Vue de consultation générée automatiquement à partir du backlog local.
 | `treasury-windows-startup-smoke-126` | Publiée | build OK, test OK | [`a6569b0fc86c`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/a6569b0fc86c) |
 | `treasury-gmail-connection-readiness-127` | Publiée | build OK, test OK | [`c4d1363f5442`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/c4d1363f5442) |
 | `treasury-first-use-review-128` | Publiée | build OK, test OK | [`994154df7787`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/994154df7787) |
-| `treasury-windows-acceptance-129` | En cours / en attente |  | — |
+| `treasury-windows-acceptance-129` | Bloquée : blocked |  | — |
 | `treasury-persistence-design-117` | Désactivée (sécurité) |  | — |
 
 ## Règles
