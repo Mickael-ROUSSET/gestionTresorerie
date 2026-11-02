@@ -71,6 +71,20 @@ Public Class DemonstrationWindowsTests
                   Using fenetre As New PrincipaleSansDemandeDeDemo()
                       fenetre.ChargerSansAfficher()
                       StringAssert.Contains(fenetre.Text, "DÉMONSTRATION HORS LIGNE")
+                      ' Le demarrage DEMO_BUILD doit neutraliser la sauvegarde automatique
+                      ' de My.Settings, meme si le programme est ferme normalement.
+                      Dim myProject = GetType(FrmPrincipale).Assembly.GetType(
+                          "gestionTresorerie.My.MyProject", True)
+                      Dim applicationProperty = myProject.GetProperty(
+                          "Application",
+                          System.Reflection.BindingFlags.Static Or
+                          System.Reflection.BindingFlags.Public Or
+                          System.Reflection.BindingFlags.NonPublic)
+                      Assert.IsNotNull(applicationProperty)
+                      Dim application = DirectCast(
+                          applicationProperty.GetValue(Nothing),
+                          Microsoft.VisualBasic.ApplicationServices.WindowsFormsApplicationBase)
+                      Assert.IsFalse(application.SaveMySettingsOnExit)
                       Assert.AreEqual(1, fenetre.Controls.Find("annonceDemonstration", True).Length)
                       Assert.IsFalse(fenetre.Controls.Find("dgvPrincipale", True)(0).Enabled)
                       Assert.IsFalse(fenetre.IsHandleCreated)
