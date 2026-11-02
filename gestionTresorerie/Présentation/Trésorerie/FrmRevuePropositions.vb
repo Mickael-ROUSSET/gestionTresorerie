@@ -1,0 +1,227 @@
+Option Strict On
+Option Explicit On
+
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Drawing
+Imports System.Windows.Forms
+
+''' <summary>
+''' Grilles en lecture seule ; correction explicite des propositions en mémoire.
+''' Sans sources métier fournies et vérifiées, seule la consultation est disponible.
+''' Aucun document source ni accès à une ressource externe.
+''' </summary>
+Public NotInheritable Class FrmRevuePropositions
+    Inherits Form
+
+    Public ReadOnly Property Session As PropositionSessionRevue
+
+    Private ReadOnly sources As New Dictionary(Of DataGridViewRow, PropositionMouvement)()
+    Private ReadOnly instructionsRevue As String
+    Private ReadOnly corriger As New Button With {
+        .Name = "boutonCorriger", .Text = "Corriger la sélection (sans valider)",
+        .AccessibleName = "Corriger la sélection (sans valider)", .AutoSize = True,
+        .Enabled = False, .TabIndex = 2}
+
+    Public Sub New(revue As PropositionRevue)
+        If revue Is Nothing Then Throw New ArgumentNullException(NameOf(revue))
+
+        Text = "Revue des propositions — lecture seule"
+        AccessibleName = Text
+        AutoScaleMode = AutoScaleMode.Font
+        ClientSize = New Size(1100, 650)
+        MinimumSize = New Size(700, 450)
+        StartPosition = FormStartPosition.CenterParent
+
+        Dim propositions = CreerGrille("grillePropositions", "Propositions en lecture seule", 0)
+        AjouterColonnes(propositions, {"CleSource", "TypeDocument", "Reference", "DateProposee",
+                                      "Montant", "Sens", "Libelle", "Statut", "Avertissements", "Prevalidation"},
+                         {"Identité du document", "Type", "Référence", "Date proposée",
+                          "Montant (EUR)", "Débit / Crédit", "Libellé", "Statut", "Avertissements de validation", "Anomalies de prévalidation (sans approbation)"})
+        propositions.Columns("DateProposee").ValueType = GetType(DateTime)
+        propositions.Columns("DateProposee").DefaultCellStyle.Format = "dd/MM/yyyy"
+        propositions.Columns("Montant").ValueType = GetType(Decimal)
+        propositions.Columns("Montant").DefaultCellStyle.Format = "N2"
+        propositions.Columns("CleSource").Frozen = True
+        propositions.Columns("CleSource").ToolTipText = "Clé fournie avec le document analysé ; à rapprocher du document vérifié par l'opérateur."
+        For Each ligne In revue.Lignes
+            propositions.Rows.Add(ligne.CleSource, ligne.TypeDocument, ligne.Reference,
+                                  ligne.DateProposee, ligne.Montant,
+                                  If(ligne.Sens = PropositionMouvement.SensMouvement.Debit, "Débit", "Crédit"),
+                                  ligne.Libelle, "En attente de revue humaine",
+                                  String.Join(Environment.NewLine, ligne.AvertissementsValidation))
+        Next
+
+        Dim rejets = CreerGrille("grilleRejets", "Diagnostics des entrées rejetées en lecture seule", 1)
+        AjouterColonnes(rejets, {"IndexEntree", "CleSource", "Motif"},
+                         {"Index d'entrée (base 0)", "Identité du document", "Motif du rejet"})
+        For Each rejet In revue.Rejets
+            rejets.Rows.Add(rejet.IndexEntree, rejet.CleSource, rejet.Motif)
+        Next
+
+        Dim fermer As New Button With {
+            .Name = "boutonFermer", .Text = "&Fermer (sans enregistrer)", .AccessibleName = "Fermer la revue sans enregistrer",
+            .AutoSize = True, .Anchor = AnchorStyles.Right, .TabIndex = 3,
+            .DialogResult = DialogResult.Cancel}
+        AddHandler fermer.Click, Sub(sender As Object, e As EventArgs) Close()
+        CancelButton = fermer
+
+        Dim disposition As New TableLayoutPanel With {
+            .Dock = DockStyle.Fill, .ColumnCount = 1, .RowCount = 5, .Padding = New Padding(10)}
+        disposition.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100.0F))
+        disposition.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        disposition.RowStyles.Add(New RowStyle(SizeType.Percent, 65.0F))
+        disposition.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        disposition.RowStyles.Add(New RowStyle(SizeType.Percent, 35.0F))
+        disposition.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        disposition.Controls.Add(New Label With {
+            .Name = "etatRevue", .AutoSize = True, .MaximumSize = New Size(ClientSize.Width - 40, 0),
+            .Text = If(revue.Lignes.Count = 0,
+                If(revue.Rejets.Count = 0,
+                   "Aucune proposition : aucun lot exploitable n'a été fourni à cette revue.",
+                   "Aucune proposition : toutes les entrées du lot ont été rejetées. Consultez les diagnostics ci-dessous."),
+                $"{revue.Lignes.Count} proposition(s) — lecture seule") & Environment.NewLine &
+                "Pour fournir un lot : faites vérifier les documents déjà analysés, leur clé source et le sens débit/crédit. " &
+                "L'application appelante doit utiliser PropositionAnalyseAdapter.Proposer puis FrmPrincipale.OuvrirRevuePropositions(resultat). " &
+                "Ce menu ne permet pas de sélectionner ou d'analyser des fichiers." & Environment.NewLine &
+                "Rapprochez l'identité du document de chaque ligne de sa source vérifiée. " &
+                "La correction nécessite des sources correspondantes vérifiées ; elle reste en mémoire, sans approbation ni enregistrement. " &
+                "Annuler une correction conserve les valeurs précédentes. Fermer n'enregistre rien."}, 0, 0)
+        disposition.Controls.Add(propositions, 0, 1)
+        disposition.Controls.Add(New Label With {
+            .Name = "etatDiagnostics", .Text = If(revue.Rejets.Count = 0,
+                "Aucune entrée rejetée dans le lot fourni (cela ne vaut pas approbation).",
+                $"{revue.Rejets.Count} entrée(s) rejetée(s) — rapprochez l'index (base 0) et l'identité de la source ; vérifiez le motif avant de fournir un nouveau lot."),
+            .AutoSize = True, .MaximumSize = New Size(ClientSize.Width - 40, 0)}, 0, 2)
+        disposition.Controls.Add(rejets, 0, 3)
+        Dim actions As New FlowLayoutPanel With {.AutoSize = True, .Dock = DockStyle.Fill}
+        actions.Controls.AddRange(New Control() {corriger, fermer})
+        disposition.Controls.Add(actions, 0, 4)
+        AddHandler propositions.SelectionChanged, Sub() ActualiserAction(propositions)
+        AddHandler corriger.Click, Sub() CorrigerSelection()
+        Controls.Add(disposition)
+        instructionsRevue = DirectCast(Controls.Find("etatRevue", True)(0), Label).Text
+        AddHandler disposition.SizeChanged, Sub()
+                                               For Each etiquette In disposition.Controls.OfType(Of Label)()
+                                                   etiquette.MaximumSize = New Size(Math.Max(1, disposition.ClientSize.Width - 20), 0)
+                                               Next
+                                           End Sub
+    End Sub
+
+    ''' <summary>Sources déjà parsées, dans l'ordre exact de l'instantané, sans identité ambiguë.</summary>
+    Public Sub New(revue As PropositionRevue, propositions As IEnumerable(Of PropositionMouvement))
+        Me.New(revue)
+        If propositions Is Nothing Then Throw New ArgumentNullException(NameOf(propositions))
+        Dim liste = propositions.ToList()
+        Dim identites As New HashSet(Of String)(StringComparer.Ordinal)
+        If liste.Count <> revue.Lignes.Count Then Throw New ArgumentException("Sources incompatibles avec la revue.", NameOf(propositions))
+        For i As Integer = 0 To liste.Count - 1
+            Dim source = liste(i)
+            Dim ligne = revue.Lignes(i)
+            If source Is Nothing OrElse Not identites.Add(source.CleSource) OrElse
+                source.Etat <> PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine OrElse
+                Not String.Equals(source.CleSource, ligne.CleSource, StringComparison.Ordinal) OrElse
+                Not String.Equals(source.TypeDocument, ligne.TypeDocument, StringComparison.Ordinal) OrElse
+                source.DateProposee <> ligne.DateProposee OrElse source.Montant <> ligne.Montant OrElse
+                source.Sens <> ligne.Sens OrElse Not String.Equals(source.Libelle, ligne.Libelle, StringComparison.Ordinal) OrElse
+                Not String.Equals(source.Reference, ligne.Reference, StringComparison.Ordinal) OrElse
+                Not source.AvertissementsValidation.SequenceEqual(ligne.AvertissementsValidation) Then
+                Throw New ArgumentException("Correspondance source non prouvée.", NameOf(propositions))
+            End If
+        Next
+        Session = New PropositionSessionRevue(liste)
+        Dim grille = DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView)
+        For i As Integer = 0 To liste.Count - 1
+            sources.Add(grille.Rows(i), liste(i))
+        Next
+        ActualiserSession()
+    End Sub
+
+    Public Sub New(session As PropositionSessionRevue, revue As PropositionRevue)
+        Me.New(revue, SourcesSession(session, revue))
+        Me.Session = session
+        ActualiserSession()
+    End Sub
+
+    Private Shared Function SourcesSession(session As PropositionSessionRevue, revue As PropositionRevue) As IEnumerable(Of PropositionMouvement)
+        If session Is Nothing Then Throw New ArgumentNullException(NameOf(session))
+        If revue Is Nothing Then Throw New ArgumentNullException(NameOf(revue))
+        If session.Propositions.Count <> revue.Lignes.Count Then Throw New ArgumentException("Sources incompatibles avec la revue.", NameOf(session))
+        Return revue.Lignes.Select(Function(ligne) If(session.Propositions.ContainsKey(ligne.CleSource), session.Propositions(ligne.CleSource), Nothing))
+    End Function
+
+    ''' <summary>Rafraîchit les valeurs et diagnostics exclusivement en mémoire.</summary>
+    Public Sub ActualiserSession()
+        If Session Is Nothing Then Return
+        For Each entree In sources
+            Dim proposition = Session.Propositions(entree.Value.CleSource)
+            Dim ligne = entree.Key
+            ligne.Cells("DateProposee").Value = proposition.DateProposee
+            ligne.Cells("Montant").Value = proposition.Montant
+            ligne.Cells("Sens").Value = If(proposition.Sens = PropositionMouvement.SensMouvement.Debit, "Débit", "Crédit")
+            ligne.Cells("Libelle").Value = proposition.Libelle
+            ligne.Cells("Reference").Value = proposition.Reference
+            ligne.Cells("Avertissements").Value = String.Join(Environment.NewLine, proposition.AvertissementsValidation)
+            ' Le contexte documentaire est absent : aucun identifiant positif inventé.
+            ligne.Cells("Prevalidation").Value = String.Join(Environment.NewLine,
+                Session.Prevalider(proposition.CleSource, 0, Nothing).Anomalies)
+        Next
+        ActualiserAction(DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView))
+    End Sub
+
+    Private Sub ActualiserAction(grille As DataGridView)
+        corriger.Enabled = Session IsNot Nothing AndAlso grille.SelectedRows.Count = 1 AndAlso
+            sources.ContainsKey(grille.SelectedRows(0))
+    End Sub
+
+    ''' <summary>Correction locale ; le présentateur optionnel permet les tests sans dialogue modal.</summary>
+    Public Function CorrigerSelection(Optional afficher As Func(Of FrmCorrectionProposition, DialogResult) = Nothing) As Boolean
+        Dim grille = DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView)
+        ActualiserAction(grille)
+        If Not corriger.Enabled Then Return False
+        Dim ligne = grille.SelectedRows(0)
+        Dim source = Session.Propositions(sources(ligne).CleSource)
+        If source.Etat <> PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine Then Return False
+        Dim etat = DirectCast(Controls.Find("etatRevue", True)(0), Label)
+        etat.Text = instructionsRevue
+        etat.ForeColor = SystemColors.ControlText
+        Using correction As New FrmCorrectionProposition(source)
+            Try
+                Dim resultat = If(afficher Is Nothing, correction.ShowDialog(Me), afficher(correction))
+                If resultat <> DialogResult.OK OrElse correction.PropositionCorrigee Is Nothing Then Return False
+                Session.AppliquerCorrection(source.CleSource, correction.ResultatCorrection)
+                ActualiserSession()
+                Return True
+            Catch ex As Exception
+                ' Ne pas afficher le détail technique susceptible de contenir des données privées.
+                etat.Text = "La correction n'a pas pu être terminée. Consultez les valeurs en mémoire avant de réessayer."
+                etat.ForeColor = Color.Firebrick
+                ActualiserSession()
+                Return False
+            End Try
+        End Using
+    End Function
+
+    Private Shared Function CreerGrille(nom As String, description As String, ordre As Integer) As DataGridView
+        Dim grille As New DataGridView With {
+            .Name = nom, .AccessibleName = description, .AccessibleDescription = description,
+            .Dock = DockStyle.Fill, .TabIndex = ordre, .ReadOnly = True,
+            .AllowUserToAddRows = False, .AllowUserToDeleteRows = False,
+            .AllowUserToOrderColumns = False, .AutoGenerateColumns = False,
+            .AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells,
+            .AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells,
+            .RowHeadersVisible = False, .SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+            .MultiSelect = False, .EditMode = DataGridViewEditMode.EditProgrammatically}
+        grille.DefaultCellStyle.WrapMode = DataGridViewTriState.True
+        Return grille
+    End Function
+
+    Private Shared Sub AjouterColonnes(grille As DataGridView, noms As String(), titres As String())
+        For i As Integer = 0 To noms.Length - 1
+            grille.Columns.Add(New DataGridViewTextBoxColumn With {
+                .Name = noms(i), .HeaderText = titres(i), .ReadOnly = True,
+                .SortMode = DataGridViewColumnSortMode.NotSortable})
+        Next
+    End Sub
+End Class
