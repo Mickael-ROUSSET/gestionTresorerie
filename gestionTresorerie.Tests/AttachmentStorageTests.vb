@@ -11,11 +11,15 @@ Public Class AttachmentStorageTests
         Return folder
     End Function
 
+    Private Shared Function NewTempPath(folder As String) As String
+        Return Path.Combine(folder, ".gmail-" & Guid.NewGuid().ToString("N") & ".tmp")
+    End Function
+
     <TestMethod>
     Public Sub StockePremierFichierSansEcraser()
         Dim folder = NewFolder()
         Try
-            Dim temp = Path.Combine(folder, ".temp")
+            Dim temp = NewTempPath(folder)
             File.WriteAllText(temp, "facture 1")
             Dim storedPath = AttachmentStorage.StoreTemporaryFile(temp, Path.Combine(folder, "facture.pdf"))
             Assert.AreEqual(Path.Combine(folder, "facture.pdf"), storedPath)
@@ -31,7 +35,7 @@ Public Class AttachmentStorageTests
         Dim folder = NewFolder()
         Try
             File.WriteAllText(Path.Combine(folder, "premier.pdf"), "contenu identique")
-            Dim temp = Path.Combine(folder, ".temp")
+            Dim temp = NewTempPath(folder)
             File.WriteAllText(temp, "contenu identique")
             Dim storedPath = AttachmentStorage.StoreTemporaryFile(temp, Path.Combine(folder, "deuxieme.pdf"))
             Assert.IsNull(storedPath)
@@ -48,12 +52,92 @@ Public Class AttachmentStorageTests
         Try
             Dim first = Path.Combine(folder, "facture.pdf")
             File.WriteAllText(first, "facture 1")
-            Dim temp = Path.Combine(folder, ".temp")
+            Dim temp = NewTempPath(folder)
             File.WriteAllText(temp, "facture 2")
             Dim storedPath = AttachmentStorage.StoreTemporaryFile(temp, first)
             Assert.AreNotEqual(first, storedPath)
             Assert.AreEqual("facture 1", File.ReadAllText(first))
             Assert.AreEqual("facture 2", File.ReadAllText(storedPath))
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub RefuseLeMemeCheminSansSupprimerLeFichier()
+        Dim folder = NewFolder()
+        Try
+            Dim original = Path.Combine(folder, "facture.pdf")
+            File.WriteAllText(original, "contenu a conserver")
+            Dim refuseExact As Boolean = False
+            Try
+                AttachmentStorage.StoreTemporaryFile(original, original)
+            Catch ex As ArgumentException
+                refuseExact = True
+            End Try
+            Assert.IsTrue(refuseExact, "Le chemin identique doit etre refuse.")
+
+            Dim refuseNormalise As Boolean = False
+            Try
+                AttachmentStorage.StoreTemporaryFile(original, Path.Combine(folder, ".", "facture.pdf"))
+            Catch ex As ArgumentException
+                refuseNormalise = True
+            End Try
+            Assert.IsTrue(refuseNormalise, "Le meme chemin normalise doit etre refuse.")
+            Assert.IsTrue(File.Exists(original))
+            Assert.AreEqual("contenu a conserver", File.ReadAllText(original))
+            Assert.AreEqual(1, Directory.GetFiles(folder).Length)
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub RefuseUnFichierExistantQuiNestPasUnTemporaireGmail()
+        Dim folder = NewFolder()
+        Try
+            Dim original = Path.Combine(folder, "document-original.pdf")
+            Dim doublon = Path.Combine(folder, "document-deja-present.pdf")
+            File.WriteAllText(original, "contenu identique")
+            File.WriteAllText(doublon, "contenu identique")
+            Dim refuse As Boolean = False
+            Try
+                AttachmentStorage.StoreTemporaryFile(original, Path.Combine(folder, "nouveau.pdf"))
+            Catch ex As ArgumentException
+                refuse = True
+            End Try
+            Assert.IsTrue(refuse, "Une source non temporaire ne doit jamais etre supprimee.")
+            Assert.AreEqual("contenu identique", File.ReadAllText(original))
+            Assert.AreEqual("contenu identique", File.ReadAllText(doublon))
+            Assert.AreEqual(2, Directory.GetFiles(folder).Length)
+
+            Dim fauxTemp = Path.Combine(folder, ".gmail-invalide.tmp")
+            File.WriteAllText(fauxTemp, "a conserver")
+            Assert.ThrowsExactly(Of ArgumentException)(
+                Sub() AttachmentStorage.StoreTemporaryFile(fauxTemp, Path.Combine(folder, "autre.pdf")))
+            Assert.AreEqual("a conserver", File.ReadAllText(fauxTemp))
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub DoublonSurLeCheminCible_ConserveLeFichierExistant()
+        Dim folder = NewFolder()
+        Try
+            Dim destination = Path.Combine(folder, "facture.pdf")
+            Dim contenu = "facture fictive deja presente"
+            File.WriteAllText(destination, contenu)
+            Dim temp = NewTempPath(folder)
+            File.WriteAllText(temp, contenu)
+
+            Dim resultat = AttachmentStorage.StoreTemporaryFile(temp, destination)
+
+            Assert.IsNull(resultat, "Le doublon ne doit pas creer une nouvelle piece jointe.")
+            Assert.IsTrue(File.Exists(destination), "Le fichier existant ne doit jamais etre supprime.")
+            Assert.AreEqual(contenu, File.ReadAllText(destination))
+            Assert.IsFalse(File.Exists(temp), "Seul le fichier temporaire doit etre nettoye.")
+            Assert.AreEqual(1, Directory.GetFiles(folder).Length)
         Finally
             Directory.Delete(folder, True)
         End Try

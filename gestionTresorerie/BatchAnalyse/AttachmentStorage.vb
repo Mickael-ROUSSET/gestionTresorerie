@@ -18,6 +18,25 @@ Public NotInheritable Class AttachmentStorage
             Throw New ArgumentException("Le fichier temporaire doit etre dans le dossier cible.", NameOf(tempPath))
         End If
 
+        ' Ne jamais traiter la destination elle-meme comme fichier temporaire :
+        ' File.Move vers le meme chemin pourrait entrer dans la gestion de collision
+        ' et supprimer le fichier existant lors de la comparaison SHA-256.
+        If String.Equals(Path.GetFullPath(tempPath), Path.GetFullPath(desiredPath), StringComparison.OrdinalIgnoreCase) Then
+            Throw New ArgumentException("Le fichier temporaire doit etre distinct de la destination.", NameOf(desiredPath))
+        End If
+
+        ' Seul le format temporaire cree par EmailProcessor est admis.
+        ' Ce garde-fou evite de supprimer par erreur un document existant
+        ' fourni comme source lors d'un dedoublonnage SHA-256.
+        Dim tempName = Path.GetFileName(tempPath)
+        Dim tempGuid As Guid
+        If tempName.Length <> 43 OrElse
+           Not tempName.StartsWith(".gmail-", StringComparison.OrdinalIgnoreCase) OrElse
+           Not tempName.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase) OrElse
+           Not Guid.TryParseExact(tempName.Substring(7, 32), "N", tempGuid) Then
+            Throw New ArgumentException("Fichier temporaire Gmail invalide.", NameOf(tempPath))
+        End If
+
         Dim hash = ComputeSha256(tempPath)
         Dim originalName = Path.GetFileNameWithoutExtension(desiredPath)
         Dim extension = Path.GetExtension(desiredPath)
