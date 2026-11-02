@@ -64,7 +64,7 @@ jobs:
         shell: pwsh
         run: ./.github/scripts/package-demo.ps1
       - name: Publier l'archive candidate (non vérifiée graphiquement)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102'
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')
         uses: actions/upload-artifact@v4
         with:
           name: gestionTresorerie-demo-${{ github.sha }}
