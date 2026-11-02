@@ -100,7 +100,7 @@ Public Class PropositionAnalyseAdapterTests
     End Sub
 
     <TestMethod>
-    Public Sub Doublons_ComparaisonExacteEtAucunEtatEntreAppels()
+    Public Sub Doublons_NormalisesEtAucunEtatEntreAppels()
         Dim document = FactureFictive()
         Dim lot = {
             New PropositionDocumentService.Entree(document, "source", PropositionMouvement.SensMouvement.Debit),
@@ -109,11 +109,12 @@ Public Class PropositionAnalyseAdapterTests
         Dim adapter As New PropositionAnalyseAdapter()
         For repetition = 1 To 2
             Dim revue = adapter.PreparerRevue(lot)
-            Assert.AreEqual(2, revue.Lignes.Count)
-            Assert.AreEqual(1, revue.Rejets.Count)
+            Assert.AreEqual(1, revue.Lignes.Count)
+            Assert.AreEqual(2, revue.Rejets.Count)
             Assert.AreEqual(1, revue.Rejets(0).IndexEntree)
+            Assert.AreEqual(2, revue.Rejets(1).IndexEntree)
             Assert.AreEqual("source", revue.Lignes(0).CleSource)
-            Assert.AreEqual("SOURCE", revue.Lignes(1).CleSource)
+            Assert.AreEqual("SOURCE", revue.Rejets(1).CleSource)
         Next
     End Sub
 
