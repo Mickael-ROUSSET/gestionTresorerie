@@ -51,4 +51,32 @@ Public Class PropositionDocumentIdentityRejectionTests
                             proposition.Etat)
         Next
     End Sub
+
+    <TestMethod>
+    <TestCategory("OfflineWindowsAcceptance")>
+    Public Sub CorrespondanceIdentite_ExigeValeursExactesEtResteUnInstantane()
+        Dim facture = FactureFictive(903, 42.50D)
+        Dim cle = " Piece-903 "
+        Dim provenance = "Gmail simule / piece 903"
+        Dim resultat = New PropositionDocumentService().Proposer({
+            New PropositionDocumentService.Entree(
+                facture, cle, PropositionMouvement.SensMouvement.Debit, provenance)})
+
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual(0, resultat.Rejets.Count)
+        Assert.IsTrue(resultat.CorrespondanceIdentiteDocumentaire(cle, 903, provenance))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire("Piece-903", 903, provenance))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(" piece-903 ", 903, provenance))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(cle, 903, "gmail simule / piece 903"))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(cle, 903, " "))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(Nothing, 903, provenance))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(cle, -1, provenance))
+
+        ' L'identite conservee en memoire ne doit pas suivre une mutation du document fictif.
+        facture.IdDoc = 904
+        Assert.IsTrue(resultat.CorrespondanceIdentiteDocumentaire(cle, 903, provenance))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(cle, 904, provenance))
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                        resultat.Propositions(0).Etat)
+    End Sub
 End Class
