@@ -50,6 +50,35 @@ Public Class DemonstrationWindowsTests
         If erreur IsNot Nothing Then ExceptionDispatchInfo.Capture(erreur).Throw()
     End Sub
 
+    ' Compile uniquement dans la variante DEMO_BUILD : le constructeur False
+    ' ne doit jamais permettre de revenir aux accès comptables de production.
+#If DEMO_BUILD Then
+    Private NotInheritable Class PrincipaleSansDemandeDeDemo
+        Inherits FrmPrincipale
+
+        Public Sub New()
+            MyBase.New(False)
+        End Sub
+
+        Public Sub ChargerSansAfficher()
+            MyBase.OnLoad(EventArgs.Empty)
+        End Sub
+    End Class
+
+    <TestMethod>
+    Public Sub DemoBuild_ForceLeModeFictif_MemeSansOptionDemo()
+        EnSta(Sub()
+                  Using fenetre As New PrincipaleSansDemandeDeDemo()
+                      fenetre.ChargerSansAfficher()
+                      StringAssert.Contains(fenetre.Text, "DÉMONSTRATION HORS LIGNE")
+                      Assert.AreEqual(1, fenetre.Controls.Find("annonceDemonstration", True).Length)
+                      Assert.IsFalse(fenetre.Controls.Find("dgvPrincipale", True)(0).Enabled)
+                      Assert.IsFalse(fenetre.IsHandleCreated)
+                  End Using
+              End Sub)
+    End Sub
+#End If
+
     <TestMethod>
     Public Sub Demo_DemarreSansInitialisationComptable_EtNeutraliseLesMenusReels()
         EnSta(Sub()
