@@ -18,7 +18,21 @@ Public Class FrmPrincipale
         .Text = "Effacer les propositions fictives en mémoire",
         .Enabled = False}
 
+    Private ReadOnly _modeDemonstration As Boolean
+
     Public Sub New()
+        Me.New(False)
+    End Sub
+
+    Public Sub New(modeDemonstration As Boolean)
+#If DEMO_BUILD Then
+        ' La version de demonstration ne peut pas revenir au mode comptable.
+        _modeDemonstration = True
+#Else
+        _modeDemonstration = modeDemonstration OrElse
+            Array.Exists(System.Environment.GetCommandLineArgs(),
+                         Function(arg) String.Equals(arg, "--demo", StringComparison.OrdinalIgnoreCase))
+#End If
         InitializeComponent()
 
         Dim menuRevue As New ToolStripMenuItem With {
@@ -143,15 +157,35 @@ Public Class FrmPrincipale
             """identite"":{""fournisseur_nom"":""Exemple fictif""}," &
             """transaction"":{""montant_ttc"":""42.50"",""devise"":""EUR""," &
             """date_facture"":""2026-04-01"",""numero_facture"":""DEMO-001""}}}"
+        Dim pieces As New System.Collections.Generic.List(Of GmailDocumentSimulatedInbox.PieceFictive) From {
+            New GmailDocumentSimulatedInbox.PieceFictive(
+                jsonFacture, PropositionMouvement.SensMouvement.Debit)}
+        If _modeDemonstration Then
+            Dim jsonCheque As String =
+                "{""type_document"":""Cheque"",""donnees_extraites"":{" &
+                """identite"":{""emetteur_numero_cheque"":""DEMO-002""}," &
+                """transaction"":{""montant_numerique"":""18.75"",""devise"":""EUR""," &
+                """date_emission"":""2026-04-02""}}}"
+            pieces.Add(New GmailDocumentSimulatedInbox.PieceFictive(
+                jsonCheque, PropositionMouvement.SensMouvement.Credit))
+            pieces.Add(New GmailDocumentSimulatedInbox.PieceFictive(
+                "{""type_document"":""Inconnu"",""donnees_extraites"":{""transaction"":{}}}",
+                PropositionMouvement.SensMouvement.Debit))
+        End If
+        pieces.Add(New GmailDocumentSimulatedInbox.PieceFictive(
+            "{invalide", PropositionMouvement.SensMouvement.Debit))
         Dim message As New GmailDocumentSimulatedInbox.MessageFictif(
-            "demo@example.invalid", 1UI, 1UI,
-            New GmailDocumentSimulatedInbox.PieceFictive() {
-                New GmailDocumentSimulatedInbox.PieceFictive(
-                    jsonFacture, PropositionMouvement.SensMouvement.Debit),
-                New GmailDocumentSimulatedInbox.PieceFictive(
-                    "{invalide", PropositionMouvement.SensMouvement.Debit)})
-        Dim workflow = PreparerRevueMessagesFictifs(
-            New GmailDocumentSimulatedInbox.MessageFictif() {message})
+            "demo@example.invalid", 1UI, 1UI, pieces)
+        Dim messages As New System.Collections.Generic.List(Of GmailDocumentSimulatedInbox.MessageFictif) From {message}
+        If _modeDemonstration Then
+            ' Meme identite source que la premiere facture : doublon a rejeter.
+            messages.Add(New GmailDocumentSimulatedInbox.MessageFictif(
+                "demo@example.invalid", 1UI, 1UI,
+                New GmailDocumentSimulatedInbox.PieceFictive() {
+                    New GmailDocumentSimulatedInbox.PieceFictive(
+                        jsonFacture, PropositionMouvement.SensMouvement.Debit)}))
+        End If
+        Dim workflow = PreparerRevueMessagesFictifs(messages)
         OuvrirRevueDocumentsAnalyses(workflow)
     End Sub
 
@@ -199,7 +233,44 @@ Public Class FrmPrincipale
     Private _icolModifiable As Integer
     Private _icolNumeroRemise As Integer
 
+    ''' <summary>
+    ''' Démarrage hors ligne : ne charge ni paramètres, ni secrets, ni SQL.
+    ''' Tous les menus de production sont inaccessibles dans cette session.
+    ''' </summary>
+    Private Sub InitialiserModeDemonstration()
+        Text = "gestionTresorerie — DÉMONSTRATION HORS LIGNE"
+        StatusLabelEnv.Items.Clear()
+        StatusLabelEnv.Items.Add(New ToolStripStatusLabel("DÉMONSTRATION — documents fictifs, mémoire uniquement"))
+        For Each menu As ToolStripItem In MenuStrip1.Items
+            menu.Enabled = Object.ReferenceEquals(menu, AnalyseToolStripMenuItem)
+        Next
+        For Each action As ToolStripItem In AnalyseToolStripMenuItem.DropDownItems
+            action.Enabled = Object.ReferenceEquals(action, _menuDemoDocuments) OrElse
+                             Object.ReferenceEquals(action, _menuRevueDocumentsAnalyses) OrElse
+                             Object.ReferenceEquals(action, _menuEffacerDocumentsFictifs)
+        Next
+        _menuRevueDocumentsAnalyses.Enabled = False
+        _menuEffacerDocumentsFictifs.Enabled = False
+        dgvPrincipale.DataSource = Nothing
+        dgvPrincipale.Enabled = False
+        dgvPrincipale.Visible = False
+        pgBar.Visible = False
+        Controls.Add(New Label With {
+            .Name = "annonceDemonstration",
+            .Text = "DÉMONSTRATION — aucune connexion Gmail ou comptable." & Environment.NewLine &
+                    "Analyse > Ouvrir une démonstration : facture, chèque et documents rejetés." & Environment.NewLine &
+                    "La confirmation d'examen ne valide ni n'enregistre d'opération." & Environment.NewLine &
+                    "Analyse > Effacer les propositions fictives : recommencer.",
+            .Location = New System.Drawing.Point(25, 80),
+            .Size = New System.Drawing.Size(1100, 200),
+            .Font = New System.Drawing.Font(Font.FontFamily, 13.0F, System.Drawing.FontStyle.Bold)})
+    End Sub
+
     Private Sub FrmPrincipale_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        If _modeDemonstration Then
+            InitialiserModeDemonstration()
+            Return
+        End If
         Try
             EnvironmentManager.LoadEnvironment()
             Logger.INFO("Environnement actif : " & EnvironmentManager.GetEnvironmentLabel())
@@ -284,6 +355,7 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub FrmMain_Closing(sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
+        If _modeDemonstration Then Return
         ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).Dispose()
     End Sub
     Private Sub BtnConsultation_Click(sender As Object, e As EventArgs)
