@@ -132,4 +132,28 @@ Public Class DemonstrationWindowsTests
                   End Using
               End Sub)
     End Sub
+
+    ' Contrôle automatisé avec un véritable handle WinForms sur le runner Windows.
+    ' Il ne remplace PAS une vérification visuelle et interactive par une personne.
+#If DEMO_BUILD Then
+    <TestMethod>
+    Public Sub DemoBuild_AfficheEtFermeLaFenetrePrincipale_AvecExemplesFictifs()
+        EnSta(Sub()
+                  Using fenetre As New PrincipaleFictive()
+                      fenetre.Show()
+                      Assert.IsTrue(fenetre.IsHandleCreated)
+                      Assert.IsTrue(fenetre.Visible)
+                      StringAssert.Contains(fenetre.Text, "DÉMONSTRATION HORS LIGNE")
+                      Dim demo = DirectCast(fenetre.MainMenuStrip.Items.Find(
+                          "DemoDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
+                      demo.PerformClick()
+                      Assert.AreEqual(1, fenetre.NombreOuvertures)
+                      Assert.AreEqual(2, fenetre.NombrePropositions)
+                      Assert.AreEqual(3, fenetre.NombreRejets)
+                      fenetre.Close()
+                      Assert.IsTrue(fenetre.IsDisposed)
+                  End Using
+              End Sub)
+    End Sub
+#End If
 End Class
