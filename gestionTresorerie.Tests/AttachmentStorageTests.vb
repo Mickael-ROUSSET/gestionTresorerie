@@ -65,8 +65,21 @@ Public Class AttachmentStorageTests
         Try
             Dim original = Path.Combine(folder, "facture.pdf")
             File.WriteAllText(original, "contenu a conserver")
-            Assert.ThrowsException(Of ArgumentException)(Sub() AttachmentStorage.StoreTemporaryFile(original, original))
-            Assert.ThrowsException(Of ArgumentException)(Sub() AttachmentStorage.StoreTemporaryFile(original, Path.Combine(folder, ".", "facture.pdf")))
+            Dim refuseExact As Boolean = False
+            Try
+                AttachmentStorage.StoreTemporaryFile(original, original)
+            Catch ex As ArgumentException
+                refuseExact = True
+            End Try
+            Assert.IsTrue(refuseExact, "Le chemin identique doit etre refuse.")
+
+            Dim refuseNormalise As Boolean = False
+            Try
+                AttachmentStorage.StoreTemporaryFile(original, Path.Combine(folder, ".", "facture.pdf"))
+            Catch ex As ArgumentException
+                refuseNormalise = True
+            End Try
+            Assert.IsTrue(refuseNormalise, "Le meme chemin normalise doit etre refuse.")
             Assert.IsTrue(File.Exists(original))
             Assert.AreEqual("contenu a conserver", File.ReadAllText(original))
             Assert.AreEqual(1, Directory.GetFiles(folder).Length)
