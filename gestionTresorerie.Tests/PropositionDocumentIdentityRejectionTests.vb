@@ -54,6 +54,31 @@ Public Class PropositionDocumentIdentityRejectionTests
 
     <TestMethod>
     <TestCategory("OfflineWindowsAcceptance")>
+    Public Sub IdentifiantNegatif_RejeteAvantLaRevue_SansBloquerLeLot()
+        Dim provenance = "Gmail simule / document fictif"
+        Dim resultat = New PropositionDocumentService().Proposer({
+            New PropositionDocumentService.Entree(FactureFictive(-7, 12D),
+                "id-negatif", PropositionMouvement.SensMouvement.Debit, provenance),
+            New PropositionDocumentService.Entree(FactureFictive(905, 19D),
+                "id-valide", PropositionMouvement.SensMouvement.Debit, provenance)})
+
+        Assert.AreEqual(1, resultat.Rejets.Count)
+        Assert.AreEqual(0, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual("id-negatif", resultat.Rejets(0).CleSource)
+        Assert.AreEqual(provenance, resultat.Rejets(0).Provenance)
+        Assert.AreEqual("Identifiant document negatif invalide.", resultat.Rejets(0).Motif)
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual("id-valide", resultat.Propositions(0).CleSource)
+        Assert.AreEqual(1, resultat.Sources.Count)
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire("id-negatif", 905, provenance))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire("id-negatif", -7, provenance))
+        Assert.IsTrue(resultat.CorrespondanceIdentiteDocumentaire("id-valide", 905, provenance))
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                        resultat.Propositions(0).Etat)
+    End Sub
+
+    <TestMethod>
+    <TestCategory("OfflineWindowsAcceptance")>
     Public Sub CorrespondanceIdentite_ExigeValeursExactesEtResteUnInstantane()
         Dim facture = FactureFictive(903, 42.50D)
         Dim cle = " Piece-903 "
