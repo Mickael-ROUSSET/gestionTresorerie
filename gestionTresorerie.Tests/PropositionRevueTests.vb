@@ -83,6 +83,23 @@ Public Class PropositionRevueTests
     End Sub
 
     <TestMethod>
+    Public Sub DiagnosticsRejet_ConserventLaProvenanceFictiveSansProposition()
+        Dim resultat = New PropositionDocumentService().Proposer({
+            New PropositionDocumentService.Entree(Nothing, "piece-refusee",
+                PropositionMouvement.SensMouvement.Debit, "Gmail fictif / piece 1"),
+            New PropositionDocumentService.Entree(Nothing, "sans-provenance",
+                PropositionMouvement.SensMouvement.Debit)})
+        Dim revue As New PropositionRevue(resultat)
+
+        Assert.AreEqual(0, revue.Lignes.Count)
+        Assert.AreEqual(2, revue.Rejets.Count)
+        Assert.AreEqual("piece-refusee", revue.Rejets(0).CleSource)
+        Assert.AreEqual("Document absent.", revue.Rejets(0).Motif)
+        Assert.AreEqual("Gmail fictif / piece 1", revue.Rejets(0).Provenance)
+        Assert.IsNull(revue.Rejets(1).Provenance)
+    End Sub
+
+    <TestMethod>
     Public Sub CollectionsEtProprietes_SontEnLectureSeule()
         Dim revue As New PropositionRevue(New PropositionDocumentService().Proposer({
             Entree(FactureFictive(), "source"), Nothing}))
