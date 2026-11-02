@@ -154,4 +154,32 @@ Public Class PropositionSessionRevueTests
         Assert.ThrowsExactly(Of InvalidOperationException)(
             Sub() session.MarquerPersistee(sourceInitiale.CleSource))
     End Sub
+
+    <TestMethod>
+    Public Sub AnnulationExamen_ExigeVersionCouranteEtNeModifiePasAudit()
+        Dim premiere = Source()
+        Dim seconde = Source("autre")
+        Dim session As New PropositionSessionRevue({premiere, seconde})
+        session.ConfirmerExamen(premiere.CleSource, premiere)
+        session.ConfirmerExamen(seconde.CleSource, seconde)
+        Assert.ThrowsExactly(Of ArgumentException)(
+            Sub() session.AnnulerExamen(premiere.CleSource, seconde))
+        Assert.AreEqual(2, session.NombreExamensConfirmes)
+        Assert.IsTrue(session.AnnulerExamen(premiere.CleSource, premiere))
+        Assert.IsFalse(session.AnnulerExamen(premiere.CleSource, premiere))
+        Assert.AreEqual(1, session.NombreExamensConfirmes)
+        Assert.IsTrue(session.EstExamenConfirme(seconde.CleSource))
+        Dim correction = Corriger(seconde, 22D)
+        session.AppliquerCorrection(seconde.CleSource, correction)
+        Assert.ThrowsExactly(Of ArgumentException)(
+            Sub() session.AnnulerExamen(seconde.CleSource, seconde))
+        Assert.IsFalse(session.AnnulerExamen(seconde.CleSource, correction.Proposition))
+        Assert.AreEqual(0, session.NombreExamensConfirmes)
+        Assert.AreEqual(1, session.Audits.Count)
+        Assert.AreSame(premiere, session.Propositions(premiere.CleSource))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerApprouvee(premiere.CleSource))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerPersistee(seconde.CleSource))
+    End Sub
 End Class
