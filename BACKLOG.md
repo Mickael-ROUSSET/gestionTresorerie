@@ -3,7 +3,7 @@
 Vue de consultation générée automatiquement à partir du backlog local.
 **Ne pas modifier ce fichier pour piloter l'orchestrateur.**
 
-**Actualisation :** 2026-11-01 20:32 UTC
+**Actualisation :** 2026-11-02 00:42 UTC
 **Objectif :** Prepare safe first-use of the real Windows application: startup diagnostics, opt-in Gmail readiness, usable review workflow, offline acceptance tests and manual release gates. No live production deployment or accounting writes.
 
 | Tâche | État | Validation | Commit |
@@ -20,10 +20,10 @@ Vue de consultation générée automatiquement à partir du backlog local.
 | `treasury-document-review-handoff-123` | Bloquée : failed-test | build OK, test échec | — |
 | `treasury-main-ui-journey-124` | Publiée | build OK, test OK | [`12b2c90ac3bc`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/12b2c90ac3bc) |
 | `treasury-windows-release-readiness-125` | Publiée | build OK, test OK | [`5c6254709ea7`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/5c6254709ea7) |
-| `treasury-windows-startup-smoke-126` | À faire |  | — |
-| `treasury-gmail-connection-readiness-127` | À faire |  | — |
-| `treasury-first-use-review-128` | À faire |  | — |
-| `treasury-windows-acceptance-129` | À faire |  | — |
+| `treasury-windows-startup-smoke-126` | Publiée | build OK, test OK | [`a6569b0fc86c`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/a6569b0fc86c) |
+| `treasury-gmail-connection-readiness-127` | Publiée | build OK, test OK | [`c4d1363f5442`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/c4d1363f5442) |
+| `treasury-first-use-review-128` | Publiée | build OK, test OK | [`994154df7787`](https://github.com/Mickael-ROUSSET/gestionTresorerie/commit/994154df7787) |
+| `treasury-windows-acceptance-129` | En cours / en attente |  | — |
 | `treasury-persistence-design-117` | Désactivée (sécurité) |  | — |
 
 ## Règles
