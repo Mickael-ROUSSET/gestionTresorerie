@@ -84,7 +84,9 @@ Public Class FrmPrincipaleRevueTests
                              Dim panneaux = disposition.Controls.OfType(Of FlowLayoutPanel)().ToArray()
                              Assert.AreEqual(1, panneaux.Length)
                              Dim boutons = panneaux(0).Controls.OfType(Of Button)().ToArray()
-                             Assert.AreEqual(2, boutons.Length)
+                             Assert.AreEqual(4, boutons.Length)
+                             Assert.IsFalse(boutons.Single(Function(b) b.Name = "boutonConfirmerExamen").Enabled)
+                             Assert.IsFalse(boutons.Single(Function(b) b.Name = "boutonAnnulerExamen").Enabled)
                              Dim fermer = boutons.Single(Function(b) b.Name = "boutonFermer")
                              Assert.AreEqual(DialogResult.Cancel, fermer.DialogResult)
                              Dim corriger = boutons.Single(Function(b) b.Name = "boutonCorriger")
@@ -315,6 +317,74 @@ Public Class FrmPrincipaleRevueTests
 
 
     <TestMethod>
+    Public Sub MenuDocumentsSimules_MessagesFictifsVersRevueEtReouvertureSansSQL()
+        ' Source IMAP simulee en memoire : ni reseau, ni SQL, ni approbation.
+        SurThreadSta(Sub()
+                         Using principale As New PrincipaleSimulationIsolee()
+                             Dim menu = DirectCast(principale.MainMenuStrip.Items.Find(
+                                 "RevueDocumentsAnalysesToolStripMenuItem", True)(0), ToolStripMenuItem)
+                             Dim jsonFacture As String =
+                                 "{""type_document"":""Facture"",""donnees_extraites"":{" &
+                                 """identite"":{""fournisseur_nom"":""Fictif""}," &
+                                 """transaction"":{""montant_ttc"":""42.50"",""devise"":""EUR""," &
+                                 """date_facture"":""2026-04-01"",""numero_facture"":""SIM-43""}}}"
+                             Dim message As New GmailDocumentSimulatedInbox.MessageFictif(
+                                 "simulation@example.invalid", 12UI, 34UI,
+                                 New GmailDocumentSimulatedInbox.PieceFictive() {
+                                     New GmailDocumentSimulatedInbox.PieceFictive(
+                                         jsonFacture, PropositionMouvement.SensMouvement.Debit),
+                                     New GmailDocumentSimulatedInbox.PieceFictive(
+                                         "{invalide", PropositionMouvement.SensMouvement.Debit)})
+                             Dim workflow = principale.PreparerRevueMessagesFictifs(
+                                 New GmailDocumentSimulatedInbox.MessageFictif() {message})
+                             Dim cle = GmailDocumentSourceKey.MakeKey(
+                                 "simulation@example.invalid", 12UI, 34UI, 0)
+                             Assert.IsTrue(menu.Enabled)
+                             Assert.AreEqual(1, workflow.ResultatInitial.Propositions.Count)
+                             Assert.AreEqual(1, workflow.ResultatInitial.Rejets.Count)
+                             Assert.AreEqual(1, workflow.ResultatInitial.Rejets(0).IndexEntree)
+
+                             principale.Examiner = Sub(formulaire)
+                                                       Dim grille = DirectCast(formulaire.Controls.Find(
+                                                           "grillePropositions", True)(0), DataGridView)
+                                                       Assert.AreEqual(cle, grille.Rows(0).Cells("CleSource").Value)
+                                                       grille.ClearSelection()
+                                                       grille.Rows(0).Selected = True
+                                                       Assert.IsTrue(formulaire.CorrigerSelection(Function(dialogue)
+                                                                                                     DirectCast(dialogue.Controls.Find(
+                                                                                                         "montant", True)(0), TextBox).Text = "46"
+                                                                                                     Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                                                     Return DialogResult.OK
+                                                                                                 End Function))
+                                                       Assert.IsFalse(formulaire.IsHandleCreated)
+                                                   End Sub
+                             menu.PerformClick()
+                             Assert.AreEqual(46D, workflow.SessionRevue.Propositions(cle).Montant)
+                             Assert.AreEqual(1, workflow.SessionRevue.Audits.Count)
+                             principale.Examiner = Sub(formulaire)
+                                                       Dim grille = DirectCast(formulaire.Controls.Find(
+                                                           "grillePropositions", True)(0), DataGridView)
+                                                       Assert.AreEqual(46D, grille.Rows(0).Cells("Montant").Value)
+                                                       Assert.AreEqual("En attente de revue humaine",
+                                                                       grille.Rows(0).Cells("Statut").Value)
+                                                   End Sub
+                             menu.PerformClick()
+                             Assert.AreEqual(2, principale.NombrePresentations)
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub() workflow.SessionRevue.MarquerApprouvee(cle))
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub() workflow.SessionRevue.MarquerPersistee(cle))
+                             Assert.ThrowsExactly(Of ArgumentNullException)(
+                                 Sub() principale.PreparerRevueMessagesFictifs(Nothing))
+                             Assert.IsFalse(menu.Enabled)
+                             menu.PerformClick()
+                             Assert.AreEqual(2, principale.NombrePresentations)
+                             Assert.IsFalse(principale.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
+
+    <TestMethod>
     Public Sub MenuDocumentsSimules_LotEntierementInvalide_ConserveLesRejetsVisibles()
         ' Un lot sans proposition exploitable doit rester consultable pour
         ' expliquer les rejets, sans autoriser une validation ou une ecriture.
@@ -344,6 +414,99 @@ Public Class FrmPrincipaleRevueTests
                              menu.PerformClick()
                              Assert.AreEqual(1, principale.NombrePresentations)
                              Assert.AreEqual(0, workflow.SessionRevue.Audits.Count)
+                             Assert.IsFalse(principale.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
+
+    <TestMethod>
+    Public Sub MenuDemonstration_OuvreUneRevueFictiveDepuisLEcranPrincipalSansSQL()
+        ' Le clic reste entièrement en mémoire : aucune ouverture du parent,
+        ' aucun compte Gmail, aucune base comptable et aucune approbation.
+        SurThreadSta(Sub()
+                         Using principale As New PrincipaleSimulationIsolee()
+                             Dim demo = DirectCast(principale.MainMenuStrip.Items.Find(
+                                 "DemoDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
+                             Dim revue = DirectCast(principale.MainMenuStrip.Items.Find(
+                                 "RevueDocumentsAnalysesToolStripMenuItem", True)(0), ToolStripMenuItem)
+                             Assert.IsTrue(demo.Enabled)
+                             Assert.IsFalse(revue.Enabled)
+                             Assert.AreEqual("AnalyseToolStripMenuItem", demo.OwnerItem.Name)
+                             principale.Examiner = Sub(formulaire)
+                                                       Dim propositions = DirectCast(formulaire.Controls.Find(
+                                                           "grillePropositions", True)(0), DataGridView)
+                                                       Dim rejets = DirectCast(formulaire.Controls.Find(
+                                                           "grilleRejets", True)(0), DataGridView)
+                                                       Assert.AreEqual(1, propositions.Rows.Count)
+                                                       Assert.AreEqual(1, rejets.Rows.Count)
+                                                       Assert.AreEqual("DEMO-001", propositions.Rows(0).Cells("Reference").Value)
+                                                       Assert.AreEqual(42.5D, propositions.Rows(0).Cells("Montant").Value)
+                                                       Assert.AreEqual("En attente de revue humaine",
+                                                                       propositions.Rows(0).Cells("Statut").Value)
+                                                       Assert.AreEqual(1, rejets.Rows(0).Cells("IndexEntree").Value)
+                                                       Assert.IsFalse(formulaire.IsHandleCreated)
+                                                   End Sub
+                             demo.PerformClick()
+                             Assert.AreEqual(1, principale.NombrePresentations)
+                             Assert.IsTrue(revue.Enabled)
+                             revue.PerformClick()
+                             Assert.AreEqual(2, principale.NombrePresentations)
+                             Assert.IsFalse(principale.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
+
+
+    <TestMethod>
+    Public Sub MenuDemonstration_EffacerRetireLeLotEtLesCorrectionsSansSQL()
+        ' L'effacement ne valide rien et interdit de rouvrir l'ancien lot.
+        ' Relancer la demonstration cree une session vierge en memoire.
+        SurThreadSta(Sub()
+                         Using principale As New PrincipaleSimulationIsolee()
+                             Dim demo = DirectCast(principale.MainMenuStrip.Items.Find(
+                                 "DemoDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
+                             Dim revue = DirectCast(principale.MainMenuStrip.Items.Find(
+                                 "RevueDocumentsAnalysesToolStripMenuItem", True)(0), ToolStripMenuItem)
+                             Dim effacer = DirectCast(principale.MainMenuStrip.Items.Find(
+                                 "EffacerDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
+                             Assert.IsFalse(effacer.Enabled)
+                             Assert.AreEqual("AnalyseToolStripMenuItem", effacer.OwnerItem.Name)
+
+                             principale.Examiner = Sub(formulaire)
+                                                       Dim grille = DirectCast(formulaire.Controls.Find(
+                                                           "grillePropositions", True)(0), DataGridView)
+                                                       grille.ClearSelection()
+                                                       grille.Rows(0).Selected = True
+                                                       Assert.IsTrue(formulaire.CorrigerSelection(Function(dialogue)
+                                                                                                     DirectCast(dialogue.Controls.Find(
+                                                                                                         "montant", True)(0), TextBox).Text = "55"
+                                                                                                     Assert.IsTrue(dialogue.AppliquerCorrection())
+                                                                                                     Return DialogResult.OK
+                                                                                                 End Function))
+                                                   End Sub
+                             demo.PerformClick()
+                             Assert.AreEqual(1, principale.NombrePresentations)
+                             Assert.IsTrue(revue.Enabled)
+                             Assert.IsTrue(effacer.Enabled)
+
+                             effacer.PerformClick()
+                             Assert.IsFalse(revue.Enabled)
+                             Assert.IsFalse(effacer.Enabled)
+                             revue.PerformClick()
+                             Assert.AreEqual(1, principale.NombrePresentations)
+
+                             principale.Examiner = Sub(formulaire)
+                                                       Dim grille = DirectCast(formulaire.Controls.Find(
+                                                           "grillePropositions", True)(0), DataGridView)
+                                                       Assert.AreEqual(42.5D, grille.Rows(0).Cells("Montant").Value)
+                                                       Assert.AreEqual("En attente de revue humaine",
+                                                                       grille.Rows(0).Cells("Statut").Value)
+                                                       Assert.IsFalse(formulaire.IsHandleCreated)
+                                                   End Sub
+                             demo.PerformClick()
+                             Assert.AreEqual(2, principale.NombrePresentations)
+                             Assert.IsTrue(revue.Enabled)
+                             Assert.IsTrue(effacer.Enabled)
                              Assert.IsFalse(principale.IsHandleCreated)
                          End Using
                      End Sub)

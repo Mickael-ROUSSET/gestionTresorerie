@@ -126,4 +126,112 @@ Public Class PropositionSessionRevueTests
         Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine, p.Etat)
         Assert.AreEqual(0, session.Audits.Count)
     End Sub
+    <TestMethod>
+    Public Sub ExamenExplicite_RefuseUneVersionEtrangereEtEstRevoqueParCorrection()
+        Dim sourceInitiale = Source()
+        Dim autre = Source("autre")
+        Dim session As New PropositionSessionRevue({sourceInitiale, autre})
+        Assert.AreEqual(0, session.NombreExamensConfirmes)
+        Assert.IsFalse(session.EstExamenConfirme(sourceInitiale.CleSource))
+        Assert.ThrowsExactly(Of ArgumentException)(
+            Sub() session.ConfirmerExamen(sourceInitiale.CleSource, autre))
+        session.ConfirmerExamen(sourceInitiale.CleSource, sourceInitiale)
+        Assert.IsTrue(session.EstExamenConfirme(sourceInitiale.CleSource))
+        Assert.AreEqual(1, session.NombreExamensConfirmes)
+        Assert.AreEqual(0, session.Audits.Count)
+
+        Dim correction = Corriger(sourceInitiale, 25D)
+        session.AppliquerCorrection(sourceInitiale.CleSource, correction)
+        Assert.IsFalse(session.EstExamenConfirme(sourceInitiale.CleSource))
+        Assert.AreEqual(0, session.NombreExamensConfirmes)
+        Assert.ThrowsExactly(Of ArgumentException)(
+            Sub() session.ConfirmerExamen(sourceInitiale.CleSource, sourceInitiale))
+        session.ConfirmerExamen(sourceInitiale.CleSource, correction.Proposition)
+        Assert.IsTrue(session.EstExamenConfirme(sourceInitiale.CleSource))
+        Assert.AreEqual(1, session.Audits.Count)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerApprouvee(sourceInitiale.CleSource))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerPersistee(sourceInitiale.CleSource))
+    End Sub
+
+    <TestMethod>
+    Public Sub DemandeValidationHumaine_ExigeExamenEtPrevalidationSansJamaisApprouver()
+        Dim initiale = Source()
+        Dim session As New PropositionSessionRevue({initiale})
+        Dim identites As IReadOnlyCollection(Of String) = Array.Empty(Of String)()
+
+        ' La prevalidation ne suffit pas sans examen humain.
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False, True))
+        session.ConfirmerExamen(initiale.CleSource, initiale)
+        ' Un identifiant positif ne constitue pas a lui seul une verification documentaire.
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False))
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False, False))
+        ' Le drapeau explicite ne contourne aucune anomalie de prevalidation.
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 0, identites, False, True))
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, Nothing, False, True))
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, True, True))
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1,
+            New String() {initiale.CleSource}, False, True))
+        Assert.IsTrue(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False, True))
+
+        Dim correction = Corriger(initiale, 22D)
+        session.AppliquerCorrection(initiale.CleSource, correction)
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False, True))
+        session.ConfirmerExamen(initiale.CleSource, correction.Proposition)
+        Assert.IsTrue(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False, True))
+        Assert.IsTrue(session.AnnulerExamen(initiale.CleSource, correction.Proposition))
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False, True))
+        Assert.AreEqual(1, session.Audits.Count)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerApprouvee(initiale.CleSource))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerPersistee(initiale.CleSource))
+    End Sub
+
+    <TestMethod>
+    Public Sub DemandeValidationHumaine_CleInvalideToujoursRejeteeMemeSiVerificationAbsente()
+        Dim initiale = Source()
+        Dim session As New PropositionSessionRevue({initiale})
+        Dim identites As IReadOnlyCollection(Of String) = Array.Empty(Of String)()
+
+        ' Un drapeau de verification faux ne doit pas masquer une selection invalide.
+        For Each cle In {Nothing, "", "absent", initiale.CleSource.Trim(), initiale.CleSource.ToUpperInvariant()}
+            Assert.ThrowsExactly(Of ArgumentException)(
+                Sub() session.PeutDemanderValidationHumaine(cle, 1, identites, False))
+            Assert.ThrowsExactly(Of ArgumentException)(
+                Sub() session.PeutDemanderValidationHumaine(cle, 1, identites, False, True))
+        Next
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False))
+        Assert.AreEqual(0, session.NombreExamensConfirmes)
+        Assert.AreEqual(0, session.Audits.Count)
+    End Sub
+
+    <TestMethod>
+    Public Sub AnnulationExamen_ExigeVersionCouranteEtNeModifiePasAudit()
+        Dim premiere = Source()
+        Dim seconde = Source("autre")
+        Dim session As New PropositionSessionRevue({premiere, seconde})
+        session.ConfirmerExamen(premiere.CleSource, premiere)
+        session.ConfirmerExamen(seconde.CleSource, seconde)
+        Assert.ThrowsExactly(Of ArgumentException)(
+            Sub() session.AnnulerExamen(premiere.CleSource, seconde))
+        Assert.AreEqual(2, session.NombreExamensConfirmes)
+        Assert.IsTrue(session.AnnulerExamen(premiere.CleSource, premiere))
+        Assert.IsFalse(session.AnnulerExamen(premiere.CleSource, premiere))
+        Assert.AreEqual(1, session.NombreExamensConfirmes)
+        Assert.IsTrue(session.EstExamenConfirme(seconde.CleSource))
+        Dim correction = Corriger(seconde, 22D)
+        session.AppliquerCorrection(seconde.CleSource, correction)
+        Assert.ThrowsExactly(Of ArgumentException)(
+            Sub() session.AnnulerExamen(seconde.CleSource, seconde))
+        Assert.IsFalse(session.AnnulerExamen(seconde.CleSource, correction.Proposition))
+        Assert.AreEqual(0, session.NombreExamensConfirmes)
+        Assert.AreEqual(1, session.Audits.Count)
+        Assert.AreSame(premiere, session.Propositions(premiere.CleSource))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerApprouvee(premiere.CleSource))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerPersistee(seconde.CleSource))
+    End Sub
 End Class

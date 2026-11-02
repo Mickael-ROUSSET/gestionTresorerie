@@ -10,6 +10,13 @@ Public Class FrmPrincipale
         .Name = "RevueDocumentsAnalysesToolStripMenuItem",
         .Text = "Revue des documents préparés (simulation)",
         .Enabled = False}
+    Private ReadOnly _menuDemoDocuments As New ToolStripMenuItem With {
+        .Name = "DemoDocumentsFictifsToolStripMenuItem",
+        .Text = "Ouvrir une démonstration (documents fictifs, hors ligne)"}
+    Private ReadOnly _menuEffacerDocumentsFictifs As New ToolStripMenuItem With {
+        .Name = "EffacerDocumentsFictifsToolStripMenuItem",
+        .Text = "Effacer les propositions fictives en mémoire",
+        .Enabled = False}
 
     Public Sub New()
         InitializeComponent()
@@ -21,6 +28,10 @@ Public Class FrmPrincipale
         AnalyseToolStripMenuItem.DropDownItems.Add(menuRevue)
         AddHandler _menuRevueDocumentsAnalyses.Click, AddressOf RevueDocumentsAnalyses_Click
         AnalyseToolStripMenuItem.DropDownItems.Add(_menuRevueDocumentsAnalyses)
+        AddHandler _menuDemoDocuments.Click, AddressOf DemoDocumentsFictifs_Click
+        AnalyseToolStripMenuItem.DropDownItems.Add(_menuDemoDocuments)
+        AddHandler _menuEffacerDocumentsFictifs.Click, AddressOf EffacerDocumentsFictifs_Click
+        AnalyseToolStripMenuItem.DropDownItems.Add(_menuEffacerDocumentsFictifs)
     End Sub
 
     ''' <summary>
@@ -86,6 +97,7 @@ Public Class FrmPrincipale
     Public Sub DefinirWorkflowDocumentsAnalyses(workflow As GmailDocumentReviewWorkflow)
         _workflowDocumentsAnalyses = workflow
         _menuRevueDocumentsAnalyses.Enabled = workflow IsNot Nothing
+        _menuEffacerDocumentsFictifs.Enabled = workflow IsNot Nothing
     End Sub
 
     ''' <summary>
@@ -104,6 +116,49 @@ Public Class FrmPrincipale
         DefinirWorkflowDocumentsAnalyses(workflow)
         Return workflow
     End Function
+
+    ''' <summary>
+    ''' Raccorde des messages IMAP strictement fictifs au menu de revue.
+    ''' Les pieces et JSON sont deja en memoire : aucun acces Gmail, fichier ou SQL.
+    ''' Une tentative invalide retire l'ancien lot pour eviter une revue obsolete.
+    ''' </summary>
+    Public Function PreparerRevueMessagesFictifs(
+        messages As System.Collections.Generic.IEnumerable(Of GmailDocumentSimulatedInbox.MessageFictif)
+    ) As GmailDocumentReviewWorkflow
+        DefinirWorkflowDocumentsAnalyses(Nothing)
+        If messages Is Nothing Then Throw New ArgumentNullException(NameOf(messages))
+        Dim workflow = GmailDocumentSimulatedInbox.PreparerRevue(messages)
+        DefinirWorkflowDocumentsAnalyses(workflow)
+        Return workflow
+    End Function
+
+    ''' <summary>
+    ''' Démonstration activable depuis l'interface : données exclusivement fictives
+    ''' en mémoire, sans connexion Gmail, lecture de fichier ni écriture SQL.
+    ''' Relancer la démonstration remplace le lot précédent ; la revue reste sans approbation.
+    ''' </summary>
+    Private Sub DemoDocumentsFictifs_Click(sender As Object, e As EventArgs)
+        Dim jsonFacture As String =
+            "{""type_document"":""Facture"",""donnees_extraites"":{" &
+            """identite"":{""fournisseur_nom"":""Exemple fictif""}," &
+            """transaction"":{""montant_ttc"":""42.50"",""devise"":""EUR""," &
+            """date_facture"":""2026-04-01"",""numero_facture"":""DEMO-001""}}}"
+        Dim message As New GmailDocumentSimulatedInbox.MessageFictif(
+            "demo@example.invalid", 1UI, 1UI,
+            New GmailDocumentSimulatedInbox.PieceFictive() {
+                New GmailDocumentSimulatedInbox.PieceFictive(
+                    jsonFacture, PropositionMouvement.SensMouvement.Debit),
+                New GmailDocumentSimulatedInbox.PieceFictive(
+                    "{invalide", PropositionMouvement.SensMouvement.Debit)})
+        Dim workflow = PreparerRevueMessagesFictifs(
+            New GmailDocumentSimulatedInbox.MessageFictif() {message})
+        OuvrirRevueDocumentsAnalyses(workflow)
+    End Sub
+
+    ''' <summary>Oublie le lot fictif et ses corrections locales, sans accès externe.</summary>
+    Private Sub EffacerDocumentsFictifs_Click(sender As Object, e As EventArgs)
+        DefinirWorkflowDocumentsAnalyses(Nothing)
+    End Sub
 
     Private Sub RevueDocumentsAnalyses_Click(sender As Object, e As EventArgs)
         If _workflowDocumentsAnalyses Is Nothing Then Return

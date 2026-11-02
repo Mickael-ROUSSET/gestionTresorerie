@@ -11,6 +11,7 @@ Imports System.Collections.ObjectModel
 Public NotInheritable Class PropositionSessionRevue
     Private ReadOnly courantes As New Dictionary(Of String, PropositionMouvement)(StringComparer.Ordinal)
     Private ReadOnly historique As New List(Of PropositionCorrection.Resultat)()
+    Private ReadOnly examens As New Dictionary(Of String, PropositionMouvement)(StringComparer.Ordinal)
 
     Public Sub New(propositions As IEnumerable(Of PropositionMouvement))
         If propositions Is Nothing Then Throw New ArgumentNullException(NameOf(propositions))
@@ -32,6 +33,41 @@ Public NotInheritable Class PropositionSessionRevue
     Public ReadOnly Property Propositions As IReadOnlyDictionary(Of String, PropositionMouvement)
     Public ReadOnly Property Audits As IReadOnlyList(Of PropositionCorrection.Resultat)
 
+    ''' <summary>Nombre d'examens humains explicitement confirmes dans cette session.
+    ''' Ne constitue ni une prevalidation, ni une approbation, ni une ecriture.</summary>
+    Public ReadOnly Property NombreExamensConfirmes As Integer
+        Get
+            Return examens.Count
+        End Get
+    End Property
+
+    Public Function EstExamenConfirme(cleSource As String) As Boolean
+        Dim courante = Selectionner(cleSource)
+        Dim examinee As PropositionMouvement = Nothing
+        Return examens.TryGetValue(cleSource, examinee) AndAlso
+            Object.ReferenceEquals(courante, examinee)
+    End Function
+
+    ''' <summary>Trace uniquement l'examen explicite de la version courante en memoire.
+    ''' Une version ancienne ou issue d'une autre session ne peut etre confirmee.</summary>
+    Public Sub ConfirmerExamen(cleSource As String, propositionExaminee As PropositionMouvement)
+        Dim courante = Selectionner(cleSource)
+        If propositionExaminee Is Nothing OrElse Not Object.ReferenceEquals(courante, propositionExaminee) Then
+            Throw New ArgumentException("Examen de la version courante obligatoire.", NameOf(propositionExaminee))
+        End If
+        examens(cleSource) = courante
+    End Sub
+
+    ''' <summary>Retire explicitement l'examen confirme de la version courante.
+    ''' Aucun changement de proposition, d'audit ni d'enregistrement.</summary>
+    Public Function AnnulerExamen(cleSource As String, propositionExaminee As PropositionMouvement) As Boolean
+        Dim courante = Selectionner(cleSource)
+        If propositionExaminee Is Nothing OrElse Not Object.ReferenceEquals(courante, propositionExaminee) Then
+            Throw New ArgumentException("Annulation de la version courante obligatoire.", NameOf(propositionExaminee))
+        End If
+        Return examens.Remove(cleSource)
+    End Function
+
     Private Function Selectionner(cleSource As String) As PropositionMouvement
         Dim proposition As PropositionMouvement = Nothing
         If cleSource Is Nothing OrElse Not courantes.TryGetValue(cleSource, proposition) Then
@@ -52,6 +88,7 @@ Public NotInheritable Class PropositionSessionRevue
             Throw New ArgumentException("Correction incompatible avec la selection courante.", NameOf(correction))
         End If
         courantes(cleSource) = correction.Proposition
+        examens.Remove(cleSource) ' Toute correction rend caduc l'examen de la version precedente.
         historique.Add(correction)
     End Sub
 
@@ -62,6 +99,22 @@ Public NotInheritable Class PropositionSessionRevue
                               Optional referenceAmbigue As Boolean = True) As PropositionPrevalidation.Resultat
         Return PropositionPrevalidation.Evaluer(Selectionner(cleSource), idDocumentSource,
                                                 identitesUtilisees, referenceAmbigue)
+    End Function
+
+    ''' <summary>Diagnostic de passage a une eventuelle validation humaine.
+    ''' Exige l'examen confirme de la version courante et une prevalidation
+    ''' sans anomalie. Le contexte documentaire doit etre explicitement marque
+    ''' comme verifie par l'appelant : un simple identifiant positif ne suffit pas.
+    ''' Ce drapeau ne constitue pas une preuve de verification externe.
+    ''' Ne valide, n'approuve, ni n'enregistre aucune operation.</summary>
+    Public Function PeutDemanderValidationHumaine(cleSource As String, idDocumentSource As Integer,
+                                                 identitesUtilisees As IReadOnlyCollection(Of String),
+                                                 Optional referenceAmbigue As Boolean = True,
+                                                 Optional identiteDocumentaireVerifiee As Boolean = False) As Boolean
+        ' Toujours verifier la selection, meme lorsque la verification documentaire est absente.
+        ' Sinon AndAlso masquerait une cle inexistante ou inexacte.
+        Return EstExamenConfirme(cleSource) AndAlso identiteDocumentaireVerifiee AndAlso
+            Prevalider(cleSource, idDocumentSource, identitesUtilisees, referenceAmbigue).EstPrete
     End Function
 
     Public Sub MarquerApprouvee(cleSource As String)

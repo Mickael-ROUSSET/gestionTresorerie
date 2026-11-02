@@ -25,6 +25,15 @@ Public NotInheritable Class FrmRevuePropositions
         .Name = "boutonCorriger", .Text = "Corriger la sélection (sans valider)",
         .AccessibleName = "Corriger la sélection (sans valider)", .AutoSize = True,
         .Enabled = False, .TabIndex = 2}
+    Private ReadOnly confirmerExamen As New Button With {
+        .Name = "boutonConfirmerExamen", .Text = "Confirmer l'examen (mémoire uniquement)",
+        .AccessibleName = "Confirmer l'examen humain sans approbation ni enregistrement",
+        .AutoSize = True, .Enabled = False, .TabIndex = 3}
+
+    Private ReadOnly annulerExamen As New Button With {
+        .Name = "boutonAnnulerExamen", .Text = "Annuler la confirmation d'examen",
+        .AccessibleName = "Retirer la confirmation d'examen sans modifier la proposition",
+        .AutoSize = True, .Enabled = False, .TabIndex = 4}
 
     Public Sub New(revue As PropositionRevue)
         If revue Is Nothing Then Throw New ArgumentNullException(NameOf(revue))
@@ -38,10 +47,11 @@ Public NotInheritable Class FrmRevuePropositions
 
         Dim propositions = CreerGrille("grillePropositions", "Propositions en lecture seule", 0)
         AjouterColonnes(propositions, {"CleSource", "TypeDocument", "Reference", "DateProposee",
-                                      "Montant", "Sens", "Libelle", "Statut", "Avertissements", "Prevalidation"},
+                                      "Montant", "Sens", "Libelle", "Statut", "Avertissements", "Prevalidation", "DemandeValidation"},
                          {"Identité du document", "Type", "Référence", "Date proposée",
                           "Montant (EUR)", "Débit / Crédit", "Libellé", "Statut", "Avertissements de validation",
-                          "Anomalies de prévalidation (diagnostic uniquement)"})
+                          "Anomalies de prévalidation (diagnostic uniquement)",
+                          "Demande de validation métier (diagnostic uniquement)"})
         propositions.Columns("DateProposee").ValueType = GetType(DateTime)
         propositions.Columns("DateProposee").DefaultCellStyle.Format = "dd/MM/yyyy"
         propositions.Columns("Montant").ValueType = GetType(Decimal)
@@ -52,7 +62,8 @@ Public NotInheritable Class FrmRevuePropositions
                                   If(ligne.Sens = PropositionMouvement.SensMouvement.Debit, "Débit", "Crédit"),
                                   ligne.Libelle, "En attente de revue humaine",
                                   String.Join(Environment.NewLine, ligne.AvertissementsValidation),
-                                  "Contexte documentaire non fourni")
+                                  "Contexte documentaire non fourni",
+                                  "Indisponible : session de revue absente")
         Next
 
         Dim rejets = CreerGrille("grilleRejets", "Diagnostics des entrées rejetées en lecture seule", 1)
@@ -83,11 +94,13 @@ Public NotInheritable Class FrmRevuePropositions
         disposition.Controls.Add(New Label With {.Text = "Entrées rejetées — diagnostics uniquement", .AutoSize = True}, 0, 2)
         disposition.Controls.Add(rejets, 0, 3)
         Dim actions As New FlowLayoutPanel With {.AutoSize = True, .Dock = DockStyle.Fill}
-        actions.Controls.AddRange(New Control() {corriger, fermer})
+        actions.Controls.AddRange(New Control() {corriger, confirmerExamen, annulerExamen, fermer})
         disposition.Controls.Add(actions, 0, 4)
         disposition.Controls.Add(etatCorrections, 0, 5)
         AddHandler propositions.SelectionChanged, Sub() ActualiserAction(propositions)
         AddHandler corriger.Click, Sub() CorrigerSelection()
+        AddHandler confirmerExamen.Click, Sub() ConfirmerExamenSelection()
+        AddHandler annulerExamen.Click, Sub() AnnulerExamenSelection()
         Controls.Add(disposition)
     End Sub
 
@@ -138,7 +151,8 @@ Public NotInheritable Class FrmRevuePropositions
         For i As Integer = 0 To liste.Count - 1
             sources.Add(grille.Rows(i), liste(i))
         Next
-        ActualiserDiagnosticsPrevalidation()
+        ' Une reouverture doit restaurer aussi les examens confirmes en memoire.
+        ActualiserSession()
         ActualiserAction(grille)
     End Sub
 
@@ -169,7 +183,13 @@ Public NotInheritable Class FrmRevuePropositions
             ligne.Cells("Sens").Value = If(courante.Sens = PropositionMouvement.SensMouvement.Debit, "Débit", "Crédit")
             ligne.Cells("Libelle").Value = courante.Libelle
             ligne.Cells("Reference").Value = courante.Reference
+            ligne.Cells("Statut").Value = If(session.EstExamenConfirme(cle),
+                "Examen confirmé (sans approbation)", "En attente de revue humaine")
             ligne.Cells("Avertissements").Value = String.Join(Environment.NewLine, courante.AvertissementsValidation)
+            ' L'examen humain ne suffit jamais : l'identite documentaire est absente
+            ' de cette revue hors ligne. Aucun bouton de validation n'est propose.
+            ligne.Cells("DemandeValidation").Value = If(session.EstExamenConfirme(cle),
+                "Bloquée : identité documentaire non vérifiée", "Bloquée : examen humain non confirmé")
         Next
         ActualiserDiagnosticsPrevalidation()
         ActualiserEtatCorrections()
@@ -178,13 +198,49 @@ Public NotInheritable Class FrmRevuePropositions
 
     Private Sub ActualiserEtatCorrections()
         If session IsNot Nothing Then
-            etatCorrections.Text = $"Corrections tracées en mémoire : {session.Audits.Count}. Aucune opération validée ni enregistrée."
+            etatCorrections.Text = $"Corrections tracées en mémoire : {session.Audits.Count}. " &
+                $"Examens confirmés : {session.NombreExamensConfirmes} (sans approbation). " &
+                "Aucune opération validée ni enregistrée."
         End If
     End Sub
 
     Private Sub ActualiserAction(grille As DataGridView)
-        corriger.Enabled = grille.SelectedRows.Count = 1 AndAlso sources.ContainsKey(grille.SelectedRows(0))
+        Dim selectionUnique = grille.SelectedRows.Count = 1 AndAlso sources.ContainsKey(grille.SelectedRows(0))
+        corriger.Enabled = selectionUnique
+        confirmerExamen.Enabled = False
+        annulerExamen.Enabled = False
+        If selectionUnique AndAlso session IsNot Nothing Then
+            Dim estConfirme = session.EstExamenConfirme(sources(grille.SelectedRows(0)).CleSource)
+            confirmerExamen.Enabled = Not estConfirme
+            annulerExamen.Enabled = estConfirme
+        End If
     End Sub
+
+    ''' <summary>Accuse reception de l'examen humain, sans approbation ni SQL.
+    ''' La confirmation ne concerne que la version actuellement affichee.</summary>
+    Public Function ConfirmerExamenSelection() As Boolean
+        If session Is Nothing Then Return False
+        ActualiserSession()
+        If Not confirmerExamen.Enabled Then Return False
+        Dim grille = DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView)
+        Dim source = sources(grille.SelectedRows(0))
+        session.ConfirmerExamen(source.CleSource, source)
+        ActualiserSession()
+        Return True
+    End Function
+
+    ''' <summary>Retire une confirmation d'examen explicite, uniquement en memoire.
+    ''' La selection et la version courante sont reverifiees avant l'annulation.</summary>
+    Public Function AnnulerExamenSelection() As Boolean
+        If session Is Nothing Then Return False
+        ActualiserSession()
+        If Not annulerExamen.Enabled Then Return False
+        Dim grille = DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView)
+        Dim source = sources(grille.SelectedRows(0))
+        If Not session.AnnulerExamen(source.CleSource, source) Then Return False
+        ActualiserSession()
+        Return True
+    End Function
 
     ''' <summary>Correction locale ; le présentateur optionnel permet les tests sans dialogue modal.</summary>
     Public Function CorrigerSelection(Optional afficher As Func(Of FrmCorrectionProposition, DialogResult) = Nothing) As Boolean
@@ -199,7 +255,12 @@ Public NotInheritable Class FrmRevuePropositions
         If source.Etat <> PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine Then Return False
         Using correction As New FrmCorrectionProposition(source)
             Dim resultat = If(afficher Is Nothing, correction.ShowDialog(Me), afficher(correction))
-            If resultat <> DialogResult.OK OrElse correction.PropositionCorrigee Is Nothing Then Return False
+            If resultat <> DialogResult.OK OrElse correction.PropositionCorrigee Is Nothing Then
+                ' Une correction externe pendant le dialogue peut avoir revoque
+                ' l'examen confirme : rafraichir meme si l'utilisateur annule.
+                If session IsNot Nothing Then ActualiserSession()
+                Return False
+            End If
             Dim proposition = correction.PropositionCorrigee
             If session IsNot Nothing Then
                 ' Une correction externe pendant le dialogue rend la proposition affichée obsolète.
@@ -219,8 +280,9 @@ Public NotInheritable Class FrmRevuePropositions
             ligne.Cells("Libelle").Value = proposition.Libelle
             ligne.Cells("Reference").Value = proposition.Reference
             ligne.Cells("Avertissements").Value = String.Join(Environment.NewLine, proposition.AvertissementsValidation)
-            ActualiserDiagnosticsPrevalidation()
-            ActualiserEtatCorrections()
+            ' Rafraichir aussi le statut d'examen : toute correction revoque
+            ' la confirmation precedente, meme sans fermeture de la fenetre.
+            If session IsNot Nothing Then ActualiserSession()
             Return True
         End Using
     End Function
