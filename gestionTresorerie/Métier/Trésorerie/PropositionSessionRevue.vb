@@ -101,6 +101,17 @@ Public NotInheritable Class PropositionSessionRevue
                                                 identitesUtilisees, referenceAmbigue)
     End Function
 
+    ''' <summary>Diagnostic de passage a une eventuelle validation humaine.
+    ''' Exige l'examen confirme de la version courante et une prevalidation
+    ''' sans anomalie, avec contexte documentaire fourni explicitement.
+    ''' Ne valide, n'approuve, ni n'enregistre aucune operation.</summary>
+    Public Function PeutDemanderValidationHumaine(cleSource As String, idDocumentSource As Integer,
+                                                 identitesUtilisees As IReadOnlyCollection(Of String),
+                                                 Optional referenceAmbigue As Boolean = True) As Boolean
+        Return EstExamenConfirme(cleSource) AndAlso
+            Prevalider(cleSource, idDocumentSource, identitesUtilisees, referenceAmbigue).EstPrete
+    End Function
+
     Public Sub MarquerApprouvee(cleSource As String)
         Selectionner(cleSource)
         Throw New InvalidOperationException("Une session de revue ne peut pas approuver une proposition.")
