@@ -58,6 +58,16 @@ Public NotInheritable Class PropositionSessionRevue
         examens(cleSource) = courante
     End Sub
 
+    ''' <summary>Retire explicitement l'examen confirme de la version courante.
+    ''' Aucun changement de proposition, d'audit ni d'enregistrement.</summary>
+    Public Function AnnulerExamen(cleSource As String, propositionExaminee As PropositionMouvement) As Boolean
+        Dim courante = Selectionner(cleSource)
+        If propositionExaminee Is Nothing OrElse Not Object.ReferenceEquals(courante, propositionExaminee) Then
+            Throw New ArgumentException("Annulation de la version courante obligatoire.", NameOf(propositionExaminee))
+        End If
+        Return examens.Remove(cleSource)
+    End Function
+
     Private Function Selectionner(cleSource As String) As PropositionMouvement
         Dim proposition As PropositionMouvement = Nothing
         If cleSource Is Nothing OrElse Not courantes.TryGetValue(cleSource, proposition) Then
