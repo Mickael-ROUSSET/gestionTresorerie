@@ -255,7 +255,12 @@ Public NotInheritable Class FrmRevuePropositions
         If source.Etat <> PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine Then Return False
         Using correction As New FrmCorrectionProposition(source)
             Dim resultat = If(afficher Is Nothing, correction.ShowDialog(Me), afficher(correction))
-            If resultat <> DialogResult.OK OrElse correction.PropositionCorrigee Is Nothing Then Return False
+            If resultat <> DialogResult.OK OrElse correction.PropositionCorrigee Is Nothing Then
+                ' Une correction externe pendant le dialogue peut avoir revoque
+                ' l'examen confirme : rafraichir meme si l'utilisateur annule.
+                If session IsNot Nothing Then ActualiserSession()
+                Return False
+            End If
             Dim proposition = correction.PropositionCorrigee
             If session IsNot Nothing Then
                 ' Une correction externe pendant le dialogue rend la proposition affichée obsolète.
