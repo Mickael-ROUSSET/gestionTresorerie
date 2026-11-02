@@ -60,6 +60,22 @@ Public Class AttachmentStorageTests
     End Sub
 
     <TestMethod>
+    Public Sub RefuseLeMemeCheminSansSupprimerLeFichier()
+        Dim folder = NewFolder()
+        Try
+            Dim original = Path.Combine(folder, "facture.pdf")
+            File.WriteAllText(original, "contenu a conserver")
+            Assert.ThrowsException(Of ArgumentException)(Sub() AttachmentStorage.StoreTemporaryFile(original, original))
+            Assert.ThrowsException(Of ArgumentException)(Sub() AttachmentStorage.StoreTemporaryFile(original, Path.Combine(folder, ".", "facture.pdf")))
+            Assert.IsTrue(File.Exists(original))
+            Assert.AreEqual("contenu a conserver", File.ReadAllText(original))
+            Assert.AreEqual(1, Directory.GetFiles(folder).Length)
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
     Public Sub Sha256IdentiquePourDeuxFichiersEgaux()
         Dim folder = NewFolder()
         Try
