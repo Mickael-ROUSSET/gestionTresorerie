@@ -156,6 +156,35 @@ Public Class PropositionSessionRevueTests
     End Sub
 
     <TestMethod>
+    Public Sub DemandeValidationHumaine_ExigeExamenEtPrevalidationSansJamaisApprouver()
+        Dim initiale = Source()
+        Dim session As New PropositionSessionRevue({initiale})
+        Dim identites As IReadOnlyCollection(Of String) = Array.Empty(Of String)()
+
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False))
+        session.ConfirmerExamen(initiale.CleSource, initiale)
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 0, identites, False))
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, Nothing, False))
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites))
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1,
+            New String() {initiale.CleSource}, False))
+        Assert.IsTrue(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False))
+
+        Dim correction = Corriger(initiale, 22D)
+        session.AppliquerCorrection(initiale.CleSource, correction)
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False))
+        session.ConfirmerExamen(initiale.CleSource, correction.Proposition)
+        Assert.IsTrue(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False))
+        Assert.IsTrue(session.AnnulerExamen(initiale.CleSource, correction.Proposition))
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False))
+        Assert.AreEqual(1, session.Audits.Count)
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerApprouvee(initiale.CleSource))
+        Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub() session.MarquerPersistee(initiale.CleSource))
+    End Sub
+
+    <TestMethod>
     Public Sub AnnulationExamen_ExigeVersionCouranteEtNeModifiePasAudit()
         Dim premiere = Source()
         Dim seconde = Source("autre")
