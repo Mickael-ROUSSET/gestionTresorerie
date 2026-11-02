@@ -111,7 +111,9 @@ Public NotInheritable Class PropositionSessionRevue
                                                  identitesUtilisees As IReadOnlyCollection(Of String),
                                                  Optional referenceAmbigue As Boolean = True,
                                                  Optional identiteDocumentaireVerifiee As Boolean = False) As Boolean
-        Return identiteDocumentaireVerifiee AndAlso EstExamenConfirme(cleSource) AndAlso
+        ' Toujours verifier la selection, meme lorsque la verification documentaire est absente.
+        ' Sinon AndAlso masquerait une cle inexistante ou inexacte.
+        Return EstExamenConfirme(cleSource) AndAlso identiteDocumentaireVerifiee AndAlso
             Prevalider(cleSource, idDocumentSource, identitesUtilisees, referenceAmbigue).EstPrete
     End Function
 
