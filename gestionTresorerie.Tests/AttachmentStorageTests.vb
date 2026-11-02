@@ -122,6 +122,28 @@ Public Class AttachmentStorageTests
     End Sub
 
     <TestMethod>
+    Public Sub DoublonSurLeCheminCible_ConserveLeFichierExistant()
+        Dim folder = NewFolder()
+        Try
+            Dim destination = Path.Combine(folder, "facture.pdf")
+            Dim contenu = "facture fictive deja presente"
+            File.WriteAllText(destination, contenu)
+            Dim temp = NewTempPath(folder)
+            File.WriteAllText(temp, contenu)
+
+            Dim resultat = AttachmentStorage.StoreTemporaryFile(temp, destination)
+
+            Assert.IsNull(resultat, "Le doublon ne doit pas creer une nouvelle piece jointe.")
+            Assert.IsTrue(File.Exists(destination), "Le fichier existant ne doit jamais etre supprime.")
+            Assert.AreEqual(contenu, File.ReadAllText(destination))
+            Assert.IsFalse(File.Exists(temp), "Seul le fichier temporaire doit etre nettoye.")
+            Assert.AreEqual(1, Directory.GetFiles(folder).Length)
+        Finally
+            Directory.Delete(folder, True)
+        End Try
+    End Sub
+
+    <TestMethod>
     Public Sub Sha256IdentiquePourDeuxFichiersEgaux()
         Dim folder = NewFolder()
         Try
