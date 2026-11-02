@@ -548,4 +548,45 @@ Public Class FrmRevuePropositionsTests
                      End Sub)
     End Sub
 
+    <TestMethod>
+    Public Sub DialogueAnnuleApresCorrectionExterne_RafraichitLaRevueSansValider()
+        SurThreadSta(Sub()
+                         Dim resultat = Lot()
+                         Dim initiale = resultat.Propositions(0)
+                         Dim session As New PropositionSessionRevue(resultat.Propositions)
+                         Using formulaire As New FrmRevuePropositions(
+                             New PropositionRevue(resultat), resultat.Propositions, session)
+                             Dim tableau = Grille(formulaire, "grillePropositions")
+                             tableau.ClearSelection()
+                             tableau.Rows(0).Selected = True
+                             Assert.IsTrue(formulaire.ConfirmerExamenSelection())
+                             Assert.AreEqual("Examen confirmé (sans approbation)",
+                                             tableau.Rows(0).Cells("Statut").Value)
+
+                             Assert.IsFalse(formulaire.CorrigerSelection(Function(dialogue)
+                                                                            Dim externe = PropositionCorrection.Corriger(
+                                                                                initiale, initiale.DateProposee, 77D,
+                                                                                initiale.Sens, initiale.Libelle, initiale.Reference)
+                                                                            session.AppliquerCorrection(initiale.CleSource, externe)
+                                                                            Return DialogResult.Cancel
+                                                                        End Function))
+
+                             ' Le dialogue est annule, mais la modification externe est visible.
+                             Assert.AreEqual(77D, tableau.Rows(0).Cells("Montant").Value)
+                             Assert.AreEqual("En attente de revue humaine",
+                                             tableau.Rows(0).Cells("Statut").Value)
+                             Assert.AreEqual("Bloquée : examen humain non confirmé",
+                                             tableau.Rows(0).Cells("DemandeValidation").Value)
+                             Assert.AreEqual(1, session.Audits.Count)
+                             Assert.AreEqual(0, session.NombreExamensConfirmes)
+                             Assert.IsFalse(session.EstExamenConfirme(initiale.CleSource))
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub() session.MarquerApprouvee(initiale.CleSource))
+                             Assert.ThrowsExactly(Of InvalidOperationException)(
+                                 Sub() session.MarquerPersistee(initiale.CleSource))
+                             Assert.IsFalse(formulaire.IsHandleCreated)
+                         End Using
+                     End Sub)
+    End Sub
+
 End Class
