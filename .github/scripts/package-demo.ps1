@@ -15,8 +15,7 @@ $shortSha = $sha.Substring(0, 8)
 $stage = Join-Path $artifacts ('gestionTresorerie-demo-' + $shortSha)
 $zip = Join-Path $artifacts ('gestionTresorerie-demo-' + $shortSha + '.zip')
 
-# Ne jamais reutiliser un ancien dossier de conditionnement : il pourrait contenir
-# des fichiers locaux non autorises, ensuite inclus par Compress-Archive.
+# Refuser les restes d'un conditionnement precedent, pour eviter toute fuite.
 if (Test-Path -LiteralPath $stage) {
     throw "Dossier de conditionnement deja present : $stage. Utiliser un espace propre."
 }
@@ -59,17 +58,12 @@ $unsafe = @(Get-ChildItem -Path $stage -Recurse -File | Where-Object {
     $_.Name -match '(?i)(client_secret|\.config$|\.mdf$|\.pfx$|\.key$|\.env$)'
 })
 if ($unsafe.Count -gt 0) { throw ('Fichiers interdits : ' + ($unsafe.Name -join ', ')) }
-# Verification finale par liste blanche de TOUS les fichiers du dossier de staging.
-# Un fichier residuel, de configuration ou de donnees doit bloquer la publication.
+# Verification finale de tous les fichiers du dossier de staging.
 $support = @('LIRE_AVANT_DEMARRER.md', 'LANCER-DEMONSTRATION.cmd', 'COMMIT-DEMONSTRATION.txt')
 $unexpected = @(Get-ChildItem -LiteralPath $stage -Recurse -File | Where-Object {
     ($_.Name -notin $support) -and
     ($_.Extension -notin @('.exe', '.dll')) -and
-    ($_.Name -notmatch '\.(deps|runtimeconfig)\.json
-Write-Output "Archive de démonstration candidate : $zip"
-Write-Output "Commit : $sha"
-Write-Output 'Contrôle graphique manuel : non effectué.'
-)
+    ($_.Name -notmatch '\.(deps|runtimeconfig)\.json$')
 })
 if ($unexpected.Count -gt 0) {
     throw ('Fichiers hors liste blanche : ' + ($unexpected.FullName -join ', '))
