@@ -118,6 +118,9 @@ Public NotInheritable Class PropositionDocumentService
                 If entree.ErreurCorrespondance IsNot Nothing Then Throw New ArgumentException(entree.ErreurCorrespondance)
                 If String.IsNullOrWhiteSpace(cle) Then Throw New ArgumentException("Cle source obligatoire.")
                 If entree.Document Is Nothing Then Throw New ArgumentException("Document absent.")
+                ' Un identifiant negatif n'est ni une identite attribuee ni un document sans ID.
+                ' Le refuser avant la creation d'une proposition evite une revue non verifiable.
+                If entree.Document.IdDoc < 0 Then Throw New ArgumentException("Identifiant document negatif invalide.")
                 If Not documents.Add(entree.Document) Then Throw New ArgumentException("Document deja present dans le lot sous une autre cle source.")
                 If entree.Document.IdDoc <> 0 AndAlso Not identifiants.Add(entree.Document.IdDoc) Then
                     Throw New ArgumentException("Identifiant document duplique dans le lot.")
