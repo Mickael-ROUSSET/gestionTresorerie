@@ -527,18 +527,18 @@ Public Class FrmRevuePropositionsTests
                          Dim cle = resultat.Propositions(0).CleSource
                          Using formulaire As New FrmRevuePropositions(
                              New PropositionRevue(resultat), resultat.Propositions, session)
-                             Dim grille = Grille(formulaire, "grillePropositions")
+                             Dim tableau = Grille(formulaire, "grillePropositions")
                              Assert.AreEqual("Bloquée : examen humain non confirmé",
-                                             grille.Rows(0).Cells("DemandeValidation").Value)
-                             grille.ClearSelection()
-                             grille.Rows(0).Selected = True
+                                             tableau.Rows(0).Cells("DemandeValidation").Value)
+                             tableau.ClearSelection()
+                             tableau.Rows(0).Selected = True
                              Assert.IsTrue(formulaire.ConfirmerExamenSelection())
                              Assert.AreEqual("Bloquée : identité documentaire non vérifiée",
-                                             grille.Rows(0).Cells("DemandeValidation").Value)
+                                             tableau.Rows(0).Cells("DemandeValidation").Value)
                              Assert.IsFalse(session.PeutDemanderValidationHumaine(cle, 0, Nothing))
                              Assert.IsTrue(formulaire.AnnulerExamenSelection())
                              Assert.AreEqual("Bloquée : examen humain non confirmé",
-                                             grille.Rows(0).Cells("DemandeValidation").Value)
+                                             tableau.Rows(0).Cells("DemandeValidation").Value)
                              Assert.ThrowsExactly(Of InvalidOperationException)(
                                  Sub() session.MarquerApprouvee(cle))
                              Assert.ThrowsExactly(Of InvalidOperationException)(
