@@ -207,6 +207,30 @@ Public Class PropositionAnalyseAdapterTests
     End Sub
 
     <TestMethod>
+    Public Sub CorrespondancesEtrangeres_ReserventLeurCleMemeRejetees()
+        Dim adapter As New PropositionAnalyseAdapter()
+        Dim rejetees = adapter.ProposerDocuments(Array.Empty(Of DocumentAgumaaa)(), {
+            New PropositionDocumentService.Entree(FactureFictive(), " SOURCE ", PropositionMouvement.SensMouvement.Debit),
+            New PropositionDocumentService.Entree(ChequeFictif(), "source", PropositionMouvement.SensMouvement.Credit),
+            New PropositionDocumentService.Entree(FactureFictive(), "distincte", PropositionMouvement.SensMouvement.Debit)})
+        Assert.AreEqual(0, rejetees.Propositions.Count)
+        Assert.AreEqual(3, rejetees.Rejets.Count)
+        Assert.AreEqual("Correspondance sans document du lot.", rejetees.Rejets(0).Motif)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", rejetees.Rejets(1).Motif)
+        Assert.AreEqual("source", rejetees.Rejets(1).CleSource)
+        Assert.AreEqual("Correspondance sans document du lot.", rejetees.Rejets(2).Motif)
+
+        Dim facture = FactureFictive()
+        Dim mixte = adapter.ProposerDocuments({facture}, {
+            New PropositionDocumentService.Entree(facture, "source", PropositionMouvement.SensMouvement.Debit),
+            New PropositionDocumentService.Entree(ChequeFictif(), " SOURCE ", PropositionMouvement.SensMouvement.Credit)})
+        Assert.AreEqual(1, mixte.Propositions.Count)
+        Assert.AreEqual(1, mixte.Rejets.Count)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", mixte.Rejets(0).Motif)
+        Assert.AreEqual(" SOURCE ", mixte.Rejets(0).CleSource)
+    End Sub
+
+    <TestMethod>
     Public Sub DocumentsAnalyses_CollectionsNullesVidesEtElementsNuls()
         Dim adapter As New PropositionAnalyseAdapter()
         Dim vide = Array.Empty(Of PropositionDocumentService.Entree)()
