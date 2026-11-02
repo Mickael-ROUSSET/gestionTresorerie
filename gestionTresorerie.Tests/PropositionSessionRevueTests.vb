@@ -161,22 +161,27 @@ Public Class PropositionSessionRevueTests
         Dim session As New PropositionSessionRevue({initiale})
         Dim identites As IReadOnlyCollection(Of String) = Array.Empty(Of String)()
 
-        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False))
+        ' La prevalidation ne suffit pas sans examen humain.
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False, True))
         session.ConfirmerExamen(initiale.CleSource, initiale)
-        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 0, identites, False))
-        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, Nothing, False))
-        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites))
+        ' Un identifiant positif ne constitue pas a lui seul une verification documentaire.
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False))
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False, False))
+        ' Le drapeau explicite ne contourne aucune anomalie de prevalidation.
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 0, identites, False, True))
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, Nothing, False, True))
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, True, True))
         Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1,
-            New String() {initiale.CleSource}, False))
-        Assert.IsTrue(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False))
+            New String() {initiale.CleSource}, False, True))
+        Assert.IsTrue(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False, True))
 
         Dim correction = Corriger(initiale, 22D)
         session.AppliquerCorrection(initiale.CleSource, correction)
-        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False))
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False, True))
         session.ConfirmerExamen(initiale.CleSource, correction.Proposition)
-        Assert.IsTrue(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False))
+        Assert.IsTrue(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False, True))
         Assert.IsTrue(session.AnnulerExamen(initiale.CleSource, correction.Proposition))
-        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False))
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False, True))
         Assert.AreEqual(1, session.Audits.Count)
         Assert.ThrowsExactly(Of InvalidOperationException)(
             Sub() session.MarquerApprouvee(initiale.CleSource))

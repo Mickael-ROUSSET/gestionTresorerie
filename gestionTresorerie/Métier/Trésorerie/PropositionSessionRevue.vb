@@ -103,12 +103,15 @@ Public NotInheritable Class PropositionSessionRevue
 
     ''' <summary>Diagnostic de passage a une eventuelle validation humaine.
     ''' Exige l'examen confirme de la version courante et une prevalidation
-    ''' sans anomalie, avec contexte documentaire fourni explicitement.
+    ''' sans anomalie. Le contexte documentaire doit etre explicitement marque
+    ''' comme verifie par l'appelant : un simple identifiant positif ne suffit pas.
+    ''' Ce drapeau ne constitue pas une preuve de verification externe.
     ''' Ne valide, n'approuve, ni n'enregistre aucune operation.</summary>
     Public Function PeutDemanderValidationHumaine(cleSource As String, idDocumentSource As Integer,
                                                  identitesUtilisees As IReadOnlyCollection(Of String),
-                                                 Optional referenceAmbigue As Boolean = True) As Boolean
-        Return EstExamenConfirme(cleSource) AndAlso
+                                                 Optional referenceAmbigue As Boolean = True,
+                                                 Optional identiteDocumentaireVerifiee As Boolean = False) As Boolean
+        Return identiteDocumentaireVerifiee AndAlso EstExamenConfirme(cleSource) AndAlso
             Prevalider(cleSource, idDocumentSource, identitesUtilisees, referenceAmbigue).EstPrete
     End Function
 
