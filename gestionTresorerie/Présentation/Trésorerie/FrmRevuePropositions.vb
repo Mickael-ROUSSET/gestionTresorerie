@@ -47,10 +47,11 @@ Public NotInheritable Class FrmRevuePropositions
 
         Dim propositions = CreerGrille("grillePropositions", "Propositions en lecture seule", 0)
         AjouterColonnes(propositions, {"CleSource", "TypeDocument", "Reference", "DateProposee",
-                                      "Montant", "Sens", "Libelle", "Statut", "Avertissements", "Prevalidation"},
+                                      "Montant", "Sens", "Libelle", "Statut", "Avertissements", "Prevalidation", "DemandeValidation"},
                          {"Identité du document", "Type", "Référence", "Date proposée",
                           "Montant (EUR)", "Débit / Crédit", "Libellé", "Statut", "Avertissements de validation",
-                          "Anomalies de prévalidation (diagnostic uniquement)"})
+                          "Anomalies de prévalidation (diagnostic uniquement)",
+                          "Demande de validation métier (diagnostic uniquement)"})
         propositions.Columns("DateProposee").ValueType = GetType(DateTime)
         propositions.Columns("DateProposee").DefaultCellStyle.Format = "dd/MM/yyyy"
         propositions.Columns("Montant").ValueType = GetType(Decimal)
@@ -61,7 +62,8 @@ Public NotInheritable Class FrmRevuePropositions
                                   If(ligne.Sens = PropositionMouvement.SensMouvement.Debit, "Débit", "Crédit"),
                                   ligne.Libelle, "En attente de revue humaine",
                                   String.Join(Environment.NewLine, ligne.AvertissementsValidation),
-                                  "Contexte documentaire non fourni")
+                                  "Contexte documentaire non fourni",
+                                  "Indisponible : session de revue absente")
         Next
 
         Dim rejets = CreerGrille("grilleRejets", "Diagnostics des entrées rejetées en lecture seule", 1)
@@ -184,6 +186,10 @@ Public NotInheritable Class FrmRevuePropositions
             ligne.Cells("Statut").Value = If(session.EstExamenConfirme(cle),
                 "Examen confirmé (sans approbation)", "En attente de revue humaine")
             ligne.Cells("Avertissements").Value = String.Join(Environment.NewLine, courante.AvertissementsValidation)
+            ' L'examen humain ne suffit jamais : l'identite documentaire est absente
+            ' de cette revue hors ligne. Aucun bouton de validation n'est propose.
+            ligne.Cells("DemandeValidation").Value = If(session.EstExamenConfirme(cle),
+                "Bloquée : identité documentaire non vérifiée", "Bloquée : examen humain non confirmé")
         Next
         ActualiserDiagnosticsPrevalidation()
         ActualiserEtatCorrections()
