@@ -43,3 +43,20 @@ jobs:
             **/TestResults/**/*.trx
             **/TestResults/**/*_Sequence.xml
           if-no-files-found: ignore
+
+      # Cette archive est une candidate non vérifiée graphiquement, jamais une release.
+      - name: Compiler la variante DEMO_BUILD (mode fictif forcé)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102'
+        run: msbuild gestionTresorerie/gestionTresorerie.vbproj /restore /p:Configuration=Demo /p:Platform="Any CPU" /p:DefineConstants=DEMO_BUILD /m
+      - name: Préparer l'archive Windows de démonstration
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102'
+        shell: pwsh
+        run: ./.github/scripts/package-demo.ps1
+      - name: Publier l'archive candidate (non vérifiée graphiquement)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102'
+        uses: actions/upload-artifact@v4
+        with:
+          name: gestionTresorerie-demo-${{ github.sha }}
+          path: artifacts/gestionTresorerie-demo-*.zip
+          if-no-files-found: error
+          retention-days: 7
