@@ -247,4 +247,39 @@ Public Class PropositionDocumentServiceTests
         Assert.AreEqual(0, resultat.Rejets.Count)
         Assert.ThrowsExactly(Of ArgumentNullException)(Sub() service.Proposer(Nothing))
     End Sub
+
+    <TestMethod>
+    Public Sub RejetProvenance_IdentiteRefuseeJamaisVerifiable()
+        ' Lot exclusivement fictif : une piece rejetee reste diagnostiquable
+        ' mais ne peut jamais devenir une identite documentaire verifiee.
+        Dim factureInvalide = FactureFictive()
+        factureInvalide.IdDoc = 51
+        factureInvalide.montant_ttc = 0D
+        Dim chequeValide = ChequeFictif()
+        chequeValide.IdDoc = 52
+        Dim resultat = New PropositionDocumentService().Proposer({
+            New PropositionDocumentService.Entree(factureInvalide, "source-refusee",
+                PropositionMouvement.SensMouvement.Debit, "gmail fictif / piece 1"),
+            New PropositionDocumentService.Entree(chequeValide, "source-valide",
+                PropositionMouvement.SensMouvement.Credit, "gmail fictif / piece 2")})
+
+        Assert.AreEqual(1, resultat.Rejets.Count)
+        Assert.AreEqual(0, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual("source-refusee", resultat.Rejets(0).CleSource)
+        Assert.AreEqual("gmail fictif / piece 1", resultat.Rejets(0).Provenance)
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual(1, resultat.Sources.Count)
+        Assert.AreEqual(1, resultat.Sources(0).IndexEntree)
+        Assert.AreEqual("source-valide", resultat.Sources(0).CleSource)
+        Assert.AreEqual("gmail fictif / piece 2", resultat.Sources(0).Provenance)
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            "source-refusee", 51, "gmail fictif / piece 1"))
+        Assert.IsTrue(resultat.CorrespondanceIdentiteDocumentaire(
+            "source-valide", 52, "gmail fictif / piece 2"))
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                        resultat.Propositions(0).Etat)
+        Assert.AreEqual(0, factureInvalide.IdMvtDoc)
+        Assert.AreEqual(0, chequeValide.IdMvtDoc)
+    End Sub
+
 End Class
