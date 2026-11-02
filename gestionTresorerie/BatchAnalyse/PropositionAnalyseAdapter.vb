@@ -9,7 +9,7 @@ Public NotInheritable Class PropositionAnalyseAdapter
     ''' <summary>
     ''' Chaque entree exige une cle source stable et unique et un sens explicite de l'appelant.
     ''' Aucune valeur n'est deduite du chemin, de l'identite ou du fournisseur.
-    ''' Le service conserve tous les rejets et rejette les cles dupliquees (comparaison Ordinal).
+    ''' Le service conserve tous les rejets et rejette les collisions Trim/OrdinalIgnoreCase.
     ''' Le resultat peut etre transmis directement a FrmPrincipale.OuvrirRevuePropositions.
     ''' L'enumerable fourni doit lui aussi etre en memoire et sans effets externes.
     ''' </summary>

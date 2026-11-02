@@ -65,10 +65,9 @@ Public Class PropositionRevueTests
             Nothing, Entree(FactureFictive(), "SOURCE")})
         Dim revue As New PropositionRevue(resultat)
 
-        Assert.AreEqual(2, revue.Lignes.Count)
+        Assert.AreEqual(1, revue.Lignes.Count)
         Assert.AreEqual("source", revue.Lignes(0).CleSource)
-        Assert.AreEqual("SOURCE", revue.Lignes(1).CleSource)
-        Assert.AreEqual(4, revue.Rejets.Count)
+        Assert.AreEqual(5, revue.Rejets.Count)
         For i As Integer = 0 To resultat.Rejets.Count - 1
             Assert.AreEqual(i + 1, revue.Rejets(i).IndexEntree)
             Assert.AreEqual(resultat.Rejets(i).CleSource, revue.Rejets(i).CleSource)
@@ -77,8 +76,57 @@ Public Class PropositionRevueTests
         Assert.AreEqual("Cle source dupliquee dans le lot.", revue.Rejets(0).Motif)
         Assert.AreEqual("Cle source dupliquee dans le lot.", revue.Rejets(2).Motif)
         Assert.IsNull(revue.Rejets(3).CleSource)
-        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual("SOURCE", revue.Rejets(4).CleSource)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", revue.Rejets(4).Motif)
+        Assert.AreEqual(1, resultat.Propositions.Count)
         Assert.AreEqual(-1D, invalide.montant_ttc)
+    End Sub
+
+    <TestMethod>
+    Public Sub DiagnosticsRejet_ConserventLaProvenanceFictiveSansProposition()
+        Dim resultat = New PropositionDocumentService().Proposer({
+            New PropositionDocumentService.Entree(Nothing, "piece-refusee",
+                PropositionMouvement.SensMouvement.Debit, "Gmail fictif / piece 1"),
+            New PropositionDocumentService.Entree(Nothing, "sans-provenance",
+                PropositionMouvement.SensMouvement.Debit)})
+        Dim revue As New PropositionRevue(resultat)
+
+        Assert.AreEqual(0, revue.Lignes.Count)
+        Assert.AreEqual(2, revue.Rejets.Count)
+        Assert.AreEqual("piece-refusee", revue.Rejets(0).CleSource)
+        Assert.AreEqual("Document absent.", revue.Rejets(0).Motif)
+        Assert.AreEqual("Gmail fictif / piece 1", revue.Rejets(0).Provenance)
+        Assert.IsNull(revue.Rejets(1).Provenance)
+    End Sub
+
+    <TestMethod>
+    Public Sub Lignes_ConserventIdentiteEtProvenanceMalgreUnRejetIntermediaire()
+        Dim facture = FactureFictive()
+        facture.IdDoc = 101
+        Dim cheque As New Cheque With {.montant_numerique = 42.12D, .devise = "EUR",
+            .dateChq = "20260204", .numero_du_cheque = "0000123"}
+        cheque.IdDoc = 102
+        Dim resultat = New PropositionDocumentService().Proposer({
+            New PropositionDocumentService.Entree(facture, "facture", PropositionMouvement.SensMouvement.Debit,
+                "Gmail simule / facture"),
+            New PropositionDocumentService.Entree(Nothing, "rejete", PropositionMouvement.SensMouvement.Debit,
+                "Gmail simule / piece invalide"),
+            New PropositionDocumentService.Entree(cheque, "cheque", PropositionMouvement.SensMouvement.Credit,
+                "Gmail simule / cheque")})
+        Dim revue As New PropositionRevue(resultat)
+
+        Assert.AreEqual(2, revue.Lignes.Count)
+        Assert.AreEqual(1, revue.Rejets.Count)
+        Assert.AreEqual(0, revue.Lignes(0).IndexEntree)
+        Assert.AreEqual(101, revue.Lignes(0).IdDocumentSource)
+        Assert.AreEqual("Gmail simule / facture", revue.Lignes(0).Provenance)
+        Assert.AreEqual(1, revue.Rejets(0).IndexEntree)
+        Assert.AreEqual(2, revue.Lignes(1).IndexEntree)
+        Assert.AreEqual(102, revue.Lignes(1).IdDocumentSource)
+        Assert.AreEqual("Gmail simule / cheque", revue.Lignes(1).Provenance)
+        facture.IdDoc = 999
+        Assert.AreEqual(101, revue.Lignes(0).IdDocumentSource)
+        Assert.AreEqual(PropositionRevue.StatutRevue.AwaitingHumanReview, revue.Lignes(0).Statut)
     End Sub
 
     <TestMethod>

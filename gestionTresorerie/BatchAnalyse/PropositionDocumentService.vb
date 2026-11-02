@@ -65,10 +65,31 @@ Public NotInheritable Class PropositionDocumentService
         Public ReadOnly Property Sources As IReadOnlyList(Of SourceProposition)
         Public ReadOnly Property Propositions As IReadOnlyList(Of PropositionMouvement)
         Public ReadOnly Property Rejets As IReadOnlyList(Of Rejet)
+
+        ''' <summary>Rapproche uniquement les valeurs d'un instantane en memoire :
+        ''' cle exacte, identifiant positif et provenance explicite.
+        ''' Ce diagnostic ne prouve ni l'existence ni l'authenticite d'un document
+        ''' externe ; il n'autorise aucune validation ni ecriture comptable.</summary>
+        Public Function CorrespondanceIdentiteDocumentaire(cleSource As String,
+                                                           idDocumentSource As Integer,
+                                                           provenance As String) As Boolean
+            If String.IsNullOrWhiteSpace(cleSource) OrElse idDocumentSource <= 0 OrElse
+               String.IsNullOrWhiteSpace(provenance) Then Return False
+            For Each source In Sources
+                If String.Equals(source.CleSource, cleSource, StringComparison.Ordinal) Then
+                    Return source.IdDoc = idDocumentSource AndAlso
+                           Not String.IsNullOrWhiteSpace(source.Provenance) AndAlso
+                           String.Equals(source.Provenance, provenance, StringComparison.Ordinal)
+                End If
+            Next
+            Return False
+        End Function
     End Class
 
     ''' <summary>
-    ''' Conserve l'ordre d'entree. Les cles sont comparees exactement (Ordinal), sans normalisation.
+    ''' Conserve l'ordre d'entree et les cles source originales sans les modifier.
+    ''' Les collisions Trim/OrdinalIgnoreCase sont rejetees pour rester compatibles
+    ''' avec PropositionSessionRevue et la prevalidation.
     ''' La premiere occurrence reserve la cle, meme invalide ; les suivantes sont rejetees.
     ''' Les objets sont compares par reference ; les IdDoc non nuls doivent aussi etre uniques.
     ''' Zero signifie non attribue : aucune identite n'est deduite du chemin ou de la reference.
@@ -80,7 +101,7 @@ Public NotInheritable Class PropositionDocumentService
         If entrees Is Nothing Then Throw New ArgumentNullException(NameOf(entrees))
         Dim propositions As New List(Of PropositionMouvement)()
         Dim rejets As New List(Of Rejet)()
-        Dim cles As New HashSet(Of String)(StringComparer.Ordinal)
+        Dim cles As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
         Dim documents As New HashSet(Of DocumentAgumaaa)(ReferenceEqualityComparer.Instance)
         Dim identifiants As New HashSet(Of Integer)()
         Dim sources As New List(Of SourceProposition)()
@@ -89,10 +110,17 @@ Public NotInheritable Class PropositionDocumentService
             Dim cle = If(entree Is Nothing, Nothing, entree.CleSource)
             Try
                 If entree Is Nothing Then Throw New ArgumentException("Entree absente.")
+                ' Une cle renseignee est reservee meme si la correspondance est invalide :
+                ' un rejet ne doit pas permettre de reutiliser la meme identite source.
+                If Not String.IsNullOrWhiteSpace(cle) AndAlso Not cles.Add(cle.Trim()) Then
+                    Throw New ArgumentException("Cle source dupliquee dans le lot.")
+                End If
                 If entree.ErreurCorrespondance IsNot Nothing Then Throw New ArgumentException(entree.ErreurCorrespondance)
                 If String.IsNullOrWhiteSpace(cle) Then Throw New ArgumentException("Cle source obligatoire.")
-                If Not cles.Add(cle) Then Throw New ArgumentException("Cle source dupliquee dans le lot.")
                 If entree.Document Is Nothing Then Throw New ArgumentException("Document absent.")
+                ' Un identifiant negatif n'est ni une identite attribuee ni un document sans ID.
+                ' Le refuser avant la creation d'une proposition evite une revue non verifiable.
+                If entree.Document.IdDoc < 0 Then Throw New ArgumentException("Identifiant document negatif invalide.")
                 If Not documents.Add(entree.Document) Then Throw New ArgumentException("Document deja present dans le lot sous une autre cle source.")
                 If entree.Document.IdDoc <> 0 AndAlso Not identifiants.Add(entree.Document.IdDoc) Then
                     Throw New ArgumentException("Identifiant document duplique dans le lot.")

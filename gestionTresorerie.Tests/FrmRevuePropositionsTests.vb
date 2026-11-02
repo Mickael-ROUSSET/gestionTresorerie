@@ -431,11 +431,13 @@ Public Class FrmRevuePropositionsTests
                                  New PropositionDocumentService.Entree(New Cheque With {.montant_numerique = 24D,
                                      .devise = "EUR", .dateChq = "20260204", .numero_du_cheque = "00002"},
                                      cle, PropositionMouvement.SensMouvement.Debit)})
-                             Assert.AreEqual(2, lotSource.Propositions.Count)
-                             Assert.ThrowsExactly(Of ArgumentException)(Sub()
-                                                                          Using f As New FrmRevuePropositions(New PropositionRevue(lotSource), lotSource.Propositions)
-                                                                          End Using
-                                                                      End Sub)
+                             Assert.AreEqual(1, lotSource.Propositions.Count)
+                             Assert.AreEqual(1, lotSource.Rejets.Count)
+                             Assert.AreEqual("Cle source dupliquee dans le lot.", lotSource.Rejets(0).Motif)
+                             Using f As New FrmRevuePropositions(New PropositionRevue(lotSource), lotSource.Propositions)
+                                 Assert.AreEqual(1, Grille(f, "grillePropositions").Rows.Count)
+                                 Assert.AreEqual(1, Grille(f, "grilleRejets").Rows.Count)
+                             End Using
                          Next
                      End Sub)
     End Sub

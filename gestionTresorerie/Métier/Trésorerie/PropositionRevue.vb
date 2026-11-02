@@ -11,7 +11,10 @@ Public NotInheritable Class PropositionRevue
     End Enum
 
     Public NotInheritable Class Ligne
-        Friend Sub New(proposition As PropositionMouvement)
+        Friend Sub New(proposition As PropositionMouvement, source As PropositionDocumentService.SourceProposition)
+            IndexEntree = source.IndexEntree
+            IdDocumentSource = source.IdDoc
+            Provenance = source.Provenance
             CleSource = proposition.CleSource
             TypeDocument = proposition.TypeDocument
             DateProposee = proposition.DateProposee
@@ -22,6 +25,10 @@ Public NotInheritable Class PropositionRevue
             AvertissementsValidation = New List(Of String)(proposition.AvertissementsValidation).AsReadOnly()
         End Sub
 
+        ''' <summary>Identite et provenance declarees dans le lot fictif ; ne constituent pas une preuve d'authenticite.</summary>
+        Public ReadOnly Property IndexEntree As Integer
+        Public ReadOnly Property IdDocumentSource As Integer
+        Public ReadOnly Property Provenance As String
         Public ReadOnly Property CleSource As String
         Public ReadOnly Property TypeDocument As String
         Public ReadOnly Property DateProposee As DateTime
@@ -43,11 +50,13 @@ Public NotInheritable Class PropositionRevue
             IndexEntree = rejet.IndexEntree
             CleSource = rejet.CleSource
             Motif = rejet.Motif
+            Provenance = rejet.Provenance
         End Sub
 
         Public ReadOnly Property IndexEntree As Integer
         Public ReadOnly Property CleSource As String
         Public ReadOnly Property Motif As String
+        Public ReadOnly Property Provenance As String
     End Class
 
     ''' <summary>
@@ -58,8 +67,8 @@ Public NotInheritable Class PropositionRevue
     Public Sub New(resultat As PropositionDocumentService.Resultat)
         If resultat Is Nothing Then Throw New ArgumentNullException(NameOf(resultat))
         Dim lignes As New List(Of Ligne)()
-        For Each proposition In resultat.Propositions
-            lignes.Add(New Ligne(proposition))
+        For i As Integer = 0 To resultat.Propositions.Count - 1
+            lignes.Add(New Ligne(resultat.Propositions(i), resultat.Sources(i)))
         Next
         Dim rejets As New List(Of DiagnosticRejet)()
         For Each rejet In resultat.Rejets

@@ -375,12 +375,13 @@ Public Class PropositionWorkflowTests
                                                       Dim refusee = New PropositionSessionRevue({originale, originale})
                                                   End Sub)
 
-        ' Service keys are Ordinal; the session must reject normalized collisions.
+        ' Le service rejette les collisions avant la creation de la session.
         Dim ambigu = New PropositionAnalyseAdapter().Proposer({Entree(NouvelleFacture(), "source"),
             Entree(NouveauCheque(), " SOURCE ")})
-        Assert.AreEqual(2, ambigu.Propositions.Count)
-        Assert.ThrowsExactly(Of ArgumentException)(Sub()
-                                                      Dim refusee = New PropositionSessionRevue(ambigu.Propositions)
-                                                  End Sub)
+        Assert.AreEqual(1, ambigu.Propositions.Count)
+        Assert.AreEqual(1, ambigu.Rejets.Count)
+        Assert.AreEqual(" SOURCE ", ambigu.Rejets(0).CleSource)
+        Dim sessionAmbigue As New PropositionSessionRevue(ambigu.Propositions)
+        Assert.AreEqual(1, sessionAmbigue.Propositions.Count)
     End Sub
 End Class

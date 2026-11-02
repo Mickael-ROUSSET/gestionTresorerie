@@ -23,6 +23,49 @@ Public Class PropositionDocumentServiceTests
     End Function
 
     <TestMethod>
+    Public Sub CorrespondanceIdentiteDocumentaire_ExigeCleIdEtProvenanceExactes()
+        Dim facture = FactureFictive()
+        facture.IdDoc = 17
+        Dim cheque = ChequeFictif()
+        cheque.IdDoc = 18
+        Dim resultat = New PropositionDocumentService().Proposer({
+            New PropositionDocumentService.Entree(facture, " Facture A ",
+                PropositionMouvement.SensMouvement.Debit, "Gmail simule / piece 1"),
+            Entree(cheque, "cheque"),
+            New PropositionDocumentService.Entree(FactureFictive(), " FACTURE A ",
+                PropositionMouvement.SensMouvement.Debit, "autre")})
+
+        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual(1, resultat.Rejets.Count)
+        Assert.IsTrue(resultat.CorrespondanceIdentiteDocumentaire(
+            " Facture A ", 17, "Gmail simule / piece 1"))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            "Facture A", 17, "Gmail simule / piece 1"))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            " Facture A ", 18, "Gmail simule / piece 1"))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            " Facture A ", 17, "gmail simule / piece 1"))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            " Facture A ", 17, Nothing))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            " Facture A ", 17, " "))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            " Facture A ", 0, "Gmail simule / piece 1"))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            Nothing, 17, "Gmail simule / piece 1"))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            "cheque", 18, "Gmail simule / piece 1"))
+        ' Les sources sont des instantanes, non des references au document mutable.
+        facture.IdDoc = 19
+        Assert.IsTrue(resultat.CorrespondanceIdentiteDocumentaire(
+            " Facture A ", 17, "Gmail simule / piece 1"))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            " Facture A ", 19, "Gmail simule / piece 1"))
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                        resultat.Propositions(0).Etat)
+    End Sub
+
+    <TestMethod>
     Public Sub SousTypesCompatibles_AcceptesAvecProvenanceEtReservationDeCle()
         ' Test doubles inherit Facture/Cheque; polymorphic mapping must remain supported.
         Dim facture As New FactureSpecialisee With {.montant_ttc = 120D, .devise = "EUR", .date_facture = "2026-02-03"}
@@ -135,12 +178,39 @@ Public Class PropositionDocumentServiceTests
             Entree(FactureFictive(), "source"), Entree(ChequeFictif(), "source"),
             Entree(invalide, "erreur"), Entree(ChequeFictif(), "erreur"),
             Entree(ChequeFictif(), "SOURCE")})
-        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual(1, resultat.Propositions.Count)
         Assert.AreEqual("FACTURE", resultat.Propositions(0).TypeDocument)
-        Assert.AreEqual("SOURCE", resultat.Propositions(1).CleSource)
-        Assert.AreEqual(3, resultat.Rejets.Count)
+        Assert.AreEqual("source", resultat.Propositions(0).CleSource)
+        Assert.AreEqual(4, resultat.Rejets.Count)
         Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(0).Motif)
         Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(2).Motif)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(3).Motif)
+    End Sub
+
+    <TestMethod>
+    Public Sub CollisionsCasseEtEspaces_RejeteesAvantCreationDeLaSession()
+        Dim resultat = New PropositionDocumentService().Proposer({
+            Entree(FactureFictive(), " Source "),
+            Entree(ChequeFictif(), "source"),
+            Entree(FactureFictive(), "SOURCE "),
+            Entree(ChequeFictif(), "autre"),
+            Entree(FactureFictive(), " autre ")})
+
+        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual(2, resultat.Sources.Count)
+        Assert.AreEqual(" Source ", resultat.Propositions(0).CleSource)
+        Assert.AreEqual("autre", resultat.Propositions(1).CleSource)
+        Assert.AreEqual(3, resultat.Rejets.Count)
+        Assert.AreEqual(1, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual(2, resultat.Rejets(1).IndexEntree)
+        Assert.AreEqual(4, resultat.Rejets(2).IndexEntree)
+        For Each rejet In resultat.Rejets
+            Assert.AreEqual("Cle source dupliquee dans le lot.", rejet.Motif)
+        Next
+
+        Dim session As New PropositionSessionRevue(resultat.Propositions)
+        Assert.AreEqual(2, session.Propositions.Count)
+        Assert.AreEqual(0, session.Audits.Count)
     End Sub
 
     <TestMethod>
@@ -177,4 +247,39 @@ Public Class PropositionDocumentServiceTests
         Assert.AreEqual(0, resultat.Rejets.Count)
         Assert.ThrowsExactly(Of ArgumentNullException)(Sub() service.Proposer(Nothing))
     End Sub
+
+    <TestMethod>
+    Public Sub RejetProvenance_IdentiteRefuseeJamaisVerifiable()
+        ' Lot exclusivement fictif : une piece rejetee reste diagnostiquable
+        ' mais ne peut jamais devenir une identite documentaire verifiee.
+        Dim factureInvalide = FactureFictive()
+        factureInvalide.IdDoc = 51
+        factureInvalide.montant_ttc = 0D
+        Dim chequeValide = ChequeFictif()
+        chequeValide.IdDoc = 52
+        Dim resultat = New PropositionDocumentService().Proposer({
+            New PropositionDocumentService.Entree(factureInvalide, "source-refusee",
+                PropositionMouvement.SensMouvement.Debit, "gmail fictif / piece 1"),
+            New PropositionDocumentService.Entree(chequeValide, "source-valide",
+                PropositionMouvement.SensMouvement.Credit, "gmail fictif / piece 2")})
+
+        Assert.AreEqual(1, resultat.Rejets.Count)
+        Assert.AreEqual(0, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual("source-refusee", resultat.Rejets(0).CleSource)
+        Assert.AreEqual("gmail fictif / piece 1", resultat.Rejets(0).Provenance)
+        Assert.AreEqual(1, resultat.Propositions.Count)
+        Assert.AreEqual(1, resultat.Sources.Count)
+        Assert.AreEqual(1, resultat.Sources(0).IndexEntree)
+        Assert.AreEqual("source-valide", resultat.Sources(0).CleSource)
+        Assert.AreEqual("gmail fictif / piece 2", resultat.Sources(0).Provenance)
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            "source-refusee", 51, "gmail fictif / piece 1"))
+        Assert.IsTrue(resultat.CorrespondanceIdentiteDocumentaire(
+            "source-valide", 52, "gmail fictif / piece 2"))
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                        resultat.Propositions(0).Etat)
+        Assert.AreEqual(0, factureInvalide.IdMvtDoc)
+        Assert.AreEqual(0, chequeValide.IdMvtDoc)
+    End Sub
+
 End Class
