@@ -104,4 +104,37 @@ Public Class PropositionDocumentIdentityRejectionTests
         Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
                         resultat.Propositions(0).Etat)
     End Sub
+
+    <TestMethod>
+    <TestCategory("OfflineWindowsAcceptance")>
+    Public Sub ProvenanceSourceAbsenteOuBlanche_InterditLaCorrespondanceMemeAvecIdPositif()
+        Dim factureSansProvenance = FactureFictive(906, 12D)
+        Dim factureProvenanceBlanche = FactureFictive(907, 13D)
+        Dim factureAvecProvenance = FactureFictive(908, 14D)
+        Dim provenance = "Gmail simule / piece 908"
+        Dim resultat = New PropositionDocumentService().Proposer({
+            New PropositionDocumentService.Entree(factureSansProvenance,
+                "sans-provenance", PropositionMouvement.SensMouvement.Debit),
+            New PropositionDocumentService.Entree(factureProvenanceBlanche,
+                "provenance-blanche", PropositionMouvement.SensMouvement.Debit, "  "),
+            New PropositionDocumentService.Entree(factureAvecProvenance,
+                "avec-provenance", PropositionMouvement.SensMouvement.Debit, provenance)})
+
+        Assert.AreEqual(3, resultat.Propositions.Count)
+        Assert.AreEqual(3, resultat.Sources.Count)
+        Assert.AreEqual(0, resultat.Rejets.Count)
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            "sans-provenance", 906, "origine declaree apres coup"))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            "provenance-blanche", 907, "  "))
+        Assert.IsTrue(resultat.CorrespondanceIdentiteDocumentaire(
+            "avec-provenance", 908, provenance))
+        For Each proposition In resultat.Propositions
+            Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                            proposition.Etat)
+        Next
+        Assert.AreEqual(0, factureSansProvenance.IdMvtDoc)
+        Assert.AreEqual(0, factureProvenanceBlanche.IdMvtDoc)
+        Assert.AreEqual(0, factureAvecProvenance.IdMvtDoc)
+    End Sub
 End Class
