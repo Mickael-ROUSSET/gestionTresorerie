@@ -10,6 +10,58 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 Public Class PropositionWorkflowTests
     <TestMethod>
     <TestCategory("OfflineWindowsAcceptance")>
+    Public Sub SourcesDeMemeCheminEtReference_AnnulationEtCorrectionCroiseeSansMutation()
+        Dim premier = NouveauCheque()
+        Dim second = NouveauCheque()
+        second.IdDoc = 103
+        premier.CheminDoc = "cheque-fictif.pdf"
+        second.CheminDoc = premier.CheminDoc
+        Dim adapter As New PropositionAnalyseAdapter()
+        Dim documents As DocumentAgumaaa() = {premier, second}
+        ' L'ordre inverse des correspondances interdit un raccordement par position.
+        Dim correspondances = {
+            New PropositionDocumentService.Entree(second, "source-B", PropositionMouvement.SensMouvement.Credit, "lot-B"),
+            New PropositionDocumentService.Entree(premier, "source-A", PropositionMouvement.SensMouvement.Debit, "lot-A")}
+        For repetition = 1 To 2
+            Dim resultat = adapter.ProposerDocuments(documents, correspondances)
+            Assert.AreEqual(0, resultat.Rejets.Count)
+            Assert.AreEqual(2, resultat.Propositions.Count)
+            Assert.AreEqual(2, resultat.Sources.Count)
+            Dim session As New PropositionSessionRevue(resultat.Propositions)
+            Dim correctionA = Corriger(session.Propositions("source-A"))
+            Assert.ThrowsExactly(Of ArgumentException)(Sub() session.AppliquerCorrection("source-B", correctionA))
+            For i = 0 To 1
+                Dim cle = If(i = 0, "source-A", "source-B")
+                Dim proposition = resultat.Propositions(i)
+                Dim source = resultat.Sources(i)
+                Assert.AreEqual(i, source.IndexEntree)
+                Assert.AreEqual(cle, source.CleSource)
+                Assert.AreEqual(documents(i).IdDoc, source.IdDoc)
+                Assert.AreEqual("cheque-fictif.pdf", source.CheminDoc)
+                Assert.AreEqual(If(i = 0, "lot-A", "lot-B"), source.Provenance)
+                Assert.AreEqual(If(i = 0, PropositionMouvement.SensMouvement.Debit,
+                    PropositionMouvement.SensMouvement.Credit), proposition.Sens)
+                session.AppliquerCorrection(cle, Nothing)
+                Assert.AreSame(proposition, session.Propositions(cle))
+                VerifierIdentite(proposition, cle, "CHEQUE")
+                Assert.AreEqual("0000123", proposition.Reference)
+                Assert.ThrowsExactly(Of InvalidOperationException)(Sub() session.MarquerApprouvee(cle))
+                Assert.ThrowsExactly(Of InvalidOperationException)(Sub() session.MarquerPersistee(cle))
+            Next
+            Assert.AreEqual(0, session.Audits.Count)
+        Next
+        For Each document In {premier, second}
+            Assert.AreEqual(0, document.IdMvtDoc)
+            Assert.AreEqual(42.12D, document.montant_numerique)
+            Assert.AreEqual("0000123", document.numero_du_cheque)
+            Assert.AreEqual("cheque-fictif.pdf", document.CheminDoc)
+        Next
+        ' Zero ecriture comptable sur ce parcours en memoire ; les API SQL statiques
+        ' ne sont pas interceptees. Ceci ne prouve pas l'absence d'ecriture d'un EXE reel.
+    End Sub
+
+    <TestMethod>
+    <TestCategory("OfflineWindowsAcceptance")>
     Public Sub PrevalidationPuisAnnulation_NeValidentEtNePersistentJamais()
         Dim document = NouveauCheque()
         Dim resultat = New PropositionAnalyseAdapter().Proposer({Entree(document, "cheque")})

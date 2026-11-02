@@ -6,10 +6,37 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 <TestClass>
 Public Class EmailProcessorFileNameTests
     <TestMethod>
+    <TestCategory("OfflineWindowsAcceptance")>
     Public Sub ProcessAttachments_SansActivationExplicite_NeTouchePasAuxRessources()
         ' Ce chemin doit sortir avant toute lecture de configuration ou ecriture.
+        Dim activation = GetType(EmailProcessor).GetMethod("ProcessAttachments").GetParameters()(1)
+        Assert.AreEqual("enableRealGmail", activation.Name)
+        Assert.IsTrue(activation.IsOptional)
+        Assert.AreEqual(False, activation.DefaultValue)
         EmailProcessor.ProcessAttachments()
         EmailProcessor.ProcessAttachments(New DateTime(2026, 10, 1))
+        EmailProcessor.ProcessAttachments(Nothing, enableRealGmail:=False)
+        EmailProcessor.ProcessAttachments(DateTime.MinValue, enableRealGmail:=False)
+        EmailProcessor.ProcessAttachments(DateTime.MaxValue, enableRealGmail:=False)
+    End Sub
+
+    <TestMethod>
+    <TestCategory("OfflineWindowsAcceptance")>
+    Public Sub TryProcessMessage_Annulation_NeValidePasLeJournalEtPermetLaReprise()
+        Dim validations As New List(Of UInteger)()
+        Dim diagnostics As New List(Of String)()
+        Dim annuler As Action = Sub()
+                                    Throw New OperationCanceledException("FAUX_SECRET offline@example.invalid" & vbCrLf & "INJECTION")
+                                End Sub
+        Assert.IsFalse(TraiterMessage(91UI, annuler, Sub() validations.Add(91UI), Sub(value) diagnostics.Add(value)))
+        Assert.AreEqual(0, validations.Count)
+        CollectionAssert.AreEqual(New String() {
+            "Message UID 91 non traite : traitement ou validation du journal impossible. Reprise au prochain import."}, diagnostics)
+        Assert.IsTrue(TraiterMessage(91UI, Sub()
+                                         End Sub, Sub() validations.Add(91UI), Sub(value) diagnostics.Add(value)))
+        CollectionAssert.AreEqual(New UInteger() {91UI}, validations)
+        Assert.AreEqual(1, diagnostics.Count)
+        ' Delegues en memoire uniquement : aucun client IMAP ni journal reel.
     End Sub
 
     <TestMethod>

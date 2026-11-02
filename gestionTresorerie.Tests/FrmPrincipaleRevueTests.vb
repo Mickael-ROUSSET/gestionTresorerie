@@ -11,6 +11,62 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 <TestClass>
 Public Class FrmPrincipaleRevueTests
+    ' ACCEPTATION MANUELLE WINDOWS — non executee par ces tests de formulaires isoles.
+    ' Consigner pour chaque etape : version/empreinte, Windows/architecture, resultat et diagnostic expurge.
+    ' [ ] Dans une VM de test sans comptes ni donnees reels, extraire le paquet candidat dans
+    '     un dossier neuf ; verifier runtime .NET Desktop 8, DLL natives/COM et ressources livres.
+    ' [ ] Lancer l'EXE depuis ce dossier (pas depuis Visual Studio) ; verifier affichage puis fermeture.
+    ' [ ] Avec configuration fictive absente/invalide : verifier diagnostic actionnable, sans secret ;
+    '     fermer, configurer uniquement DEV/TEST isole et relancer ; verifier la grille de test.
+    ' [ ] Sans opt-in Gmail, cliquer Recuperation des PJ : aucun reseau, dossier ni journal cree.
+    '     Une date seule ne vaut pas opt-in. Verifier avec un transport simule que le premier
+    '     import exige aussi une date explicite et qu'un journal invalide bloque avant connexion.
+    '     Ne pas activer de connexion Gmail reelle pour cette acceptance.
+    ' [ ] Analyse > Revue : aide du lot vide, puis lot fictif fourni en memoire ; verifier sources,
+    '     diagnostics, zeros initiaux, lecture seule ; Fermer/Echap puis rouvrir sans mutation.
+    ' [ ] Avec corrections en memoire : annuler, verifier aucun audit ajoute ni mouvement cree ;
+    '     comparer le stockage comptable fictif avant/apres sans utiliser de base reelle.
+    ' [ ] Refaire lancement/navigation apres copie du paquet sur une VM propre ; consigner toute
+    '     dependance manquante. Ces tests ne certifient ni installateur ni release installable.
+
+    <TestMethod>
+    <TestCategory("OfflineWindowsAcceptance")>
+    <DataRow(Nothing)>
+    <DataRow("environnement")>
+    <DataRow("configuration")>
+    <DataRow("secrets")>
+    <DataRow("grille SQL")>
+    Public Sub PremierDemarrage_RevueEtAnnulationSansRelancerLesDependances(etape As String)
+        SurThreadSta(Sub()
+                         Using principale As New PrincipaleDemarrageIsolee With {.EtapeEnEchec = etape}
+                             principale.Show()
+                             Dim etapes = principale.Etapes.ToArray()
+                             Dim diagnostics = principale.Diagnostics.ToArray()
+                             Dim grille = DirectCast(principale.Controls.Find("dgvPrincipale", True)(0), DataGridView)
+                             Dim source = grille.DataSource
+                             principale.Examiner = Sub(revue)
+                                                       VerifierLectureSeule(revue)
+                                                       Assert.IsNull(revue.AcceptButton)
+                                                       Assert.AreEqual(0, DirectCast(revue.Controls.Find("grillePropositions", True)(0), DataGridView).Rows.Count)
+                                                       revue.Show()
+                                                       DirectCast(revue.CancelButton, Button).PerformClick()
+                                                       Assert.IsFalse(revue.Visible)
+                                                   End Sub
+                             For repetition = 1 To 2
+                                 CliquerRevue(principale)
+                                 Assert.IsTrue(principale.DerniereRevue.IsDisposed)
+                                 Assert.IsTrue(principale.Visible)
+                                 Assert.AreSame(source, grille.DataSource)
+                             Next
+                             principale.Close()
+                             Assert.IsTrue(principale.IsDisposed)
+                             CollectionAssert.AreEqual(etapes, principale.Etapes.ToArray())
+                             CollectionAssert.AreEqual(diagnostics, principale.Diagnostics.ToArray())
+                             Assert.AreEqual(If(etape Is Nothing, 0, 1), diagnostics.Length)
+                         End Using
+                     End Sub)
+    End Sub
+
     <TestMethod>
     <TestCategory("OfflineWindowsAcceptance")>
     <DataRow("environnement", "envAgumaaa", 1)>
@@ -68,9 +124,16 @@ Public Class FrmPrincipaleRevueTests
         Inherits FrmPrincipale
 
         Public Property EtapeEnEchec As String
+        Public Property Examiner As Action(Of FrmRevuePropositions)
+        Public Property DerniereRevue As FrmRevuePropositions
         Public ReadOnly Etapes As New System.Collections.Generic.List(Of String)
         Public ReadOnly Diagnostics As New System.Collections.Generic.List(Of String)
         Public ReadOnly Donnees As New System.Data.DataTable()
+
+        Protected Overrides Sub PresenterRevuePropositions(formulaire As FrmRevuePropositions)
+            DerniereRevue = formulaire
+            Examiner.Invoke(formulaire)
+        End Sub
 
         Private Sub Executer(etape As String)
             Etapes.Add(etape)
