@@ -68,7 +68,9 @@ Public NotInheritable Class PropositionDocumentService
     End Class
 
     ''' <summary>
-    ''' Conserve l'ordre d'entree. Les cles sont comparees exactement (Ordinal), sans normalisation.
+    ''' Conserve l'ordre d'entree et les cles source originales sans les modifier.
+    ''' Les collisions Trim/OrdinalIgnoreCase sont rejetees pour rester compatibles
+    ''' avec PropositionSessionRevue et la prevalidation.
     ''' La premiere occurrence reserve la cle, meme invalide ; les suivantes sont rejetees.
     ''' Les objets sont compares par reference ; les IdDoc non nuls doivent aussi etre uniques.
     ''' Zero signifie non attribue : aucune identite n'est deduite du chemin ou de la reference.
@@ -80,7 +82,7 @@ Public NotInheritable Class PropositionDocumentService
         If entrees Is Nothing Then Throw New ArgumentNullException(NameOf(entrees))
         Dim propositions As New List(Of PropositionMouvement)()
         Dim rejets As New List(Of Rejet)()
-        Dim cles As New HashSet(Of String)(StringComparer.Ordinal)
+        Dim cles As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
         Dim documents As New HashSet(Of DocumentAgumaaa)(ReferenceEqualityComparer.Instance)
         Dim identifiants As New HashSet(Of Integer)()
         Dim sources As New List(Of SourceProposition)()
@@ -91,7 +93,7 @@ Public NotInheritable Class PropositionDocumentService
                 If entree Is Nothing Then Throw New ArgumentException("Entree absente.")
                 If entree.ErreurCorrespondance IsNot Nothing Then Throw New ArgumentException(entree.ErreurCorrespondance)
                 If String.IsNullOrWhiteSpace(cle) Then Throw New ArgumentException("Cle source obligatoire.")
-                If Not cles.Add(cle) Then Throw New ArgumentException("Cle source dupliquee dans le lot.")
+                If Not cles.Add(cle.Trim()) Then Throw New ArgumentException("Cle source dupliquee dans le lot.")
                 If entree.Document Is Nothing Then Throw New ArgumentException("Document absent.")
                 If Not documents.Add(entree.Document) Then Throw New ArgumentException("Document deja present dans le lot sous une autre cle source.")
                 If entree.Document.IdDoc <> 0 AndAlso Not identifiants.Add(entree.Document.IdDoc) Then
