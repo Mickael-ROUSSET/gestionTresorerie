@@ -135,12 +135,39 @@ Public Class PropositionDocumentServiceTests
             Entree(FactureFictive(), "source"), Entree(ChequeFictif(), "source"),
             Entree(invalide, "erreur"), Entree(ChequeFictif(), "erreur"),
             Entree(ChequeFictif(), "SOURCE")})
-        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual(1, resultat.Propositions.Count)
         Assert.AreEqual("FACTURE", resultat.Propositions(0).TypeDocument)
-        Assert.AreEqual("SOURCE", resultat.Propositions(1).CleSource)
-        Assert.AreEqual(3, resultat.Rejets.Count)
+        Assert.AreEqual("source", resultat.Propositions(0).CleSource)
+        Assert.AreEqual(4, resultat.Rejets.Count)
         Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(0).Motif)
         Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(2).Motif)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(3).Motif)
+    End Sub
+
+    <TestMethod>
+    Public Sub CollisionsCasseEtEspaces_RejeteesAvantCreationDeLaSession()
+        Dim resultat = New PropositionDocumentService().Proposer({
+            Entree(FactureFictive(), " Source "),
+            Entree(ChequeFictif(), "source"),
+            Entree(FactureFictive(), "SOURCE "),
+            Entree(ChequeFictif(), "autre"),
+            Entree(FactureFictive(), " autre ")})
+
+        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual(2, resultat.Sources.Count)
+        Assert.AreEqual(" Source ", resultat.Propositions(0).CleSource)
+        Assert.AreEqual("autre", resultat.Propositions(1).CleSource)
+        Assert.AreEqual(3, resultat.Rejets.Count)
+        Assert.AreEqual(1, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual(2, resultat.Rejets(1).IndexEntree)
+        Assert.AreEqual(4, resultat.Rejets(2).IndexEntree)
+        For Each rejet In resultat.Rejets
+            Assert.AreEqual("Cle source dupliquee dans le lot.", rejet.Motif)
+        Next
+
+        Dim session As New PropositionSessionRevue(resultat.Propositions)
+        Assert.AreEqual(2, session.Propositions.Count)
+        Assert.AreEqual(0, session.Audits.Count)
     End Sub
 
     <TestMethod>
