@@ -43,11 +43,13 @@ Public NotInheritable Class PropositionRevue
             IndexEntree = rejet.IndexEntree
             CleSource = rejet.CleSource
             Motif = rejet.Motif
+            Provenance = rejet.Provenance
         End Sub
 
         Public ReadOnly Property IndexEntree As Integer
         Public ReadOnly Property CleSource As String
         Public ReadOnly Property Motif As String
+        Public ReadOnly Property Provenance As String
     End Class
 
     ''' <summary>
