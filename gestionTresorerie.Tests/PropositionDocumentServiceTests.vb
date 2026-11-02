@@ -23,6 +23,49 @@ Public Class PropositionDocumentServiceTests
     End Function
 
     <TestMethod>
+    Public Sub CorrespondanceIdentiteDocumentaire_ExigeCleIdEtProvenanceExactes()
+        Dim facture = FactureFictive()
+        facture.IdDoc = 17
+        Dim cheque = ChequeFictif()
+        cheque.IdDoc = 18
+        Dim resultat = New PropositionDocumentService().Proposer({
+            New PropositionDocumentService.Entree(facture, " Facture A ",
+                PropositionMouvement.SensMouvement.Debit, "Gmail simule / piece 1"),
+            Entree(cheque, "cheque"),
+            New PropositionDocumentService.Entree(FactureFictive(), " FACTURE A ",
+                PropositionMouvement.SensMouvement.Debit, "autre")})
+
+        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual(1, resultat.Rejets.Count)
+        Assert.IsTrue(resultat.CorrespondanceIdentiteDocumentaire(
+            " Facture A ", 17, "Gmail simule / piece 1"))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            "Facture A", 17, "Gmail simule / piece 1"))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            " Facture A ", 18, "Gmail simule / piece 1"))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            " Facture A ", 17, "gmail simule / piece 1"))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            " Facture A ", 17, Nothing))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            " Facture A ", 17, " "))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            " Facture A ", 0, "Gmail simule / piece 1"))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            Nothing, 17, "Gmail simule / piece 1"))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            "cheque", 18, "Gmail simule / piece 1"))
+        ' Les sources sont des instantanes, non des references au document mutable.
+        facture.IdDoc = 19
+        Assert.IsTrue(resultat.CorrespondanceIdentiteDocumentaire(
+            " Facture A ", 17, "Gmail simule / piece 1"))
+        Assert.IsFalse(resultat.CorrespondanceIdentiteDocumentaire(
+            " Facture A ", 19, "Gmail simule / piece 1"))
+        Assert.AreEqual(PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine,
+                        resultat.Propositions(0).Etat)
+    End Sub
+
+    <TestMethod>
     Public Sub SousTypesCompatibles_AcceptesAvecProvenanceEtReservationDeCle()
         ' Test doubles inherit Facture/Cheque; polymorphic mapping must remain supported.
         Dim facture As New FactureSpecialisee With {.montant_ttc = 120D, .devise = "EUR", .date_facture = "2026-02-03"}
