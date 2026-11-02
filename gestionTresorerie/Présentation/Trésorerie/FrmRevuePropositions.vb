@@ -30,6 +30,11 @@ Public NotInheritable Class FrmRevuePropositions
         .AccessibleName = "Confirmer l'examen humain sans approbation ni enregistrement",
         .AutoSize = True, .Enabled = False, .TabIndex = 3}
 
+    Private ReadOnly annulerExamen As New Button With {
+        .Name = "boutonAnnulerExamen", .Text = "Annuler la confirmation d'examen",
+        .AccessibleName = "Retirer la confirmation d'examen sans modifier la proposition",
+        .AutoSize = True, .Enabled = False, .TabIndex = 4}
+
     Public Sub New(revue As PropositionRevue)
         If revue Is Nothing Then Throw New ArgumentNullException(NameOf(revue))
 
@@ -87,12 +92,13 @@ Public NotInheritable Class FrmRevuePropositions
         disposition.Controls.Add(New Label With {.Text = "Entrées rejetées — diagnostics uniquement", .AutoSize = True}, 0, 2)
         disposition.Controls.Add(rejets, 0, 3)
         Dim actions As New FlowLayoutPanel With {.AutoSize = True, .Dock = DockStyle.Fill}
-        actions.Controls.AddRange(New Control() {corriger, confirmerExamen, fermer})
+        actions.Controls.AddRange(New Control() {corriger, confirmerExamen, annulerExamen, fermer})
         disposition.Controls.Add(actions, 0, 4)
         disposition.Controls.Add(etatCorrections, 0, 5)
         AddHandler propositions.SelectionChanged, Sub() ActualiserAction(propositions)
         AddHandler corriger.Click, Sub() CorrigerSelection()
         AddHandler confirmerExamen.Click, Sub() ConfirmerExamenSelection()
+        AddHandler annulerExamen.Click, Sub() AnnulerExamenSelection()
         Controls.Add(disposition)
     End Sub
 
@@ -196,8 +202,11 @@ Public NotInheritable Class FrmRevuePropositions
         Dim selectionUnique = grille.SelectedRows.Count = 1 AndAlso sources.ContainsKey(grille.SelectedRows(0))
         corriger.Enabled = selectionUnique
         confirmerExamen.Enabled = False
+        annulerExamen.Enabled = False
         If selectionUnique AndAlso session IsNot Nothing Then
-            confirmerExamen.Enabled = Not session.EstExamenConfirme(sources(grille.SelectedRows(0)).CleSource)
+            Dim estConfirme = session.EstExamenConfirme(sources(grille.SelectedRows(0)).CleSource)
+            confirmerExamen.Enabled = Not estConfirme
+            annulerExamen.Enabled = estConfirme
         End If
     End Sub
 
@@ -210,6 +219,19 @@ Public NotInheritable Class FrmRevuePropositions
         Dim grille = DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView)
         Dim source = sources(grille.SelectedRows(0))
         session.ConfirmerExamen(source.CleSource, source)
+        ActualiserSession()
+        Return True
+    End Function
+
+    ''' <summary>Retire une confirmation d'examen explicite, uniquement en memoire.
+    ''' La selection et la version courante sont reverifiees avant l'annulation.</summary>
+    Public Function AnnulerExamenSelection() As Boolean
+        If session Is Nothing Then Return False
+        ActualiserSession()
+        If Not annulerExamen.Enabled Then Return False
+        Dim grille = DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView)
+        Dim source = sources(grille.SelectedRows(0))
+        If Not session.AnnulerExamen(source.CleSource, source) Then Return False
         ActualiserSession()
         Return True
     End Function
