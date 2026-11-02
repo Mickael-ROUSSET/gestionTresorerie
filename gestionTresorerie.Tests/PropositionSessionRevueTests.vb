@@ -190,6 +190,24 @@ Public Class PropositionSessionRevueTests
     End Sub
 
     <TestMethod>
+    Public Sub DemandeValidationHumaine_CleInvalideToujoursRejeteeMemeSiVerificationAbsente()
+        Dim initiale = Source()
+        Dim session As New PropositionSessionRevue({initiale})
+        Dim identites As IReadOnlyCollection(Of String) = Array.Empty(Of String)()
+
+        ' Un drapeau de verification faux ne doit pas masquer une selection invalide.
+        For Each cle In {Nothing, "", "absent", initiale.CleSource.Trim(), initiale.CleSource.ToUpperInvariant()}
+            Assert.ThrowsExactly(Of ArgumentException)(
+                Sub() session.PeutDemanderValidationHumaine(cle, 1, identites, False))
+            Assert.ThrowsExactly(Of ArgumentException)(
+                Sub() session.PeutDemanderValidationHumaine(cle, 1, identites, False, True))
+        Next
+        Assert.IsFalse(session.PeutDemanderValidationHumaine(initiale.CleSource, 1, identites, False))
+        Assert.AreEqual(0, session.NombreExamensConfirmes)
+        Assert.AreEqual(0, session.Audits.Count)
+    End Sub
+
+    <TestMethod>
     Public Sub AnnulationExamen_ExigeVersionCouranteEtNeModifiePasAudit()
         Dim premiere = Source()
         Dim seconde = Source("autre")
