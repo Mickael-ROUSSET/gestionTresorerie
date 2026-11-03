@@ -218,7 +218,7 @@ Public Class DemonstrationWindowsTests
 
                       ' Une préparation invalide doit effacer la session précédente
                       ' avant de lever l'erreur : aucune ancienne proposition accessible.
-                      Assert.ThrowsException(Of ArgumentNullException)(
+                      Assert.ThrowsExactly(Of ArgumentNullException)(
                           Sub() fenetre.PreparerRevueMessagesFictifs(Nothing))
                       Assert.IsFalse(revue.Enabled)
                       Assert.IsFalse(effacer.Enabled)
