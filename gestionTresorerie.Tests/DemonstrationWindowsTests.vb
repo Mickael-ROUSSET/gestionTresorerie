@@ -21,6 +21,10 @@ Public Class DemonstrationWindowsTests
         Public Property NombrePropositions As Integer
         Public Property NombreRejets As Integer
         Public Property NombreOuvertures As Integer
+        Public Property SimulerExamen As Boolean
+        Public Property StatutPremiereProposition As String
+        Public Property StatutApresExamen As String
+        Public Property DemandeValidationApresExamen As String
 
         Public Sub ChargerSansAfficher()
             MyBase.OnLoad(EventArgs.Empty)
@@ -32,6 +36,17 @@ Public Class DemonstrationWindowsTests
                 formulaire.Controls.Find("grillePropositions", True)(0), DataGridView).Rows.Count
             NombreRejets = DirectCast(
                 formulaire.Controls.Find("grilleRejets", True)(0), DataGridView).Rows.Count
+            Dim grille = DirectCast(
+                formulaire.Controls.Find("grillePropositions", True)(0), DataGridView)
+            StatutPremiereProposition = CStr(grille.Rows(0).Cells("Statut").Value)
+            If SimulerExamen Then
+                grille.ClearSelection()
+                grille.Rows(0).Selected = True
+                Assert.IsTrue(formulaire.ConfirmerExamenSelection())
+                StatutApresExamen = CStr(grille.Rows(0).Cells("Statut").Value)
+                DemandeValidationApresExamen =
+                    CStr(grille.Rows(0).Cells("DemandeValidation").Value)
+            End If
         End Sub
     End Class
 
@@ -143,6 +158,43 @@ Public Class DemonstrationWindowsTests
                       Assert.AreEqual(2, fenetre.NombrePropositions)
                       Assert.AreEqual(3, fenetre.NombreRejets)
                       Assert.IsFalse(fenetre.IsHandleCreated)
+                  End Using
+              End Sub)
+    End Sub
+
+    <TestMethod>
+    Public Sub Demo_ExamenFictifNeValideRien_EtReinitialisationEffaceLaConfirmation()
+        EnSta(Sub()
+                  Using fenetre As New PrincipaleFictive()
+                      fenetre.ChargerSansAfficher()
+                      Dim demo = DirectCast(fenetre.MainMenuStrip.Items.Find(
+                          "DemoDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
+                      Dim revue = DirectCast(fenetre.MainMenuStrip.Items.Find(
+                          "RevueDocumentsAnalysesToolStripMenuItem", True)(0), ToolStripMenuItem)
+                      Dim effacer = DirectCast(fenetre.MainMenuStrip.Items.Find(
+                          "EffacerDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
+
+                      fenetre.SimulerExamen = True
+                      demo.PerformClick()
+                      Assert.AreEqual("En attente de revue humaine", fenetre.StatutPremiereProposition)
+                      Assert.AreEqual("Examen confirmé (sans approbation)", fenetre.StatutApresExamen)
+                      Assert.AreEqual("Bloquée : identité documentaire non vérifiée",
+                                      fenetre.DemandeValidationApresExamen)
+
+                      ' La confirmation reste consultable dans la meme session, sans validation.
+                      fenetre.SimulerExamen = False
+                      revue.PerformClick()
+                      Assert.AreEqual("Examen confirmé (sans approbation)",
+                                      fenetre.StatutPremiereProposition)
+
+                      ' Effacer puis relancer cree une nouvelle session non examinee.
+                      effacer.PerformClick()
+                      Assert.IsFalse(revue.Enabled)
+                      demo.PerformClick()
+                      Assert.AreEqual("En attente de revue humaine",
+                                      fenetre.StatutPremiereProposition)
+                      Assert.AreEqual(2, fenetre.NombrePropositions)
+                      Assert.AreEqual(3, fenetre.NombreRejets)
                   End Using
               End Sub)
     End Sub
