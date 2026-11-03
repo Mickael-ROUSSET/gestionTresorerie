@@ -92,13 +92,27 @@ jobs:
           if (-not (Test-Path -LiteralPath $exe)) { throw "Exécutable absent après extraction." }
           $processus = Start-Process -FilePath $exe -ArgumentList '--demo' -WorkingDirectory $dossier -PassThru
           try {
-            Start-Sleep -Seconds 3
-            $processus.Refresh()
-            if ($processus.HasExited) {
-              throw "L'exécutable distribué s'est arrêté prématurément (code $($processus.ExitCode))."
+            # Observation des connexions TCP pendant le démarrage du binaire distribué.
+            # Une tentative très brève ou un trafic UDP peut échapper à ce contrôle :
+            # il ne remplace pas une revue indépendante de l'isolation réseau.
+            for ($tentative = 0; $tentative -lt 12; $tentative++) {
+              Start-Sleep -Milliseconds 250
+              $processus.Refresh()
+              if ($processus.HasExited) {
+                throw "L'exécutable distribué s'est arrêté prématurément (code $($processus.ExitCode))."
+              }
+              $connexions = @(Get-NetTCPConnection -OwningProcess $processus.Id -ErrorAction SilentlyContinue |
+                Where-Object {
+                  $_.State -notin @('Listen', 'Bound', 'Closed') -and
+                  $_.RemoteAddress -notin @('0.0.0.0', '::')
+                })
+              if ($connexions.Count -gt 0) {
+                throw "Connexion TCP détectée pendant le démarrage hors ligne : $($connexions.Count)."
+              }
             }
             Write-Output "Exécutable extrait démarré et encore actif après 3 secondes."
-            Write-Output "Ce contrôle ne valide ni le parcours interactif ni l'isolation réseau."
+            Write-Output "Aucune connexion TCP active observée sur 12 contrôles successifs."
+            Write-Output "Ce contrôle ne valide ni le parcours interactif ni l'absence de toute tentative réseau."
           }
           finally {
             if (-not $processus.HasExited) {
