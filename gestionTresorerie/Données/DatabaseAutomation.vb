@@ -13,6 +13,9 @@ Public Module DatabaseAutomation
     ''' Procédure d'exportation (Backup)
     ''' </summary>
     Public Sub ExportDatabase()
+#If DEMO_BUILD Then
+        Throw New InvalidOperationException("Opération SQL interdite en mode démonstration hors ligne.")
+#Else
         Dim saveDialog As New SaveFileDialog With {
             .Filter = "Sauvegarde SQL (*.bak)|*.bak",
             .FileName = $"{DatabaseName}_{DateTime.Now:yyyyMMdd}.bak"
@@ -36,6 +39,7 @@ Public Module DatabaseAutomation
                 Logger.ERR("Erreur d'exportation : " & ex.Message)
             End Try
         End If
+#End If
     End Sub
 
     ''' <summary>
@@ -45,6 +49,9 @@ Public Module DatabaseAutomation
     ''' Importation d'un fichier .bak avec création automatique de la base
     ''' </summary>
     Public Sub ImportDatabase()
+#If DEMO_BUILD Then
+        Throw New InvalidOperationException("Opération SQL interdite en mode démonstration hors ligne.")
+#Else
         Dim openDialog As New OpenFileDialog With {
             .Filter = "Fichier Sauvegarde SQL (*.bak)|*.bak"
         }
@@ -83,6 +90,7 @@ Public Module DatabaseAutomation
                 MessageBox.Show("Échec de l'import : " & ex.Message)
             End Try
         End If
+#End If
     End Sub
     Private Sub attacheBase()
         ' 1. Définition des chemins vers tes fichiers
@@ -109,6 +117,9 @@ Public Module DatabaseAutomation
     ''' Tente d'attacher physiquement les fichiers de la base au serveur SQL.
     ''' </summary>
     Public Function AttachDatabaseAuto(mdfPath As String, ldfPath As String) As Boolean
+#If DEMO_BUILD Then
+        Throw New InvalidOperationException("Opération SQL interdite en mode démonstration hors ligne.")
+#Else
         ' Connexion à Master pour effectuer l'opération système
         Using conn As New SqlConnection(MasterConnString)
             ' Script SQL pour attacher la base
@@ -125,5 +136,6 @@ Public Module DatabaseAutomation
                 Return False
             End Try
         End Using
+#End If
     End Function
 End Module
