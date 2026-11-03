@@ -256,5 +256,69 @@ Public Class DemonstrationWindowsTests
                   End Using
               End Sub)
     End Sub
+    ' Affichage non modal réel sur le runner Windows : les contrôles de la revue
+    ' sont créés et actionnés sans Gmail, SQL, fichier ni interaction humaine.
+    ' Ce test automatisé ne remplace pas une recette visuelle manuelle.
+    Private NotInheritable Class PrincipaleAvecRevueAffichee
+        Inherits FrmPrincipale
+
+        Public Sub New()
+            MyBase.New(True)
+        End Sub
+
+        Public Property NombreRevuesAffichees As Integer
+
+        Protected Overrides Sub PresenterRevueDocumentsAnalyses(formulaire As FrmRevuePropositions)
+            formulaire.Show(Me)
+            Try
+                Assert.IsTrue(formulaire.IsHandleCreated)
+                Assert.IsTrue(formulaire.Visible)
+                Dim propositions = DirectCast(
+                    formulaire.Controls.Find("grillePropositions", True)(0), DataGridView)
+                Dim rejets = DirectCast(
+                    formulaire.Controls.Find("grilleRejets", True)(0), DataGridView)
+                Assert.AreEqual(2, propositions.Rows.Count)
+                Assert.AreEqual(3, rejets.Rows.Count)
+
+                propositions.ClearSelection()
+                propositions.Rows(0).Selected = True
+                Dim confirmer = DirectCast(
+                    formulaire.Controls.Find("boutonConfirmerExamen", True)(0), Button)
+                Assert.IsTrue(confirmer.Enabled)
+                confirmer.PerformClick()
+                Assert.AreEqual("Examen confirmé (sans approbation)",
+                                CStr(propositions.Rows(0).Cells("Statut").Value))
+                Assert.AreEqual("Bloquée : identité documentaire non vérifiée",
+                                CStr(propositions.Rows(0).Cells("DemandeValidation").Value))
+                NombreRevuesAffichees += 1
+            Finally
+                formulaire.Close()
+            End Try
+        End Sub
+    End Class
+
+    <TestMethod>
+    Public Sub DemoBuild_AfficheReellementLaRevueEtControleLaConfirmation()
+        EnSta(Sub()
+                  Using fenetre As New PrincipaleAvecRevueAffichee()
+                      fenetre.Show()
+                      Assert.IsTrue(fenetre.Visible)
+                      StringAssert.Contains(fenetre.Text, "DÉMONSTRATION HORS LIGNE")
+                      Dim demo = DirectCast(fenetre.MainMenuStrip.Items.Find(
+                          "DemoDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
+                      Dim revue = DirectCast(fenetre.MainMenuStrip.Items.Find(
+                          "RevueDocumentsAnalysesToolStripMenuItem", True)(0), ToolStripMenuItem)
+                      Dim effacer = DirectCast(fenetre.MainMenuStrip.Items.Find(
+                          "EffacerDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
+                      demo.PerformClick()
+                      Assert.AreEqual(1, fenetre.NombreRevuesAffichees)
+                      Assert.IsTrue(revue.Enabled)
+                      effacer.PerformClick()
+                      Assert.IsFalse(revue.Enabled)
+                      Assert.IsFalse(effacer.Enabled)
+                      fenetre.Close()
+                  End Using
+              End Sub)
+    End Sub
 #End If
 End Class
