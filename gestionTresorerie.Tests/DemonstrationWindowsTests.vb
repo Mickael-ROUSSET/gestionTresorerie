@@ -272,6 +272,25 @@ Public Class DemonstrationWindowsTests
               End Sub)
     End Sub
 
+    ' Captures strictement fictives sur le runner Windows, destinées à une revue
+    ' visuelle séparée. Elles ne constituent pas une validation humaine du parcours.
+#If DEMO_BUILD Then
+    Private Shared Sub CapturerFenetreFictive(fenetre As Form, nom As String)
+        Dim espace = Environment.GetEnvironmentVariable("GITHUB_WORKSPACE")
+        If String.IsNullOrWhiteSpace(espace) Then Return
+        Dim dossier = System.IO.Path.Combine(espace, "artifacts", "demo-screenshots")
+        System.IO.Directory.CreateDirectory(dossier)
+        Application.DoEvents()
+        Using capture As New System.Drawing.Bitmap(fenetre.Width, fenetre.Height)
+            fenetre.DrawToBitmap(capture, New System.Drawing.Rectangle(0, 0, fenetre.Width, fenetre.Height))
+            Dim chemin = System.IO.Path.Combine(dossier, nom)
+            capture.Save(chemin, System.Drawing.Imaging.ImageFormat.Png)
+            Assert.IsTrue(New System.IO.FileInfo(chemin).Length > 0,
+                          "Capture de démonstration vide : " & nom)
+        End Using
+    End Sub
+#End If
+
     ' Contrôle automatisé avec un véritable handle WinForms sur le runner Windows.
     ' Il ne remplace PAS une vérification visuelle et interactive par une personne.
 #If DEMO_BUILD Then
@@ -346,6 +365,7 @@ Public Class DemonstrationWindowsTests
                                 CStr(propositions.Rows(0).Cells("Statut").Value))
                 Assert.AreEqual("Bloquée : identité documentaire non vérifiée",
                                 CStr(propositions.Rows(0).Cells("DemandeValidation").Value))
+                CapturerFenetreFictive(formulaire, "02-revue-documents-fictifs.png")
                 NombreRevuesAffichees += 1
             Finally
                 formulaire.Close()
@@ -360,6 +380,7 @@ Public Class DemonstrationWindowsTests
                       fenetre.Show()
                       Assert.IsTrue(fenetre.Visible)
                       StringAssert.Contains(fenetre.Text, "DÉMONSTRATION HORS LIGNE")
+                      CapturerFenetreFictive(fenetre, "01-ecran-principal.png")
                       Dim demo = DirectCast(fenetre.MainMenuStrip.Items.Find(
                           "DemoDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
                       Dim revue = DirectCast(fenetre.MainMenuStrip.Items.Find(
