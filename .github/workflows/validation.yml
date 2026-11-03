@@ -59,6 +59,18 @@ jobs:
         timeout-minutes: 5
         run: dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Demo --no-build --property:Platform="Any CPU" --filter "FullyQualifiedName~DemonstrationWindowsTests" --logger "trx;LogFileName=demo-results.trx"
 
+      # Images uniquement issues de la variante DEMO_BUILD et de documents fictifs.
+      # Elles permettent une inspection visuelle a posteriori, sans remplacer
+      # un essai interactif sur un poste Windows.
+      - name: Publier les captures graphiques de démonstration
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-captures-${{ github.sha }}
+          path: artifacts/demo-screenshots/*.png
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Préparer l'archive Windows de démonstration
         if: (github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')
         shell: pwsh
