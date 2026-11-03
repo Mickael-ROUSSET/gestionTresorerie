@@ -280,6 +280,24 @@ Public Class DemonstrationWindowsTests
                 Assert.AreEqual(2, propositions.Rows.Count)
                 Assert.AreEqual(3, rejets.Rows.Count)
 
+                ' Contrôler les données réellement visibles, et non seulement les compteurs :
+                ' facture et chèque fictifs, type inconnu, JSON invalide et doublon source.
+                Assert.AreEqual("FACTURE", CStr(propositions.Rows(0).Cells("TypeDocument").Value))
+                Assert.AreEqual(42.5D, CDec(propositions.Rows(0).Cells("Montant").Value))
+                Assert.AreEqual("CHEQUE", CStr(propositions.Rows(1).Cells("TypeDocument").Value))
+                Assert.AreEqual(18.75D, CDec(propositions.Rows(1).Cells("Montant").Value))
+                Assert.AreEqual(2, CInt(rejets.Rows(0).Cells("IndexEntree").Value))
+                Assert.AreEqual(3, CInt(rejets.Rows(1).Cells("IndexEntree").Value))
+                Assert.AreEqual(4, CInt(rejets.Rows(2).Cells("IndexEntree").Value))
+                Assert.AreEqual("Extraction JSON invalide ou non prise en charge.",
+                                CStr(rejets.Rows(0).Cells("Motif").Value))
+                Assert.AreEqual("Extraction JSON invalide ou non prise en charge.",
+                                CStr(rejets.Rows(1).Cells("Motif").Value))
+                Assert.AreEqual("Cle source dupliquee dans le lot.",
+                                CStr(rejets.Rows(2).Cells("Motif").Value))
+                Assert.AreEqual(CStr(propositions.Rows(0).Cells("CleSource").Value),
+                                CStr(rejets.Rows(2).Cells("CleSource").Value))
+
                 propositions.ClearSelection()
                 propositions.Rows(0).Selected = True
                 Dim confirmer = DirectCast(
