@@ -92,11 +92,38 @@ try {
     foreach ($name in $required) {
         if ($name -notin $entries) { throw "Fichier requis absent du ZIP : $name" }
     }
+    # Controler aussi le contenu du ZIP final : aucune entree hors liste blanche,
+    # meme si le dossier de staging etait correct avant la compression.
+    $seen = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::OrdinalIgnoreCase)
     foreach ($name in $entries) {
         if ($name.StartsWith('/') -or $name -match '(^|/)\.\.(/|$)' -or
-            $name -match '^[A-Za-z]:' -or
-            ($name -match '(?i)\.exe$' -and $name -ne 'gestionTresorerie.exe')) {
-            throw "Entree interdite dans le ZIP : $name"
+            $name -match '^[A-Za-z]:' -or -not $seen.Add($name)) {
+            throw "Entree interdite ou dupliquee dans le ZIP : $name"
+        }
+        $isSupport = $name -in $support
+        $isExecutable = $name -ceq 'gestionTresorerie.exe'
+        $isLibrary = $name -match '(?i)\.dll
+}
+finally {
+    $archive.Dispose()
+}
+Write-Output "Archive verifiee : $($entries.Count) fichiers, executables limites a gestionTresorerie.exe."
+Write-Output "Archive de démonstration candidate : $zip"
+Write-Output "Commit : $sha"
+Write-Output 'Contrôle graphique manuel : non effectué.'
+
+        $isManifest = $name -match '(?i)\.(deps|runtimeconfig)\.json
+}
+finally {
+    $archive.Dispose()
+}
+Write-Output "Archive verifiee : $($entries.Count) fichiers, executables limites a gestionTresorerie.exe."
+Write-Output "Archive de démonstration candidate : $zip"
+Write-Output "Commit : $sha"
+Write-Output 'Contrôle graphique manuel : non effectué.'
+
+        if (-not ($isSupport -or $isExecutable -or $isLibrary -or $isManifest)) {
+            throw "Fichier hors liste blanche dans le ZIP : $name"
         }
     }
 }
