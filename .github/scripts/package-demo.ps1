@@ -31,8 +31,223 @@ New-Item -ItemType Directory -Path $stage -Force | Out-Null
 # Liste blanche : aucun App.config, paramètre utilisateur, SQL, JSON de secret,
 # document comptable ou fichier présent ailleurs dans le dépôt.
 $files = @(Get-ChildItem -Path $source -Recurse -File | Where-Object {
-    $_.Extension -in @('.exe', '.dll') -or
-    $_.Name -match '\.(deps|runtimeconfig)\.json$'
+    # Ne jamais embarquer d'autre programme executable que l'application de demonstration.
+    $_.Name -eq 'gestionTresorerie.exe' -or
+    $_.Extension -eq '.dll' -or
+    $_.Name -match '\.(deps|runtimeconfig)\.json
+if ($files.Count -lt 3) { throw 'Dépendances insuffisantes pour préparer une archive.' }
+foreach ($file in $files) {
+    $relative = $file.FullName.Substring($source.Length).TrimStart('\', '/')
+    $target = Join-Path $stage $relative
+    $parent = Split-Path $target -Parent
+    New-Item -ItemType Directory -Path $parent -Force | Out-Null
+    Copy-Item -LiteralPath $file.FullName -Destination $target -Force
+}
+Copy-Item -LiteralPath (Join-Path $root 'docs/demo-windows.md') -Destination (Join-Path $stage 'LIRE_AVANT_DEMARRER.md')
+@"
+@echo off
+cd /d "%~dp0"
+start "" "%~dp0gestionTresorerie.exe" --demo
+"@ | Set-Content -LiteralPath (Join-Path $stage 'LANCER-DEMONSTRATION.cmd') -Encoding ASCII
+("COMMIT=" + $sha + [Environment]::NewLine +
+ "CONFIGURATION=Demo" + [Environment]::NewLine +
+ "CONSTANTE=DEMO_BUILD" + [Environment]::NewLine +
+ "CONTROLE_GRAPHIQUE=NON_EFFECTUE" + [Environment]::NewLine) |
+    Set-Content -LiteralPath (Join-Path $stage 'COMMIT-DEMONSTRATION.txt') -Encoding UTF8
+
+$unsafe = @(Get-ChildItem -Path $stage -Recurse -File | Where-Object {
+    $_.Name -match '(?i)(client_secret|\.config$|\.mdf$|\.pfx$|\.key$|\.env$)'
+})
+if ($unsafe.Count -gt 0) { throw ('Fichiers interdits : ' + ($unsafe.Name -join ', ')) }
+# Verification finale de tous les fichiers du dossier de staging.
+$support = @('LIRE_AVANT_DEMARRER.md', 'LANCER-DEMONSTRATION.cmd', 'COMMIT-DEMONSTRATION.txt')
+$unexpected = @(Get-ChildItem -LiteralPath $stage -Recurse -File | Where-Object {
+    ($_.Name -notin $support) -and
+    ($_.Name -ne 'gestionTresorerie.exe') -and
+    ($_.Extension -ne '.dll') -and
+    ($_.Name -notmatch '\.(deps|runtimeconfig)\.json
+})
+if ($unexpected.Count -gt 0) {
+    throw ('Fichiers hors liste blanche : ' + ($unexpected.FullName -join ', '))
+}
+Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -CompressionLevel Optimal
+
+# Verifier le ZIP final, et pas seulement le repertoire de staging.
+# L'archive publiee doit rester autonome, tracable et sans autre executable.
+Add-Type -AssemblyName System.IO.Compression
+$archive = [System.IO.Compression.ZipFile]::OpenRead($zip)
+try {
+    $entries = @($archive.Entries | Where-Object {
+        -not [string]::IsNullOrEmpty($_.Name)
+    } | ForEach-Object { $_.FullName.Replace('\\', '/') })
+    $required = @(
+        'gestionTresorerie.exe',
+        'gestionTresorerie.deps.json',
+        'gestionTresorerie.runtimeconfig.json',
+        'LANCER-DEMONSTRATION.cmd',
+        'LIRE_AVANT_DEMARRER.md',
+        'COMMIT-DEMONSTRATION.txt'
+    )
+    foreach ($name in $required) {
+        if ($name -notin $entries) { throw "Fichier requis absent du ZIP : $name" }
+    }
+    foreach ($name in $entries) {
+        if ($name.StartsWith('/') -or $name -match '(^|/)\.\.(/|$)' -or
+            $name -match '^[A-Za-z]:' -or
+            ($name -match '(?i)\.exe
+Write-Output "Commit : $sha"
+Write-Output 'Contrôle graphique manuel : non effectué.'
+
+})
+if ($files.Count -lt 3) { throw 'Dépendances insuffisantes pour préparer une archive.' }
+foreach ($file in $files) {
+    $relative = $file.FullName.Substring($source.Length).TrimStart('\', '/')
+    $target = Join-Path $stage $relative
+    $parent = Split-Path $target -Parent
+    New-Item -ItemType Directory -Path $parent -Force | Out-Null
+    Copy-Item -LiteralPath $file.FullName -Destination $target -Force
+}
+Copy-Item -LiteralPath (Join-Path $root 'docs/demo-windows.md') -Destination (Join-Path $stage 'LIRE_AVANT_DEMARRER.md')
+@"
+@echo off
+cd /d "%~dp0"
+start "" "%~dp0gestionTresorerie.exe" --demo
+"@ | Set-Content -LiteralPath (Join-Path $stage 'LANCER-DEMONSTRATION.cmd') -Encoding ASCII
+("COMMIT=" + $sha + [Environment]::NewLine +
+ "CONFIGURATION=Demo" + [Environment]::NewLine +
+ "CONSTANTE=DEMO_BUILD" + [Environment]::NewLine +
+ "CONTROLE_GRAPHIQUE=NON_EFFECTUE" + [Environment]::NewLine) |
+    Set-Content -LiteralPath (Join-Path $stage 'COMMIT-DEMONSTRATION.txt') -Encoding UTF8
+
+$unsafe = @(Get-ChildItem -Path $stage -Recurse -File | Where-Object {
+    $_.Name -match '(?i)(client_secret|\.config$|\.mdf$|\.pfx$|\.key$|\.env$)'
+})
+if ($unsafe.Count -gt 0) { throw ('Fichiers interdits : ' + ($unsafe.Name -join ', ')) }
+# Verification finale de tous les fichiers du dossier de staging.
+$support = @('LIRE_AVANT_DEMARRER.md', 'LANCER-DEMONSTRATION.cmd', 'COMMIT-DEMONSTRATION.txt')
+$unexpected = @(Get-ChildItem -LiteralPath $stage -Recurse -File | Where-Object {
+    ($_.Name -notin $support) -and
+    ($_.Extension -notin @('.exe', '.dll')) -and
+    ($_.Name -notmatch '\.(deps|runtimeconfig)\.json$')
+})
+if ($unexpected.Count -gt 0) {
+    throw ('Fichiers hors liste blanche : ' + ($unexpected.FullName -join ', '))
+}
+Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -CompressionLevel Optimal
+Write-Output "Archive de démonstration candidate : $zip"
+Write-Output "Commit : $sha"
+Write-Output 'Contrôle graphique manuel : non effectué.'
+)
+})
+if ($unexpected.Count -gt 0) {
+    throw ('Fichiers hors liste blanche : ' + ($unexpected.FullName -join ', '))
+}
+Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -CompressionLevel Optimal
+Write-Output "Archive de démonstration candidate : $zip"
+Write-Output "Commit : $sha"
+Write-Output 'Contrôle graphique manuel : non effectué.'
+
+})
+if ($files.Count -lt 3) { throw 'Dépendances insuffisantes pour préparer une archive.' }
+foreach ($file in $files) {
+    $relative = $file.FullName.Substring($source.Length).TrimStart('\', '/')
+    $target = Join-Path $stage $relative
+    $parent = Split-Path $target -Parent
+    New-Item -ItemType Directory -Path $parent -Force | Out-Null
+    Copy-Item -LiteralPath $file.FullName -Destination $target -Force
+}
+Copy-Item -LiteralPath (Join-Path $root 'docs/demo-windows.md') -Destination (Join-Path $stage 'LIRE_AVANT_DEMARRER.md')
+@"
+@echo off
+cd /d "%~dp0"
+start "" "%~dp0gestionTresorerie.exe" --demo
+"@ | Set-Content -LiteralPath (Join-Path $stage 'LANCER-DEMONSTRATION.cmd') -Encoding ASCII
+("COMMIT=" + $sha + [Environment]::NewLine +
+ "CONFIGURATION=Demo" + [Environment]::NewLine +
+ "CONSTANTE=DEMO_BUILD" + [Environment]::NewLine +
+ "CONTROLE_GRAPHIQUE=NON_EFFECTUE" + [Environment]::NewLine) |
+    Set-Content -LiteralPath (Join-Path $stage 'COMMIT-DEMONSTRATION.txt') -Encoding UTF8
+
+$unsafe = @(Get-ChildItem -Path $stage -Recurse -File | Where-Object {
+    $_.Name -match '(?i)(client_secret|\.config$|\.mdf$|\.pfx$|\.key$|\.env$)'
+})
+if ($unsafe.Count -gt 0) { throw ('Fichiers interdits : ' + ($unsafe.Name -join ', ')) }
+# Verification finale de tous les fichiers du dossier de staging.
+$support = @('LIRE_AVANT_DEMARRER.md', 'LANCER-DEMONSTRATION.cmd', 'COMMIT-DEMONSTRATION.txt')
+$unexpected = @(Get-ChildItem -LiteralPath $stage -Recurse -File | Where-Object {
+    ($_.Name -notin $support) -and
+    ($_.Extension -notin @('.exe', '.dll')) -and
+    ($_.Name -notmatch '\.(deps|runtimeconfig)\.json$')
+})
+if ($unexpected.Count -gt 0) {
+    throw ('Fichiers hors liste blanche : ' + ($unexpected.FullName -join ', '))
+}
+Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -CompressionLevel Optimal
+Write-Output "Archive de démonstration candidate : $zip"
+Write-Output "Commit : $sha"
+Write-Output 'Contrôle graphique manuel : non effectué.'
+ -and $name -ne 'gestionTresorerie.exe')) {
+            throw "Entree interdite dans le ZIP : $name"
+        }
+    }
+}
+finally {
+    $archive.Dispose()
+}
+Write-Output "Archive verifiee : $($entries.Count) fichiers, executables limites a gestionTresorerie.exe."
+Write-Output "Archive de démonstration candidate : $zip"
+Write-Output "Commit : $sha"
+Write-Output 'Contrôle graphique manuel : non effectué.'
+
+})
+if ($files.Count -lt 3) { throw 'Dépendances insuffisantes pour préparer une archive.' }
+foreach ($file in $files) {
+    $relative = $file.FullName.Substring($source.Length).TrimStart('\', '/')
+    $target = Join-Path $stage $relative
+    $parent = Split-Path $target -Parent
+    New-Item -ItemType Directory -Path $parent -Force | Out-Null
+    Copy-Item -LiteralPath $file.FullName -Destination $target -Force
+}
+Copy-Item -LiteralPath (Join-Path $root 'docs/demo-windows.md') -Destination (Join-Path $stage 'LIRE_AVANT_DEMARRER.md')
+@"
+@echo off
+cd /d "%~dp0"
+start "" "%~dp0gestionTresorerie.exe" --demo
+"@ | Set-Content -LiteralPath (Join-Path $stage 'LANCER-DEMONSTRATION.cmd') -Encoding ASCII
+("COMMIT=" + $sha + [Environment]::NewLine +
+ "CONFIGURATION=Demo" + [Environment]::NewLine +
+ "CONSTANTE=DEMO_BUILD" + [Environment]::NewLine +
+ "CONTROLE_GRAPHIQUE=NON_EFFECTUE" + [Environment]::NewLine) |
+    Set-Content -LiteralPath (Join-Path $stage 'COMMIT-DEMONSTRATION.txt') -Encoding UTF8
+
+$unsafe = @(Get-ChildItem -Path $stage -Recurse -File | Where-Object {
+    $_.Name -match '(?i)(client_secret|\.config$|\.mdf$|\.pfx$|\.key$|\.env$)'
+})
+if ($unsafe.Count -gt 0) { throw ('Fichiers interdits : ' + ($unsafe.Name -join ', ')) }
+# Verification finale de tous les fichiers du dossier de staging.
+$support = @('LIRE_AVANT_DEMARRER.md', 'LANCER-DEMONSTRATION.cmd', 'COMMIT-DEMONSTRATION.txt')
+$unexpected = @(Get-ChildItem -LiteralPath $stage -Recurse -File | Where-Object {
+    ($_.Name -notin $support) -and
+    ($_.Extension -notin @('.exe', '.dll')) -and
+    ($_.Name -notmatch '\.(deps|runtimeconfig)\.json$')
+})
+if ($unexpected.Count -gt 0) {
+    throw ('Fichiers hors liste blanche : ' + ($unexpected.FullName -join ', '))
+}
+Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -CompressionLevel Optimal
+Write-Output "Archive de démonstration candidate : $zip"
+Write-Output "Commit : $sha"
+Write-Output 'Contrôle graphique manuel : non effectué.'
+)
+})
+if ($unexpected.Count -gt 0) {
+    throw ('Fichiers hors liste blanche : ' + ($unexpected.FullName -join ', '))
+}
+Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -CompressionLevel Optimal
+Write-Output "Archive de démonstration candidate : $zip"
+Write-Output "Commit : $sha"
+Write-Output 'Contrôle graphique manuel : non effectué.'
+
 })
 if ($files.Count -lt 3) { throw 'Dépendances insuffisantes pour préparer une archive.' }
 foreach ($file in $files) {
