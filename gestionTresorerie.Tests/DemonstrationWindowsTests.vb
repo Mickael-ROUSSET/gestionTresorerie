@@ -377,6 +377,31 @@ Public Class DemonstrationWindowsTests
                                 CStr(propositions.Rows(0).Cells("Statut").Value))
                 Assert.AreEqual("Bloquée : identité documentaire non vérifiée",
                                 CStr(propositions.Rows(0).Cells("DemandeValidation").Value))
+
+                ' La confirmation est réversible et ne déclenche aucune approbation.
+                ' Tester les vrais boutons de la fenêtre, pas uniquement les méthodes.
+                Dim annuler = DirectCast(
+                    formulaire.Controls.Find("boutonAnnulerExamen", True)(0), Button)
+                Assert.IsFalse(confirmer.Enabled)
+                Assert.IsTrue(annuler.Enabled)
+                annuler.PerformClick()
+                Assert.AreEqual("En attente de revue humaine",
+                                CStr(propositions.Rows(0).Cells("Statut").Value))
+                Assert.AreEqual("Bloquée : examen humain non confirmé",
+                                CStr(propositions.Rows(0).Cells("DemandeValidation").Value))
+                Assert.IsTrue(confirmer.Enabled)
+                Assert.IsFalse(annuler.Enabled)
+                Dim etat = DirectCast(
+                    formulaire.Controls.Find("etatCorrections", True)(0), Label)
+                StringAssert.Contains(etat.Text, "Examens confirmés : 0")
+
+                ' Une nouvelle confirmation reste une simple trace en mémoire.
+                confirmer.PerformClick()
+                Assert.AreEqual("Examen confirmé (sans approbation)",
+                                CStr(propositions.Rows(0).Cells("Statut").Value))
+                Assert.AreEqual("Bloquée : identité documentaire non vérifiée",
+                                CStr(propositions.Rows(0).Cells("DemandeValidation").Value))
+                StringAssert.Contains(etat.Text, "Examens confirmés : 1")
                 CapturerFenetreFictive(formulaire, "02-revue-documents-fictifs.png")
                 NombreRevuesAffichees += 1
             Finally
