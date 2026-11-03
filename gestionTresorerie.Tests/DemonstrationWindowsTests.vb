@@ -338,5 +338,45 @@ Public Class DemonstrationWindowsTests
                   End Using
               End Sub)
     End Sub
+
+    ' Une nouvelle instance ne doit jamais récupérer les examens de la session précédente.
+    ' La fermeture n'écrit rien : toutes les données de revue restent en mémoire.
+    <TestMethod>
+    Public Sub DemoBuild_RelancementOublieLaSessionEtLesConfirmations()
+        EnSta(Sub()
+                  Using premiere As New PrincipaleFictive()
+                      premiere.Show()
+                      Dim demo = DirectCast(premiere.MainMenuStrip.Items.Find(
+                          "DemoDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
+                      Dim revue = DirectCast(premiere.MainMenuStrip.Items.Find(
+                          "RevueDocumentsAnalysesToolStripMenuItem", True)(0), ToolStripMenuItem)
+                      premiere.SimulerExamen = True
+                      demo.PerformClick()
+                      Assert.AreEqual("Examen confirmé (sans approbation)",
+                                      premiere.StatutApresExamen)
+                      Assert.IsTrue(revue.Enabled)
+                      premiere.Close()
+                  End Using
+
+                  Using seconde As New PrincipaleFictive()
+                      seconde.Show()
+                      Dim demo = DirectCast(seconde.MainMenuStrip.Items.Find(
+                          "DemoDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
+                      Dim revue = DirectCast(seconde.MainMenuStrip.Items.Find(
+                          "RevueDocumentsAnalysesToolStripMenuItem", True)(0), ToolStripMenuItem)
+                      Dim effacer = DirectCast(seconde.MainMenuStrip.Items.Find(
+                          "EffacerDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
+                      Assert.IsFalse(revue.Enabled)
+                      Assert.IsFalse(effacer.Enabled)
+                      Assert.AreEqual(0, seconde.NombreOuvertures)
+                      demo.PerformClick()
+                      Assert.AreEqual("En attente de revue humaine",
+                                      seconde.StatutPremiereProposition)
+                      Assert.AreEqual(2, seconde.NombrePropositions)
+                      Assert.AreEqual(3, seconde.NombreRejets)
+                      seconde.Close()
+                  End Using
+              End Sub)
+    End Sub
 #End If
 End Class
