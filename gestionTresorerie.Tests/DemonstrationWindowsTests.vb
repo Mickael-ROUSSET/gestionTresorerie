@@ -11,6 +11,39 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 <TestClass>
 Public Class DemonstrationWindowsTests
+#If DEMO_BUILD Then
+    <TestMethod>
+    Public Sub DemoBuild_InterditLesTroisPointsDEntreeSQL()
+        ' Aucun accès aux paramètres, au stockage ni à un serveur SQL réel.
+        Dim erreurInstance = Assert.ThrowsExactly(Of InvalidOperationException)(
+            Sub()
+                Dim inutilise = ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa)
+            End Sub)
+        StringAssert.Contains(erreurInstance.Message, "DÉMONSTRATION")
+
+        Using db As New ConnexionDB()
+            Dim erreurConnexion = Assert.ThrowsExactly(Of InvalidOperationException)(
+                Sub()
+                    Dim inutilise = db.GetConnexion(Constantes.DataBases.Agumaaa)
+                End Sub)
+            StringAssert.Contains(erreurConnexion.Message, "DÉMONSTRATION")
+
+            Dim methode = GetType(ConnexionDB).GetMethod(
+                "CreeConnexion",
+                System.Reflection.BindingFlags.Instance Or
+                System.Reflection.BindingFlags.NonPublic)
+            Assert.IsNotNull(methode)
+            Dim erreurInvocation = Assert.ThrowsExactly(Of System.Reflection.TargetInvocationException)(
+                Sub()
+                    methode.Invoke(db, New Object() {
+                        "Server=localhost;Database=demo;Integrated Security=True"})
+                End Sub)
+            Assert.IsInstanceOfType(erreurInvocation.InnerException, GetType(InvalidOperationException))
+            StringAssert.Contains(erreurInvocation.InnerException.Message, "DÉMONSTRATION")
+        End Using
+    End Sub
+#End If
+
     Private NotInheritable Class PrincipaleFictive
         Inherits FrmPrincipale
 
