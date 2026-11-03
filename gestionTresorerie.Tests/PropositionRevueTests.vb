@@ -65,10 +65,9 @@ Public Class PropositionRevueTests
             Nothing, Entree(FactureFictive(), "SOURCE")})
         Dim revue As New PropositionRevue(resultat)
 
-        Assert.AreEqual(2, revue.Lignes.Count)
+        Assert.AreEqual(1, revue.Lignes.Count)
         Assert.AreEqual("source", revue.Lignes(0).CleSource)
-        Assert.AreEqual("SOURCE", revue.Lignes(1).CleSource)
-        Assert.AreEqual(4, revue.Rejets.Count)
+        Assert.AreEqual(5, revue.Rejets.Count)
         For i As Integer = 0 To resultat.Rejets.Count - 1
             Assert.AreEqual(i + 1, revue.Rejets(i).IndexEntree)
             Assert.AreEqual(resultat.Rejets(i).CleSource, revue.Rejets(i).CleSource)
@@ -77,7 +76,9 @@ Public Class PropositionRevueTests
         Assert.AreEqual("Cle source dupliquee dans le lot.", revue.Rejets(0).Motif)
         Assert.AreEqual("Cle source dupliquee dans le lot.", revue.Rejets(2).Motif)
         Assert.IsNull(revue.Rejets(3).CleSource)
-        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual("SOURCE", revue.Rejets(4).CleSource)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", revue.Rejets(4).Motif)
+        Assert.AreEqual(1, resultat.Propositions.Count)
         Assert.AreEqual(-1D, invalide.montant_ttc)
     End Sub
 
