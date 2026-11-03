@@ -106,6 +106,43 @@ jobs:
             }
             $processus.Dispose()
           }
+      # La variante livrée est compilée avec DEMO_BUILD : même sans --demo,
+      # le titre de la fenêtre doit annoncer explicitement le mode hors ligne.
+      # Ce test utilise l'exécutable extrait du ZIP, pas l'assemblage de tests.
+      - name: Vérifier le mode démonstration forcé sans argument
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')
+        shell: pwsh
+        timeout-minutes: 2
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dossier = Join-Path $env:RUNNER_TEMP 'gestionTresorerie-demo-smoke'
+          $exe = Join-Path $dossier 'gestionTresorerie.exe'
+          if (-not (Test-Path -LiteralPath $exe)) { throw "Exécutable extrait absent." }
+          # Aucun argument --demo : la protection doit être intrinsèque au binaire.
+          $processus = Start-Process -FilePath $exe -WorkingDirectory $dossier -PassThru
+          try {
+            $titre = ''
+            for ($tentative = 0; $tentative -lt 15; $tentative++) {
+              Start-Sleep -Seconds 1
+              $processus.Refresh()
+              if ($processus.HasExited) {
+                throw "Exécutable sans argument arrêté prématurément (code $($processus.ExitCode))."
+              }
+              $titre = $processus.MainWindowTitle
+              if ($titre -like '*DÉMONSTRATION HORS LIGNE*') { break }
+            }
+            if ($titre -notlike '*DÉMONSTRATION HORS LIGNE*') {
+              throw "Titre de démonstration absent après 15 secondes. Titre observé : '$titre'"
+            }
+            Write-Output "Binaire extrait sans argument : titre DÉMONSTRATION HORS LIGNE confirmé."
+            Write-Output "Ce test ne prouve pas l'absence de connexion réseau ni une recette interactive."
+          }
+          finally {
+            if (-not $processus.HasExited) {
+              Stop-Process -Id $processus.Id -Force -ErrorAction SilentlyContinue
+            }
+            $processus.Dispose()
+          }
       - name: Publier l'archive candidate (non vérifiée graphiquement)
         if: (github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')
         uses: actions/upload-artifact@v4
