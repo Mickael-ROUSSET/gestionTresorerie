@@ -355,6 +355,18 @@ Public Class DemonstrationWindowsTests
                 Assert.AreEqual(CStr(propositions.Rows(0).Cells("CleSource").Value),
                                 CStr(rejets.Rows(2).Cells("CleSource").Value))
 
+                ' Identités longues consultables en entier au survol, sans écraser
+                ' les colonnes métier ; les valeurs sources restent inchangées.
+                Assert.IsTrue(CStr(propositions.Rows(0).Cells("CleSource").Value).Length > 50)
+                Assert.IsTrue(propositions.Columns("CleSource").Width <= 200)
+                Assert.IsTrue(rejets.Columns("CleSource").Width <= 200)
+                Assert.AreEqual(CStr(propositions.Rows(0).Cells("CleSource").Value),
+                                propositions.Rows(0).Cells("CleSource").ToolTipText)
+                Assert.AreEqual(CStr(rejets.Rows(2).Cells("CleSource").Value),
+                                rejets.Rows(2).Cells("CleSource").ToolTipText)
+                Assert.AreEqual(DataGridViewAutoSizeColumnMode.Fill,
+                                rejets.Columns("Motif").AutoSizeMode)
+
                 propositions.ClearSelection()
                 propositions.Rows(0).Selected = True
                 Dim confirmer = DirectCast(
