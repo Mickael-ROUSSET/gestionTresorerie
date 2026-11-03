@@ -118,6 +118,23 @@ jobs:
           $dossier = Join-Path $env:RUNNER_TEMP 'gestionTresorerie-demo-smoke'
           $exe = Join-Path $dossier 'gestionTresorerie.exe'
           if (-not (Test-Path -LiteralPath $exe)) { throw "Exécutable extrait absent." }
+          # La traçabilité est vérifiée sur les octets réellement extraits du ZIP.
+          # Un artefact construit depuis un autre commit ou sans DEMO_BUILD est refusé.
+          $preuve = Join-Path $dossier 'COMMIT-DEMONSTRATION.txt'
+          if (-not (Test-Path -LiteralPath $preuve)) { throw "Traçabilité absente du ZIP." }
+          $lignes = @(Get-Content -LiteralPath $preuve)
+          $attendus = @(
+            "COMMIT=$env:GITHUB_SHA",
+            'CONFIGURATION=Demo',
+            'CONSTANTE=DEMO_BUILD',
+            'CONTROLE_GRAPHIQUE=NON_EFFECTUE'
+          )
+          foreach ($attendu in $attendus) {
+            if (-not ($lignes -ccontains $attendu)) {
+              throw "Métadonnée absente ou incorrecte dans le ZIP : $attendu"
+            }
+          }
+          Write-Output "Traçabilité du ZIP vérifiée : commit exact et DEMO_BUILD."
           # Aucun argument --demo : la protection doit être intrinsèque au binaire.
           $processus = Start-Process -FilePath $exe -WorkingDirectory $dossier -PassThru
           try {
