@@ -234,6 +234,44 @@ Public Class DemonstrationWindowsTests
               End Sub)
     End Sub
 
+    ' Une identité IMAP invalide, même sur un message sans pièce jointe,
+    ' ne doit jamais laisser accessible une ancienne revue fictive.
+    <TestMethod>
+    Public Sub Demo_IdentiteImapInvalideEffaceLeLotPrecedent()
+        EnSta(Sub()
+                  Using fenetre As New PrincipaleFictive()
+                      fenetre.ChargerSansAfficher()
+                      Dim demo = DirectCast(fenetre.MainMenuStrip.Items.Find(
+                          "DemoDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
+                      Dim revue = DirectCast(fenetre.MainMenuStrip.Items.Find(
+                          "RevueDocumentsAnalysesToolStripMenuItem", True)(0), ToolStripMenuItem)
+                      Dim effacer = DirectCast(fenetre.MainMenuStrip.Items.Find(
+                          "EffacerDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
+
+                      demo.PerformClick()
+                      Assert.IsTrue(revue.Enabled)
+                      Assert.IsTrue(effacer.Enabled)
+                      Assert.AreEqual(1, fenetre.NombreOuvertures)
+
+                      Dim invalide As New GmailDocumentSimulatedInbox.MessageFictif(
+                          "demo@example.invalid", 0UI, 1UI,
+                          Array.Empty(Of GmailDocumentSimulatedInbox.PieceFictive)())
+                      Assert.ThrowsExactly(Of ArgumentOutOfRangeException)(
+                          Sub() fenetre.PreparerRevueMessagesFictifs(
+                              New GmailDocumentSimulatedInbox.MessageFictif() {invalide}))
+                      Assert.IsFalse(revue.Enabled)
+                      Assert.IsFalse(effacer.Enabled)
+                      revue.PerformClick()
+                      Assert.AreEqual(1, fenetre.NombreOuvertures)
+
+                      demo.PerformClick()
+                      Assert.AreEqual(2, fenetre.NombreOuvertures)
+                      Assert.AreEqual(2, fenetre.NombrePropositions)
+                      Assert.AreEqual(3, fenetre.NombreRejets)
+                  End Using
+              End Sub)
+    End Sub
+
     ' Contrôle automatisé avec un véritable handle WinForms sur le runner Windows.
     ' Il ne remplace PAS une vérification visuelle et interactive par une personne.
 #If DEMO_BUILD Then
