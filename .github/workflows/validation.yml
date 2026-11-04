@@ -2,9 +2,9 @@ name: Validation .NET Windows
 
 on:
   pull_request:
-    branches: [master, chore/automation-foundation, refactor/remove-mistral, fix/gmail-sha256-local, test/gmail-document-source-key-20261030]
+    branches: [master, chore/automation-foundation, refactor/remove-mistral, fix/gmail-sha256-local, test/gmail-document-source-key-20261030, feature/simulated-inbox-main-menu-20261101]
   push:
-    branches: [master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral, feature/gmail-import-fiabilisation, fix/gmail-sha256-local, test/gmail-document-source-key-20261030, feature/simulated-inbox-main-menu-20261101]
+    branches: [master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral, feature/gmail-import-fiabilisation, fix/gmail-sha256-local, test/gmail-document-source-key-20261030, feature/simulated-inbox-main-menu-20261101, feature/windows-demo-isolee-20261102]
   workflow_dispatch:
 
 permissions:
@@ -43,3 +43,142 @@ jobs:
             **/TestResults/**/*.trx
             **/TestResults/**/*_Sequence.xml
           if-no-files-found: ignore
+
+      # Cette archive est une candidate non vérifiée graphiquement, jamais une release.
+      - name: Compiler la variante DEMO_BUILD (mode fictif forcé)
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')
+        run: msbuild gestionTresorerie/gestionTresorerie.vbproj /restore /p:Configuration=Demo /p:Platform="Any CPU" /p:DefineConstants=DEMO_BUILD /m
+      # Les tests Release ne prouvent pas que l'option de retour au mode réel
+      # est impossible dans l'exécutable livré. Recompiler les tests contre
+      # l'assemblage DEMO_BUILD et tester le constructeur sans --demo.
+      - name: Compiler les tests contre la variante DEMO_BUILD
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')
+        run: msbuild gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj /restore /p:Configuration=Demo /p:Platform="Any CPU" /p:DefineConstants=DEMO_BUILD /m
+      - name: Tester le mode DEMO_BUILD avant conditionnement
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')
+        timeout-minutes: 5
+        run: dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Demo --no-build --property:Platform="Any CPU" --filter "FullyQualifiedName~DemonstrationWindowsTests" --logger "trx;LogFileName=demo-results.trx"
+
+      # Images uniquement issues de la variante DEMO_BUILD et de documents fictifs.
+      # Elles permettent une inspection visuelle a posteriori, sans remplacer
+      # un essai interactif sur un poste Windows.
+      - name: Publier les captures graphiques de démonstration
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-captures-${{ github.sha }}
+          path: artifacts/demo-screenshots/*.png
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Préparer l'archive Windows de démonstration
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')
+        shell: pwsh
+        run: ./.github/scripts/package-demo.ps1
+      # Vérifier le fichier effectivement distribué, et pas seulement le binaire
+      # de compilation. Ce smoke test ne constitue pas une recette graphique.
+      - name: Démarrer le binaire extrait de l'archive de démonstration
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')
+        shell: pwsh
+        timeout-minutes: 2
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $archives = @(Get-ChildItem -Path artifacts -Filter 'gestionTresorerie-demo-*.zip' -File)
+          if ($archives.Count -ne 1) { throw "Une seule archive de démonstration est attendue." }
+          $dossier = Join-Path $env:RUNNER_TEMP 'gestionTresorerie-demo-smoke'
+          if (Test-Path -LiteralPath $dossier) { throw "Dossier de test déjà présent." }
+          Expand-Archive -LiteralPath $archives[0].FullName -DestinationPath $dossier
+          $exe = Join-Path $dossier 'gestionTresorerie.exe'
+          if (-not (Test-Path -LiteralPath $exe)) { throw "Exécutable absent après extraction." }
+          $processus = Start-Process -FilePath $exe -ArgumentList '--demo' -WorkingDirectory $dossier -PassThru
+          try {
+            # Observation des connexions TCP pendant le démarrage du binaire distribué.
+            # Une tentative très brève ou un trafic UDP peut échapper à ce contrôle :
+            # il ne remplace pas une revue indépendante de l'isolation réseau.
+            for ($tentative = 0; $tentative -lt 12; $tentative++) {
+              Start-Sleep -Milliseconds 250
+              $processus.Refresh()
+              if ($processus.HasExited) {
+                throw "L'exécutable distribué s'est arrêté prématurément (code $($processus.ExitCode))."
+              }
+              $connexions = @(Get-NetTCPConnection -OwningProcess $processus.Id -ErrorAction SilentlyContinue |
+                Where-Object {
+                  $_.State -notin @('Listen', 'Bound', 'Closed') -and
+                  $_.RemoteAddress -notin @('0.0.0.0', '::')
+                })
+              if ($connexions.Count -gt 0) {
+                throw "Connexion TCP détectée pendant le démarrage hors ligne : $($connexions.Count)."
+              }
+            }
+            Write-Output "Exécutable extrait démarré et encore actif après 3 secondes."
+            Write-Output "Aucune connexion TCP active observée sur 12 contrôles successifs."
+            Write-Output "Ce contrôle ne valide ni le parcours interactif ni l'absence de toute tentative réseau."
+          }
+          finally {
+            if (-not $processus.HasExited) {
+              Stop-Process -Id $processus.Id -Force -ErrorAction SilentlyContinue
+            }
+            $processus.Dispose()
+          }
+      # La variante livrée est compilée avec DEMO_BUILD : même sans --demo,
+      # le titre de la fenêtre doit annoncer explicitement le mode hors ligne.
+      # Ce test utilise l'exécutable extrait du ZIP, pas l'assemblage de tests.
+      - name: Vérifier le mode démonstration forcé sans argument
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')
+        shell: pwsh
+        timeout-minutes: 2
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dossier = Join-Path $env:RUNNER_TEMP 'gestionTresorerie-demo-smoke'
+          $exe = Join-Path $dossier 'gestionTresorerie.exe'
+          if (-not (Test-Path -LiteralPath $exe)) { throw "Exécutable extrait absent." }
+          # La traçabilité est vérifiée sur les octets réellement extraits du ZIP.
+          # Un artefact construit depuis un autre commit ou sans DEMO_BUILD est refusé.
+          $preuve = Join-Path $dossier 'COMMIT-DEMONSTRATION.txt'
+          if (-not (Test-Path -LiteralPath $preuve)) { throw "Traçabilité absente du ZIP." }
+          $lignes = @(Get-Content -LiteralPath $preuve)
+          $attendus = @(
+            "COMMIT=$env:GITHUB_SHA",
+            'CONFIGURATION=Demo',
+            'CONSTANTE=DEMO_BUILD',
+            'CONTROLE_GRAPHIQUE=NON_EFFECTUE'
+          )
+          foreach ($attendu in $attendus) {
+            if (-not ($lignes -ccontains $attendu)) {
+              throw "Métadonnée absente ou incorrecte dans le ZIP : $attendu"
+            }
+          }
+          Write-Output "Traçabilité du ZIP vérifiée : commit exact et DEMO_BUILD."
+          # Aucun argument --demo : la protection doit être intrinsèque au binaire.
+          $processus = Start-Process -FilePath $exe -WorkingDirectory $dossier -PassThru
+          try {
+            $titre = ''
+            for ($tentative = 0; $tentative -lt 15; $tentative++) {
+              Start-Sleep -Seconds 1
+              $processus.Refresh()
+              if ($processus.HasExited) {
+                throw "Exécutable sans argument arrêté prématurément (code $($processus.ExitCode))."
+              }
+              $titre = $processus.MainWindowTitle
+              if ($titre -like '*DÉMONSTRATION HORS LIGNE*') { break }
+            }
+            if ($titre -notlike '*DÉMONSTRATION HORS LIGNE*') {
+              throw "Titre de démonstration absent après 15 secondes. Titre observé : '$titre'"
+            }
+            Write-Output "Binaire extrait sans argument : titre DÉMONSTRATION HORS LIGNE confirmé."
+            Write-Output "Ce test ne prouve pas l'absence de connexion réseau ni une recette interactive."
+          }
+          finally {
+            if (-not $processus.HasExited) {
+              Stop-Process -Id $processus.Id -Force -ErrorAction SilentlyContinue
+            }
+            $processus.Dispose()
+          }
+      - name: Publier l'archive candidate (non vérifiée graphiquement)
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')
+        uses: actions/upload-artifact@v4
+        with:
+          name: gestionTresorerie-demo-${{ github.sha }}
+          path: artifacts/gestionTresorerie-demo-*.zip
+          if-no-files-found: error
+          retention-days: 7

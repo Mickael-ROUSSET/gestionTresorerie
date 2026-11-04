@@ -65,6 +65,9 @@ Public NotInheritable Class FrmRevuePropositions
                                   "Contexte documentaire non fourni",
                                   "Indisponible : session de revue absente")
         Next
+        ' Les identités IMAP sont longues : ne pas masquer les colonnes métier.
+        ' Leur valeur intégrale reste disponible au survol, sans modifier les données.
+        ConfigurerAffichageIdentites(propositions)
 
         Dim rejets = CreerGrille("grilleRejets", "Diagnostics des entrées rejetées en lecture seule", 1)
         AjouterColonnes(rejets, {"IndexEntree", "CleSource", "Motif"},
@@ -72,6 +75,10 @@ Public NotInheritable Class FrmRevuePropositions
         For Each rejet In revue.Rejets
             rejets.Rows.Add(rejet.IndexEntree, rejet.CleSource, rejet.Motif)
         Next
+        ConfigurerAffichageIdentites(rejets)
+        ' Profiter de la largeur libérée pour lire les motifs de rejet.
+        rejets.Columns("Motif").AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+        rejets.Columns("Motif").MinimumWidth = 240
 
         Dim fermer As New Button With {
             .Name = "boutonFermer", .Text = "&Fermer", .AccessibleName = "Fermer la revue",
@@ -300,6 +307,18 @@ Public NotInheritable Class FrmRevuePropositions
         grille.DefaultCellStyle.WrapMode = DataGridViewTriState.True
         Return grille
     End Function
+
+    Private Shared Sub ConfigurerAffichageIdentites(grille As DataGridView)
+        Dim identite = grille.Columns("CleSource")
+        identite.AutoSizeMode = DataGridViewAutoSizeColumnMode.None
+        identite.MinimumWidth = 120
+        identite.Width = 190
+        grille.ShowCellToolTips = True
+        For Each ligne As DataGridViewRow In grille.Rows
+            Dim cellule = ligne.Cells("CleSource")
+            cellule.ToolTipText = Convert.ToString(cellule.Value)
+        Next
+    End Sub
 
     Private Shared Sub AjouterColonnes(grille As DataGridView, noms As String(), titres As String())
         For i As Integer = 0 To noms.Length - 1

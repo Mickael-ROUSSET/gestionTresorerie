@@ -1,0 +1,29 @@
+# gestionTresorerie — démonstration Windows (prototype)
+
+**Statut : prototype non vérifié graphiquement.** N'utiliser **aucune donnée réelle**. L'archive n'est pas une version de production et ne doit pas être déployée.
+
+## Prérequis
+
+- Windows 10/11, système x64 recommandé.
+- Microsoft .NET Desktop Runtime 8 (Windows Forms), si absent.
+- Aucun compte Gmail, aucune base SQL, aucune clé API ni abonnement payant.
+
+## Démarrage
+
+1. Extraire entièrement l'archive ZIP dans un nouveau dossier local, hors des répertoires de comptabilité.
+2. Exécuter `LANCER-DEMONSTRATION.cmd` (ou `gestionTresorerie.exe` : cette archive est construite avec `DEMO_BUILD` forcé).
+3. Vérifier le titre **« DÉMONSTRATION HORS LIGNE »** et le bandeau de démonstration.
+4. Dans **Analyse**, cliquer sur **Ouvrir une démonstration (documents fictifs, hors ligne)**.
+5. Examiner la facture de 42,50 €, le chèque de 18,75 €, puis les rejets : doublon, type non reconnu et JSON invalide.
+6. Tester la correction et la confirmation d'examen : **aucune opération n'est approuvée ni enregistrée**.
+7. Fermer la revue, la rouvrir, puis utiliser **Effacer les propositions fictives en mémoire** pour recommencer.
+
+## Isolation
+
+L'interface ne charge pas les paramètres, les secrets, les messages Gmail ou la grille SQL au démarrage en mode démonstration. Les menus de production sont désactivés. Les documents et corrections restent en mémoire et sont perdus à la fermeture. L'archive exclut les fichiers de configuration et les données réelles ; seuls les exécutables, DLL et manifestes .NET nécessaires sont copiés.
+
+**Limite :** les contrôles automatisés ne remplacent pas un test graphique manuel sur un poste Windows. La version doit être considérée comme expérimentale tant que le lancement et le parcours utilisateur n'ont pas été vérifiés graphiquement et que l'isolation n'a pas fait l'objet d'une revue de sécurité indépendante.
+
+## Traçabilité
+
+Le fichier `COMMIT-DEMONSTRATION.txt` dans l'archive indique le commit exact. Les journaux de compilation et de tests sont disponibles dans l'exécution GitHub Actions ayant produit l'archive. Aucun rapprochement de branches, fusion ou déploiement n'est effectué automatiquement.

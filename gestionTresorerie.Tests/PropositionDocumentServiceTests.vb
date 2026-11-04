@@ -82,12 +82,33 @@ Public Class PropositionDocumentServiceTests
             Entree(FactureFictive(), "source"), Entree(ChequeFictif(), "source"),
             Entree(invalide, "erreur"), Entree(ChequeFictif(), "erreur"),
             Entree(ChequeFictif(), "SOURCE")})
-        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual(1, resultat.Propositions.Count)
         Assert.AreEqual("FACTURE", resultat.Propositions(0).TypeDocument)
-        Assert.AreEqual("SOURCE", resultat.Propositions(1).CleSource)
-        Assert.AreEqual(3, resultat.Rejets.Count)
+        Assert.AreEqual("source", resultat.Propositions(0).CleSource)
+        Assert.AreEqual(4, resultat.Rejets.Count)
         Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(0).Motif)
         Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(2).Motif)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(3).Motif)
+        Assert.AreEqual("SOURCE", resultat.Rejets(3).CleSource)
+    End Sub
+
+    <TestMethod>
+    Public Sub ClesSource_CollisionsCasseEtEspacesRejeteesSansModifierLaCleOriginale()
+        Dim resultat = New PropositionDocumentService().Proposer({
+            Entree(FactureFictive(), " Source "),
+            Entree(ChequeFictif(), "source"),
+            Entree(ChequeFictif(), "SOURCE  "),
+            Entree(ChequeFictif(), "autre")})
+        Assert.AreEqual(2, resultat.Propositions.Count)
+        Assert.AreEqual(" Source ", resultat.Propositions(0).CleSource)
+        Assert.AreEqual("autre", resultat.Propositions(1).CleSource)
+        Assert.AreEqual(2, resultat.Rejets.Count)
+        Assert.AreEqual(1, resultat.Rejets(0).IndexEntree)
+        Assert.AreEqual("source", resultat.Rejets(0).CleSource)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(0).Motif)
+        Assert.AreEqual(2, resultat.Rejets(1).IndexEntree)
+        Assert.AreEqual("SOURCE  ", resultat.Rejets(1).CleSource)
+        Assert.AreEqual("Cle source dupliquee dans le lot.", resultat.Rejets(1).Motif)
     End Sub
 
     <TestMethod>

@@ -14,6 +14,9 @@ Public Class ConnexionDB
     Private Shared _instanceBddAgumaaa As ConnexionDB
 
     Public Shared Function GetInstance(sBase As String) As ConnexionDB
+#If DEMO_BUILD Then
+        Throw New InvalidOperationException("Accès SQL interdit en DÉMONSTRATION HORS LIGNE.")
+#Else
         If String.IsNullOrWhiteSpace(sBase) Then
             Throw New ArgumentException("Le nom logique de base est obligatoire.", NameOf(sBase))
         End If
@@ -33,9 +36,13 @@ Public Class ConnexionDB
             Case Else
                 Throw New ArgumentException($"Base inconnue : {sBase}", NameOf(sBase))
         End Select
+#End If
     End Function
 
     Public Function GetConnexion(sBase As String) As SqlConnection
+#If DEMO_BUILD Then
+        Throw New InvalidOperationException("Accès SQL interdit en DÉMONSTRATION HORS LIGNE.")
+#Else
         If String.IsNullOrWhiteSpace(sBase) Then
             Throw New ArgumentException("Le nom logique de base est obligatoire.", NameOf(sBase))
         End If
@@ -78,6 +85,7 @@ Public Class ConnexionDB
             Logger.ERR($"Erreur inattendue ConnexionDB.GetConnexion('{sBase}') : {ex.Message}")
             Throw
         End Try
+#End If
     End Function
 
     Private Shared Sub VerifierStockageAccessible()
@@ -93,6 +101,9 @@ Public Class ConnexionDB
     End Sub
 
     Private Function CreeConnexion(connexionString As String) As SqlConnection
+#If DEMO_BUILD Then
+        Throw New InvalidOperationException("Accès SQL interdit en DÉMONSTRATION HORS LIGNE.")
+#Else
         If String.IsNullOrWhiteSpace(connexionString) Then
             Throw New ArgumentException("La chaîne de connexion ne peut pas être vide.", NameOf(connexionString))
         End If
@@ -102,6 +113,7 @@ Public Class ConnexionDB
 
         Logger.INFO("Connexion SQL ouverte.")
         Return cn
+#End If
     End Function
 
     Public Sub FermerConnexion(sBase As String)
