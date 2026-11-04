@@ -40,3 +40,18 @@ Lecture sur la branche de la PR #140 : `gestionTresorerie.Tests/DemonstrationWin
 **Conséquence technique :** conserver `DEMO_BUILD` comme frontière de sécurité pour les premiers essais, plutôt que de basculer directement vers `EnvironnementType.TEST`. Avant tout changement de variable d'environnement, spécifier la priorité Machine/User, le comportement en cas de valeur inconnue et l'absence d'accès réel par défaut. Un simple renommage `AGUMAAA_ENV`/`envAgumaaa` ne suffit pas à garantir l'isolation.
 
 **Contrôle de ce complément :** lecture statique des fichiers indiqués ; noms et assertions vérifiés dans le code. Aucun test ni build nouveau exécuté. La vérification du workflow CI Windows et l'inventaire exhaustif des scripts restent à faire. Aucun fichier de données TEST réel ouvert.
+
+## Inventaire CI et conditionnement (5 novembre 2026)
+
+Fichiers relus sur cette branche : `.github/workflows/validation.yml`, `.github/scripts/package-demo.ps1`, `docs/demo-windows.md`. Constatations **statiques**, sans exécution du workflow.
+
+| Mécanisme | Existant vérifié | Limite / réutilisation pour #8 et #139 |
+| --- | --- | --- |
+| CI Windows | `windows-latest`, .NET 8, MSBuild Visual Studio, `dotnet test` Release, artefact TRX | La PR #140 (branche `docs/inventaire-environnement-test-20261104`) **ne figure pas** parmi les branches `push` autorisées ; sa cible DEMO n'est pas dans la liste `pull_request.branches`. Ne pas supposer que cette PR lance automatiquement les tests. |
+| Étapes DEMO_BUILD | Conditions explicites limitées au push/PR dont la **branche source** est `feature/windows-demo-isolee-20261102` | Une PR dérivée comme #140 n'exécute pas automatiquement compilation Demo, tests Demo, captures, conditionnement et smoke tests. Pour tester une évolution, prévoir un déclenchement explicite sûr ou une adaptation ciblée des conditions, avant de déclarer les contrôles réussis. |
+| Archive candidate | `package-demo.ps1` sélectionne le binaire `Demo/net8.0-windows`, copie exe/DLL/manifestes .NET et trois fichiers de support, contrôle une liste blanche dans le dossier et le ZIP | Base réutilisable pour un futur installateur DEMO seulement ; aucune logique d'installation, de raccourci ni de désinstallation n'y figure. |
+| Traçabilité | `COMMIT-DEMONSTRATION.txt` contient le SHA, `CONFIGURATION=Demo`, `CONSTANTE=DEMO_BUILD`, et `CONTROLE_GRAPHIQUE=NON_EFFECTUE` | Conserver ces preuves, ajouter la traçabilité de l'installateur et son empreinte SHA-256. Ne pas substituer les captures à une recette interactive. |
+| Smoke tests | Démarrage du binaire extrait, sondage TCP pendant environ trois secondes ; second lancement sans `--demo` et contrôle du titre de fenêtre | Contrôles utiles mais incomplets : ne prouvent ni absence de tout trafic réseau ni parcours graphique complet. |
+| Pré-requis | `docs/demo-windows.md` : Windows 10/11, .NET Desktop Runtime 8, aucun Gmail/SQL/secret | Installer uniquement cette variante isolée ; tester installation, raccourci, parcours et désinstallation dans un Windows jetable. |
+
+**Prochaine modification limitée recommandée :** rendre les tests DEMO_BUILD exécutables sur une branche de développement dédiée **sans publier automatiquement d'archive** et sans élargir les permissions GitHub ; vérifier les journaux avant toute autre modification fonctionnelle. Aucun changement de workflow effectué dans cet inventaire.
