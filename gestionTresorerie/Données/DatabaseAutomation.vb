@@ -93,6 +93,9 @@ Public Module DatabaseAutomation
 #End If
     End Sub
     Private Sub attacheBase()
+#If DEMO_BUILD Then
+        Throw New InvalidOperationException("Opération SQL interdite en mode démonstration hors ligne.")
+#Else
         ' 1. Définition des chemins vers tes fichiers
         Dim cheminMDF As String = "C:\Users\User\SQLDATA\bddAgumaaa.mdf"
         Dim cheminLDF As String = "C:\Users\User\SQLDATA\bddAgumaaa_log.ldf"
@@ -112,6 +115,7 @@ Public Module DatabaseAutomation
         If reussite Then
             MessageBox.Show("La base bddAgumaaa est maintenant connectée et prête à l'usage !", "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information)
         End If
+#End If
     End Sub
     ''' <summary>
     ''' Tente d'attacher physiquement les fichiers de la base au serveur SQL.
