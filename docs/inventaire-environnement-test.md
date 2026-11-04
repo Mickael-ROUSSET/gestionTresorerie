@@ -16,7 +16,7 @@
 ## Lacunes à examiner avant implémentation
 
 1. Recenser les autres appels à `LoadEnvironment`, `SetEnvironment`, `LectureProprietes.connexionString`, `LoadSecrets`, les accès fichiers et tous les chemins de création SQL.
-2. Inventorier les projets de tests, les scripts CI Windows, les jeux de données fictifs et leurs mécanismes de réinitialisation sur la branche cible (non encore audités dans ce document).
+2. Compléter l'inventaire des projets de tests, des scripts CI Windows, des jeux de données fictifs et de leur réinitialisation ; premiers tests identifiés ci-dessous, sans audit exhaustif.
 3. Définir une configuration TEST **explicitement isolée et refusant par défaut** toute connexion SQL/Gmail réelle, sans dépendre d'une variable utilisateur ambiguë.
 4. Ajouter des tests hors ligne prouvant que les chemins TEST ne peuvent viser les paramètres PROD, puis seulement des tests Windows du parcours complet.
 5. Pour l'installateur #8, ne conditionner que la variante DEMO_BUILD et prévoir installation/désinstallation en environnement Windows jetable.
@@ -24,3 +24,19 @@
 ## Contrôle de ce lot
 
 Contrôle effectué : lecture directe des six fichiers cités sur GitHub et rapprochement manuel des noms de variables et chemins. **Aucune compilation ni aucun test Windows exécuté pour cette modification documentaire.** Aucun code applicatif modifié, aucune donnée réelle consultée, aucune fusion ni déploiement.
+
+## Complément d'inventaire vérifié le 4 novembre 2026 (23 h, heure de Paris)
+
+Lecture sur la branche de la PR #140 : `gestionTresorerie.Tests/DemonstrationWindowsTests.vb` et `gestionTresorerie/Utilitaires/EnvironmentManager.vb`.
+
+| Contrôle existant dans les tests | Portée réellement couverte | Limite pour #139 |
+| --- | --- | --- |
+| `DemoBuild_InterditLesTroisPointsDEntreeSQL` | En compilation `DEMO_BUILD`, attend des exceptions pour `ConnexionDB.GetInstance`, `GetConnexion` et `CreeConnexion` | Ne prouve pas que le mode TEST ordinaire refuse tous les accès SQL |
+| `DemoBuild_ForceLeModeFictif_MemeSansOptionDemo` | Vérifie le bandeau, la grille neutralisée et la sauvegarde des paramètres désactivée | Test STA sans affichage effectif ; ne constitue pas une recette graphique |
+| `Demo_ChargeFactureChequeEtTroisRejets_PuisReinitialiseSansFichier` | Vérifie deux propositions, trois rejets et la réinitialisation de la session | N'exerce ni une base TEST persistante ni des documents importés depuis un dossier |
+| `Demo_ExamenFictifNeValideRien_EtReinitialisationEffaceLaConfirmation` | Vérifie une confirmation d'examen sans approbation et sa remise à zéro | Ne couvre pas une validation métier simulée persistante |
+| `Demo_PreparationInvalideRetireLaRevuePrecedente_EtPermetDeRecommencer` et `Demo_IdentiteImapInvalideEffaceLeLotPrecedent` | Évitent de conserver une revue obsolète après une entrée invalide | Ne couvrent pas l'ensemble des erreurs de fichiers ni les connexions externes |
+
+**Conséquence technique :** conserver `DEMO_BUILD` comme frontière de sécurité pour les premiers essais, plutôt que de basculer directement vers `EnvironnementType.TEST`. Avant tout changement de variable d'environnement, spécifier la priorité Machine/User, le comportement en cas de valeur inconnue et l'absence d'accès réel par défaut. Un simple renommage `AGUMAAA_ENV`/`envAgumaaa` ne suffit pas à garantir l'isolation.
+
+**Contrôle de ce complément :** lecture statique des fichiers indiqués ; noms et assertions vérifiés dans le code. Aucun test ni build nouveau exécuté. La vérification du workflow CI Windows et l'inventaire exhaustif des scripts restent à faire. Aucun fichier de données TEST réel ouvert.
