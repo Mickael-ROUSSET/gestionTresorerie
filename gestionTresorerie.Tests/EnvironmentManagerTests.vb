@@ -114,4 +114,45 @@ Public Class EnvironmentManagerTests
                 End Sub))
     End Sub
 #End If
+    Private NotInheritable Class PrincipaleSelectionFictive
+        Inherits FrmPrincipale
+
+        Public Property NombreDemandes As Integer
+
+        Protected Overrides Function DemanderEnvironnement() As String
+            NombreDemandes += 1
+            Return "" ' Annulation sans persistance ni ouverture de dialogue.
+        End Function
+    End Class
+
+    <TestMethod>
+    Public Sub MenuPrincipalDeclencheLaSelectionSaufEnDemoBuild()
+        Dim failure As Exception = Nothing
+        Dim worker As New System.Threading.Thread(
+            Sub()
+                Try
+                    ' Construction seule, sans chargement des secrets ni de la grille SQL.
+                    Using form As New PrincipaleSelectionFictive()
+                        Dim menu = DirectCast(form.MainMenuStrip.Items.Find(
+                            "EnvironnementToolStripMenuItem", True)(0),
+                            System.Windows.Forms.ToolStripMenuItem)
+                        menu.PerformClick()
+#If DEMO_BUILD Then
+                        Assert.AreEqual(0, form.NombreDemandes)
+#Else
+                        Assert.AreEqual(1, form.NombreDemandes)
+#End If
+                        Assert.IsFalse(form.IsHandleCreated)
+                    End Using
+                Catch ex As Exception
+                    failure = ex
+                End Try
+            End Sub)
+        worker.SetApartmentState(System.Threading.ApartmentState.STA)
+        worker.Start()
+        Assert.IsTrue(worker.Join(TimeSpan.FromSeconds(10)), "Le menu ne doit pas bloquer.")
+        If failure IsNot Nothing Then
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failure).Throw()
+        End If
+    End Sub
 End Class
