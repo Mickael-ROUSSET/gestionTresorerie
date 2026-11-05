@@ -114,6 +114,49 @@ Public Class EnvironmentManagerTests
                 End Sub))
     End Sub
 #End If
+    <TestMethod>
+    Public Sub LecteurProprietesUtiliseLeMemeEnvironnementPourLaBase()
+        Dim flags = System.Reflection.BindingFlags.NonPublic Or
+                    System.Reflection.BindingFlags.Static
+        Dim envField = GetType(LectureProprietes).GetField("_env", flags)
+        Dim pathField = GetType(LectureProprietes).GetField("_repInstallation", flags)
+        Dim databaseMethod = GetType(LectureProprietes).GetMethod("GetDatabaseName", flags)
+        Assert.IsNotNull(envField)
+        Assert.IsNotNull(pathField)
+        Assert.IsNotNull(databaseMethod)
+        Dim oldEnv = envField.GetValue(Nothing)
+        Dim oldPath = pathField.GetValue(Nothing)
+        Dim previous = CurrentEnvironment
+        Try
+            pathField.SetValue(Nothing, "chemin-fictif-en-cache")
+            LectureProprietes.litEnv(
+                Function(name, target)
+                    If name = "AGUMAAA_ENV" AndAlso target = EnvironmentVariableTarget.User Then
+                        Return "TEST"
+                    End If
+                    Return "PROD"
+                End Function)
+#If DEMO_BUILD Then
+            Assert.AreEqual(EnvironnementType.DEV, CurrentEnvironment)
+#Else
+            Assert.AreEqual(EnvironnementType.TEST, CurrentEnvironment)
+#End If
+            Assert.AreEqual(CurrentEnvironment.ToString(), CStr(envField.GetValue(Nothing)))
+            Assert.AreEqual("bddAgumaaaTest", CStr(databaseMethod.Invoke(Nothing, Nothing)))
+            Assert.IsNull(pathField.GetValue(Nothing))
+
+#If Not DEMO_BUILD Then
+            LectureProprietes.litEnv(Function(name, target) "PROD")
+            Assert.AreEqual(EnvironnementType.PROD, CurrentEnvironment)
+            Assert.AreEqual("bddAgumaaa", CStr(databaseMethod.Invoke(Nothing, Nothing)))
+#End If
+        Finally
+            envField.SetValue(Nothing, oldEnv)
+            pathField.SetValue(Nothing, oldPath)
+            CurrentEnvironment = previous
+        End Try
+    End Sub
+
     Private NotInheritable Class PrincipaleSelectionFictive
         Inherits FrmPrincipale
 
