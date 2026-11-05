@@ -91,7 +91,7 @@ Public Class TestEnvironmentIsolationTests
         Dim oldPath = pathField.GetValue(Nothing)
         Try
             CurrentEnvironment = EnvironnementType.TEST
-            envField.SetValue(Nothing, "TEST")
+            envField.SetValue(Nothing, "PROD")
             pathField.SetValue(Nothing, Nothing)
             settings("repInstallationProd") = "C:\GT-PROD\"
             settings("repInstallationTest") = "C:\GT-PROD\"
