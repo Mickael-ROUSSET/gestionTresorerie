@@ -25,8 +25,17 @@
         Logger.INFO($"repInstallation = {_repInstallation}")
     End Sub
 
-    Private Shared Sub EnsureInstallationDirectory()
+    Private Shared Sub RefreshEnvironmentSnapshot()
         If String.IsNullOrEmpty(_env) Then litEnv()
+        Dim selected = EnvironmentManager.CurrentEnvironment.ToString()
+        If Not String.Equals(_env, selected, StringComparison.Ordinal) Then
+            _env = selected
+            _repInstallation = Nothing
+        End If
+    End Sub
+
+    Private Shared Sub EnsureInstallationDirectory()
+        RefreshEnvironmentSnapshot()
         If String.Equals(_env, "TEST", StringComparison.Ordinal) Then
             _repInstallation = TestEnvironmentIsolation.GetInstallationDirectory(
                 My.Settings.repInstallationProd, My.Settings.repInstallationTest)
@@ -60,7 +69,7 @@
         End Get
     End Property
     Private Shared Function GetDatabaseName() As String
-        If String.IsNullOrEmpty(_env) Then litEnv()
+        RefreshEnvironmentSnapshot()
         Select Case _env.ToUpperInvariant()
             Case EnvironnementLibelles.Libelles(Environnement.Prod).ToUpperInvariant()
                 'Prod
