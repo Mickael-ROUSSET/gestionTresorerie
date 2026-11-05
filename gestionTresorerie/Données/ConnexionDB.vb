@@ -48,7 +48,20 @@ Public Class ConnexionDB
         End If
 
         Try
-            VerifierStockageAccessible()
+            If EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST Then
+                TestEnvironmentIsolation.ValidateConnectionString(LectureProprietes.connexionString(sBase))
+                If _connexionBddAgumaaa IsNot Nothing Then
+                    TestEnvironmentIsolation.ValidateConnectionString(_connexionBddAgumaaa.ConnectionString)
+                End If
+                Dim testDirectory = TestEnvironmentIsolation.GetInstallationDirectory(
+                    CStr(LectureProprietes.GetVariable("repInstallationProd")),
+                    CStr(LectureProprietes.GetVariable("repInstallationTest")))
+                If Not Directory.Exists(testDirectory) Then
+                    Throw New InvalidOperationException("Le dossier TEST doit être préparé avant la connexion.")
+                End If
+            Else
+                VerifierStockageAccessible()
+            End If
 
             Select Case sBase
                 Case Constantes.DataBases.Agumaaa
@@ -108,6 +121,9 @@ Public Class ConnexionDB
             Throw New ArgumentException("La chaîne de connexion ne peut pas être vide.", NameOf(connexionString))
         End If
 
+        If EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST Then
+            TestEnvironmentIsolation.ValidateConnectionString(connexionString)
+        End If
         Dim cn As New SqlConnection(connexionString)
         cn.Open()
 
