@@ -86,9 +86,11 @@ Public Class TestEnvironmentIsolationTests
         Dim names = New String() {"repInstallationProd", "repInstallationTest",
                                    "fichierLog", "DataSoure", "IntegratedSecurity"}
         Dim previousValues = Array.ConvertAll(names, Function(name) settings(name))
+        Dim oldEnvironment = CurrentEnvironment
         Dim oldEnv = envField.GetValue(Nothing)
         Dim oldPath = pathField.GetValue(Nothing)
         Try
+            CurrentEnvironment = EnvironnementType.TEST
             envField.SetValue(Nothing, "TEST")
             pathField.SetValue(Nothing, Nothing)
             settings("repInstallationProd") = "C:\GT-PROD\"
@@ -123,11 +125,36 @@ Public Class TestEnvironmentIsolationTests
 #Else
             TestEnvironmentIsolation.ValidateConnectionString(
                 LectureProprietes.connexionString("Agumaaa"))
+            Using database As New ConnexionDB()
+                Dim cachedField = GetType(ConnexionDB).GetField(
+                    "_connexionBddAgumaaa", BindingFlags.NonPublic Or BindingFlags.Instance)
+                Using cached As New System.Data.SqlClient.SqlConnection(
+                    "Server=(LocalDB)\MSSQLLocalDB;Database=bddAgumaaa;Integrated Security=True")
+                    cachedField.SetValue(database, cached)
+                    Try
+                        Assert.ThrowsExactly(Of InvalidOperationException)(
+                            Sub()
+                                Dim unused = database.GetConnexion(Constantes.DataBases.Agumaaa)
+                            End Sub)
+                    Finally
+                        cachedField.SetValue(database, Nothing)
+                    End Try
+                End Using
+                Dim createMethod = GetType(ConnexionDB).GetMethod(
+                    "CreeConnexion", BindingFlags.NonPublic Or BindingFlags.Instance)
+                Dim errorResult = Assert.ThrowsExactly(Of TargetInvocationException)(
+                    Sub()
+                        createMethod.Invoke(database, New Object() {
+                            "Server=serveur-fictif;Database=bddAgumaaa;Integrated Security=True"})
+                    End Sub)
+                Assert.IsInstanceOfType(errorResult.InnerException, GetType(InvalidOperationException))
+            End Using
 #End If
         Finally
             For index As Integer = 0 To names.Length - 1
                 settings(names(index)) = previousValues(index)
             Next
+            CurrentEnvironment = oldEnvironment
             envField.SetValue(Nothing, oldEnv)
             pathField.SetValue(Nothing, oldPath)
         End Try
