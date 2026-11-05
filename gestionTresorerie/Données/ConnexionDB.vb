@@ -48,6 +48,12 @@ Public Class ConnexionDB
         End If
 
         Try
+            If EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST Then
+                TestEnvironmentIsolation.ValidateConnectionString(LectureProprietes.connexionString(sBase))
+                If _connexionBddAgumaaa IsNot Nothing Then
+                    TestEnvironmentIsolation.ValidateConnectionString(_connexionBddAgumaaa.ConnectionString)
+                End If
+            End If
             VerifierStockageAccessible()
 
             Select Case sBase
@@ -108,6 +114,9 @@ Public Class ConnexionDB
             Throw New ArgumentException("La chaîne de connexion ne peut pas être vide.", NameOf(connexionString))
         End If
 
+        If EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST Then
+            TestEnvironmentIsolation.ValidateConnectionString(connexionString)
+        End If
         Dim cn As New SqlConnection(connexionString)
         cn.Open()
 
