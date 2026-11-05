@@ -128,6 +128,7 @@ Public Class EnvironmentManagerTests
         Dim oldPath = pathField.GetValue(Nothing)
         Dim previous = CurrentEnvironment
         Try
+            envField.SetValue(Nothing, "PROD")
             pathField.SetValue(Nothing, "chemin-fictif-en-cache")
             LectureProprietes.litEnv(
                 Function(name, target)
