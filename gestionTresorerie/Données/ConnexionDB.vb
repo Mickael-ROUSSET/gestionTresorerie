@@ -53,8 +53,15 @@ Public Class ConnexionDB
                 If _connexionBddAgumaaa IsNot Nothing Then
                     TestEnvironmentIsolation.ValidateConnectionString(_connexionBddAgumaaa.ConnectionString)
                 End If
+                Dim testDirectory = TestEnvironmentIsolation.GetInstallationDirectory(
+                    CStr(LectureProprietes.GetVariable("repInstallationProd")),
+                    CStr(LectureProprietes.GetVariable("repInstallationTest")))
+                If Not Directory.Exists(testDirectory) Then
+                    Throw New InvalidOperationException("Le dossier TEST doit être préparé avant la connexion.")
+                End If
+            Else
+                VerifierStockageAccessible()
             End If
-            VerifierStockageAccessible()
 
             Select Case sBase
                 Case Constantes.DataBases.Agumaaa
