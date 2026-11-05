@@ -21,25 +21,42 @@
         _env = selected
     End Sub
     Public Sub litRepInstallation()
-        ' Lire la variable d'environnement 
-        If _repInstallation = String.Empty Then
-            _repInstallation = If(String.Equals(_env, "PROD", StringComparison.OrdinalIgnoreCase), My.Settings.repInstallationProd, My.Settings.repInstallationTest)
-            Logger.INFO($"repInstallation = {_repInstallation}")
+        EnsureInstallationDirectory()
+        Logger.INFO($"repInstallation = {_repInstallation}")
+    End Sub
+
+    Private Shared Sub EnsureInstallationDirectory()
+        If String.IsNullOrEmpty(_env) Then litEnv()
+        If String.Equals(_env, "TEST", StringComparison.Ordinal) Then
+            _repInstallation = TestEnvironmentIsolation.GetInstallationDirectory(
+                My.Settings.repInstallationProd, My.Settings.repInstallationTest)
+        ElseIf String.IsNullOrEmpty(_repInstallation) Then
+            _repInstallation = If(String.Equals(_env, "PROD", StringComparison.Ordinal),
+                                 My.Settings.repInstallationProd, My.Settings.repInstallationTest)
         End If
     End Sub
 
     Public ReadOnly Property repInstallation() As String
         Get
+            EnsureInstallationDirectory()
             Return _repInstallation
         End Get
     End Property
     Public Shared ReadOnly Property connexionString(sBase As String) As String
         Get
-            Return My.Settings.DataSoure &
+#If DEMO_BUILD Then
+            Throw New InvalidOperationException("Configuration SQL interdite en DÉMONSTRATION.")
+#Else
+            Dim result = My.Settings.DataSoure &
                 "Initial Catalog=" & GetDatabaseName() & ";" &
                 My.Settings.IntegratedSecurity &
                 My.Settings.MultipleActiveResultSets &
                 My.Settings.ConnectTimeout
+            If String.Equals(_env, "TEST", StringComparison.Ordinal) Then
+                TestEnvironmentIsolation.ValidateConnectionString(result)
+            End If
+            Return result
+#End If
         End Get
     End Property
     Private Shared Function GetDatabaseName() As String
@@ -58,8 +75,12 @@
         Return My.Settings.Item(nomVariable)
     End Function
     Public Shared Function GetCheminEtVariable(nomVariable As String) As String
-        ' Retourner la variable demandée
-        'N.B. : elle ne doit pas dépendre pas de l'environnement Prod / test 
+        EnsureInstallationDirectory()
+        If String.Equals(_env, "TEST", StringComparison.Ordinal) Then
+            Return TestEnvironmentIsolation.GetFilePath(
+                My.Settings.repInstallationProd, My.Settings.repInstallationTest,
+                CStr(My.Settings.Item(nomVariable)))
+        End If
         Return _repInstallation & My.Settings.Item(nomVariable)
     End Function
 End Class
