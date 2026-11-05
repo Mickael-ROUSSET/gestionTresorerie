@@ -2,9 +2,9 @@ name: Validation .NET Windows
 
 on:
   pull_request:
-    branches: [master, chore/automation-foundation, refactor/remove-mistral, fix/gmail-sha256-local, test/gmail-document-source-key-20261030, feature/simulated-inbox-main-menu-20261101, feature/windows-demo-isolee-20261102]
+    branches: [docs/inventaire-environnement-test-20261104, master, chore/automation-foundation, refactor/remove-mistral, fix/gmail-sha256-local, test/gmail-document-source-key-20261030, feature/simulated-inbox-main-menu-20261101, feature/windows-demo-isolee-20261102]
   push:
-    branches: [master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral, feature/gmail-import-fiabilisation, fix/gmail-sha256-local, test/gmail-document-source-key-20261030, feature/simulated-inbox-main-menu-20261101, feature/windows-demo-isolee-20261102, docs/inventaire-environnement-test-20261104]
+    branches: [fix/environment-selection-20261105, master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral, feature/gmail-import-fiabilisation, fix/gmail-sha256-local, test/gmail-document-source-key-20261030, feature/simulated-inbox-main-menu-20261101, feature/windows-demo-isolee-20261102, docs/inventaire-environnement-test-20261104]
   workflow_dispatch:
 
 permissions:
@@ -46,18 +46,18 @@ jobs:
 
       # Cette archive est une candidate non vérifiée graphiquement, jamais une release.
       - name: Compiler la variante DEMO_BUILD (mode fictif forcé)
-        if: ((github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')) || ((github.event_name == 'push' && github.ref == 'refs/heads/docs/inventaire-environnement-test-20261104') || (github.event_name == 'pull_request' && github.head_ref == 'docs/inventaire-environnement-test-20261104'))
+        if: ((github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')) || ((github.event_name == 'push' && github.ref == 'refs/heads/docs/inventaire-environnement-test-20261104') || (github.event_name == 'pull_request' && github.head_ref == 'docs/inventaire-environnement-test-20261104')) || ((github.event_name == 'push' && github.ref == 'refs/heads/fix/environment-selection-20261105') || (github.event_name == 'pull_request' && github.head_ref == 'fix/environment-selection-20261105'))
         run: msbuild gestionTresorerie/gestionTresorerie.vbproj /restore /p:Configuration=Demo /p:Platform="Any CPU" /p:DefineConstants=DEMO_BUILD /m
       # Les tests Release ne prouvent pas que l'option de retour au mode réel
       # est impossible dans l'exécutable livré. Recompiler les tests contre
       # l'assemblage DEMO_BUILD et tester le constructeur sans --demo.
       - name: Compiler les tests contre la variante DEMO_BUILD
-        if: ((github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')) || ((github.event_name == 'push' && github.ref == 'refs/heads/docs/inventaire-environnement-test-20261104') || (github.event_name == 'pull_request' && github.head_ref == 'docs/inventaire-environnement-test-20261104'))
+        if: ((github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')) || ((github.event_name == 'push' && github.ref == 'refs/heads/docs/inventaire-environnement-test-20261104') || (github.event_name == 'pull_request' && github.head_ref == 'docs/inventaire-environnement-test-20261104')) || ((github.event_name == 'push' && github.ref == 'refs/heads/fix/environment-selection-20261105') || (github.event_name == 'pull_request' && github.head_ref == 'fix/environment-selection-20261105'))
         run: msbuild gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj /restore /p:Configuration=Demo /p:Platform="Any CPU" /p:DefineConstants=DEMO_BUILD /m
       - name: Tester le mode DEMO_BUILD avant conditionnement
-        if: ((github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')) || ((github.event_name == 'push' && github.ref == 'refs/heads/docs/inventaire-environnement-test-20261104') || (github.event_name == 'pull_request' && github.head_ref == 'docs/inventaire-environnement-test-20261104'))
+        if: ((github.event_name == 'push' && github.ref == 'refs/heads/feature/windows-demo-isolee-20261102') || (github.event_name == 'pull_request' && github.head_ref == 'feature/windows-demo-isolee-20261102')) || ((github.event_name == 'push' && github.ref == 'refs/heads/docs/inventaire-environnement-test-20261104') || (github.event_name == 'pull_request' && github.head_ref == 'docs/inventaire-environnement-test-20261104')) || ((github.event_name == 'push' && github.ref == 'refs/heads/fix/environment-selection-20261105') || (github.event_name == 'pull_request' && github.head_ref == 'fix/environment-selection-20261105'))
         timeout-minutes: 5
-        run: dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Demo --no-build --property:Platform="Any CPU" --filter "FullyQualifiedName~DemonstrationWindowsTests" --logger "trx;LogFileName=demo-results.trx"
+        run: dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Demo --no-build --property:Platform="Any CPU" --filter "FullyQualifiedName~DemonstrationWindowsTests|FullyQualifiedName~EnvironmentManagerTests" --logger "trx;LogFileName=demo-results.trx"
 
       # Images uniquement issues de la variante DEMO_BUILD et de documents fictifs.
       # Elles permettent une inspection visuelle a posteriori, sans remplacer
