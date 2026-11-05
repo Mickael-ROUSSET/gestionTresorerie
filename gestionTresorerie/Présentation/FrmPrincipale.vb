@@ -532,17 +532,21 @@ Public Class FrmPrincipale
         MsgBox("Génération terminée. CR dans les logs")
     End Sub
 
-    Private Sub EnvironnementToolStripMenuItem_Click(sender As Object, e As EventArgs)
+    Protected Overridable Function DemanderEnvironnement() As String
+        Return InputBox(
+            "Entrez l'environnement (DEV / TEST / PROD)." & vbCrLf &
+            "Environnement actuel : " & GetEnvironmentLabel(),
+            "Changer d'environnement")
+    End Function
 
-        Dim choix = InputBox(
-                            "Entrez l'environnement (DEV / TEST / PROD)." & vbCrLf &
-                            "Environnement actuel : " & GetEnvironmentLabel(),
-                            "Changer d'environnement"
-                            )
+    Private Sub EnvironnementToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles EnvironnementToolStripMenuItem.Click
+        If _modeDemonstration Then Return
+
+        Dim choix = DemanderEnvironnement()
 
         If String.IsNullOrWhiteSpace(choix) Then Exit Sub
 
-        Select Case choix.ToUpper
+        Select Case choix.Trim().ToUpperInvariant()
             Case "DEV"
                 SetEnvironment(EnvironnementType.DEV)
             Case "TEST"

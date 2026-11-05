@@ -8,16 +8,22 @@
         Call litRepInstallation()
     End Sub
     Public Shared Sub litEnv()
-        ' Lire la variable d'environnement 
-        If _env = String.Empty Then
-            _env = Environ("envAgumaaa")
-            Logger.INFO("Env = " & _env)
+        litEnv(AddressOf Environment.GetEnvironmentVariable)
+        Logger.INFO("Env = " & _env)
+    End Sub
+
+    Public Shared Sub litEnv(readVariable As Func(Of String, EnvironmentVariableTarget, String))
+        EnvironmentManager.LoadEnvironment(readVariable)
+        Dim selected = EnvironmentManager.CurrentEnvironment.ToString()
+        If Not String.Equals(_env, selected, StringComparison.Ordinal) Then
+            _repInstallation = Nothing
         End If
+        _env = selected
     End Sub
     Public Sub litRepInstallation()
         ' Lire la variable d'environnement 
         If _repInstallation = String.Empty Then
-            _repInstallation = If(_env = "Prod", My.Settings.repInstallationProd, My.Settings.repInstallationTest)
+            _repInstallation = If(String.Equals(_env, "PROD", StringComparison.OrdinalIgnoreCase), My.Settings.repInstallationProd, My.Settings.repInstallationTest)
             Logger.INFO($"repInstallation = {_repInstallation}")
         End If
     End Sub
@@ -37,6 +43,7 @@
         End Get
     End Property
     Private Shared Function GetDatabaseName() As String
+        If String.IsNullOrEmpty(_env) Then litEnv()
         Select Case _env.ToUpperInvariant()
             Case EnvironnementLibelles.Libelles(Environnement.Prod).ToUpperInvariant()
                 'Prod
