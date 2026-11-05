@@ -31,6 +31,7 @@ Public NotInheritable Class TestEnvironmentIsolation
            Path.IsPathRooted(relativePath) OrElse relativePath.Contains(":") Then
             Throw New InvalidOperationException("Un chemin relatif au dossier TEST est obligatoire.")
         End If
+        ValidateSegments(relativePath)
         Dim result = Path.GetFullPath(Path.Combine(root, relativePath))
         If Not result.StartsWith(root, StringComparison.OrdinalIgnoreCase) Then
             Throw New InvalidOperationException("Le fichier doit rester dans le dossier TEST.")
@@ -63,12 +64,23 @@ Public NotInheritable Class TestEnvironmentIsolation
         If String.IsNullOrWhiteSpace(value) OrElse Not Path.IsPathFullyQualified(value) Then
             Throw New InvalidOperationException("Les dossiers TEST et PROD doivent être des chemins absolus.")
         End If
+        ValidateSegments(value)
         Return Path.TrimEndingDirectorySeparator(Path.GetFullPath(value))
     End Function
 
+    Private Shared Sub ValidateSegments(value As String)
+        For Each segment In value.Split(New Char() {Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar})
+            If segment = "." OrElse segment = ".." Then Continue For
+            If segment.EndsWith(".", StringComparison.Ordinal) OrElse
+               segment.EndsWith(" ", StringComparison.Ordinal) Then
+                Throw New InvalidOperationException("Les chemins TEST ne doivent pas contenir de segment ambigu.")
+            End If
+        Next
+    End Sub
+
     Private Shared Function IsWithin(candidate As String, root As String) As Boolean
         Return String.Equals(candidate, root, StringComparison.OrdinalIgnoreCase) OrElse
-               candidate.StartsWith(Path.TrimEndingDirectorySeparator(root) &
+               candidate.StartsWith(root.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) &
                                     Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
     End Function
 End Class
