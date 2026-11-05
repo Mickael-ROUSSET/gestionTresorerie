@@ -9,6 +9,7 @@
     End Sub
     Public Shared Sub litEnv()
         litEnv(AddressOf Environment.GetEnvironmentVariable)
+        Logger.INFO("Env = " & _env)
     End Sub
 
     Public Shared Sub litEnv(readVariable As Func(Of String, EnvironmentVariableTarget, String))
@@ -18,7 +19,6 @@
             _repInstallation = Nothing
         End If
         _env = selected
-        Logger.INFO("Env = " & _env)
     End Sub
     Public Sub litRepInstallation()
         ' Lire la variable d'environnement 
