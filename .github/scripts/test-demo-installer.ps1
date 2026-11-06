@@ -164,7 +164,7 @@ try {
     Write-Output 'Installation, raccourcis, lancement, réinstallation et désinstallation vérifiés.'
     Write-Output 'Sessions TEST et fichier ajouté au programme conservés (sentinelles fictives).'
     Write-Output "Signature de la candidate : $((Get-AuthenticodeSignature -LiteralPath $installer).Status)"
-    Write-Output 'Recette interactive manuelle de l’assistant : non effectuée.'
+    Write-Output "Recette interactive manuelle de l'assistant : non effectuée."
 }
 finally {
     if ($null -ne $process) {
