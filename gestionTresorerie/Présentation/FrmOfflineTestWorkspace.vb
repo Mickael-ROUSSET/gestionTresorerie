@@ -8,6 +8,13 @@ Public Class FrmOfflineTestWorkspace
     Inherits FrmPrincipale
 
     Private ReadOnly _workspace As OfflineTestWorkspace
+    Private _review As GmailDocumentReviewWorkflow
+    Private ReadOnly _save As New Button With {
+        .Name = "EnregistrerRevueTest", .Text = "Enregistrer la revue TEST",
+        .Left = 575, .Top = 310, .Width = 240, .Enabled = False}
+    Private ReadOnly _resume As New Button With {
+        .Name = "ReprendreSessionTest", .Text = "Reprendre la dernière session",
+        .Left = 830, .Top = 310, .Width = 280}
     Private ReadOnly _prepare As New Button With {
         .Name = "PreparerSessionTest", .Text = "Préparer / réinitialiser TEST",
         .Left = 25, .Top = 310, .Width = 260}
@@ -21,9 +28,11 @@ Public Class FrmOfflineTestWorkspace
         MyBase.New(True)
         If workspace Is Nothing Then Throw New ArgumentNullException(NameOf(workspace))
         _workspace = workspace
-        Controls.AddRange(New Control() {_prepare, _load, _status})
+        Controls.AddRange(New Control() {_prepare, _load, _save, _resume, _status})
         AddHandler _prepare.Click, AddressOf PrepareSession
         AddHandler _load.Click, AddressOf LoadSession
+        AddHandler _save.Click, AddressOf SaveSessionReview
+        AddHandler _resume.Click, AddressOf ResumeSession
     End Sub
 
     Protected Overrides Sub OnLoad(e As EventArgs)
@@ -35,7 +44,8 @@ Public Class FrmOfflineTestWorkspace
             "3. Analyse > Revue des documents préparés." &
             Environment.NewLine & "La réinitialisation crée une nouvelle session vierge. " &
             "Les anciennes sessions sont conservées." &
-            Environment.NewLine & "Les opérations examinées restent des simulations."
+            Environment.NewLine & "Après examen ou correction, fermez la revue puis cliquez sur Enregistrer la revue TEST." &
+            Environment.NewLine & "Reprendre la dernière session restaure les examens enregistrés. Les opérations restent fictives."
         Dim statusBar = DirectCast(Controls.Find("StatusLabelEnv", True)(0), StatusStrip)
         statusBar.Items.Clear()
         statusBar.Items.Add(New ToolStripStatusLabel("TEST HORS LIGNE — fichiers fictifs locaux"))
@@ -45,6 +55,8 @@ Public Class FrmOfflineTestWorkspace
 
     Private Sub PrepareSession(sender As Object, e As EventArgs)
         DefinirWorkflowDocumentsAnalyses(Nothing)
+        _review = Nothing
+        _save.Enabled = False
         _load.Enabled = False
         Try
             Dim session = _workspace.PrepareNewSession()
@@ -58,12 +70,41 @@ Public Class FrmOfflineTestWorkspace
 
     Private Sub LoadSession(sender As Object, e As EventArgs)
         DefinirWorkflowDocumentsAnalyses(Nothing)
+        _review = Nothing
+        _save.Enabled = False
         Try
-            PreparerRevueMessagesFictifs(_workspace.ReadMessages())
+            Dim restored = _workspace.LoadReview()
+            DefinirWorkflowDocumentsAnalyses(restored)
+            _review = restored
+            _save.Enabled = True
             _status.Text = "Documents TEST chargés depuis : " & _workspace.SessionDirectory &
-                           Environment.NewLine & "Ouvrez Analyse > Revue des documents préparés."
+                           Environment.NewLine & "Examens restaurés : " & _review.SessionRevue.NombreExamensConfirmes.ToString() &
+                           ". Ouvrez Analyse > Revue des documents préparés."
         Catch ex As Exception
             _status.Text = "Chargement TEST impossible : " & ex.Message
+        End Try
+    End Sub
+    Private Sub SaveSessionReview(sender As Object, e As EventArgs)
+        Try
+            _workspace.SaveReview(_review)
+            _status.Text = "Revue TEST enregistrée : " & _workspace.SessionDirectory &
+                           Environment.NewLine & "Corrections et examens fictifs conservés pour la prochaine ouverture."
+        Catch ex As Exception
+            _status.Text = "Enregistrement TEST impossible : " & ex.Message
+        End Try
+    End Sub
+
+    Private Sub ResumeSession(sender As Object, e As EventArgs)
+        DefinirWorkflowDocumentsAnalyses(Nothing)
+        _review = Nothing
+        _load.Enabled = False
+        _save.Enabled = False
+        Try
+            _workspace.ResumeLastSession()
+            _load.Enabled = True
+            LoadSession(sender, e)
+        Catch ex As Exception
+            _status.Text = "Reprise TEST impossible : " & ex.Message
         End Try
     End Sub
 End Class
