@@ -106,11 +106,11 @@ try {
     Start-Process -FilePath $desktopLink
     for ($attempt = 0; $attempt -lt 30; $attempt++) {
         Start-Sleep -Milliseconds 500
-        $matches = @(Get-Process -Name gestionTresorerie -ErrorAction SilentlyContinue |
+        $appProcesses = @(Get-Process -Name gestionTresorerie -ErrorAction SilentlyContinue |
             Where-Object { $_.Path -ieq (Join-Path $installDir 'gestionTresorerie.exe') })
-        if ($matches.Count -gt 1) { throw 'Plusieurs instances installées sont apparues.' }
-        if ($matches.Count -eq 1) {
-            $process = $matches[0]
+        if ($appProcesses.Count -gt 1) { throw 'Plusieurs instances installées sont apparues.' }
+        if ($appProcesses.Count -eq 1) {
+            $process = $appProcesses[0]
             $process.Refresh()
             if ($process.MainWindowTitle -like '*DÉMONSTRATION HORS LIGNE*') { break }
         }
