@@ -90,6 +90,23 @@ Public Class OfflineTestWorkspaceTests
             End Sub)
     End Sub
 
+    <TestMethod>
+    Public Sub AliasDeProductionEstRefuseAvantTouteCreation()
+        InTemporaryDirectory(
+            Sub(production, testing)
+                Dim aliasPath = Path.Combine(Path.GetDirectoryName(production), "alias-production")
+                Directory.CreateSymbolicLink(aliasPath, production)
+                Try
+                    Dim workspace As New OfflineTestWorkspace(aliasPath, testing)
+                    Assert.ThrowsExactly(Of InvalidOperationException)(
+                        Sub() workspace.PrepareNewSession())
+                    Assert.IsFalse(Directory.Exists(testing))
+                Finally
+                    Directory.Delete(aliasPath)
+                End Try
+            End Sub)
+    End Sub
+
     Private NotInheritable Class WorkspaceWindow
         Inherits FrmOfflineTestWorkspace
 
