@@ -20,10 +20,23 @@
 
 ## Isolation
 
-L'interface ne charge pas les paramètres, les secrets, les messages Gmail ou la grille SQL au démarrage en mode démonstration. Les menus de production sont désactivés. Les documents et corrections restent en mémoire et sont perdus à la fermeture. L'archive exclut les fichiers de configuration et les données réelles ; seuls les exécutables, DLL et manifestes .NET nécessaires sont copiés.
+L'interface ne charge pas les paramètres, les secrets, les messages Gmail ou la grille SQL au démarrage en mode démonstration. Les menus de production sont désactivés. Dans la démonstration simple, les documents et corrections restent en mémoire. L'entrée explicite Espace TEST local prépare des fichiers fictifs sur disque. Les confirmations d'examen restent en mémoire. L'archive exclut les fichiers de configuration et les données réelles ; seuls les exécutables, DLL et manifestes .NET nécessaires sont copiés.
 
 **Limite :** les contrôles automatisés ne remplacent pas un test graphique manuel sur un poste Windows. La version doit être considérée comme expérimentale tant que le lancement et le parcours utilisateur n'ont pas été vérifiés graphiquement et que l'isolation n'a pas fait l'objet d'une revue de sécurité indépendante.
 
 ## Traçabilité
 
 Le fichier `COMMIT-DEMONSTRATION.txt` dans l'archive indique le commit exact. Les journaux de compilation et de tests sont disponibles dans l'exécution GitHub Actions ayant produit l'archive. Aucun rapprochement de branches, fusion ou déploiement n'est effectué automatiquement.
+
+## Espace TEST local
+
+Dans Analyse, ouvrir **Espace TEST local (fichiers fictifs)**. La fenêtre affiche TEST HORS LIGNE.
+
+1. Cliquer sur Préparer / réinitialiser TEST. Une nouvelle session contenant cinq fichiers JSON est créée sous `%LOCALAPPDATA%\gestionTresorerie\TEST-hors-ligne`.
+2. Cliquer sur Charger les documents TEST.
+3. Ouvrir Analyse > Revue des documents préparés pour examiner les résultats.
+4. Pour recommencer, cliquer sur Préparer / réinitialiser TEST puis charger la nouvelle session.
+
+Chaque réinitialisation utilise un nouveau sous-dossier. Les anciennes sessions et les modifications de leurs fichiers sont conservées. Les confirmations de revue sont remises à zéro. Aucun nettoyage automatique des anciens essais n'est effectué.
+
+L'espace refuse les dossiers existants sans marqueur reconnu, les sessions incomplètes et les liens/jonctions observés. Une modification hostile concurrente du système de fichiers peut dépasser la portée de ces contrôles. Ce premier espace traite des JSON déjà extraits. La reconnaissance de scans/PDF, la base SQL TEST et la persistance des décisions métier restent à développer.
