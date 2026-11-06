@@ -1,4 +1,4 @@
-gestionTresorerie - Démonstration Windows
+﻿gestionTresorerie - Démonstration Windows
 
 Prérequis
 Windows 10 (version 1809 ou ultérieure) ou Windows 11, processeur x64.
