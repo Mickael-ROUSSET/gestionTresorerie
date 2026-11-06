@@ -147,9 +147,13 @@ try {
             -not (Test-Path -LiteralPath $registryPath)) { break }
         Start-Sleep -Milliseconds 500
     }
-    if ((Test-Path -LiteralPath (Join-Path $installDir 'gestionTresorerie.exe')) -or
+    $remainingPayload = @(Get-ChildItem -LiteralPath $payload -Recurse -File | Where-Object {
+        $relative = [IO.Path]::GetRelativePath($payload, $_.FullName)
+        Test-Path -LiteralPath (Join-Path $installDir $relative)
+    })
+    if ($remainingPayload.Count -gt 0 -or
         (Test-Path -LiteralPath $registryPath) -or
-        (Test-Path -LiteralPath $desktopLink) -or (Test-Path -LiteralPath $startLink)) {
+        (Test-Path -LiteralPath $desktopLink) -or (Test-Path -LiteralPath $startGroup)) {
         throw 'Fichiers applicatifs, entrée Windows ou raccourcis conservés après désinstallation.'
     }
     if ((Get-FileHash -LiteralPath $testSentinel).Hash -cne $testHash -or
