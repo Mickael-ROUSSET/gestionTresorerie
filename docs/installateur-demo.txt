@@ -1,0 +1,28 @@
+gestionTresorerie - Démonstration Windows
+
+Prérequis
+Windows 10 (version 1809 ou ultérieure) ou Windows 11, processeur x64.
+Microsoft .NET Desktop Runtime 8 x64 est requis et contrôlé avant installation.
+Téléchargement officiel https://dotnet.microsoft.com/download/dotnet/8.0
+
+Installation
+Exécuter gestionTresorerie-demo-setup-<commit>.exe et suivre l'assistant.
+L'application est installée pour l'utilisateur courant dans LocalAppData/Programs/gestionTresorerie-Demo.
+Un raccourci est ajouté au menu Démarrer. Le raccourci Bureau est proposé en option.
+Les bibliothèques applicatives sont incluses. Le runtime .NET reste un prérequis distinct.
+
+Utilisation
+Lancer gestionTresorerie - Demonstration depuis le menu Démarrer.
+Consulter LIRE_AVANT_DEMARRER.md pour le parcours de démonstration et les boutons TEST.
+Le mode démonstration est imposé dans le binaire.
+
+Désinstallation
+Utiliser Applications installées dans Windows ou Desinstaller la demonstration dans le menu Démarrer.
+Les sessions sous LocalAppData/gestionTresorerie/TEST-hors-ligne sont conservées.
+Les fichiers ajoutés manuellement au dossier du programme sont également conservés.
+Une réinstallation peut retrouver les sessions TEST.
+
+Traçabilité et limites
+COMMIT-DEMONSTRATION.txt indique la compilation installée. Le fichier SHA256 fourni permet de vérifier l'installateur.
+Cette candidate est non signée. La recette interactive manuelle de l'assistant reste à compléter.
+Les contrôles Windows automatiques vérifient installation, raccourcis, lancement, réinstallation et désinstallation.
