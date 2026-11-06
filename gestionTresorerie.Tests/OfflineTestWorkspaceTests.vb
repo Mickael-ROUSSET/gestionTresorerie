@@ -47,6 +47,13 @@ Public Class OfflineTestWorkspaceTests
                 Assert.AreEqual(DemoDocumentSamples.Invoice,
                                 File.ReadAllText(Path.Combine(second, "facture.json")))
                 Assert.AreEqual(5, Directory.GetFiles(second, "*.json").Length)
+                ' La nouvelle session ne doit jamais reprendre les altérations précédentes.
+                Dim messages = workspace.ReadMessages()
+                Assert.AreEqual(2, messages.Count)
+                Assert.AreEqual(DemoDocumentSamples.Invoice,
+                                File.ReadAllText(Path.Combine(second, "doublon.json")))
+                Assert.AreEqual("essai modifié",
+                                File.ReadAllText(Path.Combine(first, "facture.json")))
             End Sub)
     End Sub
 
@@ -67,6 +74,24 @@ Public Class OfflineTestWorkspaceTests
                     Sub()
                         Dim unused = workspace.ReadMessages()
                     End Sub)
+            End Sub)
+    End Sub
+
+    <TestMethod>
+    Public Sub MarqueurDeProprieteModifieBloqueLectureEtNouvelleSession()
+        InTemporaryDirectory(
+            Sub(production, testing)
+                Dim workspace As New OfflineTestWorkspace(production, testing)
+                Dim first = workspace.PrepareNewSession()
+                File.WriteAllText(Path.Combine(testing, "ESPACE-TEST.txt"), "marqueur inconnu")
+                Assert.ThrowsExactly(Of InvalidOperationException)(
+                    Sub()
+                        Dim unused = workspace.ReadMessages()
+                    End Sub)
+                Assert.ThrowsExactly(Of InvalidOperationException)(
+                    Sub() workspace.PrepareNewSession())
+                Assert.IsTrue(Directory.Exists(first))
+                Assert.AreEqual(1, Directory.GetDirectories(testing, "session-*").Length)
             End Sub)
     End Sub
 
