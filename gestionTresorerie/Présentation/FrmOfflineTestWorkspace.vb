@@ -75,6 +75,7 @@ Public Class FrmOfflineTestWorkspace
         Try
             Dim restored = _workspace.LoadReview()
             DefinirWorkflowDocumentsAnalyses(restored)
+            MainMenuStrip.Items.Find("EffacerDocumentsFictifsToolStripMenuItem", True)(0).Enabled = False
             _review = restored
             _save.Enabled = True
             _status.Text = "Documents TEST chargés depuis : " & _workspace.SessionDirectory &
