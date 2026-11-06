@@ -10,9 +10,11 @@ Imports System.Text
 Public NotInheritable Class OfflineTestWorkspace
     Private Const Marker As String = "gestionTresorerie TEST hors ligne v1"
     Private ReadOnly _root As String
+    Private ReadOnly _productionDirectory As String
 
     Public Sub New(productionDirectory As String, testDirectory As String)
         _root = TestEnvironmentIsolation.GetInstallationDirectory(productionDirectory, testDirectory)
+        _productionDirectory = Path.GetFullPath(productionDirectory)
     End Sub
 
     Public Property SessionDirectory As String
@@ -26,6 +28,7 @@ Public NotInheritable Class OfflineTestWorkspace
     Private _sessionDirectory As String
 
     Public Function PrepareNewSession() As String
+        RejectLinks(_productionDirectory)
         RejectLinks(_root)
         Dim ownership = Path.Combine(_root, "ESPACE-TEST.txt")
         If Directory.Exists(_root) Then
