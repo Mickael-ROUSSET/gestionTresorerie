@@ -107,6 +107,40 @@ Public Class OfflineTestWorkspaceTests
             End Sub)
     End Sub
 
+    <TestMethod>
+    Public Sub DecisionsSimuleesRestentDansLeurSessionEtSontRemisesAZero()
+        InTemporaryDirectory(
+            Sub(production, testing)
+                Dim workspace As New OfflineTestWorkspace(production, testing)
+                Dim first = workspace.PrepareNewSession()
+                Dim saved = workspace.RecordSimulatedDecision("facture.json", True)
+                Assert.IsTrue(saved.StartsWith(first, StringComparison.OrdinalIgnoreCase))
+                Assert.AreEqual(1, workspace.ReadSimulatedDecisions().Count)
+                StringAssert.Contains(workspace.ReadSimulatedDecisions()(0), "ACCEPTEE_SIMULATION")
+                Assert.ThrowsExactly(Of ArgumentException)(
+                    Sub() workspace.RecordSimulatedDecision("..\\temoin.txt", False))
+                Assert.AreEqual(1, workspace.ReadSimulatedDecisions().Count)
+                Dim second = workspace.PrepareNewSession()
+                Assert.AreNotEqual(first, second)
+                Assert.AreEqual(0, workspace.ReadSimulatedDecisions().Count)
+                Assert.IsTrue(File.Exists(saved), "Les anciennes sessions restent conservées.")
+                Assert.AreEqual("à conserver", File.ReadAllText(Path.Combine(production, "temoin.txt")))
+            End Sub)
+    End Sub
+
+    <TestMethod>
+    Public Sub DecisionRefuseeSiMarqueurSessionInvalide()
+        InTemporaryDirectory(
+            Sub(production, testing)
+                Dim workspace As New OfflineTestWorkspace(production, testing)
+                workspace.PrepareNewSession()
+                File.WriteAllText(Path.Combine(workspace.SessionDirectory, "SESSION-PRETE.txt"), "altéré")
+                Assert.ThrowsExactly(Of InvalidOperationException)(
+                    Sub() workspace.RecordSimulatedDecision("cheque.json", False))
+                Assert.AreEqual(0, Directory.GetFiles(workspace.SessionDirectory, "decision-*.txt").Length)
+            End Sub)
+    End Sub
+
     Private NotInheritable Class WorkspaceWindow
         Inherits FrmOfflineTestWorkspace
 
