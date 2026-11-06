@@ -18,6 +18,10 @@ Public Class FrmPrincipale
         .Text = "Effacer les propositions fictives en mémoire",
         .Enabled = False}
 
+    Private ReadOnly _menuTestWorkspace As New ToolStripMenuItem With {
+        .Name = "EspaceTestLocalToolStripMenuItem",
+        .Text = "Espace TEST local (fichiers fictifs)"}
+
     Private ReadOnly _modeDemonstration As Boolean
 
     Public Sub New()
@@ -39,6 +43,8 @@ Public Class FrmPrincipale
             My.Application.SaveMySettingsOnExit = False
         End If
         InitializeComponent()
+        AddHandler _menuTestWorkspace.Click, AddressOf OpenTestWorkspace
+        AnalyseToolStripMenuItem.DropDownItems.Add(_menuTestWorkspace)
 
         Dim menuRevue As New ToolStripMenuItem With {
             .Name = "RevuePropositionsToolStripMenuItem",
@@ -156,29 +162,36 @@ Public Class FrmPrincipale
     ''' en mémoire, sans connexion Gmail, lecture de fichier ni écriture SQL.
     ''' Relancer la démonstration remplace le lot précédent ; la revue reste sans approbation.
     ''' </summary>
+    Protected Overridable Sub OpenTestWorkspace(sender As Object, e As EventArgs)
+        Dim root = System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "gestionTresorerie", "TEST-hors-ligne")
+        Try
+            Using window As New FrmOfflineTestWorkspace(
+                New OfflineTestWorkspace(My.Settings.repInstallationProd, root))
+                window.ShowDialog(Me)
+            End Using
+        Catch ex As Exception
+            MessageBox.Show("Ouverture de TEST impossible : " & ex.Message,
+                            "Espace TEST", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
+
     Private Sub DemoDocumentsFictifs_Click(sender As Object, e As EventArgs)
-        Dim jsonFacture As String =
-            "{""type_document"":""Facture"",""donnees_extraites"":{" &
-            """identite"":{""fournisseur_nom"":""Exemple fictif""}," &
-            """transaction"":{""montant_ttc"":""42.50"",""devise"":""EUR""," &
-            """date_facture"":""2026-04-01"",""numero_facture"":""DEMO-001""}}}"
+        Dim jsonFacture As String = DemoDocumentSamples.Invoice
         Dim pieces As New System.Collections.Generic.List(Of GmailDocumentSimulatedInbox.PieceFictive) From {
             New GmailDocumentSimulatedInbox.PieceFictive(
                 jsonFacture, PropositionMouvement.SensMouvement.Debit)}
         If _modeDemonstration Then
-            Dim jsonCheque As String =
-                "{""type_document"":""Cheque"",""donnees_extraites"":{" &
-                """identite"":{""emetteur_numero_cheque"":""DEMO-002""}," &
-                """transaction"":{""montant_numerique"":""18.75"",""devise"":""EUR""," &
-                """date_emission"":""2026-04-02""}}}"
+            Dim jsonCheque As String = DemoDocumentSamples.Cheque
             pieces.Add(New GmailDocumentSimulatedInbox.PieceFictive(
                 jsonCheque, PropositionMouvement.SensMouvement.Credit))
             pieces.Add(New GmailDocumentSimulatedInbox.PieceFictive(
-                "{""type_document"":""Inconnu"",""donnees_extraites"":{""transaction"":{}}}",
+                DemoDocumentSamples.Unknown,
                 PropositionMouvement.SensMouvement.Debit))
         End If
         pieces.Add(New GmailDocumentSimulatedInbox.PieceFictive(
-            "{invalide", PropositionMouvement.SensMouvement.Debit))
+            DemoDocumentSamples.Invalid, PropositionMouvement.SensMouvement.Debit))
         Dim message As New GmailDocumentSimulatedInbox.MessageFictif(
             "demo@example.invalid", 1UI, 1UI, pieces)
         Dim messages As New System.Collections.Generic.List(Of GmailDocumentSimulatedInbox.MessageFictif) From {message}
@@ -250,7 +263,8 @@ Public Class FrmPrincipale
             menu.Enabled = Object.ReferenceEquals(menu, AnalyseToolStripMenuItem)
         Next
         For Each action As ToolStripItem In AnalyseToolStripMenuItem.DropDownItems
-            action.Enabled = Object.ReferenceEquals(action, _menuDemoDocuments) OrElse
+            action.Enabled = Object.ReferenceEquals(action, _menuTestWorkspace) OrElse
+                             Object.ReferenceEquals(action, _menuDemoDocuments) OrElse
                              Object.ReferenceEquals(action, _menuRevueDocumentsAnalyses) OrElse
                              Object.ReferenceEquals(action, _menuEffacerDocumentsFictifs)
         Next
