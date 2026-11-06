@@ -86,6 +86,53 @@ Public NotInheritable Class OfflineTestWorkspace
                         PropositionMouvement.SensMouvement.Debit)})}
     End Function
 
+    ' Journal append-only par session : aucune connexion comptable et aucun fichier partagé avec PROD.
+    ' Les décisions sont des simulations, sans effet sur les mouvements réels.
+    Public Function RecordSimulatedDecision(documentName As String, accepted As Boolean) As String
+        If String.IsNullOrEmpty(SessionDirectory) Then
+            Throw New InvalidOperationException("Préparez d'abord une session TEST.")
+        End If
+        If ReadOwnedFile(Path.Combine(_root, "ESPACE-TEST.txt")) <> Marker OrElse
+           ReadOwnedFile(Path.Combine(SessionDirectory, "SESSION-PRETE.txt")) <> Marker Then
+            Throw New InvalidOperationException("La session TEST est incomplète.")
+        End If
+        Dim allowed = New String() {"facture.json", "cheque.json", "inconnu.json", "invalide.json", "doublon.json"}
+        If Not Array.Exists(allowed, Function(item) String.Equals(item, documentName, StringComparison.Ordinal)) Then
+            Throw New ArgumentException("Document fictif non reconnu.", NameOf(documentName))
+        End If
+        ' Vérifie aussi que le document n'est pas devenu un lien vers l'extérieur.
+        ReadOwnedFile(Path.Combine(SessionDirectory, documentName))
+        Dim decisionId = Guid.NewGuid().ToString("N")
+        Dim value = documentName & Environment.NewLine &
+                    If(accepted, "ACCEPTEE_SIMULATION", "REFUSEE_SIMULATION") & Environment.NewLine
+        Dim decisionFile = Path.Combine(SessionDirectory, "decision-" & decisionId & ".txt")
+        WriteNewFile(decisionFile, value)
+        Return decisionFile
+    End Function
+
+    Public Function ReadSimulatedDecisions() As IReadOnlyList(Of String)
+        If String.IsNullOrEmpty(SessionDirectory) Then
+            Throw New InvalidOperationException("Préparez d'abord une session TEST.")
+        End If
+        If ReadOwnedFile(Path.Combine(_root, "ESPACE-TEST.txt")) <> Marker OrElse
+           ReadOwnedFile(Path.Combine(SessionDirectory, "SESSION-PRETE.txt")) <> Marker Then
+            Throw New InvalidOperationException("La session TEST est incomplète.")
+        End If
+        Dim decisions As New List(Of String)
+        For Each path In Directory.GetFiles(SessionDirectory, "decision-*.txt")
+            Dim content = ReadOwnedFile(path)
+            Dim lines = content.Split(New String() {Environment.NewLine}, StringSplitOptions.None)
+            If lines.Length < 2 OrElse
+               Not Array.Exists(New String() {"facture.json", "cheque.json", "inconnu.json", "invalide.json", "doublon.json"},
+                                Function(item) String.Equals(item, lines(0), StringComparison.Ordinal)) OrElse
+               (lines(1) <> "ACCEPTEE_SIMULATION" AndAlso lines(1) <> "REFUSEE_SIMULATION") Then
+                Throw New InvalidOperationException("Décision fictive invalide.")
+            End If
+            decisions.Add(lines(0) & " : " & lines(1))
+        Next
+        Return decisions.AsReadOnly()
+    End Function
+
     Private Shared Sub WriteNewFile(filePath As String, content As String)
         RejectLinks(filePath)
         Using stream As New FileStream(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.None)
