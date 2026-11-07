@@ -18,11 +18,33 @@ Public Class EmailProcessor
     Private Shared _statsTotalPJ As Integer = 0
     Private Shared _rapport As New StringBuilder()
     Private Shared _sRepDoc As String
+    Private Shared ReadOnly ImportLock As New Object()
 
     ''' <summary>
     ''' Point d'entrée principal modularisé
     ''' </summary>
     Public Shared Sub ProcessAttachments(Optional initialImportCutoff As DateTime? = Nothing)
+        DownloadAttachments(initialImportCutoff)
+    End Sub
+
+    Public Shared Function DownloadAttachments(Optional initialImportCutoff As DateTime? = Nothing,
+                                               Optional requestStartDate As Func(Of DateTime?) = Nothing) As IReadOnlyList(Of String)
+#If DEMO_BUILD Then
+        Return Array.Empty(Of String)()
+#Else
+        If EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST Then
+            Return Array.Empty(Of String)()
+        End If
+        Dim savedFiles As New List(Of String)
+        SyncLock ImportLock
+            ProcessAttachmentsCore(initialImportCutoff, requestStartDate, savedFiles)
+        End SyncLock
+        Return savedFiles.AsReadOnly()
+#End If
+    End Function
+
+    Private Shared Sub ProcessAttachmentsCore(initialImportCutoff As DateTime?, requestStartDate As Func(Of DateTime?),
+                                              savedFiles As List(Of String))
         ' Création du dossier s'il n'existe pas
         LogFile = Path.Combine(LectureProprietes.GetVariable("repRacineAgumaaa"),
             LectureProprietes.GetVariable("repRacineDocuments"),
@@ -49,6 +71,14 @@ Public Class EmailProcessor
             SaveFinalReport()
             Return
         End If
+        If Not IsImportAllowed(hasJournalEntries, effectiveCutoff) AndAlso requestStartDate IsNot Nothing Then
+            Dim requested = requestStartDate()
+            If requested.HasValue AndAlso
+                Not TryResolveInitialImportCutoff(cutoffPath, requested, effectiveCutoff, _rapport) Then
+                SaveFinalReport()
+                Return
+            End If
+        End If
         If Not IsImportAllowed(hasJournalEntries, effectiveCutoff) Then
             _rapport.AppendLine("[ERREUR] Import Gmail initial bloque : journal vide. Fournir explicitement initialImportCutoff (date de debut incluse) a ProcessAttachments pour autoriser l'import initial.")
             SaveFinalReport()
@@ -71,7 +101,7 @@ Public Class EmailProcessor
                     Dim key = GmailImportJournal.MakeKey(account, validity, uid.Id)
                     If journal.IsProcessed(key) Then Continue For
                     _statsMailsLus += 1
-                    TryProcessMessage(uid, Sub() ProcessSingleEmail(inbox, uid),
+                    TryProcessMessage(uid, Sub() ProcessSingleEmail(inbox, uid, savedFiles),
                                       Sub() journal.MarkProcessed(key), AddressOf LogAndReportError)
                 Next
 
@@ -114,7 +144,7 @@ Public Class EmailProcessor
         client.Authenticate(LectureProprietes.GetVariable("SmtpUsername"), GlobalSettings.GmailPassword)
     End Sub
 
-    Private Shared Sub ProcessSingleEmail(inbox As IMailFolder, uid As UniqueId)
+    Private Shared Sub ProcessSingleEmail(inbox As IMailFolder, uid As UniqueId, savedFiles As List(Of String))
         Dim message = inbox.GetMessage(uid)
         Dim hasAttachments As Boolean = False
         Dim dateMail As DateTime = message.Date.DateTime
@@ -128,13 +158,14 @@ Public Class EmailProcessor
                 hasAttachments = True
             End If
 
-            SaveAttachment(attachment, targetPath, message.From.ToString())
+            SaveAttachment(attachment, targetPath, message.From.ToString(), savedFiles)
         Next
 
         ' Ne pas modifier le statut lu/non lu : seul le journal fait foi.
     End Sub
 
-    Private Shared Sub SaveAttachment(attachment As MimeEntity, targetFolder As String, senderInfo As String)
+    Private Shared Sub SaveAttachment(attachment As MimeEntity, targetFolder As String,
+                                      senderInfo As String, savedFiles As List(Of String))
         ' 1. Récupération et nettoyage du nom
         Dim fileName As String = GetAttachmentFileName(attachment.ContentDisposition?.FileName, attachment.ContentType.Name)
         fileName = CleanFileName(fileName)
@@ -156,6 +187,7 @@ Public Class EmailProcessor
                 _rapport.AppendLine($"[PJ] Doublon SHA-256 ignoré : {fileName} (De: {senderInfo})")
                 Return
             End If
+            savedFiles.Add(storedPath)
             _statsTotalPJ += 1
             _rapport.AppendLine($"[PJ] Enregistré : {Path.GetFileName(storedPath)} (De: {senderInfo})")
         Finally
