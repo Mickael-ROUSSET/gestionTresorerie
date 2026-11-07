@@ -55,7 +55,7 @@ Public NotInheritable Class DocumentArchiveProposal
             dossier = Path.Combine(setting("repFichiersDocumentsFactures"),
                 setting(If(sens = "Émise", "repFichiersFacturesEmises", "repFichiersFacturesRecues")),
                 dateDocument.ToString("yyyy", CultureInfo.InvariantCulture), fournisseur)
-            nom = $"FAC_{SafeSegment(reference)}_{fournisseur}{extension}"
+            nom = $"FAC_{SafeReference(reference)}_{fournisseur}{extension}"
             document.CategorieDoc = "Facture"
             document.metaDonnees = Facture.ParseJson(json)
         Else
@@ -72,7 +72,7 @@ Public NotInheritable Class DocumentArchiveProposal
             sens = If(cheque.emetteur_numero_compte.Contains(compte, StringComparison.OrdinalIgnoreCase), "Emis", "Reçus")
             dossier = Path.Combine(setting("repFichiersDocumentsChèques"),
                 dateDocument.ToString("yyyy", CultureInfo.InvariantCulture), sens)
-            nom = $"CHQ_{SafeSegment(reference)}{extension}"
+            nom = $"CHQ_{SafeReference(reference)}{extension}"
             document.CategorieDoc = "Cheque"
             document.metaDonnees = Cheque.ParseJson(json)
         End If
@@ -143,6 +143,12 @@ Public NotInheritable Class DocumentArchiveProposal
             Throw New ArgumentException("Date du document manquante ou invalide.")
         End If
         Return parsed
+    End Function
+
+    Private Shared Function SafeReference(value As String) As String
+        If String.IsNullOrWhiteSpace(value) Then Throw New ArgumentException("Référence de classement manquante.")
+        Dim invalid = Path.GetInvalidFileNameChars()
+        Return New String(value.Trim().Select(Function(character) If(invalid.Contains(character), "_"c, character)).ToArray())
     End Function
 
     Private Shared Function SafeSegment(value As String) As String
