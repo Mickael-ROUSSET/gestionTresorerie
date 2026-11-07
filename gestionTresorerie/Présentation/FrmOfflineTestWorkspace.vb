@@ -53,8 +53,22 @@ Public Class FrmOfflineTestWorkspace
         MainMenuStrip.Items.Find("EspaceTestLocalToolStripMenuItem", True)(0).Enabled = False
         Dim analyse = DirectCast(MainMenuStrip.Items.Find("AnalyseToolStripMenuItem", True)(0), ToolStripMenuItem)
         Dim menuFichiers As New ToolStripMenuItem("Examiner des PDF et des scans de test sur disque…")
-        AddHandler menuFichiers.Click, Sub() FrmDocumentFilePreview.OpenFiles(Me)
+        AddHandler menuFichiers.Click, Sub() FrmDocumentFilePreview.OpenFiles(Me, _workspace)
         analyse.DropDownItems.Add(menuFichiers)
+        Dim essai As New ToolStripMenuItem("Essayer l’enregistrement et l’archivage avec une facture fictive…")
+        AddHandler essai.Click, AddressOf OpenArchiveTestInvoice
+        analyse.DropDownItems.Add(essai)
+    End Sub
+
+    Private Sub OpenArchiveTestInvoice(sender As Object, e As EventArgs)
+        Try
+            Dim source = _workspace.CreateDocumentTestInvoice()
+            Using preview As New FrmDocumentFilePreview({source}, _workspace)
+                preview.ShowDialog(Me)
+            End Using
+        Catch ex As Exception
+            MessageBox.Show(Me, ex.Message, "Facture TEST", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        End Try
     End Sub
 
     Private Sub PrepareSession(sender As Object, e As EventArgs)
