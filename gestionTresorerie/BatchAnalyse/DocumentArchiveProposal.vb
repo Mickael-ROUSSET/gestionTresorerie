@@ -104,6 +104,7 @@ Public NotInheritable Class DocumentArchiveProposal
     Public Sub Confirm(saveDocument As Action(Of DocumentAgumaaa))
         If saveDocument Is Nothing Then Throw New ArgumentNullException(NameOf(saveDocument))
         If Not Directory.Exists(_root) Then Throw New IOException("La racine d’archivage configurée est inaccessible.")
+        RefuseReparsePoints(_root, Destination)
         Using input = File.Open(_source, FileMode.Open, FileAccess.Read, FileShare.Read)
             ' La source peut avoir grandi depuis la préparation : conserver la limite de 25 Mio.
             If input.Length = 0 OrElse input.Length > 25L * 1024 * 1024 Then
@@ -115,6 +116,7 @@ Public NotInheritable Class DocumentArchiveProposal
             input.Position = 0
             Dim archiveDirectory = Path.GetDirectoryName(Destination)
             Directory.CreateDirectory(archiveDirectory)
+            RefuseReparsePoints(_root, Destination)
             If Not File.Exists(Destination) Then
                 Dim temporary = Path.Combine(archiveDirectory, "." & Guid.NewGuid().ToString("N") & ".tmp")
                 Try
@@ -131,6 +133,7 @@ Public NotInheritable Class DocumentArchiveProposal
                     File.Delete(temporary)
                 End Try
             End If
+            RefuseReparsePoints(_root, Destination)
             Using archived = File.Open(Destination, FileMode.Open, FileAccess.Read, FileShare.Read)
                 If Not String.Equals(Convert.ToHexString(SHA256.HashData(archived)), _hash, StringComparison.Ordinal) Then
                     Throw New IOException("Un autre document porte déjà ce nom dans l’archive. Aucune donnée n’a été écrasée.")
@@ -138,6 +141,30 @@ Public NotInheritable Class DocumentArchiveProposal
                 saveDocument(_document)
             End Using
         End Using
+    End Sub
+
+    ' Refuser les jonctions et liens symboliques : une destination lexicalement dans TEST
+    ' ne doit pas pouvoir pointer vers un emplacement externe.
+    Private Shared Sub RefuseReparsePoints(root As String, destination As String)
+        Dim basePath = Path.GetFullPath(root)
+        Dim targetPath = Path.GetFullPath(destination)
+        Dim relative = Path.GetRelativePath(basePath, targetPath)
+        If Path.IsPathRooted(relative) OrElse relative = ".." OrElse
+           relative.StartsWith(".." & Path.DirectorySeparatorChar, StringComparison.Ordinal) Then
+            Throw New IOException("La destination sort de la racine autorisée.")
+        End If
+        Dim current = basePath
+        If (File.GetAttributes(current) And FileAttributes.ReparsePoint) <> 0 Then
+            Throw New IOException("Racine d’archivage liée à un autre emplacement.")
+        End If
+        For Each segment In relative.Split(Path.DirectorySeparatorChar)
+            current = Path.Combine(current, segment)
+            If File.Exists(current) OrElse Directory.Exists(current) Then
+                If (File.GetAttributes(current) And FileAttributes.ReparsePoint) <> 0 Then
+                    Throw New IOException("Lien ou jonction interdit dans la destination d’archivage.")
+                End If
+            End If
+        Next
     End Sub
 
     Private Shared Function ReadDate(value As String) As Date

@@ -96,6 +96,33 @@ Public Class DocumentArchiveProposalTests
     End Sub
 
     <TestMethod>
+    Public Sub ArchiveSousJonction_EstRefuseeAvantEnregistrement()
+        Dim root = Directory.CreateTempSubdirectory().FullName
+        Dim outside = Directory.CreateTempSubdirectory().FullName
+        Try
+            Dim source = Path.Combine(root, "facture.pdf")
+            File.WriteAllText(source, "Facture fictive")
+            Dim proposal = Preparer(source, root)
+            Dim accounting = Path.Combine(root, "Comptabilite")
+            Try
+                Directory.CreateSymbolicLink(accounting, outside)
+            Catch ex As UnauthorizedAccessException
+                Assert.Inconclusive("Création de lien symbolique non autorisée sur ce runner Windows.")
+            Catch ex As IOException
+                Assert.Inconclusive("Création de lien symbolique indisponible : " & ex.Message)
+            End Try
+            Dim appels As Integer = 0
+            Assert.ThrowsExactly(Of IOException)(Sub() proposal.Confirm(Sub(doc) appels += 1))
+            Assert.AreEqual(0, appels)
+            Assert.IsFalse(File.Exists(Path.Combine(outside, "Factures", "Recues", "2026",
+                                                 "EXEMPLE_FICTIF", "FAC_DEMO-001_EXEMPLE_FICTIF.pdf")))
+        Finally
+            Directory.Delete(root, recursive:=True)
+            Directory.Delete(outside, recursive:=True)
+        End Try
+    End Sub
+
+    <TestMethod>
     Public Sub Cheque_ClassementParSensEtAnnee_ConserveLesZerosInitiaux()
         Dim root = Directory.CreateTempSubdirectory().FullName
         Try
