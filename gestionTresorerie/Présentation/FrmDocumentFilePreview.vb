@@ -15,6 +15,9 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private ReadOnly _testWorkspace As OfflineTestWorkspace
     Private ReadOnly _analyse As New Button With {
         .Text = "Analyser le document…", .AutoSize = True, .Anchor = AnchorStyles.Left}
+    Private ReadOnly _pageNumber As New NumericUpDown With {.Minimum = 1, .Width = 72, .Visible = False}
+    Private ReadOnly _pageCount As New Label With {.AutoSize = True, .Visible = False, .Margin = New Padding(3, 7, 3, 0)}
+    Private _pdfSource As String
     Private _pending As Boolean
 
     Public Sub New(paths As IEnumerable(Of String), Optional testWorkspace As OfflineTestWorkspace = Nothing)
@@ -32,14 +35,15 @@ Friend NotInheritable Class FrmDocumentFilePreview
         columns.Controls.Add(_files, 0, 0)
         columns.Controls.Add(preview, 1, 0)
         Controls.Add(columns)
-        If _testWorkspace IsNot Nothing OrElse RealArchiveEnabled() Then
-            columns.RowCount = 2
-            columns.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
-            columns.RowStyles.Add(New RowStyle(SizeType.AutoSize))
-            columns.Controls.Add(_analyse, 0, 1)
-            columns.SetColumnSpan(_analyse, 2)
-            AddHandler _analyse.Click, AddressOf AnalyseSelection
-        End If
+        columns.RowCount = 2
+        columns.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
+        columns.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        Dim commands As New FlowLayoutPanel With {.Dock = DockStyle.Fill, .AutoSize = True}
+        commands.Controls.AddRange(New Control() {_analyse, _pageNumber, _pageCount})
+        columns.Controls.Add(commands, 0, 1)
+        columns.SetColumnSpan(commands, 2)
+        AddHandler _analyse.Click, AddressOf AnalyseSelection
+        AddHandler _pageNumber.ValueChanged, Sub() LoadPdfPage()
 
         _files.Items.AddRange(paths.Cast(Of Object)().ToArray())
         AddHandler _files.SelectedIndexChanged, AddressOf LoadSelection
@@ -70,7 +74,8 @@ Friend NotInheritable Class FrmDocumentFilePreview
         Dim source = TryCast(_files.SelectedItem, String)
         If source Is Nothing OrElse _pending Then Return
         Dim fictif = _testWorkspace IsNot Nothing
-        If Not fictif Then
+        Dim local = IsPdf(source) AndAlso Not RealArchiveEnabled()
+        If Not fictif AndAlso Not local Then
             If Not RealArchiveEnabled() Then Return
             Select Case Path.GetExtension(source).ToLowerInvariant()
                 Case ".pdf", ".jpg", ".jpeg", ".png"
@@ -85,7 +90,12 @@ Friend NotInheritable Class FrmDocumentFilePreview
         _pending = True
         _analyse.Enabled = False
         _files.Enabled = False
+        _pageNumber.Enabled = False
         Try
+            If local Then
+                Await AnalysePdfLocal(source)
+                Return
+            End If
             Dim json As String
             Dim hash As String
             Dim root As String
@@ -110,19 +120,13 @@ Friend NotInheritable Class FrmDocumentFilePreview
             End Using
 
             Dim proposition = DocumentArchiveProposal.Prepare(source, hash, json, root, settings)
-            Dim action = If(fictif, "Simuler l’enregistrement et l’archivage", "Enregistrer en base et archiver")
-            If MessageBox.Show(Me, proposition.Summary & vbCrLf & vbCrLf & "Archive proposée" & vbCrLf &
-                               proposition.Destination & vbCrLf & vbCrLf & action & " ?",
-                               action, MessageBoxButtons.YesNo, MessageBoxIcon.Question,
-                               MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then Return
-            If fictif Then _testWorkspace.ValidateDocumentTestDestination(proposition.Destination)
-            Await Task.Run(Sub() proposition.Confirm(save))
-            MessageBox.Show(Me, If(fictif, "Archive et fiche TEST enregistrées.", "Document archivé et référencé en base."),
-                            action, MessageBoxButtons.OK, MessageBoxIcon.Information)
+            Await ConfirmProposal(proposition, save, fictif)
         Catch ex As ArgumentException
             MessageBox.Show(Me, ex.Message, "Document non reconnu ou incomplet", MessageBoxButtons.OK, MessageBoxIcon.Warning)
         Catch ex As IOException
             MessageBox.Show(Me, ex.Message, "Analyse ou archivage impossible", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        Catch ex As TimeoutException
+            MessageBox.Show(Me, ex.Message, "Analyse locale interrompue", MessageBoxButtons.OK, MessageBoxIcon.Warning)
         Catch ex As InvalidOperationException
             MessageBox.Show(Me, ex.Message, "Traitement indisponible", MessageBoxButtons.OK, MessageBoxIcon.Warning)
         Catch ex As Exception
@@ -130,10 +134,61 @@ Friend NotInheritable Class FrmDocumentFilePreview
                             "Enregistrement à vérifier", MessageBoxButtons.OK, MessageBoxIcon.Error)
         Finally
             _files.Enabled = True
+            _pageNumber.Enabled = True
             _analyse.Enabled = True
             _pending = False
         End Try
     End Sub
+
+    Private Async Function AnalysePdfLocal(source As String) As Task
+        Dim hash As String
+        Dim extracted As Newtonsoft.Json.Linq.JObject
+        Using sourceLock = File.Open(source, FileMode.Open, FileAccess.Read, FileShare.Read)
+            hash = DocumentArchiveProposal.HashSource(source)
+            Dim ocr = Environment.GetEnvironmentVariable("AGUMAAA_TESSERACT_EXE")
+            extracted = Await Task.Run(Function() LocalPdfInvoiceAnalysis.Extract(source, ocr))
+        End Using
+
+        Dim data = extracted("donnees_extraites")
+        Dim transaction = data("transaction")
+        Dim supplier = data("identite")("fournisseur_nom")
+        Dim number = transaction("numero_facture")
+        Dim amount = transaction("montant_ttc")
+        Dim documentDate = transaction("date_facture")
+        If _testWorkspace IsNot Nothing AndAlso _testWorkspace.SessionDirectory IsNot Nothing AndAlso
+           supplier IsNot Nothing AndAlso number IsNot Nothing AndAlso amount IsNot Nothing AndAlso documentDate IsNot Nothing Then
+            Dim proposal = DocumentArchiveProposal.Prepare(source, hash, extracted.ToString(),
+                _testWorkspace.GetDocumentTestDirectory(), AddressOf OfflineTestWorkspace.DocumentArchiveTestSetting)
+            Await ConfirmProposal(proposal, AddressOf _testWorkspace.SaveDocumentTestRecord, True)
+            Return
+        End If
+
+        Dim message = "Champs de facture proposés par l’analyse locale" & vbCrLf & vbCrLf &
+            "Fournisseur : " & If(supplier?.ToString(), "À vérifier") & vbCrLf &
+            "Numéro : " & If(number?.ToString(), "À vérifier") & vbCrLf &
+            "Date : " & If(documentDate?.ToString(), "À vérifier") & vbCrLf &
+            "Montant TTC : " & If(amount Is Nothing, "À vérifier", amount.ToString() & " EUR")
+        If _testWorkspace IsNot Nothing AndAlso _testWorkspace.SessionDirectory Is Nothing Then
+            message &= vbCrLf & vbCrLf & "Préparez une session TEST pour essayer l’archivage."
+        End If
+        MessageBox.Show(Me, message, "Analyse locale du PDF", MessageBoxButtons.OK, MessageBoxIcon.Information)
+    End Function
+
+    Private Async Function ConfirmProposal(proposition As DocumentArchiveProposal, save As Action(Of DocumentAgumaaa), fictif As Boolean) As Task
+        Dim action = If(fictif, "Simuler l’enregistrement et l’archivage", "Enregistrer en base et archiver")
+        If MessageBox.Show(Me, proposition.Summary & vbCrLf & vbCrLf & "Archive proposée" & vbCrLf &
+                           proposition.Destination & vbCrLf & vbCrLf & action & " ?",
+                           action, MessageBoxButtons.YesNo, MessageBoxIcon.Question,
+                           MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then Return
+        If fictif Then _testWorkspace.ValidateDocumentTestDestination(proposition.Destination)
+        Await Task.Run(Sub() proposition.Confirm(save))
+        MessageBox.Show(Me, If(fictif, "Archive et fiche TEST enregistrées.", "Document archivé et référencé en base."),
+                        action, MessageBoxButtons.OK, MessageBoxIcon.Information)
+    End Function
+
+    Private Shared Function IsPdf(filePath As String) As Boolean
+        Return String.Equals(Path.GetExtension(filePath), ".pdf", StringComparison.OrdinalIgnoreCase)
+    End Function
 
     Protected Overrides Sub OnFormClosing(e As FormClosingEventArgs)
         MyBase.OnFormClosing(e)
@@ -142,14 +197,27 @@ Friend NotInheritable Class FrmDocumentFilePreview
 
     Private Sub LoadSelection(sender As Object, e As EventArgs)
         ClearImage()
+        _pdfSource = Nothing
+        _pageNumber.Visible = False
+        _pageCount.Visible = False
         _text.Visible = True
         _text.Text = ""
         Dim filePath = TryCast(_files.SelectedItem, String)
+        _analyse.Enabled = filePath IsNot Nothing AndAlso
+            (IsPdf(filePath) OrElse _testWorkspace IsNot Nothing OrElse RealArchiveEnabled())
         If filePath Is Nothing Then Return
 
         Try
-            If String.Equals(Path.GetExtension(filePath), ".pdf", StringComparison.OrdinalIgnoreCase) Then
-                _text.Text = DocumentFilePreview.ReadPdfText(filePath)
+            If IsPdf(filePath) Then
+                Dim count = DocumentFilePreview.PdfPageCount(filePath)
+                If count < 1 Then Throw New InvalidDataException("Ce PDF ne contient aucune page.")
+                _pageNumber.Maximum = count
+                _pageNumber.Value = 1
+                _pageCount.Text = $"sur {count} pages"
+                _pageNumber.Visible = True
+                _pageCount.Visible = True
+                _pdfSource = filePath
+                LoadPdfPage()
             Else
                 _image.Image = DocumentFilePreview.ReadImage(filePath)
                 _image.Visible = True
@@ -159,6 +227,19 @@ Friend NotInheritable Class FrmDocumentFilePreview
             _text.Text = ex.Message
         Catch ex As Exception
             _text.Text = "Impossible de lire ce fichier. Vérifiez qu’il est accessible et dans un format pris en charge."
+        End Try
+    End Sub
+
+    Private Sub LoadPdfPage()
+        If _pdfSource Is Nothing Then Return
+        ClearImage()
+        Try
+            _image.Image = DocumentFilePreview.RenderPdfPage(_pdfSource, CInt(_pageNumber.Value) - 1)
+            _image.Visible = True
+            _text.Visible = False
+        Catch ex As Exception
+            _text.Text = "Impossible d’afficher cette page PDF."
+            _text.Visible = True
         End Try
     End Sub
 
