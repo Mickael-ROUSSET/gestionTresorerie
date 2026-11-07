@@ -140,10 +140,17 @@ Public NotInheritable Class OfflineTestWorkspace
         Using sessionLock = AcquireReviewLock()
             Dim record = doc.CheminDoc & ".fiche-TEST.json"
             RejectLinks(record)
-            If Not File.Exists(record) Then
-                WriteAtomicFile(record, JsonConvert.SerializeObject(New With {
-                    doc.DateDoc, doc.CheminDoc, doc.CategorieDoc,
-                    .MetaDonnees = Newtonsoft.Json.Linq.JObject.Parse(doc.metaDonnees)}, Formatting.Indented))
+            Dim expected = JsonConvert.SerializeObject(New With {
+                doc.DateDoc, doc.CheminDoc, doc.CategorieDoc,
+                .MetaDonnees = Newtonsoft.Json.Linq.JObject.Parse(doc.metaDonnees)}, Formatting.Indented)
+            If File.Exists(record) Then
+                ' Une reprise identique est autorisée, mais jamais une fiche différente
+                ' sous le même nom : conserver la preuve initiale et signaler le conflit.
+                If Not String.Equals(ReadOwnedFile(record), expected, StringComparison.Ordinal) Then
+                    Throw New IOException("Une fiche TEST différente existe déjà pour cette archive.")
+                End If
+            Else
+                WriteAtomicFile(record, expected)
             End If
         End Using
     End Sub
