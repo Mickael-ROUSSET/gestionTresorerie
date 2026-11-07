@@ -76,6 +76,17 @@ Public MustInherit Class DocumentAgumaaa
             Throw
         End Try
     End Sub
+    Friend Shared Sub EnregistrerArchive(doc As DocumentAgumaaa)
+#If DEMO_BUILD Then
+        Throw New InvalidOperationException("Archivage SQL interdit en DÉMONSTRATION.")
+#Else
+        If EnvironmentManager.CurrentEnvironment <> EnvironmentManager.EnvironnementType.PROD Then
+            Throw New InvalidOperationException("L’archivage comptable réel est réservé à PROD.")
+        End If
+        CreateDocumentRepository().InsererArchiveSiAbsente(doc)
+#End If
+    End Sub
+
     Public Shared Function LireDocuments() As DataTable
         Try
             Return CreateDocumentRepository().LireTous()
