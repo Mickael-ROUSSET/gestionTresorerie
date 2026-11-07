@@ -153,10 +153,16 @@ Public NotInheritable Class DocumentArchiveProposal
            relative.StartsWith(".." & Path.DirectorySeparatorChar, StringComparison.Ordinal) Then
             Throw New IOException("La destination sort de la racine autorisée.")
         End If
+        ' Vérifier également les parents de la racine : une racine TEST sous
+        ' une jonction pourrait sinon écrire hors de l'emplacement autorisé.
+        Dim ancestor As String = basePath
+        While ancestor IsNot Nothing
+            If (File.GetAttributes(ancestor) And FileAttributes.ReparsePoint) <> 0 Then
+                Throw New IOException("Racine d’archivage ou parent lié à un autre emplacement.")
+            End If
+            ancestor = Path.GetDirectoryName(ancestor)
+        End While
         Dim current = basePath
-        If (File.GetAttributes(current) And FileAttributes.ReparsePoint) <> 0 Then
-            Throw New IOException("Racine d’archivage liée à un autre emplacement.")
-        End If
         For Each segment In relative.Split(Path.DirectorySeparatorChar)
             current = Path.Combine(current, segment)
             If File.Exists(current) OrElse Directory.Exists(current) Then
