@@ -28,6 +28,16 @@ Public NotInheritable Class DocumentArchiveProposal
 
     Public Shared Function Prepare(source As String, hash As String, json As String, root As String,
                                    setting As Func(Of String, String)) As DocumentArchiveProposal
+        Return PrepareCore(source, hash, json, root, setting, Nothing)
+    End Function
+
+    Friend Shared Function PrepareTest(source As String, hash As String, json As String, root As String,
+                                       chequeEmis As Boolean?) As DocumentArchiveProposal
+        Return PrepareCore(source, hash, json, root, AddressOf OfflineTestWorkspace.DocumentArchiveTestSetting, chequeEmis)
+    End Function
+
+    Private Shared Function PrepareCore(source As String, hash As String, json As String, root As String,
+                                        setting As Func(Of String, String), chequeEmisTest As Boolean?) As DocumentArchiveProposal
         If Not DocumentFilePreview.Supports(source) Then Throw New ArgumentException("Format de fichier non pris en charge.")
         If Not Path.IsPathFullyQualified(root) OrElse Not Directory.Exists(root) Then
             Throw New IOException("La racine d’archivage configurée est inaccessible.")
@@ -65,11 +75,16 @@ Public NotInheritable Class DocumentArchiveProposal
             montant = cheque.montant_numerique
             devise = cheque.devise
             tiers = cheque.destinataire
-            Dim compte = setting("numCptAgumaaa")
-            If String.IsNullOrWhiteSpace(compte) OrElse String.IsNullOrWhiteSpace(cheque.emetteur_numero_compte) Then
-                Throw New ArgumentException("Compte émetteur ou compte AGUMAAA manquant. Le sens du chèque doit être connu.")
+            If chequeEmisTest.HasValue Then
+                sens = If(chequeEmisTest.Value, "Emis", "Reçus")
+                document.SousCategorieDoc = sens
+            Else
+                Dim compte = setting("numCptAgumaaa")
+                If String.IsNullOrWhiteSpace(compte) OrElse String.IsNullOrWhiteSpace(cheque.emetteur_numero_compte) Then
+                    Throw New ArgumentException("Compte émetteur ou compte AGUMAAA manquant. Le sens du chèque doit être connu.")
+                End If
+                sens = If(cheque.emetteur_numero_compte.Contains(compte, StringComparison.OrdinalIgnoreCase), "Emis", "Reçus")
             End If
-            sens = If(cheque.emetteur_numero_compte.Contains(compte, StringComparison.OrdinalIgnoreCase), "Emis", "Reçus")
             dossier = Path.Combine(setting("repFichiersDocumentsChèques"),
                 dateDocument.ToString("yyyy", CultureInfo.InvariantCulture), sens)
             nom = $"CHQ_{SafeReference(reference)}{extension}"

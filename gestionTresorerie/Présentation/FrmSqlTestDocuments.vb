@@ -67,7 +67,7 @@ Friend NotInheritable Class FrmSqlTestDocuments
     Private Async Sub OpenExample(sender As Object, e As EventArgs)
         Try
             Dim source = _workspace.CreateDocumentTestInvoice()
-            Using preview As New FrmDocumentFilePreview({source}, _workspace, _store)
+            Using preview As New FrmDocumentFilePreview({source}, _workspace, _store, sqlExample:=True)
                 preview.ShowDialog(Me)
             End Using
             Await RefreshGrid()
