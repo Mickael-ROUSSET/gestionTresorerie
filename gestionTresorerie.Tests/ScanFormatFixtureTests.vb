@@ -54,6 +54,31 @@ Public Class ScanFormatFixtureTests
     End Sub
 
     <TestMethod>
+    Public Sub ExtensionsJpegEtTifCourtesAvecImagesFictives()
+        Dim root = Directory.CreateTempSubdirectory().FullName
+        Try
+            For Each item In New (Extension As String, Format As Imaging.ImageFormat)() {
+                (".JPEG", Imaging.ImageFormat.Jpeg),
+                (".TIF", Imaging.ImageFormat.Tiff)
+            }
+                Dim chemin = Path.Combine(root, "scan-fictif" & item.Extension)
+                Using image As New Bitmap(7, 5)
+                    image.Save(chemin, item.Format)
+                End Using
+                Assert.IsTrue(DocumentFilePreview.Supports(chemin))
+                Using apercu = DocumentFilePreview.ReadImage(chemin)
+                    Assert.AreEqual(7, apercu.Width)
+                    Assert.AreEqual(5, apercu.Height)
+                End Using
+                File.Delete(chemin)
+                Assert.IsFalse(File.Exists(chemin))
+            Next
+        Finally
+            Directory.Delete(root, recursive:=True)
+        End Try
+    End Sub
+
+    <TestMethod>
     Public Sub FichierTronqueOuTropVolumineuxEstRejeteSansModification()
         Dim root = Directory.CreateTempSubdirectory().FullName
         Try
