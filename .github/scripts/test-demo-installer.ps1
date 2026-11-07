@@ -28,6 +28,46 @@ function Invoke-Setup([string]$File, [string[]]$Arguments) {
     finally { $child.Dispose() }
 }
 
+function Assert-SqlCatalogs([string]$Mode) {
+    # Windows PowerShell fournit le client SQL .NET Framework utilisé par ce contrôle.
+    $check = {
+        param([string]$Mode)
+        $ErrorActionPreference = 'Stop'
+        $connection = [System.Data.SqlClient.SqlConnection]::new(
+            'Data Source=(LocalDB)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=True;Connect Timeout=30')
+        try {
+            $connection.Open()
+            $command = $connection.CreateCommand()
+            foreach ($catalog in @('bddAgumaaaTest', 'bddAgumaaa')) {
+                $connection.ChangeDatabase('master')
+                $command.CommandText = "SELECT DB_ID(N'$catalog');"
+                $exists = $command.ExecuteScalar() -ne [DBNull]::Value
+                if ($Mode -eq 'absent') {
+                    if ($exists) { throw "Catalogue préexistant sur le runner : $catalog." }
+                    continue
+                }
+                if (-not $exists) { throw "Catalogue introuvable : $catalog." }
+                $connection.ChangeDatabase($catalog)
+                if ($catalog -eq 'bddAgumaaaTest') {
+                    $command.CommandText = "SELECT OBJECT_ID(N'dbo.Documents', N'U');"
+                    if ($command.ExecuteScalar() -eq [DBNull]::Value) { throw 'Table documentaire TEST absente.' }
+                }
+                if ($Mode -eq 'stamp') {
+                    $command.CommandText = "EXEC sys.sp_addextendedproperty @name=N'CI-Install-Sentinel', @value=N'Conserver';"
+                    [void]$command.ExecuteNonQuery()
+                }
+                $command.CommandText = "SELECT CONVERT(nvarchar(20),value) FROM sys.extended_properties WHERE class=0 AND name=N'CI-Install-Sentinel';"
+                if ($command.ExecuteScalar() -cne 'Conserver') { throw "Sentinelle SQL perdue : $catalog." }
+            }
+        }
+        finally { $connection.Dispose() }
+    }
+    $source = "& {" + $check.ToString() + "} '" + $Mode + "'"
+    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($source))
+    & powershell.exe -NoProfile -NonInteractive -EncodedCommand $encoded
+    if ($LASTEXITCODE -ne 0) { throw "Contrôle des catalogues SQL échoué ($Mode)." }
+}
+
 function Assert-Payload {
     foreach ($source in Get-ChildItem -LiteralPath $payload -Recurse -File) {
         $relative = [IO.Path]::GetRelativePath($payload, $source.FullName)
@@ -65,6 +105,8 @@ if ($exitCode -eq 0 -or (Test-Path -LiteralPath $refusedDir) -or
 }
 Write-Output "Dossier personnalisé refusé avant installation (code $exitCode)."
 
+Assert-SqlCatalogs 'absent'
+
 $installed = $false
 $process = $null
 $testSentinel = Join-Path $testData 'CI-installation-sentinel.txt'
@@ -77,6 +119,7 @@ try {
         "/LOG=""$installLog""")
     if ($exitCode -ne 0) { throw "Installation échouée, code $exitCode." }
     $installed = $true
+    Assert-SqlCatalogs 'stamp'
     Assert-Payload
     if (-not (Test-Path -LiteralPath $registryPath)) { throw 'Entrée Applications installées absente.' }
     $registration = Get-ItemProperty -LiteralPath $registryPath
@@ -130,6 +173,7 @@ try {
         '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/TASKS=desktopicon',
         "/LOG=""$reinstallLog""")
     if ($exitCode -ne 0) { throw "Réinstallation échouée, code $exitCode." }
+    Assert-SqlCatalogs 'verify'
     Assert-Payload
     if ((Get-FileHash -LiteralPath $testSentinel).Hash -cne $testHash -or
         (Get-FileHash -LiteralPath $userSentinel).Hash -cne $userHash) {
@@ -160,7 +204,9 @@ try {
         (Get-FileHash -LiteralPath $userSentinel).Hash -cne $userHash) {
         throw 'Une sentinelle a été supprimée ou modifiée pendant la désinstallation.'
     }
+    Assert-SqlCatalogs 'verify'
     $installed = $false
+    Write-Output 'Création des deux catalogues SQL et conservation à la réinstallation et à la désinstallation vérifiées.'
     Write-Output 'Installation, raccourcis, lancement, réinstallation et désinstallation vérifiés.'
     Write-Output 'Sessions TEST et fichier ajouté au programme conservés (sentinelles fictives).'
     Write-Output "Signature de la candidate : $((Get-AuthenticodeSignature -LiteralPath $installer).Status)"
