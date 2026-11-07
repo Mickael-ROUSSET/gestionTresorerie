@@ -185,7 +185,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
                     End If
                 Catch ex As Exception When TypeOf ex Is IOException OrElse TypeOf ex Is InvalidOperationException OrElse
                     TypeOf ex Is InvalidDataException OrElse TypeOf ex Is TimeoutException OrElse TypeOf ex Is ArgumentException OrElse
-                    TypeOf ex Is ComponentModel.Win32Exception
+                    TypeOf ex Is Global.System.ComponentModel.Win32Exception
                     note = "Extraction automatique indisponible pour ce document. Saisissez ses champs à partir de l’aperçu."
                 End Try
             End If
