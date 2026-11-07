@@ -85,6 +85,8 @@ try {
         'gestionTresorerie.exe',
         'gestionTresorerie.deps.json',
         'gestionTresorerie.runtimeconfig.json',
+        'runtimes/win-x64/native/pdfium.dll',
+        'runtimes/win-x64/native/libSkiaSharp.dll',
         'LANCER-DEMONSTRATION.cmd',
         'LIRE_AVANT_DEMARRER.md',
         'COMMIT-DEMONSTRATION.txt'
