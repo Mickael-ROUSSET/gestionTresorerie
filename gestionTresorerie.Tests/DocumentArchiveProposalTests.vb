@@ -123,6 +123,35 @@ Public Class DocumentArchiveProposalTests
     End Sub
 
     <TestMethod>
+    Public Sub RacineSousLienSymbolique_EstRefuseeAvantCopieEtEnregistrement()
+        Dim container = Directory.CreateTempSubdirectory().FullName
+        Dim outside = Directory.CreateTempSubdirectory().FullName
+        Try
+            Dim link = Path.Combine(container, "parent-lie")
+            Try
+                Directory.CreateSymbolicLink(link, outside)
+            Catch ex As UnauthorizedAccessException
+                Assert.Inconclusive("Lien symbolique indisponible sur ce runner Windows.")
+            Catch ex As IOException
+                Assert.Inconclusive("Lien symbolique indisponible : " & ex.Message)
+            End Try
+            Dim root = Path.Combine(link, "TEST")
+            Directory.CreateDirectory(root)
+            Dim source = Path.Combine(container, "facture.pdf")
+            File.WriteAllText(source, "Facture fictive")
+            Dim proposal = Preparer(source, root)
+            Dim appels As Integer = 0
+            Assert.ThrowsExactly(Of IOException)(Sub() proposal.Confirm(Sub(doc) appels += 1))
+            Assert.AreEqual(0, appels)
+            Assert.IsFalse(Directory.Exists(Path.Combine(outside, "TEST", "Comptabilite")))
+            Assert.AreEqual("Facture fictive", File.ReadAllText(source))
+        Finally
+            Directory.Delete(container, recursive:=True)
+            Directory.Delete(outside, recursive:=True)
+        End Try
+    End Sub
+
+    <TestMethod>
     Public Sub Cheque_ClassementParSensEtAnnee_ConserveLesZerosInitiaux()
         Dim root = Directory.CreateTempSubdirectory().FullName
         Try
