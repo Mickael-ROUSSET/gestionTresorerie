@@ -43,6 +43,11 @@ Public Class FrmPrincipale
             My.Application.SaveMySettingsOnExit = False
         End If
         InitializeComponent()
+        If Not _modeDemonstration Then
+            Dim menuFichiers As New ToolStripMenuItem("Examiner des PDF et des scans sur disque…")
+            AddHandler menuFichiers.Click, Sub() FrmDocumentFilePreview.OpenFiles(Me)
+            AnalyseToolStripMenuItem.DropDownItems.Add(menuFichiers)
+        End If
         AddHandler _menuTestWorkspace.Click, AddressOf OpenTestWorkspace
         AnalyseToolStripMenuItem.DropDownItems.Add(_menuTestWorkspace)
 
@@ -651,8 +656,40 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub RécupDesPJReçuesParMailToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RécupDesPJReçuesParMailToolStripMenuItem.Click
-        EmailProcessor.ProcessAttachments()
+        If _modeDemonstration OrElse EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST Then Return
+
+        Dim fichiers = EmailProcessor.DownloadAttachments(requestStartDate:=AddressOf DemanderDateInitialeGmail).
+            Where(AddressOf DocumentFilePreview.Supports).ToArray()
+        If fichiers.Length = 0 Then
+            MessageBox.Show(Me, "Aucun nouveau PDF ou scan à examiner. Consultez le rapport d'import Gmail pour le détail.",
+                            "Téléchargement Gmail", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            Return
+        End If
+        Using formulaire As New FrmDocumentFilePreview(fichiers)
+            formulaire.ShowDialog(Me)
+        End Using
     End Sub
+    Private Function DemanderDateInitialeGmail() As DateTime?
+        Using dialogue As New Form With {
+            .Text = "Premier téléchargement Gmail", .ClientSize = New Drawing.Size(420, 125),
+            .FormBorderStyle = FormBorderStyle.FixedDialog, .StartPosition = FormStartPosition.CenterParent,
+            .MinimizeBox = False, .MaximizeBox = False}
+            Dim indication As New Label With {
+                .Text = "Télécharger les pièces jointes reçues à partir de cette date (incluse).",
+                .Left = 12, .Top = 12, .Width = 396}
+            Dim dateDebut As New DateTimePicker With {.Left = 12, .Top = 42, .Width = 240, .MaxDate = DateTime.Today}
+            Dim bouton As New Button With {
+                .Text = "Télécharger", .Left = 190, .Top = 86, .Width = 105, .DialogResult = DialogResult.OK}
+            Dim annuler As New Button With {
+                .Text = "Annuler", .Left = 303, .Top = 86, .Width = 105, .DialogResult = DialogResult.Cancel}
+            dialogue.Controls.AddRange(New Control() {indication, dateDebut, bouton, annuler})
+            dialogue.AcceptButton = bouton
+            dialogue.CancelButton = annuler
+            If dialogue.ShowDialog(Me) = DialogResult.OK Then Return dateDebut.Value.Date
+            Return Nothing
+        End Using
+    End Function
+
     'Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnCreeBilans.Click
     '    'Call CreeBilans()
     '    'Call genereBilans.AjouteImage()
