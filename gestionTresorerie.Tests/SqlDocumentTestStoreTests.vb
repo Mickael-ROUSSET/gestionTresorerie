@@ -25,7 +25,7 @@ Public Class SqlDocumentTestStoreTests
             Dim store As New SqlDocumentTestStore()
             store.Initialize()
             store.Initialize()
-            Using connection As New SqlConnection(LocalDbCatalogs.ConnectionString("bddAgumaaaTest"))
+            Using connection As New SqlConnection("Data Source=(LocalDB)\MSSQLLocalDB;Initial Catalog=bddAgumaaaTest;Integrated Security=True")
                 connection.Open()
                 Using command = connection.CreateCommand()
                     command.CommandText = "SELECT COUNT(*) FROM dbo.SchemaMigrations WHERE Version=1 AND Description=N'Initialisation documentaire TEST';"
