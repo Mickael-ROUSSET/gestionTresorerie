@@ -74,6 +74,28 @@ Public Class DocumentArchiveProposalTests
     End Sub
 
     <TestMethod>
+    Public Sub SourceAgrandieApresAnalyse_EstRefuseeSansArchiveNiEnregistrement()
+        Dim root = Directory.CreateTempSubdirectory().FullName
+        Try
+            Dim source = Path.Combine(root, "facture.pdf")
+            File.WriteAllText(source, "Facture fictive initiale")
+            Dim proposal = Preparer(source, root)
+            Using output = File.Open(source, FileMode.Open, FileAccess.Write, FileShare.None)
+                output.SetLength(25L * 1024 * 1024 + 1L)
+            End Using
+
+            Dim appels As Integer = 0
+            Assert.ThrowsExactly(Of IOException)(
+                Sub() proposal.Confirm(Sub(doc) appels += 1))
+            Assert.AreEqual(0, appels)
+            Assert.IsFalse(File.Exists(proposal.Destination))
+            Assert.AreEqual(25L * 1024 * 1024 + 1L, New FileInfo(source).Length)
+        Finally
+            Directory.Delete(root, recursive:=True)
+        End Try
+    End Sub
+
+    <TestMethod>
     Public Sub Cheque_ClassementParSensEtAnnee_ConserveLesZerosInitiaux()
         Dim root = Directory.CreateTempSubdirectory().FullName
         Try
