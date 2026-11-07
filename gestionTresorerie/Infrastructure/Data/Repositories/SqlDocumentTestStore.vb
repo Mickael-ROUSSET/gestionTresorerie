@@ -24,12 +24,26 @@ Public NotInheritable Class SqlDocumentTestStore
         "cheminDoc nvarchar(1024) NOT NULL, categorieDoc nvarchar(100) NULL, " &
         "sousCategorieDoc nvarchar(100) NULL, idMvtDoc int NULL, metaDonnees nvarchar(max) NULL); END;"
 
+    Private Const MigrationSql As String =
+        "IF DB_NAME() <> N'bddAgumaaaTest' THROW 51000, N'Catalogue TEST inattendu.', 1;" &
+        "IF OBJECT_ID(N'dbo.SchemaMigrations') IS NULL BEGIN " &
+        "CREATE TABLE dbo.SchemaMigrations (Version int NOT NULL PRIMARY KEY, " &
+        "Description nvarchar(200) NOT NULL, AppliedAt datetime2 NOT NULL DEFAULT SYSUTCDATETIME()); END;" &
+        "IF EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE Version > 1) " &
+        "THROW 51004, N'Schema TEST plus récent que cette application.', 1;" &
+        "IF NOT EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE Version = 1) " &
+        "INSERT INTO dbo.SchemaMigrations (Version, Description) " &
+        "VALUES (1, N'Initialisation documentaire TEST');"
+
     Public Sub Initialize()
         LocalDbCatalogs.EnsureTestCatalog()
 
         Using connection = OpenTest(), transaction = connection.BeginTransaction()
             Using prepare As New SqlCommand(PrepareTableSql, connection, transaction)
                 prepare.ExecuteNonQuery()
+            End Using
+            Using migration As New SqlCommand(MigrationSql, connection, transaction)
+                migration.ExecuteNonQuery()
             End Using
             Using verify As New SqlCommand(GuardSql & ReadSql & " WHERE 1=0;", connection, transaction)
                 verify.ExecuteNonQuery()
