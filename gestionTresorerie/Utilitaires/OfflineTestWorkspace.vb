@@ -104,6 +104,15 @@ Public NotInheritable Class OfflineTestWorkspace
         Return source
     End Function
 
+    Friend Sub OpenOrPrepareSession()
+        If SessionDirectory IsNot Nothing Then Return
+        If File.Exists(Path.Combine(_root, "SESSION-ACTIVE.txt")) Then
+            ResumeLastSession()
+        Else
+            PrepareNewSession()
+        End If
+    End Sub
+
     Friend Function GetDocumentTestDirectory() As String
         ValidateSession()
         Return SessionDirectory

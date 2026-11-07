@@ -156,7 +156,7 @@ Public Class DemonstrationWindowsTests
                       Dim actions = analyse.DropDownItems.OfType(Of ToolStripMenuItem)().
                           Where(Function(m) m.Enabled).Select(Function(m) m.Name).ToArray()
                       CollectionAssert.AreEquivalent(
-                          New String() {"DemoDocumentsFictifsToolStripMenuItem", "EspaceTestLocalToolStripMenuItem"}, actions)
+                          New String() {"DemoDocumentsFictifsToolStripMenuItem", "EspaceTestLocalToolStripMenuItem", "EspaceTestSqlToolStripMenuItem"}, actions)
                       Assert.IsFalse(DirectCast(fenetre.Controls.Find("dgvPrincipale", True)(0),
                                                 DataGridView).Enabled)
                       Assert.IsFalse(fenetre.IsHandleCreated)

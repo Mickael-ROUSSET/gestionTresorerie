@@ -22,7 +22,12 @@ Public Class FrmPrincipale
         .Name = "EspaceTestLocalToolStripMenuItem",
         .Text = "Espace TEST local (fichiers fictifs)"}
 
+    Private ReadOnly _menuSqlTest As New ToolStripMenuItem With {
+        .Name = "EspaceTestSqlToolStripMenuItem",
+        .Text = "Espace TEST SQL (documents et archives locales)…"}
+
     Private ReadOnly _modeDemonstration As Boolean
+    Private _isolatedSqlTest As Boolean
 
     Public Sub New()
         Me.New(False)
@@ -50,6 +55,8 @@ Public Class FrmPrincipale
         End If
         AddHandler _menuTestWorkspace.Click, AddressOf OpenTestWorkspace
         AnalyseToolStripMenuItem.DropDownItems.Add(_menuTestWorkspace)
+        AddHandler _menuSqlTest.Click, AddressOf OpenSqlTestWorkspace
+        AnalyseToolStripMenuItem.DropDownItems.Add(_menuSqlTest)
 
         Dim menuRevue As New ToolStripMenuItem With {
             .Name = "RevuePropositionsToolStripMenuItem",
@@ -182,6 +189,19 @@ Public Class FrmPrincipale
         End Try
     End Sub
 
+    Private Sub OpenSqlTestWorkspace(sender As Object, e As EventArgs)
+        Try
+            Dim root = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "gestionTresorerie", "TEST-SQL")
+            Using window As New FrmSqlTestDocuments(New OfflineTestWorkspace(My.Settings.repInstallationProd, root))
+                window.ShowDialog(Me)
+            End Using
+        Catch ex As Exception
+            MessageBox.Show(Me, ex.Message, "Espace TEST SQL", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
+
     Private Sub DemoDocumentsFictifs_Click(sender As Object, e As EventArgs)
         Dim jsonFacture As String = DemoDocumentSamples.Invoice
         Dim pieces As New System.Collections.Generic.List(Of GmailDocumentSimulatedInbox.PieceFictive) From {
@@ -269,6 +289,7 @@ Public Class FrmPrincipale
         Next
         For Each action As ToolStripItem In AnalyseToolStripMenuItem.DropDownItems
             action.Enabled = Object.ReferenceEquals(action, _menuTestWorkspace) OrElse
+                             Object.ReferenceEquals(action, _menuSqlTest) OrElse
                              Object.ReferenceEquals(action, _menuDemoDocuments) OrElse
                              Object.ReferenceEquals(action, _menuRevueDocumentsAnalyses) OrElse
                              Object.ReferenceEquals(action, _menuEffacerDocumentsFictifs)
@@ -281,7 +302,7 @@ Public Class FrmPrincipale
         pgBar.Visible = False
         Controls.Add(New Label With {
             .Name = "annonceDemonstration",
-            .Text = "DÉMONSTRATION — aucune connexion Gmail ou comptable." & Environment.NewLine &
+            .Text = "DÉMONSTRATION — espace documentaire hors ligne ou SQL TEST sur demande." & Environment.NewLine &
                     "Analyse > Ouvrir une démonstration : facture, chèque et documents rejetés." & Environment.NewLine &
                     "La confirmation d'examen ne valide ni n'enregistre d'opération." & Environment.NewLine &
                     "Analyse > Effacer les propositions fictives : recommencer.",
@@ -297,6 +318,19 @@ Public Class FrmPrincipale
         End If
         Try
             EnvironmentManager.LoadEnvironment()
+            If EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST Then
+                _isolatedSqlTest = True
+                InitialiserModeDemonstration()
+                Text = "gestionTresorerie — TEST SQL"
+                StatusLabelEnv.Items.Clear()
+                StatusLabelEnv.Items.Add(New ToolStripStatusLabel("TEST SQL — bddAgumaaaTest"))
+                DirectCast(Controls.Find("annonceDemonstration", True)(0), Label).Text =
+                    "TEST SQL — Analyse > Espace TEST SQL pour initialiser la base et traiter des documents."
+                Dim switchEnvironment As New ToolStripMenuItem("Changer d’environnement au prochain démarrage…")
+                AddHandler switchEnvironment.Click, AddressOf EnvironnementToolStripMenuItem_Click
+                AnalyseToolStripMenuItem.DropDownItems.Add(switchEnvironment)
+                Return
+            End If
             Logger.INFO("Environnement actif : " & EnvironmentManager.GetEnvironmentLabel())
             StatusLabelEnv.Text = "Environnement : " & EnvironmentManager.GetEnvironmentLabel
 
@@ -379,7 +413,7 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub FrmMain_Closing(sender As Object, ByVal e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
-        If _modeDemonstration Then Return
+        If _modeDemonstration OrElse _isolatedSqlTest Then Return
         ConnexionDB.GetInstance(Constantes.DataBases.Agumaaa).Dispose()
     End Sub
     Private Sub BtnConsultation_Click(sender As Object, e As EventArgs)
@@ -565,6 +599,7 @@ Public Class FrmPrincipale
 
         If String.IsNullOrWhiteSpace(choix) Then Exit Sub
 
+        Dim previousEnvironment = EnvironmentManager.CurrentEnvironment
         Select Case choix.Trim().ToUpperInvariant()
             Case "DEV"
                 SetEnvironment(EnvironnementType.DEV)
@@ -577,7 +612,9 @@ Public Class FrmPrincipale
                 Exit Sub
         End Select
 
-        MessageBox.Show("Nouvel environnement actif : " & GetEnvironmentLabel() &
+        Dim nextEnvironmentLabel = GetEnvironmentLabel()
+        EnvironmentManager.CurrentEnvironment = previousEnvironment
+        MessageBox.Show("Environnement au prochain démarrage : " & nextEnvironmentLabel &
                     vbCrLf &
                     "Redémarrez l'application pour appliquer les changements.",
                     "Environnement modifié",

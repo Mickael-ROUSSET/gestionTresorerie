@@ -13,6 +13,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private ReadOnly _image As New PictureBox With {.Dock = DockStyle.Fill, .SizeMode = PictureBoxSizeMode.Zoom}
 
     Private ReadOnly _testWorkspace As OfflineTestWorkspace
+    Private ReadOnly _sqlTest As SqlDocumentTestStore
     Private ReadOnly _analyse As New Button With {
         .Text = "Analyser le document…", .AutoSize = True, .Anchor = AnchorStyles.Left}
     Private ReadOnly _pageNumber As New NumericUpDown With {.Minimum = 1, .Width = 72, .Visible = False}
@@ -20,8 +21,13 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private _pdfSource As String
     Private _pending As Boolean
 
-    Public Sub New(paths As IEnumerable(Of String), Optional testWorkspace As OfflineTestWorkspace = Nothing)
+    Public Sub New(paths As IEnumerable(Of String), Optional testWorkspace As OfflineTestWorkspace = Nothing,
+                   Optional sqlTest As SqlDocumentTestStore = Nothing)
+        If sqlTest IsNot Nothing AndAlso testWorkspace Is Nothing Then
+            Throw New ArgumentNullException(NameOf(testWorkspace))
+        End If
         _testWorkspace = testWorkspace
+        _sqlTest = sqlTest
         Text = "Examen des PDF et des scans"
         ClientSize = New Size(1000, 640)
         StartPosition = FormStartPosition.CenterParent
@@ -50,13 +56,14 @@ Friend NotInheritable Class FrmDocumentFilePreview
         If _files.Items.Count > 0 Then _files.SelectedIndex = 0
     End Sub
 
-    Public Shared Sub OpenFiles(owner As IWin32Window, Optional testWorkspace As OfflineTestWorkspace = Nothing)
+    Public Shared Sub OpenFiles(owner As IWin32Window, Optional testWorkspace As OfflineTestWorkspace = Nothing,
+                                Optional sqlTest As SqlDocumentTestStore = Nothing)
         Using picker As New OpenFileDialog With {
             .Title = "Choisir des documents sur C: ou sur un lecteur Drive",
             .Filter = "PDF et scans (*.pdf;*.jpg;*.jpeg;*.png;*.tif;*.tiff)|*.pdf;*.jpg;*.jpeg;*.png;*.tif;*.tiff",
             .Multiselect = True, .CheckFileExists = True, .RestoreDirectory = True}
             If picker.ShowDialog(owner) <> DialogResult.OK Then Return
-            Using preview As New FrmDocumentFilePreview(picker.FileNames, testWorkspace)
+            Using preview As New FrmDocumentFilePreview(picker.FileNames, testWorkspace, sqlTest)
                 preview.ShowDialog(owner)
             End Using
         End Using
@@ -74,7 +81,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
         Dim source = TryCast(_files.SelectedItem, String)
         If source Is Nothing OrElse _pending Then Return
         Dim fictif = _testWorkspace IsNot Nothing
-        Dim local = IsPdf(source) AndAlso Not RealArchiveEnabled()
+        Dim local = IsPdf(source) AndAlso (fictif OrElse Not RealArchiveEnabled())
         If Not fictif AndAlso Not local Then
             If Not RealArchiveEnabled() Then Return
             Select Case Path.GetExtension(source).ToLowerInvariant()
@@ -107,7 +114,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
                     root = _testWorkspace.GetDocumentTestDirectory()
                     json = _testWorkspace.ReadDocumentExtraction(source)
                     settings = AddressOf OfflineTestWorkspace.DocumentArchiveTestSetting
-                    save = AddressOf _testWorkspace.SaveDocumentTestRecord
+                    save = TestSaveAction()
                 Else
                     Dim key = GlobalSettings.GeminiKey
                     If String.IsNullOrWhiteSpace(key) Then Throw New InvalidOperationException("La clé Gemini existante n’est pas configurée.")
@@ -129,6 +136,10 @@ Friend NotInheritable Class FrmDocumentFilePreview
             MessageBox.Show(Me, ex.Message, "Analyse locale interrompue", MessageBoxButtons.OK, MessageBoxIcon.Warning)
         Catch ex As InvalidOperationException
             MessageBox.Show(Me, ex.Message, "Traitement indisponible", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        Catch ex As Data.SqlClient.SqlException When _sqlTest IsNot Nothing
+            MessageBox.Show(Me, "Écriture SQL TEST impossible. " & ex.Message &
+                            vbCrLf & "Si une copie a été créée, relancez la même opération pour la réutiliser.",
+                            "bddAgumaaaTest", MessageBoxButtons.OK, MessageBoxIcon.Warning)
         Catch ex As Exception
             MessageBox.Show(Me, "Traitement interrompu. Si l’archive a été copiée, elle sera réutilisée au prochain essai.",
                             "Enregistrement à vérifier", MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -159,7 +170,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
            supplier IsNot Nothing AndAlso number IsNot Nothing AndAlso amount IsNot Nothing AndAlso documentDate IsNot Nothing Then
             Dim proposal = DocumentArchiveProposal.Prepare(source, hash, extracted.ToString(),
                 _testWorkspace.GetDocumentTestDirectory(), AddressOf OfflineTestWorkspace.DocumentArchiveTestSetting)
-            Await ConfirmProposal(proposal, AddressOf _testWorkspace.SaveDocumentTestRecord, True)
+            Await ConfirmProposal(proposal, TestSaveAction(), True)
             Return
         End If
 
@@ -174,15 +185,25 @@ Friend NotInheritable Class FrmDocumentFilePreview
         MessageBox.Show(Me, message, "Analyse locale du PDF", MessageBoxButtons.OK, MessageBoxIcon.Information)
     End Function
 
+    Private Function TestSaveAction() As Action(Of DocumentAgumaaa)
+        If _sqlTest Is Nothing Then Return AddressOf _testWorkspace.SaveDocumentTestRecord
+        Return Sub(doc)
+                   _testWorkspace.ValidateDocumentTestDestination(doc.CheminDoc)
+                   _sqlTest.Save(doc)
+               End Sub
+    End Function
+
     Private Async Function ConfirmProposal(proposition As DocumentArchiveProposal, save As Action(Of DocumentAgumaaa), fictif As Boolean) As Task
-        Dim action = If(fictif, "Simuler l’enregistrement et l’archivage", "Enregistrer en base et archiver")
+        Dim action = If(_sqlTest IsNot Nothing, "Enregistrer dans bddAgumaaaTest et archiver localement",
+                        If(fictif, "Simuler l’enregistrement et l’archivage", "Enregistrer en base et archiver"))
         If MessageBox.Show(Me, proposition.Summary & vbCrLf & vbCrLf & "Archive proposée" & vbCrLf &
                            proposition.Destination & vbCrLf & vbCrLf & action & " ?",
                            action, MessageBoxButtons.YesNo, MessageBoxIcon.Question,
                            MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then Return
         If fictif Then _testWorkspace.ValidateDocumentTestDestination(proposition.Destination)
         Await Task.Run(Sub() proposition.Confirm(save))
-        MessageBox.Show(Me, If(fictif, "Archive et fiche TEST enregistrées.", "Document archivé et référencé en base."),
+        MessageBox.Show(Me, If(_sqlTest IsNot Nothing, "Archive locale et fiche SQL TEST enregistrées.",
+                               If(fictif, "Archive et fiche TEST enregistrées.", "Document archivé et référencé en base.")),
                         action, MessageBoxButtons.OK, MessageBoxIcon.Information)
     End Function
 
