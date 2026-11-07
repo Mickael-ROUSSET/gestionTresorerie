@@ -23,16 +23,16 @@ Public Class DocumentRepository
         _executor.ExecuteNamedNonQuery("insertDocAgumaaa", InsertionParameters(doc))
     End Sub
 
-    Public Sub InsererArchiveSiAbsente(doc As DocumentAgumaaa)
-        ' Le verrou de plage protège la vérification et l’insertion dans une seule instruction.
-        Const sql As String =
+    ' Le verrou de plage protège la vérification et l’insertion dans une seule instruction.
+    Friend Const ArchiveInsertSql As String =
             "INSERT INTO [dbo].[Documents] (dateDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees) " &
             "SELECT @dateDoc, @cheminDoc, @categorieDoc, @sousCategorieDoc, @idMvtDoc, @metaDonnees " &
             "WHERE NOT EXISTS (SELECT 1 FROM [dbo].[Documents] WITH (UPDLOCK, HOLDLOCK) WHERE cheminDoc = @cheminDoc);"
-        _executor.ExecuteNonQuery(sql, InsertionParameters(doc))
+    Public Sub InsererArchiveSiAbsente(doc As DocumentAgumaaa)
+        _executor.ExecuteNonQuery(ArchiveInsertSql, InsertionParameters(doc))
     End Sub
 
-    Private Shared Function InsertionParameters(doc As DocumentAgumaaa) As List(Of SqlParameter)
+    Friend Shared Function InsertionParameters(doc As DocumentAgumaaa) As List(Of SqlParameter)
         If doc Is Nothing Then Throw New ArgumentNullException(NameOf(doc))
 
         Return ToSqlParameters(New Dictionary(Of String, Object) From {
