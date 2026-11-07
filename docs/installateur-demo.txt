@@ -4,10 +4,13 @@ Prérequis
 Windows 10 (version 1809 ou ultérieure) ou Windows 11, processeur x64.
 Microsoft .NET Desktop Runtime 8 x64 est requis et contrôlé avant installation.
 Téléchargement officiel https://dotnet.microsoft.com/download/dotnet/8.0
+SQL Server Express LocalDB est requis pour préparer les bases du compte Windows courant.
 
 Installation
 Exécuter gestionTresorerie-demo-setup-<commit>.exe et suivre l'assistant.
 L'application est installée pour l'utilisateur courant dans LocalAppData/Programs/gestionTresorerie-Demo.
+Les catalogues LocalDB bddAgumaaaTest et bddAgumaaa sont créés uniquement si absents.
+La table documentaire TEST est préparée. Un nouveau catalogue PROD est vide.
 Un raccourci est ajouté au menu Démarrer. Le raccourci Bureau est proposé en option.
 Les bibliothèques applicatives sont incluses. Le runtime .NET reste un prérequis distinct.
 
