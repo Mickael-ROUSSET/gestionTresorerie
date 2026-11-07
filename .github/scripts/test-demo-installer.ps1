@@ -59,9 +59,14 @@ $rejectLog = Join-Path $logs '01-rejected-directory.log'
 $exitCode = Invoke-Setup $installer @(
     '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-',
     "/DIR=""$refusedDir""", "/LOG=""$rejectLog""")
-if ($exitCode -eq 0 -or (Test-Path -LiteralPath $refusedDir) -or
-    (Test-Path -LiteralPath $installDir) -or (Test-Path -LiteralPath $registryPath)) {
-    throw 'Le refus du dossier personnalisé ne fonctionne pas.'
+if ($exitCode -ne 7 -or
+    -not (Test-Path -LiteralPath $rejectLog -PathType Leaf) -or
+    (Test-Path -LiteralPath $refusedDir) -or
+    (Test-Path -LiteralPath $installDir) -or
+    (Test-Path -LiteralPath $registryPath) -or
+    (Test-Path -LiteralPath $desktopLink) -or
+    (Test-Path -LiteralPath $startLink)) {
+    throw "Refus du dossier personnalisé non prouvé : code $exitCode, journal ou état Windows incorrect."
 }
 Write-Output "Dossier personnalisé refusé avant installation (code $exitCode)."
 
