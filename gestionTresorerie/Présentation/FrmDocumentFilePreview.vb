@@ -14,6 +14,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
 
     Private ReadOnly _testWorkspace As OfflineTestWorkspace
     Private ReadOnly _sqlTest As SqlDocumentTestStore
+    Private ReadOnly _sqlExample As Boolean
     Private ReadOnly _analyse As New Button With {
         .Text = "Analyser le document…", .AutoSize = True, .Anchor = AnchorStyles.Left}
     Private ReadOnly _pageNumber As New NumericUpDown With {.Minimum = 1, .Width = 72, .Visible = False}
@@ -22,12 +23,14 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private _pending As Boolean
 
     Public Sub New(paths As IEnumerable(Of String), Optional testWorkspace As OfflineTestWorkspace = Nothing,
-                   Optional sqlTest As SqlDocumentTestStore = Nothing)
+                   Optional sqlTest As SqlDocumentTestStore = Nothing, Optional sqlExample As Boolean = False)
         If sqlTest IsNot Nothing AndAlso testWorkspace Is Nothing Then
             Throw New ArgumentNullException(NameOf(testWorkspace))
         End If
         _testWorkspace = testWorkspace
         _sqlTest = sqlTest
+        _sqlExample = sqlExample
+        If _sqlTest IsNot Nothing Then _analyse.Text = "Analyser / saisir le document…"
         Text = "Examen des PDF et des scans"
         ClientSize = New Size(1000, 640)
         StartPosition = FormStartPosition.CenterParent
@@ -99,6 +102,10 @@ Friend NotInheritable Class FrmDocumentFilePreview
         _files.Enabled = False
         _pageNumber.Enabled = False
         Try
+            If _sqlTest IsNot Nothing Then
+                Await ReviewSqlTestDocument(source)
+                Return
+            End If
             If local Then
                 Await AnalysePdfLocal(source)
                 Return
@@ -150,6 +157,45 @@ Friend NotInheritable Class FrmDocumentFilePreview
             _pending = False
         End Try
     End Sub
+
+    Private Async Function ReviewSqlTestDocument(source As String) As Task
+        Dim hash As String
+        Dim suggested As Newtonsoft.Json.Linq.JObject = Nothing
+        Dim note = "Vérifiez les champs proposés, ou saisissez ceux du document affiché. Pour un chèque, choisissez son sens."
+        Using sourceLock = File.Open(source, FileMode.Open, FileAccess.Read, FileShare.Read)
+            hash = DocumentArchiveProposal.HashSource(source)
+            If _sqlExample Then
+                suggested = Newtonsoft.Json.Linq.JObject.Parse(DemoDocumentSamples.Invoice)
+            Else
+                Dim ocr = Environment.GetEnvironmentVariable("AGUMAAA_TESSERACT_EXE")
+                If IsPdf(source) Then
+                    If DocumentFilePreview.PdfPageCount(source) < 1 Then Throw New InvalidDataException("PDF vide.")
+                Else
+                    Using bitmap = DocumentFilePreview.ReadImage(source)
+                        If bitmap.Width < 1 Then Throw New InvalidDataException("Image vide.")
+                    End Using
+                End If
+                Try
+                    If IsPdf(source) Then
+                        suggested = Await Task.Run(Function() LocalPdfInvoiceAnalysis.Extract(source, ocr))
+                    ElseIf Not String.IsNullOrWhiteSpace(ocr) Then
+                        suggested = Await Task.Run(Function() LocalPdfInvoiceAnalysis.ExtractText(OfflineImageOcr.Recognize(source, ocr)))
+                    Else
+                        note = "Saisissez les champs du document affiché. Tesseract est facultatif pour proposer des champs de facture."
+                    End If
+                Catch ex As Exception When TypeOf ex Is IOException OrElse TypeOf ex Is InvalidOperationException OrElse
+                    TypeOf ex Is InvalidDataException OrElse TypeOf ex Is TimeoutException OrElse TypeOf ex Is ArgumentException OrElse
+                    TypeOf ex Is ComponentModel.Win32Exception
+                    note = "Extraction automatique indisponible pour ce document. Saisissez ses champs à partir de l’aperçu."
+                End Try
+            End If
+        End Using
+
+        Using editor As New FrmSqlTestDocumentEntry(source, hash, _testWorkspace.GetDocumentTestDirectory(), suggested, note)
+            If editor.ShowDialog(Me) <> DialogResult.OK Then Return
+            Await ConfirmProposal(editor.Proposal, TestSaveAction(), True)
+        End Using
+    End Function
 
     Private Async Function AnalysePdfLocal(source As String) As Task
         Dim hash As String
