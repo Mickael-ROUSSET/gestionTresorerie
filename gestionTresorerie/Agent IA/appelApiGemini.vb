@@ -5,7 +5,8 @@ Imports Newtonsoft.Json
 
 Public Class GeminiAnalyzer
 
-    Public Shared Async Function AnalyserDocument(apiKey As String, cheminFichier As String) As Task(Of String)
+    Public Shared Async Function AnalyserDocument(apiKey As String, cheminFichier As String,
+                                                        Optional rapportDetaille As Boolean = True) As Task(Of String)
         ' 1. Construction de l'URL par concaténation simple (SANS $)  chr(58=) = 2 points
         Dim url As String = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash" & Chr(58) & "generateContent?key=" & apiKey
 
@@ -19,7 +20,7 @@ Public Class GeminiAnalyzer
             Dim bytes = File.ReadAllBytes(cheminFichier)
             Dim base64File = Convert.ToBase64String(bytes)
             Dim extension = Path.GetExtension(cheminFichier).ToLower()
-            Dim mimeType = If(extension = ".pdf", "application/pdf", "image/jpeg")
+            Dim mimeType = If(extension = ".pdf", "application/pdf", If(extension = ".png", "image/png", "image/jpeg"))
             ' Prompt unique qui demande l'identification ET l'extraction
             'Dim prompt As String = LireRessourceTexte("gestionTresorerie.PromptGemini.txt")
             ' "gestionTresorerie.PromptGemini.txt" est le nom interne (compilé)
@@ -77,7 +78,7 @@ Public Class GeminiAnalyzer
                 Debug.WriteLine("Requête envoyée, attente...")
                 Dim maReponse As HttpResponseMessage = Await client.PostAsync(url, content)
                 Debug.WriteLine("Statut reçu : " & maReponse.StatusCode.ToString())
-                If maReponse.StatusCode = Net.HttpStatusCode.BadRequest Then
+                If rapportDetaille AndAlso maReponse.StatusCode = Net.HttpStatusCode.BadRequest Then
                     ' LIRE LE MESSAGE D'ERREUR DÉTAILLÉ DE GOOGLE
                     Dim errorDetail As String = Await maReponse.Content.ReadAsStringAsync()
                     Logger.ERR("Détail Erreur 400 : " & errorDetail)
@@ -96,13 +97,13 @@ Public Class GeminiAnalyzer
 
                     Return NettoyerReponseGemini(jsonFinal)
                 Else
-                    Logger.ERR($"API Gemini HTTP {maReponse.StatusCode} : {jsonFinal}")
+                    Logger.ERR(If(rapportDetaille, $"API Gemini HTTP {maReponse.StatusCode} : {jsonFinal}", $"API Gemini HTTP {maReponse.StatusCode}"))
                     Return Nothing
                 End If
             End Using
 
         Catch ex As Exception
-            Logger.ERR($"Exception dans AnalyserDocument : {ex.Message}")
+            Logger.ERR(If(rapportDetaille, $"Exception dans AnalyserDocument : {ex.Message}", "Échec de l’analyse Gemini."))
             Return Nothing
         End Try
     End Function
