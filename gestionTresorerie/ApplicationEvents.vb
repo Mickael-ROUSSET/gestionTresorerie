@@ -22,6 +22,27 @@
     ' End Sub
 
     Partial Friend Class MyApplication
+        Private Sub ProvisionLocalDb(sender As Object, e As Microsoft.VisualBasic.ApplicationServices.StartupEventArgs) Handles Me.Startup
+            If e.CommandLine.Count <> 1 OrElse
+               Not String.Equals(e.CommandLine(0), "--provision-localdb", StringComparison.OrdinalIgnoreCase) Then Return
+
+            e.Cancel = True
+            SaveMySettingsOnExit = False
+            Try
+                Dim documents As New SqlDocumentTestStore()
+                documents.Initialize()
+            Catch
+                System.Environment.ExitCode = 10
+                Return
+            End Try
+
+            Try
+                LocalDbCatalogs.EnsureProductionCatalog()
+                System.Environment.ExitCode = 0
+            Catch
+                System.Environment.ExitCode = 11
+            End Try
+        End Sub
 
     End Class
 End Namespace
