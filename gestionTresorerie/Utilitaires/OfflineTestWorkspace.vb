@@ -81,6 +81,73 @@ Public NotInheritable Class OfflineTestWorkspace
         End If
     End Sub
 
+    Friend Function CreateDocumentTestInvoice() As String
+        If SessionDirectory Is Nothing Then PrepareNewSession()
+        ValidateSession()
+        Dim source = Path.Combine(SessionDirectory, "facture.png")
+        Using sessionLock = AcquireReviewLock()
+            RejectLinks(source)
+            If Not File.Exists(source) Then
+                Using bitmap As New Drawing.Bitmap(640, 240)
+                    Using graphics = Drawing.Graphics.FromImage(bitmap)
+                        graphics.Clear(Drawing.Color.White)
+                        graphics.DrawString("FACTURE FICTIVE — DEMO-001" & vbLf &
+                            "Exemple fictif" & vbLf & "01/04/2026" & vbLf & "Total TTC : 42,50 EUR",
+                            Drawing.SystemFonts.DefaultFont, Drawing.Brushes.Black, 20, 20)
+                    End Using
+                    Using stream = File.Open(source, FileMode.CreateNew, FileAccess.Write, FileShare.None)
+                        bitmap.Save(stream, Drawing.Imaging.ImageFormat.Png)
+                    End Using
+                End Using
+            End If
+        End Using
+        Return source
+    End Function
+
+    Friend Function GetDocumentTestDirectory() As String
+        ValidateSession()
+        Return SessionDirectory
+    End Function
+
+    Friend Function ReadDocumentExtraction(source As String) As String
+        ValidateSession()
+        Dim companion = Path.ChangeExtension(source, ".json")
+        If Not File.Exists(companion) Then
+            Throw New InvalidOperationException("En TEST, placez un JSON d’extraction fictif à côté du document, avec le même nom de base.")
+        End If
+        Return ReadOwnedFile(companion)
+    End Function
+
+    Friend Shared Function DocumentArchiveTestSetting(name As String) As String
+        Select Case name
+            Case "repRacineComptabilité" : Return "Archives-documents-TEST"
+            Case "repFichiersDocumentsFactures" : Return "Factures"
+            Case "repFichiersFacturesEmises" : Return "Emises"
+            Case "repFichiersFacturesRecues" : Return "Recues"
+            Case "repFichiersDocumentsChèques" : Return "Chèques"
+            Case "numCptAgumaaa" : Return "COMPTE-AGUMAAA-TEST"
+            Case Else : Throw New ArgumentOutOfRangeException(NameOf(name))
+        End Select
+    End Function
+
+    Friend Sub ValidateDocumentTestDestination(destination As String)
+        ValidateSession()
+        RejectLinks(destination)
+    End Sub
+
+    Friend Sub SaveDocumentTestRecord(doc As DocumentAgumaaa)
+        ValidateDocumentTestDestination(doc.CheminDoc)
+        Using sessionLock = AcquireReviewLock()
+            Dim record = doc.CheminDoc & ".fiche-TEST.json"
+            RejectLinks(record)
+            If Not File.Exists(record) Then
+                WriteAtomicFile(record, JsonConvert.SerializeObject(New With {
+                    doc.DateDoc, doc.CheminDoc, doc.CategorieDoc,
+                    .MetaDonnees = Newtonsoft.Json.Linq.JObject.Parse(doc.metaDonnees)}, Formatting.Indented))
+            End If
+        End Using
+    End Sub
+
     Private Function ReadSources() As String()
         ValidateSession()
         Return SourceNames.Select(Function(name) ReadOwnedFile(Path.Combine(SessionDirectory, name))).ToArray()
