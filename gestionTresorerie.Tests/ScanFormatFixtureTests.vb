@@ -32,6 +32,28 @@ Public Class ScanFormatFixtureTests
     End Sub
 
     <TestMethod>
+    Public Sub ApercuPngFictifEtExtensionInsensibleALaCasse()
+        Dim root = Directory.CreateTempSubdirectory().FullName
+        Try
+            Dim chemin = Path.Combine(root, "SCAN-FICTIF.PNG")
+            Using image As New Bitmap(11, 8)
+                image.SetPixel(0, 0, Color.Red)
+                image.Save(chemin, Imaging.ImageFormat.Png)
+            End Using
+            Assert.IsTrue(DocumentFilePreview.Supports(chemin))
+            Using apercu = DocumentFilePreview.ReadImage(chemin)
+                Assert.AreEqual(11, apercu.Width)
+                Assert.AreEqual(8, apercu.Height)
+                Assert.AreEqual(Color.Red.ToArgb(), apercu.GetPixel(0, 0).ToArgb())
+            End Using
+            File.Delete(chemin)
+            Assert.IsFalse(File.Exists(chemin))
+        Finally
+            Directory.Delete(root, recursive:=True)
+        End Try
+    End Sub
+
+    <TestMethod>
     Public Sub FichierTronqueOuTropVolumineuxEstRejeteSansModification()
         Dim root = Directory.CreateTempSubdirectory().FullName
         Try
