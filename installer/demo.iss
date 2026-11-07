@@ -134,3 +134,21 @@ begin
       Result := 'Le dossier existant ne contient pas une démonstration reconnue. Installation arrêtée.';
   end;
 end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ExitCode: Integer;
+begin
+  if CurStep <> ssPostInstall then
+    Exit;
+  if not Exec(ExpandConstant('{app}\gestionTresorerie.exe'), '--provision-localdb',
+      ExpandConstant('{app}'), SW_HIDE, ewWaitUntilTerminated, ExitCode) then
+    RaiseException('Impossible de lancer la préparation des bases LocalDB.');
+  if ExitCode = 10 then
+    RaiseException('Initialisation de bddAgumaaaTest impossible. Vérifiez SQL Server Express LocalDB et les droits de votre compte Windows.');
+  if ExitCode = 11 then
+    RaiseException('Création de bddAgumaaa impossible. Vérifiez les droits et les fichiers de données sur LocalDB.');
+  if ExitCode <> 0 then
+    RaiseException('Préparation LocalDB interrompue (code ' + IntToStr(ExitCode) + ').');
+  Log('LocalDB : catalogues bddAgumaaaTest et bddAgumaaa disponibles.');
+end;
