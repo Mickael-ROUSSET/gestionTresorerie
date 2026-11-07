@@ -24,6 +24,10 @@ Public NotInheritable Class LocalPdfInvoiceAnalysis
             content = RecognizePages(filePath, tesseractExe)
         End If
 
+        Return ExtractText(content)
+    End Function
+
+    Friend Shared Function ExtractText(content As String) As JObject
         ' Reprend les règles conservatrices TTC/date de la PR #101.
         Dim normalized = content.Replace(vbCrLf, vbLf).Replace(vbCr, vbLf)
         Dim transaction As New JObject
