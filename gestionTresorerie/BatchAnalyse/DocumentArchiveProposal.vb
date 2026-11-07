@@ -86,10 +86,10 @@ Public NotInheritable Class DocumentArchiveProposal
             Throw New ArgumentException("Le répertoire de classement sort de la racine configurée.")
         End If
         document.CheminDoc = archive
-        Dim resume = $"{document.CategorieDoc} — {sens}{vbCrLf}" &
+        Dim summaryText = $"{document.CategorieDoc} — {sens}{vbCrLf}" &
             $"Référence : {reference}{vbCrLf}Date : {document.DateDoc:dd/MM/yyyy}{vbCrLf}" &
             $"Montant : {montant:N2} {devise}{vbCrLf}Tiers : {tiers}"
-        Return New DocumentArchiveProposal(source, root, hash, document, resume)
+        Return New DocumentArchiveProposal(source, root, hash, document, summaryText)
     End Function
 
     Public Shared Function HashSource(source As String) As String
