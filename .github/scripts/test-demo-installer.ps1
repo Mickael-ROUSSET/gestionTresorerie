@@ -65,6 +65,36 @@ if ($exitCode -eq 0 -or (Test-Path -LiteralPath $refusedDir) -or
 }
 Write-Output "Dossier personnalisé refusé avant installation (code $exitCode)."
 
+# Ne jamais installer par-dessus un dossier non reconnu, meme dans le chemin impose.
+# Le dossier et la sentinelle sont exclusivement crees dans ce runner jetable.
+$foreignMarker = Join-Path $installDir 'CI-foreign-directory-sentinel.txt'
+New-Item -ItemType Directory -Path $installDir | Out-Null
+try {
+    Set-Content -LiteralPath $foreignMarker -Value 'Dossier non DEMO_BUILD : ne pas modifier.' -Encoding UTF8
+    $foreignHash = (Get-FileHash -LiteralPath $foreignMarker -Algorithm SHA256).Hash
+    $foreignLog = Join-Path $logs '01b-rejected-unmarked-directory.log'
+    $exitCode = Invoke-Setup $installer @(
+        '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-',
+        "/LOG=""$foreignLog""")
+    if ($exitCode -eq 0 -or
+        -not (Test-Path -LiteralPath $foreignMarker -PathType Leaf) -or
+        (Get-FileHash -LiteralPath $foreignMarker -Algorithm SHA256).Hash -cne $foreignHash -or
+        (Test-Path -LiteralPath (Join-Path $installDir 'gestionTresorerie.exe')) -or
+        (Test-Path -LiteralPath $registryPath)) {
+        throw 'Un dossier utilisateur non marque a ete modifie ou accepte.'
+    }
+    Write-Output "Dossier existant sans marqueur DEMO_BUILD refuse (code $exitCode)."
+}
+finally {
+    if (Test-Path -LiteralPath $foreignMarker) {
+        Remove-Item -LiteralPath $foreignMarker -Force
+    }
+    if ((Test-Path -LiteralPath $installDir) -and
+        @(Get-ChildItem -LiteralPath $installDir -Force).Count -eq 0) {
+        Remove-Item -LiteralPath $installDir
+    }
+}
+
 $installed = $false
 $process = $null
 $testSentinel = Join-Path $testData 'CI-installation-sentinel.txt'
