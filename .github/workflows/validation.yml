@@ -2,7 +2,7 @@ name: Validation .NET Windows
 
 on:
   pull_request:
-    branches: [feature/installer-provision-localdb-20261107, feature/sql-test-real-documents-20261107, feature/sql-document-test-20261107, fix/pdf-view-and-analysis-20261107, fix/archive-reparse-guard-20261107, fix/archive-confirm-size-guard-20261107, feature/document-review-archive-20261107, feature/scan-file-intake-20261107, feature/windows-demo-installer-20261106, feature/test-review-persistence-20261106, feature/test-workspace-20261106, fix/test-isolation-20261105, fix/environment-selection-20261105, docs/inventaire-environnement-test-20261104, master, chore/automation-foundation, refactor/remove-mistral, fix/gmail-sha256-local, test/gmail-document-source-key-20261030, feature/simulated-inbox-main-menu-20261101, feature/windows-demo-isolee-20261102]
+    branches: [feature/test-schema-migration-ledger-20261107, feature/installer-provision-localdb-20261107, feature/sql-test-real-documents-20261107, feature/sql-document-test-20261107, fix/pdf-view-and-analysis-20261107, fix/archive-reparse-guard-20261107, fix/archive-confirm-size-guard-20261107, feature/document-review-archive-20261107, feature/scan-file-intake-20261107, feature/windows-demo-installer-20261106, feature/test-review-persistence-20261106, feature/test-workspace-20261106, fix/test-isolation-20261105, fix/environment-selection-20261105, docs/inventaire-environnement-test-20261104, master, chore/automation-foundation, refactor/remove-mistral, fix/gmail-sha256-local, test/gmail-document-source-key-20261030, feature/simulated-inbox-main-menu-20261101, feature/windows-demo-isolee-20261102]
   push:
     branches: [feature/scan-file-intake-20261107, feature/windows-demo-installer-20261106, fix/environment-selection-20261105, master, chore/automation-foundation, fix/pr71-windows-tests, refactor/remove-mistral, feature/gmail-import-fiabilisation, fix/gmail-sha256-local, test/gmail-document-source-key-20261030, feature/simulated-inbox-main-menu-20261101, feature/windows-demo-isolee-20261102, docs/inventaire-environnement-test-20261104]
   workflow_dispatch:
@@ -46,11 +46,6 @@ jobs:
       - name: Exécuter les tests
         timeout-minutes: 5
         run: dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Release --no-build --property:Platform="Any CPU" --filter "TestCategory!=LocalDbIntegration" --logger "trx;LogFileName=results.trx" --blame-hang --blame-hang-timeout 60s --blame-hang-dump-type none
-      - name: Vérifier les migrations TEST sur LocalDB jetable
-        timeout-minutes: 3
-        env:
-          AGUMAAA_RUN_LOCALDB_INTEGRATION: '1'
-        run: dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Release --no-build --property:Platform="Any CPU" --filter "TestCategory=LocalDbIntegration" --logger "trx;LogFileName=localdb-results.trx"
       - name: Publier les résultats
         if: always()
         uses: actions/upload-artifact@v4
@@ -231,3 +226,31 @@ jobs:
           path: artifacts/installer/*
           if-no-files-found: error
           retention-days: 7
+
+  localdb-migrations:
+    name: Migrations TEST LocalDB isolées
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Installer .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Préparer MSBuild Visual Studio
+        uses: microsoft/setup-msbuild@v2
+      - name: Compiler les tests Release
+        run: msbuild gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj /restore /p:Configuration=Release /p:Platform="Any CPU" /m
+      - name: Vérifier les migrations sur un runner sans catalogues installateur
+        timeout-minutes: 3
+        env:
+          AGUMAAA_RUN_LOCALDB_INTEGRATION: '1'
+        run: dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Release --no-build --property:Platform="Any CPU" --filter "TestCategory=LocalDbIntegration" --logger "trx;LogFileName=localdb-results.trx"
+      - name: Publier les résultats LocalDB
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: localdb-migration-test-results
+          path: "**/TestResults/**/*.trx"
+          if-no-files-found: ignore
