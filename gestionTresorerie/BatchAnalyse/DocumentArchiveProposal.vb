@@ -109,10 +109,10 @@ Public NotInheritable Class DocumentArchiveProposal
                 Throw New IOException("Le document a changé depuis son analyse. Relancez l’analyse.")
             End If
             input.Position = 0
-            Dim directory = Path.GetDirectoryName(Destination)
-            Directory.CreateDirectory(directory)
+            Dim archiveDirectory = Path.GetDirectoryName(Destination)
+            Directory.CreateDirectory(archiveDirectory)
             If Not File.Exists(Destination) Then
-                Dim temporary = Path.Combine(directory, "." & Guid.NewGuid().ToString("N") & ".tmp")
+                Dim temporary = Path.Combine(archiveDirectory, "." & Guid.NewGuid().ToString("N") & ".tmp")
                 Try
                     Using output = File.Open(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None)
                         input.CopyTo(output)
