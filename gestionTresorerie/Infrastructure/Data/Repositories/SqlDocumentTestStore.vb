@@ -4,7 +4,6 @@ Imports System.Data
 Imports System.Data.SqlClient
 
 Public NotInheritable Class SqlDocumentTestStore
-    Private Const InstanceName As String = "(LocalDB)\MSSQLLocalDB"
     Private Const DatabaseName As String = "bddAgumaaaTest"
     Private Const ReadSql As String =
         "SELECT idDoc, dateDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees FROM dbo.Documents"
@@ -26,21 +25,7 @@ Public NotInheritable Class SqlDocumentTestStore
         "sousCategorieDoc nvarchar(100) NULL, idMvtDoc int NULL, metaDonnees nvarchar(max) NULL); END;"
 
     Public Sub Initialize()
-        ' master est uniquement utilisé pour créer le catalogue TEST absent.
-        Using masterConnection As New SqlConnection(BuildConnectionString("master"))
-            masterConnection.Open()
-            Using create = masterConnection.CreateCommand()
-                create.CommandText = "SELECT DB_ID(N'bddAgumaaaTest');"
-                If create.ExecuteScalar() Is DBNull.Value Then
-                    create.CommandText = "CREATE DATABASE [bddAgumaaaTest];"
-                    Try
-                        create.ExecuteNonQuery()
-                    Catch ex As SqlException When ex.Number = 1801
-                        ' Une autre instance a créé la base après notre vérification.
-                    End Try
-                End If
-            End Using
-        End Using
+        LocalDbCatalogs.EnsureTestCatalog()
 
         Using connection = OpenTest(), transaction = connection.BeginTransaction()
             Using prepare As New SqlCommand(PrepareTableSql, connection, transaction)
@@ -73,7 +58,7 @@ Public NotInheritable Class SqlDocumentTestStore
     End Function
 
     Private Shared Function OpenTest() As SqlConnection
-        Dim value = BuildConnectionString(DatabaseName)
+        Dim value = LocalDbCatalogs.ConnectionString(DatabaseName)
         TestEnvironmentIsolation.ValidateConnectionString(value)
         Dim connection As New SqlConnection(value)
         Try
@@ -88,10 +73,4 @@ Public NotInheritable Class SqlDocumentTestStore
         End Try
     End Function
 
-    Private Shared Function BuildConnectionString(catalog As String) As String
-        Return New SqlConnectionStringBuilder With {
-            .DataSource = InstanceName, .InitialCatalog = catalog, .IntegratedSecurity = True,
-            .ConnectTimeout = 15, .ApplicationName = "gestionTresorerie TEST SQL"
-        }.ConnectionString
-    End Function
 End Class

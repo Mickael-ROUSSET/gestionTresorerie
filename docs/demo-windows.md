@@ -53,10 +53,12 @@ Les anciennes sessions dépourvues de pointeur sont recherchées parmi les sessi
 
 ## Espace TEST SQL documentaire
 
-Le menu **Analyse → Espace TEST SQL** ouvre un espace séparé pour les documents. Installez SQL Server Express LocalDB si ce composant manque, puis cliquez sur **Initialiser la base TEST**. L’application crée `bddAgumaaaTest` dans `(LocalDB)\MSSQLLocalDB` et sa table de documents si elles sont absentes. L’installateur de démonstration ne fournit pas LocalDB.
+Le menu **Analyse → Espace TEST SQL** ouvre un espace séparé pour les documents. L’installateur prépare les deux catalogues sur `(LocalDB)\MSSQLLocalDB` pour le compte Windows courant. SQL Server Express LocalDB doit être installé au préalable. Il crée `bddAgumaaaTest` et sa table de documents si elles sont absentes. Il crée aussi `bddAgumaaa` si elle manque, comme catalogue PROD vide. Une base existante reste en place. Le bouton **Initialiser la base TEST** reste disponible dans l’application.
 
 Ouvrez une facture fictive intégrée ou un PDF de test, cliquez sur **Analyser le document** et vérifiez les champs proposés. Après confirmation, la fiche est enregistrée en SQL et la copie est classée dans la session sous `%LOCALAPPDATA%\gestionTresorerie\TEST-SQL`. La liste est relue depuis SQL. La source reste à son emplacement et les fichiers de production et les services distants sont hors de ce parcours. L’espace TEST local hors ligne reste accessible séparément.
 
 ### Utiliser ses propres documents en TEST SQL
 
 Après initialisation, choisissez **Ouvrir un document**, puis **Analyser / saisir le document**. Vous pouvez sélectionner vos propres PDF, JPEG, PNG ou TIFF. Vérifiez et complétez la fiche avant de confirmer son classement. La lecture de PDF textuels peut proposer des champs de facture. Pour les scans et les photos, Tesseract en français peut proposer des champs de facture si `AGUMAAA_TESSERACT_EXE` est configurée. La saisie reste disponible si l’extraction échoue. Pour les chèques, indiquez le sens, le numéro, le bénéficiaire, la date et le montant en euros. Les originaux sont conservés. Les fiches et copies peuvent contenir des données réelles et restent sur le poste, dans `bddAgumaaaTest` et dans les archives de la session TEST SQL.
+
+La validation se fait dans TEST. L’installation ne transfère aucune donnée de TEST vers PROD. Le schéma métier et l’alimentation d’un catalogue PROD neuf, puis la synchronisation web, sont des étapes distinctes.
