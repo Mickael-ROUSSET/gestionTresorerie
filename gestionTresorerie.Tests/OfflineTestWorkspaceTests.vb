@@ -107,6 +107,35 @@ Public Class OfflineTestWorkspaceTests
             End Sub)
     End Sub
 
+
+    <TestMethod>
+    Public Sub FactureFictive_RepriseIdentiqueAutoriseeMaisFicheModifieeRefusee()
+        InTemporaryDirectory(
+            Sub(production, testing)
+                Dim workspace As New OfflineTestWorkspace(production, testing)
+                workspace.PrepareNewSession()
+                Dim source = workspace.CreateDocumentTestInvoice()
+                Dim proposal = DocumentArchiveProposal.Prepare(
+                    source, DocumentArchiveProposal.HashSource(source),
+                    workspace.ReadDocumentExtraction(source),
+                    workspace.GetDocumentTestDirectory(),
+                    AddressOf OfflineTestWorkspace.DocumentArchiveTestSetting)
+                proposal.Confirm(AddressOf workspace.SaveDocumentTestRecord)
+                Dim record = proposal.Destination & ".fiche-TEST.json"
+                Dim original = File.ReadAllText(record)
+                Assert.IsTrue(File.Exists(proposal.Destination))
+                proposal.Confirm(AddressOf workspace.SaveDocumentTestRecord)
+                Assert.AreEqual(original, File.ReadAllText(record))
+
+                File.WriteAllText(record, "{""fiche"":""modifiee""}")
+                Assert.ThrowsExactly(Of IOException)(
+                    Sub() proposal.Confirm(AddressOf workspace.SaveDocumentTestRecord))
+                Assert.AreEqual("{""fiche"":""modifiee""}", File.ReadAllText(record))
+                Assert.IsTrue(File.Exists(source))
+                Assert.IsTrue(File.Exists(proposal.Destination))
+            End Sub)
+    End Sub
+
     Private NotInheritable Class WorkspaceWindow
         Inherits FrmOfflineTestWorkspace
 
