@@ -76,7 +76,8 @@ try {
     $exitCode = Invoke-Setup $installer @(
         '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-',
         "/LOG=""$foreignLog""")
-    if ($exitCode -eq 0 -or
+    if ($exitCode -ne 7 -or
+        -not (Test-Path -LiteralPath $foreignLog -PathType Leaf) -or
         -not (Test-Path -LiteralPath $foreignMarker -PathType Leaf) -or
         (Get-FileHash -LiteralPath $foreignMarker -Algorithm SHA256).Hash -cne $foreignHash -or
         (Test-Path -LiteralPath (Join-Path $installDir 'gestionTresorerie.exe')) -or
