@@ -70,6 +70,43 @@ Public Class DocumentFilePreviewTests
         End Try
     End Sub
 
+    <TestMethod>
+    Public Sub AfficheUnePageSansTexteEtLibereLePdf()
+        Dim root = Directory.CreateTempSubdirectory().FullName
+        Try
+            Dim pdf = Path.Combine(root, "scan.pdf")
+            EcrirePdf(pdf, "0 g 0 0 200 100 re f")
+            Assert.AreEqual(1, DocumentFilePreview.PdfPageCount(pdf))
+            Using bitmap = DocumentFilePreview.RenderPdfPage(pdf, 0)
+                Assert.AreEqual(1800, bitmap.Width)
+                Assert.AreEqual(900, bitmap.Height)
+                Assert.AreEqual(Color.Black.ToArgb(), bitmap.GetPixel(bitmap.Width \ 2, bitmap.Height \ 2).ToArgb())
+                File.Delete(pdf)
+                Assert.IsFalse(File.Exists(pdf))
+            End Using
+        Finally
+            Directory.Delete(root, recursive:=True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub AnalyseLesChampsDUnVraiPdfSansFichierJson()
+        Dim root = Directory.CreateTempSubdirectory().FullName
+        Try
+            Dim pdf = Path.Combine(root, "facture.pdf")
+            EcrirePdf(pdf, "BT /F1 8 Tf 11 TL 10 80 Td (Fournisseur: Exemple) Tj T* " &
+                "(Numero de facture: F-001) Tj T* (Date facture: 01/04/2026) Tj T* (Total TTC: 42,50 EUR) Tj ET")
+            Dim data = LocalPdfInvoiceAnalysis.Extract(pdf)("donnees_extraites")
+            Dim transaction = DirectCast(data("transaction"), Newtonsoft.Json.Linq.JObject)
+            Assert.AreEqual(42.5D, transaction.Value(Of Decimal)("montant_ttc"))
+            Assert.AreEqual("2026-04-01", transaction.Value(Of String)("date_facture"))
+            Assert.AreEqual("F-001", transaction.Value(Of String)("numero_facture"))
+            Assert.AreEqual("Exemple", data("identite")("fournisseur_nom").ToString())
+        Finally
+            Directory.Delete(root, recursive:=True)
+        End Try
+    End Sub
+
     Private Shared Sub EcrirePdf(filePath As String, pageContent As String)
         Dim objets As String() = {
             "<< /Type /Catalog /Pages 2 0 R >>",
