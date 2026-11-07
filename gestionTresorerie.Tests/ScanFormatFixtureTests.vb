@@ -106,4 +106,41 @@ Public Class ScanFormatFixtureTests
             Directory.Delete(root, recursive:=True)
         End Try
     End Sub
+    <TestMethod>
+    Public Sub ApercuTiffMultipageFictifAfficheLaPremierePageSansVerrouillage()
+        Dim root = Directory.CreateTempSubdirectory().FullName
+        Try
+            Dim chemin = Path.Combine(root, "scan-multipage-fictif.tiff")
+            Dim codec = Array.Find(Imaging.ImageCodecInfo.GetImageEncoders(),
+                                   Function(item) item.FormatID = Imaging.ImageFormat.Tiff.Guid)
+            Assert.IsNotNull(codec, "Le codec TIFF Windows doit être disponible.")
+            Dim saveFlag = Imaging.Encoder.SaveFlag
+            Using first As New Bitmap(13, 9), second As New Bitmap(5, 4)
+                first.SetPixel(0, 0, Color.Red)
+                second.SetPixel(0, 0, Color.Blue)
+                Using parameters As New Imaging.EncoderParameters(1)
+                    parameters.Param(0) = New Imaging.EncoderParameter(saveFlag, CLng(Imaging.EncoderValue.MultiFrame))
+                    first.Save(chemin, codec, parameters)
+                    parameters.Param(0) = New Imaging.EncoderParameter(saveFlag, CLng(Imaging.EncoderValue.FrameDimensionPage))
+                    first.SaveAdd(second, parameters)
+                    parameters.Param(0) = New Imaging.EncoderParameter(saveFlag, CLng(Imaging.EncoderValue.Flush))
+                    first.SaveAdd(parameters)
+                End Using
+            End Using
+            Using source = Image.FromFile(chemin)
+                Assert.AreEqual(2, source.GetFrameCount(Imaging.FrameDimension.Page),
+                                "La fixture doit réellement contenir deux pages.")
+            End Using
+            Using apercu = DocumentFilePreview.ReadImage(chemin)
+                Assert.AreEqual(13, apercu.Width)
+                Assert.AreEqual(9, apercu.Height)
+                Assert.AreEqual(Color.Red.ToArgb(), apercu.GetPixel(0, 0).ToArgb())
+                File.Delete(chemin)
+                Assert.IsFalse(File.Exists(chemin), "Le TIFF source ne doit pas rester verrouillé.")
+            End Using
+        Finally
+            Directory.Delete(root, recursive:=True)
+        End Try
+    End Sub
+
 End Class
