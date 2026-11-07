@@ -29,6 +29,11 @@ Public Class SqlDocumentTestStoreTests
 
             proposal.Confirm(AddressOf store.Save)
             proposal.Confirm(AddressOf store.Save)
+            Dim cheque = SqlTestDocumentEntry.Prepare(source, DocumentArchiveProposal.HashSource(source), root,
+                True, "000042", "Association exemple", "03/04/2026", "52,90", chequeEmis:=False)
+            cheque.Confirm(AddressOf store.Save)
+            cheque.Confirm(AddressOf store.Save)
+            Assert.IsTrue(File.Exists(cheque.Destination))
             Assert.IsTrue(File.Exists(proposal.Destination))
             Assert.IsTrue(File.Exists(source))
             Using documents = store.ReadDocuments()
@@ -37,7 +42,30 @@ Public Class SqlDocumentTestStoreTests
                 Assert.HasCount(1, rows)
                 Assert.AreEqual("Facture", CStr(rows(0)("categorieDoc")))
                 StringAssert.Contains(CStr(rows(0)("metaDonnees")), "DEMO-001")
+                Dim cheques = documents.Rows.Cast(Of DataRow)().
+                    Where(Function(row) CStr(row("cheminDoc")) = cheque.Destination).ToArray()
+                Assert.HasCount(1, cheques)
+                Assert.AreEqual("Cheque", CStr(cheques(0)("categorieDoc")))
+                Assert.AreEqual("Reçus", CStr(cheques(0)("sousCategorieDoc")))
+                StringAssert.Contains(CStr(cheques(0)("metaDonnees")), "000042")
+                StringAssert.Contains(CStr(cheques(0)("metaDonnees")), "Association exemple")
             End Using
+        Finally
+            Directory.Delete(root, recursive:=True)
+        End Try
+    End Sub
+
+    <TestMethod>
+    Public Sub LaSaisieRefuseUnChequeSansSensEtUnMontantAmbigu()
+        Dim root = Directory.CreateTempSubdirectory().FullName
+        Try
+            Dim source = Path.Combine(root, "cheque.png")
+            Assert.ThrowsExactly(Of ArgumentException)(
+                Sub() SqlTestDocumentEntry.Prepare(source, "hash", root, True,
+                    "000042", "Association exemple", "03/04/2026", "52,90"))
+            Assert.ThrowsExactly(Of ArgumentException)(
+                Sub() SqlTestDocumentEntry.Prepare(source, "hash", root, False,
+                    "F-1", "Fournisseur exemple", "03/04/2026", "1.234"))
         Finally
             Directory.Delete(root, recursive:=True)
         End Try
