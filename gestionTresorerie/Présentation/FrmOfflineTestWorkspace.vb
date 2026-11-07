@@ -51,6 +51,10 @@ Public Class FrmOfflineTestWorkspace
         statusBar.Items.Add(New ToolStripStatusLabel("TEST HORS LIGNE — fichiers fictifs locaux"))
         MainMenuStrip.Items.Find("DemoDocumentsFictifsToolStripMenuItem", True)(0).Enabled = False
         MainMenuStrip.Items.Find("EspaceTestLocalToolStripMenuItem", True)(0).Enabled = False
+        Dim analyse = DirectCast(MainMenuStrip.Items.Find("AnalyseToolStripMenuItem", True)(0), ToolStripMenuItem)
+        Dim menuFichiers As New ToolStripMenuItem("Examiner des PDF et des scans de test sur disque…")
+        AddHandler menuFichiers.Click, Sub() FrmDocumentFilePreview.OpenFiles(Me)
+        analyse.DropDownItems.Add(menuFichiers)
     End Sub
 
     Private Sub PrepareSession(sender As Object, e As EventArgs)
