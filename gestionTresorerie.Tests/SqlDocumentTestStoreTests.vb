@@ -4,6 +4,7 @@ Imports System
 Imports System.Data
 Imports System.Drawing
 Imports System.IO
+Imports System.Data.SqlClient
 Imports gestionTresorerie
 Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
@@ -24,6 +25,13 @@ Public Class SqlDocumentTestStoreTests
             Dim store As New SqlDocumentTestStore()
             store.Initialize()
             store.Initialize()
+            Using connection As New SqlConnection("Data Source=(LocalDB)\MSSQLLocalDB;Initial Catalog=bddAgumaaaTest;Integrated Security=True")
+                connection.Open()
+                Using command = connection.CreateCommand()
+                    command.CommandText = "SELECT COUNT(*) FROM dbo.SchemaMigrations WHERE Version=1 AND Description=N'Initialisation documentaire TEST';"
+                    Assert.AreEqual(1, CInt(command.ExecuteScalar()), "La migration initiale doit être idempotente.")
+                End Using
+            End Using
             Dim proposal = DocumentArchiveProposal.Prepare(source, DocumentArchiveProposal.HashSource(source),
                 DemoDocumentSamples.Invoice, root, AddressOf TestSetting)
 
