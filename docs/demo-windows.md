@@ -50,3 +50,9 @@ Après fermeture de l'application, ouvrir Analyse > Espace TEST local puis cliqu
 La sauvegarde est liée au nom de session et à l'empreinte des cinq documents. Une modification des fichiers ou un état provenant d'une autre session est refusé. Une fenêtre dont la sauvegarde est devenue obsolète doit recharger la revue avant d'enregistrer. En cas de fichier de revue corrompu, la reprise est refusée et le diagnostic est affiché.
 
 Les anciennes sessions dépourvues de pointeur sont recherchées parmi les sessions complètes, par date du marqueur de préparation. Elles démarrent sans correction ni examen s'il n'existe pas de sauvegarde. Les sessions réinitialisées utilisent de nouveaux fichiers et ne récupèrent pas les examens précédents.
+
+## Espace TEST SQL documentaire
+
+Le menu **Analyse → Espace TEST SQL** ouvre un espace séparé pour les documents. Installez SQL Server Express LocalDB si ce composant manque, puis cliquez sur **Initialiser la base TEST**. L’application crée `bddAgumaaaTest` dans `(LocalDB)\MSSQLLocalDB` et sa table de documents si elles sont absentes. L’installateur de démonstration ne fournit pas LocalDB.
+
+Ouvrez une facture fictive intégrée ou un PDF de test, cliquez sur **Analyser le document** et vérifiez les champs proposés. Après confirmation, la fiche est enregistrée en SQL et la copie est classée dans la session sous `%LOCALAPPDATA%\gestionTresorerie\TEST-SQL`. La liste est relue depuis SQL. La source reste à son emplacement et les fichiers de production et les services distants sont hors de ce parcours. L’espace TEST local hors ligne reste accessible séparément.
