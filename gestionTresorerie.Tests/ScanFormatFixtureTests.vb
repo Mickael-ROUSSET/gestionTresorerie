@@ -38,7 +38,17 @@ Public Class ScanFormatFixtureTests
             Dim tronque = Path.Combine(root, "scan.png")
             Dim octets = New Byte() {&H89, &H50, &H4E, &H47}
             File.WriteAllBytes(tronque, octets)
-            Assert.ThrowsException(Of ArgumentException)(Sub() DocumentFilePreview.ReadImage(tronque))
+            Dim erreur As Exception = Nothing
+            Try
+                Using apercu = DocumentFilePreview.ReadImage(tronque)
+                End Using
+            Catch ex As ArgumentException
+                erreur = ex
+            Catch ex As OutOfMemoryException
+                ' GDI+ signale parfois une image invalide par OutOfMemoryException.
+                erreur = ex
+            End Try
+            Assert.IsNotNull(erreur, "Un fichier PNG tronqué ne doit pas être accepté.")
             CollectionAssert.AreEqual(octets, File.ReadAllBytes(tronque))
 
             Dim volumineux = Path.Combine(root, "scan.jpg")
