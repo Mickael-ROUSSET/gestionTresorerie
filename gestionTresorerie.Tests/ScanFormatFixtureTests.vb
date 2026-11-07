@@ -57,13 +57,11 @@ Public Class ScanFormatFixtureTests
     Public Sub ExtensionsJpegEtTifCourtesAvecImagesFictives()
         Dim root = Directory.CreateTempSubdirectory().FullName
         Try
-            For Each item In New (Extension As String, Format As Imaging.ImageFormat)() {
-                (".JPEG", Imaging.ImageFormat.Jpeg),
-                (".TIF", Imaging.ImageFormat.Tiff)
-            }
-                Dim chemin = Path.Combine(root, "scan-fictif" & item.Extension)
+            For Each extension In New String() {".JPEG", ".TIF"}
+                Dim chemin = Path.Combine(root, "scan-fictif" & extension)
+                Dim format = If(extension = ".JPEG", Imaging.ImageFormat.Jpeg, Imaging.ImageFormat.Tiff)
                 Using image As New Bitmap(7, 5)
-                    image.Save(chemin, item.Format)
+                    image.Save(chemin, format)
                 End Using
                 Assert.IsTrue(DocumentFilePreview.Supports(chemin))
                 Using apercu = DocumentFilePreview.ReadImage(chemin)
