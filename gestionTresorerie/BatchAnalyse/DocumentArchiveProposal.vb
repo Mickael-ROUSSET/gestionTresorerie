@@ -105,6 +105,10 @@ Public NotInheritable Class DocumentArchiveProposal
         If saveDocument Is Nothing Then Throw New ArgumentNullException(NameOf(saveDocument))
         If Not Directory.Exists(_root) Then Throw New IOException("La racine d’archivage configurée est inaccessible.")
         Using input = File.Open(_source, FileMode.Open, FileAccess.Read, FileShare.Read)
+            ' La source peut avoir grandi depuis la préparation : conserver la limite de 25 Mio.
+            If input.Length = 0 OrElse input.Length > 25L * 1024 * 1024 Then
+                Throw New IOException("La taille du document doit être comprise entre 1 octet et 25 Mio.")
+            End If
             If Not String.Equals(Convert.ToHexString(SHA256.HashData(input)), _hash, StringComparison.Ordinal) Then
                 Throw New IOException("Le document a changé depuis son analyse. Relancez l’analyse.")
             End If
