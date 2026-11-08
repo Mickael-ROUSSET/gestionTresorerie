@@ -30,4 +30,32 @@ Public Class FrmTiersTestTests
         Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(15)), "L'interface TEST ne doit pas bloquer au démarrage.")
         If failure IsNot Nothing Then Throw failure
     End Sub
+
+    <TestMethod>
+    Public Sub NouvelleSaisieEffaceLesChampsSansConnexionSql()
+        Dim failure As Exception = Nothing
+        Dim thread As New Thread(
+            Sub()
+                Try
+                    Using form As New FrmTiersTest()
+                        Dim nom = DirectCast(form.Controls.Find("NomTiersTest", True)(0), TextBox)
+                        Dim email = DirectCast(form.Controls.Find("EmailTiersTest", True)(0), TextBox)
+                        Dim ville = DirectCast(form.Controls.Find("VilleTiersTest", True)(0), TextBox)
+                        nom.Text = "Tiers fictif"
+                        email.Text = "test@example.invalid"
+                        ville.Text = "Ville fictive"
+                        DirectCast(form.Controls.Find("NouveauTiersTest", True)(0), Button).PerformClick()
+                        Assert.AreEqual("", nom.Text)
+                        Assert.AreEqual("", email.Text)
+                        Assert.AreEqual("", ville.Text)
+                    End Using
+                Catch ex As Exception
+                    failure = ex
+                End Try
+            End Sub)
+        thread.SetApartmentState(ApartmentState.STA)
+        thread.Start()
+        Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(15)))
+        If failure IsNot Nothing Then Throw failure
+    End Sub
 End Class
