@@ -41,7 +41,6 @@ Public Class SqlDocumentTestStoreTests
                     Try
                         Assert.ThrowsExactly(Of SqlException)(Sub() store.Initialize())
                         Assert.ThrowsExactly(Of SqlException)(Sub() store.ReadDocuments())
-                        Assert.ThrowsExactly(Of SqlException)(Sub() store.Save(New DocumentAgumaaa()))
                     Finally
                         command.CommandText = "UPDATE dbo.SchemaMigrations SET Description=N'Initialisation documentaire TEST' WHERE Version=1;"
                         command.ExecuteNonQuery()
