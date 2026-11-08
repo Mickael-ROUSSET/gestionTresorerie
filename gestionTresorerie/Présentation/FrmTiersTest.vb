@@ -89,6 +89,10 @@ Public NotInheritable Class FrmTiersTest
     End Sub
 
     Private Sub CreateTiers(sender As Object, e As EventArgs)
+        If String.IsNullOrWhiteSpace(_nom.Text) Then
+            _status.Text = "Création TEST refusée : renseignez un nom fictif."
+            Return
+        End If
         Try
             _store.Initialize()
             Dim id = _store.CreateTiers(_nom.Text, _email.Text, _ville.Text)
@@ -102,6 +106,10 @@ Public NotInheritable Class FrmTiersTest
     Private Sub UpdateTiers(sender As Object, e As EventArgs)
         If _selectedId <= 0 Then
             _status.Text = "Sélectionnez d'abord un tiers dans les résultats TEST."
+            Return
+        End If
+        If String.IsNullOrWhiteSpace(_nom.Text) Then
+            _status.Text = "Modification TEST refusée : renseignez un nom fictif."
             Return
         End If
         Try
