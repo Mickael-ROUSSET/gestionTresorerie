@@ -70,6 +70,45 @@ Public NotInheritable Class SqlTiersTestStore
         End Using
     End Function
 
+    ''' <summary>Corrige atomiquement le nom et les coordonnées d'un tiers TEST existant.</summary>
+    Public Sub UpdateTiers(id As Integer, nom As String, email As String, ville As String)
+        If id <= 0 Then Throw New ArgumentOutOfRangeException(NameOf(id))
+        If String.IsNullOrWhiteSpace(nom) OrElse nom.Trim().Length > 50 Then
+            Throw New ArgumentException("Nom TEST obligatoire (50 caractères maximum).", NameOf(nom))
+        End If
+        If Not Coordonnees.ValiderEmail(email) Then
+            Throw New ArgumentException("Adresse électronique TEST invalide.", NameOf(email))
+        End If
+        If ville IsNot Nothing AndAlso ville.Trim().Length > 50 Then
+            Throw New ArgumentException("Ville TEST trop longue.", NameOf(ville))
+        End If
+
+        Using connection = OpenTest(), transaction = connection.BeginTransaction()
+            Try
+                Using command As New SqlCommand(
+                    "IF DB_NAME()<>N'bddAgumaaaTest' THROW 51000,N'Catalogue TEST inattendu.',1;" &
+                    "IF NOT EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE Version=1 AND Description=N'Initialisation documentaire TEST') " &
+                    "OR EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE Version<>1) THROW 51007,N'Migrations TEST invalides.',1;" &
+                    "UPDATE dbo.Tiers SET nom=@nom,dateModification=GETDATE() WHERE Id=@id;" &
+                    "IF @@ROWCOUNT<>1 THROW 51008,N'Tiers TEST introuvable.',1;" &
+                    "UPDATE dbo.Coordonnees SET Email=@email,Ville=@ville WHERE IdTiers=@id;" &
+                    "IF @@ROWCOUNT<>1 THROW 51009,N'Coordonnees TEST absentes ou multiples.',1;", connection, transaction)
+                    command.Parameters.Add("@id", SqlDbType.Int).Value = id
+                    command.Parameters.Add("@nom", SqlDbType.NVarChar, 50).Value = nom.Trim()
+                    command.Parameters.Add("@email", SqlDbType.NVarChar, 150).Value =
+                        If(String.IsNullOrWhiteSpace(email), CType(DBNull.Value, Object), email.Trim())
+                    command.Parameters.Add("@ville", SqlDbType.NVarChar, 50).Value =
+                        If(String.IsNullOrWhiteSpace(ville), CType(DBNull.Value, Object), ville.Trim())
+                    command.ExecuteNonQuery()
+                End Using
+                transaction.Commit()
+            Catch
+                transaction.Rollback()
+                Throw
+            End Try
+        End Using
+    End Sub
+
     ''' <summary>Recherche des tiers fictifs par nom, sans exposer le catalogue de production.</summary>
     Public Function SearchTiers(nomPartiel As String) As DataTable
         If String.IsNullOrWhiteSpace(nomPartiel) Then Throw New ArgumentException("Recherche TEST obligatoire.", NameOf(nomPartiel))
