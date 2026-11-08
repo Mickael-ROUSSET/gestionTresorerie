@@ -31,6 +31,9 @@ Public NotInheritable Class SqlDocumentTestStore
         "Description nvarchar(200) NOT NULL, AppliedAt datetime2 NOT NULL DEFAULT SYSUTCDATETIME()); END;" &
         "IF EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE Version > 1) " &
         "THROW 51004, N'Schema TEST plus récent que cette application.', 1;" &
+        "IF EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE Version = 1 " &
+        "AND Description <> N'Initialisation documentaire TEST') " &
+        "THROW 51005, N'Migration TEST version 1 incohérente.', 1;" &
         "IF NOT EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE Version = 1) " &
         "INSERT INTO dbo.SchemaMigrations (Version, Description) " &
         "VALUES (1, N'Initialisation documentaire TEST');"
