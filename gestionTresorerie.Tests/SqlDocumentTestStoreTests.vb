@@ -79,7 +79,7 @@ Public Class SqlDocumentTestStoreTests
         End If
         Dim store As New SqlDocumentTestStore()
         store.Initialize()
-        Dim connectionString = "(LocalDB)\\MSSQLLocalDB"
+        Dim connectionString = "(LocalDB)\MSSQLLocalDB"
         Dim builder As New SqlConnectionStringBuilder() With {
             .DataSource = connectionString,
             .InitialCatalog = "bddAgumaaaTest",
