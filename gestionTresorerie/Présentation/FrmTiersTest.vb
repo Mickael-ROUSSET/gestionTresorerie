@@ -96,8 +96,9 @@ Public NotInheritable Class FrmTiersTest
         Try
             _store.Initialize()
             Dim id = _store.CreateTiers(_nom.Text, _email.Text, _ville.Text)
-            _selectedId = id
-            _status.Text = "Tiers fictif créé sous l'identifiant " & id.ToString() & "."
+            _selectedId = 0
+            _results.DataSource = Nothing
+            _status.Text = "Tiers fictif créé sous l'identifiant " & id.ToString() & ". Recherchez-le pour le modifier."
         Catch ex As Exception
             _status.Text = "Création TEST annulée : " & ex.Message
         End Try

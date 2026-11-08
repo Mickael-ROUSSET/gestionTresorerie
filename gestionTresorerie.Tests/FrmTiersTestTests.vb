@@ -86,4 +86,29 @@ Public Class FrmTiersTestTests
         Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(15)), "La validation locale ne doit pas attendre LocalDB.")
         If failure IsNot Nothing Then Throw failure
     End Sub
+
+    <TestMethod>
+    Public Sub ModificationSansSelectionEstRefuseeSansConnexionSql()
+        Dim failure As Exception = Nothing
+        Dim thread As New Thread(
+            Sub()
+                Try
+                    Using form As New FrmTiersTest()
+                        form.Show()
+                        Dim nom = DirectCast(form.Controls.Find("NomTiersTest", True)(0), TextBox)
+                        Dim statut = DirectCast(form.Controls.Find("EtatTiersTest", True)(0), Label)
+                        nom.Text = "Association fictive"
+                        DirectCast(form.Controls.Find("ModifierTiersTest", True)(0), Button).PerformClick()
+                        StringAssert.Contains(statut.Text, "Sélectionnez")
+                        Assert.IsFalse(statut.Text.Contains("SQL"), "Aucune tentative SQL sans sélection.")
+                    End Using
+                Catch ex As Exception
+                    failure = ex
+                End Try
+            End Sub)
+        thread.SetApartmentState(ApartmentState.STA)
+        thread.Start()
+        Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(15)), "Le refus local ne doit pas bloquer.")
+        If failure IsNot Nothing Then Throw failure
+    End Sub
 End Class
