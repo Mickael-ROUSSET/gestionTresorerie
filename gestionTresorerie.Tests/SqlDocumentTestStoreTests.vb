@@ -47,6 +47,21 @@ Public Class SqlDocumentTestStoreTests
                     End Try
                 End Using
             End Using
+            ' Une migration future ne doit pas permettre de consulter les documents TEST.
+            Using connection As New SqlConnection("Data Source=(LocalDB)\MSSQLLocalDB;Initial Catalog=bddAgumaaaTest;Integrated Security=True")
+                connection.Open()
+                Using command = connection.CreateCommand()
+                    command.CommandText = "INSERT INTO dbo.SchemaMigrations (Version, Description) VALUES (2, N'Version future fictive');"
+                    Assert.AreEqual(1, command.ExecuteNonQuery())
+                    Try
+                        Assert.ThrowsExactly(Of SqlException)(Sub() store.ReadDocuments())
+                        Assert.ThrowsExactly(Of SqlException)(Sub() store.Initialize())
+                    Finally
+                        command.CommandText = "DELETE FROM dbo.SchemaMigrations WHERE Version=2;"
+                        Assert.AreEqual(1, command.ExecuteNonQuery())
+                    End Try
+                End Using
+            End Using
             store.Initialize()
             Dim proposal = DocumentArchiveProposal.Prepare(source, DocumentArchiveProposal.HashSource(source),
                 DemoDocumentSamples.Invoice, root, AddressOf TestSetting)
