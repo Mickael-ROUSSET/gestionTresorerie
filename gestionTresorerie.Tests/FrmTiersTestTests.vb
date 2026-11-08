@@ -61,4 +61,29 @@ Public Class FrmTiersTestTests
         Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(15)))
         If failure IsNot Nothing Then Throw failure
     End Sub
+
+    <TestMethod>
+    Public Sub CreationAvecNomVideEstRefuseeSansConnexionSql()
+        Dim failure As Exception = Nothing
+        Dim thread As New Thread(
+            Sub()
+                Try
+                    Using form As New FrmTiersTest()
+                        form.Show()
+                        Dim nom = DirectCast(form.Controls.Find("NomTiersTest", True)(0), TextBox)
+                        Dim statut = DirectCast(form.Controls.Find("EtatTiersTest", True)(0), Label)
+                        nom.Text = "   "
+                        DirectCast(form.Controls.Find("CreerTiersTest", True)(0), Button).PerformClick()
+                        StringAssert.Contains(statut.Text, "nom fictif")
+                        Assert.IsFalse(statut.Text.Contains("connexion"), "La validation doit intervenir avant toute connexion SQL.")
+                    End Using
+                Catch ex As Exception
+                    failure = ex
+                End Try
+            End Sub)
+        thread.SetApartmentState(ApartmentState.STA)
+        thread.Start()
+        Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(15)), "La validation locale ne doit pas attendre LocalDB.")
+        If failure IsNot Nothing Then Throw failure
+    End Sub
 End Class
