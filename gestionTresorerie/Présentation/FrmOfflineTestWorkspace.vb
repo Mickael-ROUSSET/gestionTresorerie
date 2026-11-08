@@ -58,6 +58,13 @@ Public Class FrmOfflineTestWorkspace
         Dim essai As New ToolStripMenuItem("Essayer l’enregistrement et l’archivage avec une facture fictive…")
         AddHandler essai.Click, AddressOf OpenArchiveTestInvoice
         analyse.DropDownItems.Add(essai)
+        Dim tiers As New ToolStripMenuItem("Gérer les tiers et coordonnées fictifs (TEST SQL)…")
+        AddHandler tiers.Click, Sub()
+                                    Using editor As New FrmTiersTest()
+                                        editor.ShowDialog(Me)
+                                    End Using
+                                End Sub
+        analyse.DropDownItems.Add(tiers)
     End Sub
 
     Private Sub OpenArchiveTestInvoice(sender As Object, e As EventArgs)
