@@ -49,6 +49,15 @@ Public Class SqlTiersTestStoreTests
         Using matches = New SqlTiersTestStore().SearchTiers(suffix)
             Assert.AreEqual(2, matches.Rows.Count)
         End Using
+        Dim special = store.CreateTiers("TEST-[A]_%" & suffix, "special@example.test", "Allègre")
+        Using exactBracket = New SqlTiersTestStore().SearchTiers("[A]_%")
+            Assert.AreEqual(1, exactBracket.Rows.Count)
+            Assert.AreEqual(special, CInt(exactBracket.Rows(0)("Id")))
+        End Using
+        Using literalUnderscore = New SqlTiersTestStore().SearchTiers("_%" & suffix)
+            Assert.AreEqual(1, literalUnderscore.Rows.Count)
+            Assert.AreEqual(special, CInt(literalUnderscore.Rows(0)("Id")))
+        End Using
         Using literalWildcard = New SqlTiersTestStore().SearchTiers("TEST-%")
             Assert.AreEqual(0, literalWildcard.Rows.Count)
         End Using
