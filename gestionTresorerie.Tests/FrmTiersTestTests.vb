@@ -38,6 +38,7 @@ Public Class FrmTiersTestTests
             Sub()
                 Try
                     Using form As New FrmTiersTest()
+                        form.Show()
                         Dim nom = DirectCast(form.Controls.Find("NomTiersTest", True)(0), TextBox)
                         Dim email = DirectCast(form.Controls.Find("EmailTiersTest", True)(0), TextBox)
                         Dim ville = DirectCast(form.Controls.Find("VilleTiersTest", True)(0), TextBox)
