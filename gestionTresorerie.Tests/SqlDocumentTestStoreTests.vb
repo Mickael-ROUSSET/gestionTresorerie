@@ -32,6 +32,21 @@ Public Class SqlDocumentTestStoreTests
                     Assert.AreEqual(1, CInt(command.ExecuteScalar()), "La migration initiale doit être idempotente.")
                 End Using
             End Using
+            ' Simule une ligne de migration altérée dans le catalogue TEST jetable.
+            Using connection As New SqlConnection("Data Source=(LocalDB)\MSSQLLocalDB;Initial Catalog=bddAgumaaaTest;Integrated Security=True")
+                connection.Open()
+                Using command = connection.CreateCommand()
+                    command.CommandText = "UPDATE dbo.SchemaMigrations SET Description=N'Migration inconnue' WHERE Version=1;"
+                    Assert.AreEqual(1, command.ExecuteNonQuery())
+                    Try
+                        Assert.ThrowsExactly(Of SqlException)(Sub() store.Initialize())
+                    Finally
+                        command.CommandText = "UPDATE dbo.SchemaMigrations SET Description=N'Initialisation documentaire TEST' WHERE Version=1;"
+                        command.ExecuteNonQuery()
+                    End Try
+                End Using
+            End Using
+            store.Initialize()
             Dim proposal = DocumentArchiveProposal.Prepare(source, DocumentArchiveProposal.HashSource(source),
                 DemoDocumentSamples.Invoice, root, AddressOf TestSetting)
 
