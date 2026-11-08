@@ -37,6 +37,9 @@ Public NotInheritable Class SqlTiersTestStore
         If Not Coordonnees.ValiderEmail(email) Then
             Throw New ArgumentException("Adresse électronique TEST invalide.", NameOf(email))
         End If
+        If email IsNot Nothing AndAlso email.Trim().Length > 150 Then
+            Throw New ArgumentException("Adresse électronique TEST trop longue (150 caractères maximum).", NameOf(email))
+        End If
         If ville IsNot Nothing AndAlso ville.Trim().Length > 50 Then
             Throw New ArgumentException("Ville TEST trop longue.", NameOf(ville))
         End If
@@ -78,6 +81,9 @@ Public NotInheritable Class SqlTiersTestStore
         End If
         If Not Coordonnees.ValiderEmail(email) Then
             Throw New ArgumentException("Adresse électronique TEST invalide.", NameOf(email))
+        End If
+        If email IsNot Nothing AndAlso email.Trim().Length > 150 Then
+            Throw New ArgumentException("Adresse électronique TEST trop longue (150 caractères maximum).", NameOf(email))
         End If
         If ville IsNot Nothing AndAlso ville.Trim().Length > 50 Then
             Throw New ArgumentException("Ville TEST trop longue.", NameOf(ville))
