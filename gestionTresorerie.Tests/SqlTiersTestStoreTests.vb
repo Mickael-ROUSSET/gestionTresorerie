@@ -15,6 +15,7 @@ Public Class SqlTiersTestStoreTests
         Assert.ThrowsExactly(Of ArgumentException)(Sub() store.CreateTiers("Fictif", "invalide", "Allègre"))
         Assert.ThrowsExactly(Of ArgumentException)(Sub() store.CreateTiers(New String("x"c, 51), "", "Allègre"))
         Assert.ThrowsExactly(Of ArgumentOutOfRangeException)(Sub() store.ReadTiers(0))
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.SearchTiers(" "))
     End Sub
 
     <TestMethod, TestCategory("LocalDbIntegration")>
@@ -35,6 +36,12 @@ Public Class SqlTiersTestStoreTests
             Assert.AreEqual("Allègre", CStr(a.Rows(0)("Ville")))
             Assert.AreEqual("b@example.test", CStr(b.Rows(0)("Email")))
             Assert.AreEqual("Monlet", CStr(b.Rows(0)("Ville")))
+        End Using
+        Using matches = New SqlTiersTestStore().SearchTiers(suffix)
+            Assert.AreEqual(2, matches.Rows.Count)
+        End Using
+        Using literalWildcard = New SqlTiersTestStore().SearchTiers("TEST-%")
+            Assert.AreEqual(0, literalWildcard.Rows.Count)
         End Using
     End Sub
 End Class
