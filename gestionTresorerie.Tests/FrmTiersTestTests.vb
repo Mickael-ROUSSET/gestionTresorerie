@@ -45,6 +45,8 @@ Public Class FrmTiersTestTests
                         nom.Text = "Tiers fictif"
                         email.Text = "test@example.invalid"
                         ville.Text = "Ville fictive"
+                        Assert.AreEqual(150, email.MaxLength, "La saisie UI doit respecter la limite SQL.")
+                        email.Text = "test@example.invalid"
                         DirectCast(form.Controls.Find("NouveauTiersTest", True)(0), Button).PerformClick()
                         Assert.AreEqual("", nom.Text)
                         Assert.AreEqual("", email.Text)

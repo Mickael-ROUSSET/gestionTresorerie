@@ -12,7 +12,7 @@ Public NotInheritable Class FrmTiersTest
     Private ReadOnly _store As New SqlTiersTestStore()
     Private ReadOnly _search As New TextBox With {.Name = "RechercheTiersTest", .Left = 20, .Top = 25, .Width = 300}
     Private ReadOnly _nom As New TextBox With {.Name = "NomTiersTest", .Left = 20, .Top = 315, .Width = 320}
-    Private ReadOnly _email As New TextBox With {.Name = "EmailTiersTest", .Left = 355, .Top = 315, .Width = 280}
+    Private ReadOnly _email As New TextBox With {.Name = "EmailTiersTest", .Left = 355, .Top = 315, .Width = 280, .MaxLength = 150}
     Private ReadOnly _ville As New TextBox With {.Name = "VilleTiersTest", .Left = 650, .Top = 315, .Width = 190}
     Private ReadOnly _results As New DataGridView With {
         .Name = "ResultatsTiersTest", .Left = 20, .Top = 75, .Width = 820, .Height = 200,
@@ -74,6 +74,9 @@ Public NotInheritable Class FrmTiersTest
     End Sub
 
     Private Sub SearchTiers(sender As Object, e As EventArgs)
+        ' Une recherche, même échouée, invalide la sélection précédente.
+        _selectedId = 0
+        _results.DataSource = Nothing
         Try
             _store.Initialize()
             _results.DataSource = _store.SearchTiers(_search.Text)
