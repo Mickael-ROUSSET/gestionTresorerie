@@ -68,8 +68,8 @@ Public NotInheritable Class FrmTiersTest
         If view Is Nothing Then Return
         _selectedId = CInt(view("Id"))
         _nom.Text = Convert.ToString(view("nom"))
-        _email.Text = If(view.IsNull("Email"), "", Convert.ToString(view("Email")))
-        _ville.Text = If(view.IsNull("Ville"), "", Convert.ToString(view("Ville")))
+        _email.Text = If(view.Row.IsNull("Email"), "", Convert.ToString(view("Email")))
+        _ville.Text = If(view.Row.IsNull("Ville"), "", Convert.ToString(view("Ville")))
         _status.Text = "Tiers fictif sélectionné : " & _selectedId.ToString()
     End Sub
 
