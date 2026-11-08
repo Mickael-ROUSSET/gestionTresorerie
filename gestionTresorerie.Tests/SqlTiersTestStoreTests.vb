@@ -16,6 +16,8 @@ Public Class SqlTiersTestStoreTests
         Assert.ThrowsExactly(Of ArgumentException)(Sub() store.CreateTiers(New String("x"c, 51), "", "Allègre"))
         Assert.ThrowsExactly(Of ArgumentOutOfRangeException)(Sub() store.ReadTiers(0))
         Assert.ThrowsExactly(Of ArgumentException)(Sub() store.SearchTiers(" "))
+        Assert.ThrowsExactly(Of ArgumentOutOfRangeException)(Sub() store.UpdateTiers(0, "Fictif", "a@example.test", "Allègre"))
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.UpdateTiers(1, "", "a@example.test", "Allègre"))
     End Sub
 
     <TestMethod, TestCategory("LocalDbIntegration")>
@@ -29,11 +31,18 @@ Public Class SqlTiersTestStoreTests
         Dim first = store.CreateTiers("TEST-A-" & suffix, "a@example.test", "Allègre")
         Dim second = store.CreateTiers("TEST-B-" & suffix, "b@example.test", "Monlet")
         Assert.AreNotEqual(first, second)
+        store.UpdateTiers(first, "TEST-A-CORRIGE-" & suffix, "corrige@example.test", "Céaux")
+        Assert.ThrowsExactly(Of SqlException)(Sub() store.UpdateTiers(Integer.MaxValue, "Absent", "a@example.test", "Allègre"))
+        Using corrected = New SqlTiersTestStore().ReadTiers(first)
+            Assert.AreEqual("TEST-A-CORRIGE-" & suffix, CStr(corrected.Rows(0)("nom")))
+            Assert.AreEqual("corrige@example.test", CStr(corrected.Rows(0)("Email")))
+            Assert.AreEqual("Céaux", CStr(corrected.Rows(0)("Ville")))
+        End Using
         Using a = New SqlTiersTestStore().ReadTiers(first), b = New SqlTiersTestStore().ReadTiers(second)
             Assert.AreEqual(1, a.Rows.Count)
             Assert.AreEqual(1, b.Rows.Count)
-            Assert.AreEqual("a@example.test", CStr(a.Rows(0)("Email")))
-            Assert.AreEqual("Allègre", CStr(a.Rows(0)("Ville")))
+            Assert.AreEqual("corrige@example.test", CStr(a.Rows(0)("Email")))
+            Assert.AreEqual("Céaux", CStr(a.Rows(0)("Ville")))
             Assert.AreEqual("b@example.test", CStr(b.Rows(0)("Email")))
             Assert.AreEqual("Monlet", CStr(b.Rows(0)("Ville")))
         End Using
