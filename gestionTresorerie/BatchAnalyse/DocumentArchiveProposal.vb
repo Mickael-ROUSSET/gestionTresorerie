@@ -193,8 +193,12 @@ Public NotInheritable Class DocumentArchiveProposal
 
     Private Shared Function SafeReference(value As String) As String
         If String.IsNullOrWhiteSpace(value) Then Throw New ArgumentException("Référence de classement manquante.")
+        Dim normalized = value.Trim()
+        If normalized.Length > 120 Then
+            Throw New ArgumentException("Référence de classement trop longue (120 caractères maximum).")
+        End If
         Dim invalid = Path.GetInvalidFileNameChars()
-        Return New String(value.Trim().Select(Function(character) If(invalid.Contains(character), "_"c, character)).ToArray())
+        Return New String(normalized.Select(Function(character) If(invalid.Contains(character), "_"c, character)).ToArray())
     End Function
 
     Private Shared Function SafeSegment(value As String) As String
