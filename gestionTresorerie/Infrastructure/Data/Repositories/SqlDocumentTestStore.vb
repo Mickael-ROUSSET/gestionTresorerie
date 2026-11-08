@@ -11,7 +11,13 @@ Public NotInheritable Class SqlDocumentTestStore
         "IF DB_NAME() <> N'bddAgumaaaTest' THROW 51000, N'Catalogue TEST inattendu.', 1;" &
         "IF OBJECT_ID(N'dbo.Documents', N'U') IS NULL THROW 51001, N'Table Documents TEST absente.', 1;" &
         "IF EXISTS (SELECT 1 FROM sys.triggers WHERE parent_id = OBJECT_ID(N'dbo.Documents')) " &
-        "THROW 51002, N'La table Documents TEST comporte des déclencheurs non autorisés.', 1;"
+        "THROW 51002, N'La table Documents TEST comporte des déclencheurs non autorisés.', 1;" &
+        "IF OBJECT_ID(N'dbo.SchemaMigrations', N'U') IS NULL " &
+        "THROW 51006, N'Historique des migrations TEST absent.', 1;" &
+        "IF NOT EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE Version=1 " &
+        "AND Description=N'Initialisation documentaire TEST') " &
+        "OR EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE Version>1) " &
+        "THROW 51007, N'Historique des migrations TEST invalide.', 1;"
     Private Const PrepareTableSql As String =
         "DECLARE @lock int; " &
         "EXEC @lock = sys.sp_getapplock @Resource=N'gestionTresorerie-Documents-TEST', " &
