@@ -121,7 +121,7 @@ Public NotInheritable Class SqlTiersTestStore
                 "SELECT TOP (100) t.Id,t.nom,c.Email,c.Ville FROM dbo.Tiers t " &
                 "LEFT JOIN dbo.Coordonnees c ON c.IdTiers=t.Id " &
                 "WHERE t.nom LIKE @pattern ESCAPE N'~' ORDER BY t.nom,t.Id,c.Id;"
-            Dim escaped = nomPartiel.Trim().Replace("~", "~~").Replace("%", "~%").Replace("_", "~_").Replace("[", "[[]")
+            Dim escaped = nomPartiel.Trim().Replace("~", "~~").Replace("%", "~%").Replace("_", "~_").Replace("[", "~[")
             command.Parameters.Add("@pattern", SqlDbType.NVarChar, 110).Value = "%" & escaped & "%"
             Using reader = command.ExecuteReader()
                 Dim result As New DataTable()
