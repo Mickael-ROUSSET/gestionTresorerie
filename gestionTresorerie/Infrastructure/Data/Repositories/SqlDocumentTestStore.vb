@@ -12,26 +12,34 @@ Public NotInheritable Class SqlDocumentTestStore
         "IF OBJECT_ID(N'dbo.Documents', N'U') IS NULL THROW 51001, N'Table Documents TEST absente.', 1;" &
         "IF EXISTS (SELECT 1 FROM sys.triggers WHERE parent_id = OBJECT_ID(N'dbo.Documents')) " &
         "THROW 51002, N'La table Documents TEST comporte des déclencheurs non autorisés.', 1;"
-    Private Const PrepareTableSql As String =
-        "DECLARE @lock int; " &
-        "EXEC @lock = sys.sp_getapplock @Resource=N'gestionTresorerie-Documents-TEST', " &
-        "@LockMode=N'Exclusive', @LockOwner=N'Transaction', @LockTimeout=10000; " &
-        "IF @lock < 0 THROW 51003, N'Initialisation TEST déjà en cours.', 1;" &
-        "IF DB_NAME() <> N'bddAgumaaaTest' THROW 51000, N'Catalogue TEST inattendu.', 1;" &
-        "IF OBJECT_ID(N'dbo.Documents') IS NULL BEGIN " &
-        "CREATE TABLE dbo.Documents (" &
-        "idDoc int IDENTITY PRIMARY KEY, dateDoc datetime2 NOT NULL, contenuDoc nvarchar(max) NULL, " &
-        "cheminDoc nvarchar(1024) NOT NULL, categorieDoc nvarchar(100) NULL, " &
-        "sousCategorieDoc nvarchar(100) NULL, idMvtDoc int NULL, metaDonnees nvarchar(max) NULL); END;"
+    Private Const MigrationGuardSql As String =
+        "IF OBJECT_ID(N'dbo.SchemaMigrations', N'U') IS NULL " &
+        "THROW 51006, N'Historique des migrations TEST absent.', 1;" &
+        "IF NOT EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE Version=1 " &
+        "AND Description=N'Initialisation documentaire TEST') " &
+        "OR EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE Version<>1) " &
+        "THROW 51007, N'Historique des migrations TEST invalide.', 1;"
+
+    Private Const InitializeMigrationSql As String =
+        "IF OBJECT_ID(N'dbo.SchemaMigrations', N'U') IS NULL BEGIN " &
+        "CREATE TABLE dbo.SchemaMigrations (Version int NOT NULL PRIMARY KEY, " &
+        "Description nvarchar(200) NOT NULL, AppliedAt datetime2 NOT NULL DEFAULT SYSUTCDATETIME()); END;" &
+        "IF EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE Version<>1 " &
+        "OR (Version=1 AND Description<>N'Initialisation documentaire TEST')) " &
+        "THROW 51005, N'Migration TEST incohérente.', 1;" &
+        "IF NOT EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE Version=1) " &
+        "INSERT INTO dbo.SchemaMigrations (Version, Description) " &
+        "VALUES (1, N'Initialisation documentaire TEST');"
 
     Public Sub Initialize()
         LocalDbCatalogs.EnsureTestCatalog()
 
         Using connection = OpenTest(), transaction = connection.BeginTransaction()
-            Using prepare As New SqlCommand(PrepareTableSql, connection, transaction)
-                prepare.ExecuteNonQuery()
+            LocalDbSchema.Apply(connection, transaction, production:=False)
+            Using migration As New SqlCommand(InitializeMigrationSql, connection, transaction)
+                migration.ExecuteNonQuery()
             End Using
-            Using verify As New SqlCommand(GuardSql & ReadSql & " WHERE 1=0;", connection, transaction)
+            Using verify As New SqlCommand(GuardSql & MigrationGuardSql & ReadSql & " WHERE 1=0;", connection, transaction)
                 verify.ExecuteNonQuery()
             End Using
             transaction.Commit()
@@ -40,7 +48,7 @@ Public NotInheritable Class SqlDocumentTestStore
 
     Public Sub Save(doc As DocumentAgumaaa)
         Using connection = OpenTest(), command = connection.CreateCommand()
-            command.CommandText = GuardSql & DocumentRepository.ArchiveInsertSql
+            command.CommandText = GuardSql & MigrationGuardSql & DocumentRepository.ArchiveInsertSql
             command.Parameters.AddRange(DocumentRepository.InsertionParameters(doc).ToArray())
             command.ExecuteNonQuery()
         End Using
@@ -48,7 +56,7 @@ Public NotInheritable Class SqlDocumentTestStore
 
     Public Function ReadDocuments() As DataTable
         Using connection = OpenTest(), command = connection.CreateCommand()
-            command.CommandText = GuardSql & ReadSql & " ORDER BY idDoc DESC;"
+            command.CommandText = GuardSql & MigrationGuardSql & ReadSql & " ORDER BY idDoc DESC;"
             Using reader = command.ExecuteReader()
                 Dim result As New DataTable()
                 result.Load(reader)

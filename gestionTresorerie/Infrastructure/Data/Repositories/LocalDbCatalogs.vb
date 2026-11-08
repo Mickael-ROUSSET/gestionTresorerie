@@ -13,8 +13,16 @@ Friend NotInheritable Class LocalDbCatalogs
         EnsureCatalog("bddAgumaaaTest", "CREATE DATABASE [bddAgumaaaTest];")
     End Sub
 
-    Friend Shared Sub EnsureProductionCatalog()
-        EnsureCatalog("bddAgumaaa", "CREATE DATABASE [bddAgumaaa];")
+    Friend Shared Sub InitializeProduction()
+        Const catalog As String = "bddAgumaaa"
+        EnsureCatalog(catalog, "CREATE DATABASE [bddAgumaaa];")
+        Using connection As New SqlConnection(ConnectionString(catalog))
+            connection.Open()
+            Using transaction = connection.BeginTransaction()
+                LocalDbSchema.Apply(connection, transaction, production:=True)
+                transaction.Commit()
+            End Using
+        End Using
     End Sub
 
     Private Shared Sub EnsureCatalog(catalog As String, createSql As String)
