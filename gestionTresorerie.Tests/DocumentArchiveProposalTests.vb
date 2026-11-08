@@ -139,6 +139,24 @@ Public Class DocumentArchiveProposalTests
         End Try
     End Sub
 
+    <TestMethod>
+    Public Sub ReferenceFactureTropLongue_EstRefuseeAvantTouteArchive()
+        Dim root = Directory.CreateTempSubdirectory().FullName
+        Try
+            Dim source = Path.Combine(root, "facture.pdf")
+            File.WriteAllText(source, "Facture fictive")
+            Dim referenceLongue = New String("X"c, 121)
+            Dim json = DemoDocumentSamples.Invoice.Replace("DEMO-001", referenceLongue)
+            Dim exception = Assert.ThrowsExactly(Of ArgumentException)(
+                Sub() DocumentArchiveProposal.Prepare(source, DocumentArchiveProposal.HashSource(source),
+                                                      json, root, AddressOf Reglage))
+            StringAssert.Contains(exception.Message, "120 caractères")
+            Assert.IsFalse(Directory.Exists(Path.Combine(root, "Comptabilite")))
+        Finally
+            Directory.Delete(root, recursive:=True)
+        End Try
+    End Sub
+
     Private Shared Function Preparer(source As String, root As String) As DocumentArchiveProposal
         Return DocumentArchiveProposal.Prepare(source, DocumentArchiveProposal.HashSource(source),
                                                DemoDocumentSamples.Invoice, root, AddressOf Reglage)
