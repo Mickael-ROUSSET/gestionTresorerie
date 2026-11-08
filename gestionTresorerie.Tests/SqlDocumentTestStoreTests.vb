@@ -33,7 +33,7 @@ Public Class SqlDocumentTestStoreTests
                 End Using
             End Using
             ' Simule une ligne de migration altérée dans le catalogue TEST jetable.
-            Using connection As New SqlConnection("Data Source=(LocalDB)\\MSSQLLocalDB;Initial Catalog=bddAgumaaaTest;Integrated Security=True")
+            Using connection As New SqlConnection("Data Source=(LocalDB)\MSSQLLocalDB;Initial Catalog=bddAgumaaaTest;Integrated Security=True")
                 connection.Open()
                 Using command = connection.CreateCommand()
                     command.CommandText = "UPDATE dbo.SchemaMigrations SET Description=N'Migration inconnue' WHERE Version=1;"
