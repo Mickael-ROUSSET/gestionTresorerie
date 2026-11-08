@@ -4,6 +4,7 @@ Imports System
 Imports System.Data
 Imports System.Drawing
 Imports System.IO
+Imports System.Data.SqlClient
 Imports gestionTresorerie
 Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
@@ -69,6 +70,39 @@ Public Class SqlDocumentTestStoreTests
         Finally
             Directory.Delete(root, recursive:=True)
         End Try
+    End Sub
+
+    <TestMethod, TestCategory("LocalDbIntegration")>
+    Public Sub RefuseUneMigrationTestAltereePuisReprend()
+        If Environment.GetEnvironmentVariable("AGUMAAA_RUN_LOCALDB_INTEGRATION") <> "1" Then
+            Assert.Inconclusive("Test SQL réel réservé au runner jetable.")
+        End If
+        Dim store As New SqlDocumentTestStore()
+        store.Initialize()
+        Dim connectionString = "(LocalDB)\\MSSQLLocalDB"
+        Dim builder As New SqlConnectionStringBuilder() With {
+            .DataSource = connectionString,
+            .InitialCatalog = "bddAgumaaaTest",
+            .IntegratedSecurity = True
+        }
+        Using connection As New SqlConnection(builder.ConnectionString)
+            connection.Open()
+            Using command = connection.CreateCommand()
+                Try
+                    command.CommandText = "UPDATE dbo.SchemaMigrations SET Description=N'Alteration fictive' WHERE Version=1;"
+                    command.ExecuteNonQuery()
+                    Assert.ThrowsExactly(Of SqlException)(Sub() store.ReadDocuments())
+                    Assert.ThrowsExactly(Of SqlException)(Sub() store.Initialize())
+                Finally
+                    command.CommandText = "UPDATE dbo.SchemaMigrations SET Description=N'Initialisation documentaire TEST' WHERE Version=1;"
+                    command.ExecuteNonQuery()
+                End Try
+            End Using
+        End Using
+        store.Initialize()
+        Using rows = store.ReadDocuments()
+            Assert.IsNotNull(rows)
+        End Using
     End Sub
 
     Private Shared Function TestSetting(name As String) As String
