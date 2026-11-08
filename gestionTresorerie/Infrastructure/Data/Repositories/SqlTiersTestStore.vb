@@ -70,6 +70,28 @@ Public NotInheritable Class SqlTiersTestStore
         End Using
     End Function
 
+    ''' <summary>Recherche des tiers fictifs par nom, sans exposer le catalogue de production.</summary>
+    Public Function SearchTiers(nomPartiel As String) As DataTable
+        If String.IsNullOrWhiteSpace(nomPartiel) Then Throw New ArgumentException("Recherche TEST obligatoire.", NameOf(nomPartiel))
+        If nomPartiel.Trim().Length > 50 Then Throw New ArgumentException("Recherche TEST trop longue.", NameOf(nomPartiel))
+        Using connection = OpenTest(), command = connection.CreateCommand()
+            command.CommandText =
+                "IF DB_NAME()<>N'bddAgumaaaTest' THROW 51000,N'Catalogue TEST inattendu.',1;" &
+                "IF NOT EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE Version=1 AND Description=N'Initialisation documentaire TEST') " &
+                "OR EXISTS (SELECT 1 FROM dbo.SchemaMigrations WHERE Version<>1) THROW 51007,N'Migrations TEST invalides.',1;" &
+                "SELECT TOP (100) t.Id,t.nom,c.Email,c.Ville FROM dbo.Tiers t " &
+                "LEFT JOIN dbo.Coordonnees c ON c.IdTiers=t.Id " &
+                "WHERE t.nom LIKE @pattern ESCAPE N'~' ORDER BY t.nom,t.Id,c.Id;"
+            Dim escaped = nomPartiel.Trim().Replace("~", "~~").Replace("%", "~%").Replace("_", "~_").Replace("[", "[[]")
+            command.Parameters.Add("@pattern", SqlDbType.NVarChar, 110).Value = "%" & escaped & "%"
+            Using reader = command.ExecuteReader()
+                Dim result As New DataTable()
+                result.Load(reader)
+                Return result
+            End Using
+        End Using
+    End Function
+
     Public Function ReadTiers(id As Integer) As DataTable
         If id <= 0 Then Throw New ArgumentOutOfRangeException(NameOf(id))
         Using connection = OpenTest(), command = connection.CreateCommand()
