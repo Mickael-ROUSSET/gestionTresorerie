@@ -48,9 +48,23 @@ function Assert-SqlCatalogs([string]$Mode) {
                 }
                 if (-not $exists) { throw "Catalogue introuvable : $catalog." }
                 $connection.ChangeDatabase($catalog)
-                if ($catalog -eq 'bddAgumaaaTest') {
-                    $command.CommandText = "SELECT OBJECT_ID(N'dbo.Documents', N'U');"
-                    if ($command.ExecuteScalar() -eq [DBNull]::Value) { throw 'Table documentaire TEST absente.' }
+                $expectedTables = @(
+                    'Categorie', 'Communes', 'Comptes', 'Coordonnees', 'Documents', 'Evenements',
+                    'Exercices', 'Films', 'Mouvements', 'ParticipantMdN', 'ReglesAffectationReleve',
+                    'Seances', 'SousCategorie', 'Tarifs', 'Tiers', 'Type', 'TypeDoc', 'TypeMouvement')
+                foreach ($table in $expectedTables) {
+                    $command.CommandText = "SELECT OBJECT_ID(N'dbo.$table', N'U');"
+                    if ($command.ExecuteScalar() -eq [DBNull]::Value) { throw "Table $catalog.dbo.$table absente." }
+                }
+                $command.CommandText = "SELECT COUNT(*) FROM sys.foreign_keys WHERE name=N'FK_Seances_Films' AND is_disabled=0 AND is_not_trusted=0;"
+                if ($command.ExecuteScalar() -ne 1) { throw "Cle etrangere Films-Seances absente : $catalog." }
+                $command.CommandText = "SELECT COUNT(*) FROM sys.default_constraints WHERE parent_object_id=OBJECT_ID(N'dbo.Seances');"
+                if ($command.ExecuteScalar() -ne 3) { throw "Valeurs par defaut Seances absentes : $catalog." }
+                $command.CommandText = "SELECT COL_LENGTH(N'dbo.Documents', N'dateModif');"
+                if ($command.ExecuteScalar() -eq [DBNull]::Value) { throw "Colonne dateModif absente : $catalog." }
+                if ($Mode -eq 'verify' -and $catalog -eq 'bddAgumaaaTest') {
+                    $command.CommandText = "SELECT COUNT(*) FROM dbo.Documents WHERE cheminDoc=N'CI-Install-Sentinel';"
+                    if ($command.ExecuteScalar() -ne 1) { throw 'Ligne TEST perdue.' }
                 }
                 if ($Mode -eq 'stamp') {
                     $command.CommandText = "EXEC sys.sp_addextendedproperty @name=N'CI-Install-Sentinel', @value=N'Conserver';"
@@ -58,6 +72,11 @@ function Assert-SqlCatalogs([string]$Mode) {
                 }
                 $command.CommandText = "SELECT CONVERT(nvarchar(20),value) FROM sys.extended_properties WHERE class=0 AND name=N'CI-Install-Sentinel';"
                 if ($command.ExecuteScalar() -cne 'Conserver') { throw "Sentinelle SQL perdue : $catalog." }
+                if ($Mode -eq 'stamp' -and $catalog -eq 'bddAgumaaaTest') {
+                    # Simuler une installation TEST ancienne sur le runner jetable.
+                    $command.CommandText = "INSERT dbo.Documents (dateDoc,cheminDoc) VALUES (GETDATE(),N'CI-Install-Sentinel'); DROP TABLE dbo.Communes; ALTER TABLE dbo.Documents DROP COLUMN dateModif;"
+                    [void]$command.ExecuteNonQuery()
+                }
             }
         }
         finally { $connection.Dispose() }

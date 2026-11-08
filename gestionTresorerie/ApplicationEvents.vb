@@ -37,7 +37,7 @@
             End Try
 
             Try
-                LocalDbCatalogs.EnsureProductionCatalog()
+                LocalDbCatalogs.InitializeProduction()
                 System.Environment.ExitCode = 0
             Catch
                 System.Environment.ExitCode = 11

@@ -10,7 +10,8 @@ Installation
 Exécuter gestionTresorerie-demo-setup-<commit>.exe et suivre l'assistant.
 L'application est installée pour l'utilisateur courant dans LocalAppData/Programs/gestionTresorerie-Demo.
 Les catalogues LocalDB bddAgumaaaTest et bddAgumaaa sont créés uniquement si absents.
-La table documentaire TEST est préparée. Un nouveau catalogue PROD est vide.
+Les 18 tables métier sont préparées dans TEST et dans un catalogue PROD vide.
+Un catalogue PROD déjà structuré est préservé.
 Un raccourci est ajouté au menu Démarrer. Le raccourci Bureau est proposé en option.
 Les bibliothèques applicatives sont incluses. Le runtime .NET reste un prérequis distinct.
 
