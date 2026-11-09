@@ -120,12 +120,26 @@ Public Class SqlTiersTestStoreTests
             Assert.AreEqual(1, foundAccented.Rows.Count)
             Assert.AreEqual(accented, CInt(foundAccented.Rows(0)("Id")))
         End Using
+        Using beforeCorrection = New SqlTiersTestStore().ReadTiers(accented)
+            Assert.AreEqual("Céaux-d'Allègre", CStr(beforeCorrection.Rows(0)("Ville")))
+        End Using
         store.UpdateTiers(accented, "TEST-ÉTÉ-" & suffix, "ete@example.test", "Allègre")
         Using reopenedAccented = New SqlTiersTestStore().ReadTiers(accented)
             Assert.AreEqual(1, reopenedAccented.Rows.Count)
             Assert.AreEqual("TEST-ÉTÉ-" & suffix, CStr(reopenedAccented.Rows(0)("nom")))
             Assert.AreEqual("ete@example.test", CStr(reopenedAccented.Rows(0)("Email")))
             Assert.AreEqual("Allègre", CStr(reopenedAccented.Rows(0)("Ville")))
+        End Using
+        ' La correction ne doit pas créer un doublon ni altérer les deux autres tiers.
+        Using oldName = New SqlTiersTestStore().SearchTiers("ÉLÈVE-" & suffix)
+            Assert.AreEqual(0, oldName.Rows.Count)
+        End Using
+        Using newName = New SqlTiersTestStore().SearchTiers("ÉTÉ-" & suffix)
+            Assert.AreEqual(1, newName.Rows.Count)
+            Assert.AreEqual(accented, CInt(newName.Rows(0)("Id")))
+        End Using
+        Using unaffected = New SqlTiersTestStore().ReadTiers(first)
+            Assert.AreEqual("Céaux", CStr(unaffected.Rows(0)("Ville")))
         End Using
         Using literalWildcard = New SqlTiersTestStore().SearchTiers("TEST-%")
             Assert.AreEqual(0, literalWildcard.Rows.Count)
