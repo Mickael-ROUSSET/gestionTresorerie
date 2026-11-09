@@ -131,6 +131,14 @@ Public Class SqlTiersTestStoreTests
             Assert.AreEqual("eleve@example.test", CStr(afterRejected.Rows(0)("Email")))
             Assert.AreEqual("Céaux-d'Allègre", CStr(afterRejected.Rows(0)("Ville")))
         End Using
+        ' Le refus ne doit pas rendre l'ancien tiers introuvable ni créer une entrée renommée.
+        Using stillFound = New SqlTiersTestStore().SearchTiers("ÉLÈVE-" & suffix)
+            Assert.AreEqual(1, stillFound.Rows.Count)
+            Assert.AreEqual(accented, CInt(stillFound.Rows(0)("Id")))
+        End Using
+        Using rejectedRename = New SqlTiersTestStore().SearchTiers("ÉTÉ-" & suffix)
+            Assert.AreEqual(0, rejectedRename.Rows.Count)
+        End Using
         store.UpdateTiers(accented, "TEST-ÉTÉ-" & suffix, "ete@example.test", "Allègre")
         Using reopenedAccented = New SqlTiersTestStore().ReadTiers(accented)
             Assert.AreEqual(1, reopenedAccented.Rows.Count)
