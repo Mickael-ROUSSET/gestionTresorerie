@@ -172,4 +172,48 @@ Public Class FrmTiersTestTests
         Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(15)), "Le refus local ne doit pas attendre SQL.")
         If failure IsNot Nothing Then Throw failure
     End Sub
+
+    <TestMethod>
+    Public Sub NouvelleSaisieApresSelectionEffaceLeTiersEtSesCoordonneesSansSql()
+        Dim failure As Exception = Nothing
+        Dim thread As New Thread(
+            Sub()
+                Try
+                    Using form As New FrmTiersTest()
+                        form.Show()
+                        Dim resultats = DirectCast(form.Controls.Find("ResultatsTiersTest", True)(0), DataGridView)
+                        Dim nom = DirectCast(form.Controls.Find("NomTiersTest", True)(0), TextBox)
+                        Dim email = DirectCast(form.Controls.Find("EmailTiersTest", True)(0), TextBox)
+                        Dim ville = DirectCast(form.Controls.Find("VilleTiersTest", True)(0), TextBox)
+                        Dim statut = DirectCast(form.Controls.Find("EtatTiersTest", True)(0), Label)
+                        Dim table As New System.Data.DataTable()
+                        table.Columns.Add("Id", GetType(Integer))
+                        table.Columns.Add("nom", GetType(String))
+                        table.Columns.Add("Email", GetType(String))
+                        table.Columns.Add("Ville", GetType(String))
+                        table.Rows.Add(123, "Association fictive A", "a@example.invalid", "Ville A")
+                        table.Rows.Add(456, "Association fictive B", "b@example.invalid", "Ville B")
+                        resultats.DataSource = table
+                        resultats.ClearSelection()
+                        resultats.Rows(1).Selected = True
+                        Assert.AreEqual("Association fictive B", nom.Text)
+                        Assert.AreEqual("b@example.invalid", email.Text)
+                        Assert.AreEqual("Ville B", ville.Text)
+                        DirectCast(form.Controls.Find("NouveauTiersTest", True)(0), Button).PerformClick()
+                        Assert.IsNull(resultats.DataSource, "Une nouvelle saisie ne doit pas conserver les résultats précédents.")
+                        Assert.AreEqual("", nom.Text)
+                        Assert.AreEqual("", email.Text)
+                        Assert.AreEqual("", ville.Text)
+                        Assert.IsFalse(statut.Text.Contains("456"), "L'identifiant fictif précédent ne doit plus apparaître.")
+                        Assert.AreEqual(2, table.Rows.Count, "Aucune donnée fictive ne doit être modifiée.")
+                    End Using
+                Catch ex As Exception
+                    failure = ex
+                End Try
+            End Sub)
+        thread.SetApartmentState(ApartmentState.STA)
+        thread.Start()
+        Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(15)), "La remise à zéro doit fonctionner sans LocalDB.")
+        If failure IsNot Nothing Then Throw failure
+    End Sub
 End Class
