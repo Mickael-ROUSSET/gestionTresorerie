@@ -12,6 +12,7 @@ Friend NotInheritable Class FrmSqlTestDocuments
     Private ReadOnly _init As New Button With {.Text = "Initialiser la base TEST", .AutoSize = True}
     Private ReadOnly _open As New Button With {.Text = "Ouvrir un document…", .AutoSize = True, .Enabled = False}
     Private ReadOnly _example As New Button With {.Text = "Ouvrir une facture fictive", .AutoSize = True, .Enabled = False}
+    Private ReadOnly _importProd As New Button With {.Text = "Initialiser TEST depuis PROD…", .AutoSize = True, .Enabled = False}
     Private ReadOnly _refresh As New Button With {.Text = "Actualiser", .AutoSize = True, .Enabled = False}
     Private ReadOnly _status As New Label With {.AutoSize = True, .Text = "Base : bddAgumaaaTest sur LocalDB."}
     Private ReadOnly _grid As New DataGridView With {
@@ -27,7 +28,7 @@ Friend NotInheritable Class FrmSqlTestDocuments
         StartPosition = FormStartPosition.CenterParent
 
         Dim bar As New FlowLayoutPanel With {.AutoSize = True, .Dock = DockStyle.Top}
-        bar.Controls.AddRange(New Control() {_init, _open, _example, _refresh, _status})
+        bar.Controls.AddRange(New Control() {_init, _open, _example, _refresh, _importProd, _status})
         Controls.Add(_grid)
         Controls.Add(bar)
 
@@ -35,6 +36,7 @@ Friend NotInheritable Class FrmSqlTestDocuments
         AddHandler _open.Click, AddressOf OpenDocument
         AddHandler _example.Click, AddressOf OpenExample
         AddHandler _refresh.Click, AddressOf RefreshDocuments
+        AddHandler _importProd.Click, AddressOf ImportProduction
     End Sub
 
     Private Async Sub InitializeTest(sender As Object, e As EventArgs)
@@ -54,6 +56,24 @@ Friend NotInheritable Class FrmSqlTestDocuments
             _ready = False
             _status.Text = "Initialisation TEST impossible."
             MessageBox.Show(Me, ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        Finally
+            SetBusy(False)
+        End Try
+    End Sub
+
+    Private Async Sub ImportProduction(sender As Object, e As EventArgs)
+        If _busy OrElse Not _ready Then Return
+        If MessageBox.Show(Me, "Copier les données métier de bddAgumaaa vers bddAgumaaaTest ?" & vbCrLf &
+                           "TEST doit être vierge. Les comptes et les fichiers d’archives sont exclus.",
+                           "Initialisation de TEST depuis PROD", MessageBoxButtons.YesNo, MessageBoxIcon.Warning,
+                           MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then Return
+        SetBusy(True)
+        Try
+            Await Task.Run(Sub() LocalDbCatalogs.ImportProductionIntoTest())
+            Await LoadDocuments()
+            MessageBox.Show(Me, "Les données métier ont été copiées dans bddAgumaaaTest.", Text)
+        Catch ex As Exception
+            MessageBox.Show(Me, ex.Message, "Import TEST", MessageBoxButtons.OK, MessageBoxIcon.Warning)
         Finally
             SetBusy(False)
         End Try
@@ -107,6 +127,7 @@ Friend NotInheritable Class FrmSqlTestDocuments
         _open.Enabled = _ready AndAlso Not value
         _example.Enabled = _open.Enabled
         _refresh.Enabled = _open.Enabled
+        _importProd.Enabled = _open.Enabled
     End Sub
 
     Protected Overrides Sub OnFormClosing(e As FormClosingEventArgs)
