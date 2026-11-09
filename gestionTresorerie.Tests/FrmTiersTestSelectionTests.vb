@@ -28,6 +28,7 @@ Public Class FrmTiersTestSelectionTests
                         table.Columns.Add("Ville", GetType(String))
                         table.Rows.Add(101, "Association École fictive", "ecole@example.invalid", "Allègre")
                         table.Rows.Add(202, "Association Marché fictive", "marche@example.invalid", "Monlet")
+                        table.Rows.Add(303, "Association École fictive", "autre-ecole@example.invalid", "Céaux-d'Allègre")
                         resultats.DataSource = table
 
                         resultats.ClearSelection()
@@ -47,7 +48,17 @@ Public Class FrmTiersTestSelectionTests
                         Assert.AreEqual("Association École fictive", nom.Text)
                         Assert.AreEqual("ecole@example.invalid", email.Text)
                         Assert.AreEqual("Allègre", ville.Text)
-                        Assert.AreEqual(2, table.Rows.Count, "La navigation ne doit modifier aucun tiers fictif.")
+                        resultats.ClearSelection()
+                        resultats.Rows(2).Selected = True
+                        Assert.AreEqual("Association École fictive", nom.Text)
+                        Assert.AreEqual("autre-ecole@example.invalid", email.Text, "Deux tiers homonymes ne doivent pas partager leur email.")
+                        Assert.AreEqual("Céaux-d'Allègre", ville.Text, "Deux tiers homonymes ne doivent pas partager leur ville.")
+
+                        resultats.ClearSelection()
+                        resultats.Rows(0).Selected = True
+                        Assert.AreEqual("ecole@example.invalid", email.Text, "Le retour au premier homonyme doit restaurer ses coordonnées.")
+                        Assert.AreEqual("Allègre", ville.Text)
+                        Assert.AreEqual(3, table.Rows.Count, "La navigation ne doit modifier aucun tiers fictif.")
                     End Using
                 Catch ex As Exception
                     failure = ex
