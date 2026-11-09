@@ -139,12 +139,12 @@ Public Class SqlTiersTestStoreTests
         Using rejectedRename = New SqlTiersTestStore().SearchTiers("ÉTÉ-" & suffix)
             Assert.AreEqual(0, rejectedRename.Rows.Count)
         End Using
-        store.UpdateTiers(accented, "TEST-ÉTÉ-" & suffix, "ete@example.test", "Allègre")
+        store.UpdateTiers(accented, "TEST-ÉTÉ-" & suffix, "ete@example.test", "Céaux-d'Allègre")
         Using reopenedAccented = New SqlTiersTestStore().ReadTiers(accented)
             Assert.AreEqual(1, reopenedAccented.Rows.Count)
             Assert.AreEqual("TEST-ÉTÉ-" & suffix, CStr(reopenedAccented.Rows(0)("nom")))
             Assert.AreEqual("ete@example.test", CStr(reopenedAccented.Rows(0)("Email")))
-            Assert.AreEqual("Allègre", CStr(reopenedAccented.Rows(0)("Ville")))
+            Assert.AreEqual("Céaux-d'Allègre", CStr(reopenedAccented.Rows(0)("Ville")))
         End Using
         ' La correction ne doit pas créer un doublon ni altérer les deux autres tiers.
         Using oldName = New SqlTiersTestStore().SearchTiers("ÉLÈVE-" & suffix)
