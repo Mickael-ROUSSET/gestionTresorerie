@@ -139,6 +139,14 @@ Public Class SqlTiersTestStoreTests
         Using rejectedRename = New SqlTiersTestStore().SearchTiers("ÉTÉ-" & suffix)
             Assert.AreEqual(0, rejectedRename.Rows.Count)
         End Using
+        ' Une adresse email invalide avec des espaces doit aussi laisser la fiche intacte.
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.UpdateTiers(accented, "TEST-ÉTÉ-" & suffix, "adresse invalide@example.test", "Ville fictive"))
+        Using afterSpacedEmail = New SqlTiersTestStore().ReadTiers(accented)
+            Assert.AreEqual(1, afterSpacedEmail.Rows.Count)
+            Assert.AreEqual(accentedName, CStr(afterSpacedEmail.Rows(0)("nom")))
+            Assert.AreEqual("eleve@example.test", CStr(afterSpacedEmail.Rows(0)("Email")))
+            Assert.AreEqual("Céaux-d'Allègre", CStr(afterSpacedEmail.Rows(0)("Ville")))
+        End Using
         store.UpdateTiers(accented, "TEST-ÉTÉ-" & suffix, "ete@example.test", "Céaux-d'Allègre")
         Using reopenedAccented = New SqlTiersTestStore().ReadTiers(accented)
             Assert.AreEqual(1, reopenedAccented.Rows.Count)
