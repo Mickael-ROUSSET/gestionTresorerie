@@ -147,6 +147,14 @@ Public Class SqlTiersTestStoreTests
             Assert.AreEqual("eleve@example.test", CStr(afterSpacedEmail.Rows(0)("Email")))
             Assert.AreEqual("Céaux-d'Allègre", CStr(afterSpacedEmail.Rows(0)("Ville")))
         End Using
+        ' Un refus pour email avec espaces doit préserver aussi les résultats de recherche.
+        Using stillFoundAfterSpaces = New SqlTiersTestStore().SearchTiers("ÉLÈVE-" & suffix)
+            Assert.AreEqual(1, stillFoundAfterSpaces.Rows.Count)
+            Assert.AreEqual(accented, CInt(stillFoundAfterSpaces.Rows(0)("Id")))
+        End Using
+        Using absentAfterSpaces = New SqlTiersTestStore().SearchTiers("ÉTÉ-" & suffix)
+            Assert.AreEqual(0, absentAfterSpaces.Rows.Count)
+        End Using
         store.UpdateTiers(accented, "TEST-ÉTÉ-" & suffix, "ete@example.test", "Céaux-d'Allègre")
         Using reopenedAccented = New SqlTiersTestStore().ReadTiers(accented)
             Assert.AreEqual(1, reopenedAccented.Rows.Count)
