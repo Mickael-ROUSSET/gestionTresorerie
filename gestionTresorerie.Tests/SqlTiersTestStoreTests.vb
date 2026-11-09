@@ -104,8 +104,8 @@ Public Class SqlTiersTestStoreTests
             Assert.AreEqual(special, CInt(literalUnderscore.Rows(0)("Id")))
         End Using
         ' Une apostrophe et une tentative d'injection sont des textes de recherche littéraux.
-        Dim quoted = store.CreateTiers("TEST-O''BRIEN-" & suffix, "quoted@example.test", "Allègre")
-        Using apostrophe = New SqlTiersTestStore().SearchTiers("O''BRIEN-" & suffix)
+        Dim quoted = store.CreateTiers("TEST-O'BRIEN-" & suffix, "quoted@example.test", "Allègre")
+        Using apostrophe = New SqlTiersTestStore().SearchTiers("O'BRIEN-" & suffix)
             Assert.AreEqual(1, apostrophe.Rows.Count)
             Assert.AreEqual(quoted, CInt(apostrophe.Rows(0)("Id")))
         End Using
