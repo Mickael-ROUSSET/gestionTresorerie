@@ -10,6 +10,19 @@ Public NotInheritable Class OfflineImageOcr
     Private Sub New()
     End Sub
 
+    Public Shared Function FindExecutable() As String
+        Dim configured = Environment.GetEnvironmentVariable("AGUMAAA_TESSERACT_EXE")
+        If Not String.IsNullOrWhiteSpace(configured) Then Return configured
+
+        For Each folder In {Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)}
+            If String.IsNullOrEmpty(folder) Then Continue For
+            Dim candidate = Path.Combine(folder, "Tesseract-OCR", "tesseract.exe")
+            If File.Exists(candidate) Then Return candidate
+        Next
+        Return Nothing
+    End Function
+
     Public Shared Function Recognize(imagePath As String, tesseractExe As String,
                                      Optional language As String = "fra",
                                      Optional timeoutMilliseconds As Integer = 30000) As String
