@@ -36,6 +36,23 @@ Public Class SqlTiersTestStoreTests
         Assert.AreNotEqual(first, second)
         store.UpdateTiers(first, "TEST-A-CORRIGE-" & suffix, "corrige@example.test", "Céaux")
         Assert.ThrowsExactly(Of SqlException)(Sub() store.UpdateTiers(Integer.MaxValue, "Absent", "a@example.test", "Allègre"))
+        ' Après une écriture refusée, rouvrir le dépôt et vérifier que les deux tiers
+        ' fictifs sont intacts, puis qu'une correction ultérieure reste possible.
+        Using unchangedA = New SqlTiersTestStore().ReadTiers(first),
+              unchangedB = New SqlTiersTestStore().ReadTiers(second)
+            Assert.AreEqual(1, unchangedA.Rows.Count)
+            Assert.AreEqual(1, unchangedB.Rows.Count)
+            Assert.AreEqual("TEST-A-CORRIGE-" & suffix, CStr(unchangedA.Rows(0)("nom")))
+            Assert.AreEqual("corrige@example.test", CStr(unchangedA.Rows(0)("Email")))
+            Assert.AreEqual("b@example.test", CStr(unchangedB.Rows(0)("Email")))
+            Assert.AreEqual("Monlet", CStr(unchangedB.Rows(0)("Ville")))
+        End Using
+        store.UpdateTiers(second, "TEST-B-REPRIS-" & suffix, "repris@example.test", "Vernassal")
+        Using resumed = New SqlTiersTestStore().ReadTiers(second)
+            Assert.AreEqual("TEST-B-REPRIS-" & suffix, CStr(resumed.Rows(0)("nom")))
+            Assert.AreEqual("repris@example.test", CStr(resumed.Rows(0)("Email")))
+            Assert.AreEqual("Vernassal", CStr(resumed.Rows(0)("Ville")))
+        End Using
         Using corrected = New SqlTiersTestStore().ReadTiers(first)
             Assert.AreEqual("TEST-A-CORRIGE-" & suffix, CStr(corrected.Rows(0)("nom")))
             Assert.AreEqual("corrige@example.test", CStr(corrected.Rows(0)("Email")))
@@ -46,8 +63,8 @@ Public Class SqlTiersTestStoreTests
             Assert.AreEqual(1, b.Rows.Count)
             Assert.AreEqual("corrige@example.test", CStr(a.Rows(0)("Email")))
             Assert.AreEqual("Céaux", CStr(a.Rows(0)("Ville")))
-            Assert.AreEqual("b@example.test", CStr(b.Rows(0)("Email")))
-            Assert.AreEqual("Monlet", CStr(b.Rows(0)("Ville")))
+            Assert.AreEqual("repris@example.test", CStr(b.Rows(0)("Email")))
+            Assert.AreEqual("Vernassal", CStr(b.Rows(0)("Ville")))
         End Using
         Using matches = New SqlTiersTestStore().SearchTiers(suffix)
             Assert.AreEqual(2, matches.Rows.Count)
