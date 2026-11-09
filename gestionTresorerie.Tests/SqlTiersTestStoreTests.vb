@@ -112,6 +112,21 @@ Public Class SqlTiersTestStoreTests
         Using injection = New SqlTiersTestStore().SearchTiers("' OR 1=1 --")
             Assert.AreEqual(0, injection.Rows.Count)
         End Using
+        ' Vérifier les caractères accentués lors d'une création, recherche et correction,
+        ' avec réouverture du dépôt pour détecter une conversion SQL destructrice.
+        Dim accentedName = "TEST-ÉLÈVE-" & suffix
+        Dim accented = store.CreateTiers(accentedName, "eleve@example.test", "Céaux-d'Allègre")
+        Using foundAccented = New SqlTiersTestStore().SearchTiers("ÉLÈVE-" & suffix)
+            Assert.AreEqual(1, foundAccented.Rows.Count)
+            Assert.AreEqual(accented, CInt(foundAccented.Rows(0)("Id")))
+        End Using
+        store.UpdateTiers(accented, "TEST-ÉTÉ-" & suffix, "ete@example.test", "Allègre")
+        Using reopenedAccented = New SqlTiersTestStore().ReadTiers(accented)
+            Assert.AreEqual(1, reopenedAccented.Rows.Count)
+            Assert.AreEqual("TEST-ÉTÉ-" & suffix, CStr(reopenedAccented.Rows(0)("nom")))
+            Assert.AreEqual("ete@example.test", CStr(reopenedAccented.Rows(0)("Email")))
+            Assert.AreEqual("Allègre", CStr(reopenedAccented.Rows(0)("Ville")))
+        End Using
         Using literalWildcard = New SqlTiersTestStore().SearchTiers("TEST-%")
             Assert.AreEqual(0, literalWildcard.Rows.Count)
         End Using
