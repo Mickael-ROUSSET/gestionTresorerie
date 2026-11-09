@@ -31,13 +31,32 @@ function Invoke-Setup([string]$File, [string[]]$Arguments) {
 function Assert-SqlCatalogs([string]$Mode) {
     # Windows PowerShell fournit le client SQL .NET Framework utilisé par ce contrôle.
     $check = {
-        param([string]$Mode)
+        param([string]$Mode, [string]$ImportScript)
         $ErrorActionPreference = 'Stop'
         $connection = [System.Data.SqlClient.SqlConnection]::new(
             'Data Source=(LocalDB)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=True;Connect Timeout=30')
         try {
             $connection.Open()
             $command = $connection.CreateCommand()
+            if ($Mode -eq 'import') {
+                $connection.ChangeDatabase('bddAgumaaaTest')
+                $command.CommandText = [IO.File]::ReadAllText($ImportScript)
+                try {
+                    [void]$command.ExecuteNonQuery()
+                    throw 'Le script a accepté un TEST déjà rempli.'
+                }
+                catch {
+                    $failure = $_.Exception.GetBaseException()
+                    if ($failure -isnot [System.Data.SqlClient.SqlException] -or $failure.Number -ne 51025) { throw }
+                }
+                $command.CommandText = "DELETE dbo.Documents WHERE cheminDoc=N'CI-Install-Sentinel'; INSERT bddAgumaaa.dbo.Evenements (libelle) VALUES (N'CI-Copie-TEST');"
+                [void]$command.ExecuteNonQuery()
+                $command.CommandText = [IO.File]::ReadAllText($ImportScript)
+                [void]$command.ExecuteNonQuery()
+                $command.CommandText = "SELECT COUNT(*) FROM dbo.Evenements AS t JOIN bddAgumaaa.dbo.Evenements AS p ON p.Id=t.Id WHERE t.libelle=N'CI-Copie-TEST';"
+                if ($command.ExecuteScalar() -ne 1) { throw 'Copie du référentiel et de son identifiant non vérifiée.' }
+                return
+            }
             foreach ($catalog in @('bddAgumaaaTest', 'bddAgumaaa')) {
                 $connection.ChangeDatabase('master')
                 $command.CommandText = "SELECT DB_ID(N'$catalog');"
@@ -81,7 +100,8 @@ function Assert-SqlCatalogs([string]$Mode) {
         }
         finally { $connection.Dispose() }
     }
-    $source = "& {" + $check.ToString() + "} '" + $Mode + "'"
+    $importPath = (Join-Path $root 'gestionTresorerie/Resources/Schema/import-prod-vers-test.sql').Replace("'", "''")
+    $source = "& {" + $check.ToString() + "} '" + $Mode + "' '" + $importPath + "'"
     $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($source))
     & powershell.exe -NoProfile -NonInteractive -EncodedCommand $encoded
     if ($LASTEXITCODE -ne 0) { throw "Contrôle des catalogues SQL échoué ($Mode)." }
@@ -224,7 +244,9 @@ try {
         throw 'Une sentinelle a été supprimée ou modifiée pendant la désinstallation.'
     }
     Assert-SqlCatalogs 'verify'
+    Assert-SqlCatalogs 'import'
     $installed = $false
+    Write-Output 'Import PROD vers TEST : copie et refus sur TEST non vide vérifiés.'
     Write-Output 'Création des deux catalogues SQL et conservation à la réinstallation et à la désinstallation vérifiées.'
     Write-Output 'Installation, raccourcis, lancement, réinstallation et désinstallation vérifiés.'
     Write-Output 'Sessions TEST et fichier ajouté au programme conservés (sentinelles fictives).'
