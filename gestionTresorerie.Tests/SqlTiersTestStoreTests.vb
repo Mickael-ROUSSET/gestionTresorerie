@@ -39,6 +39,9 @@ Public Class SqlTiersTestStoreTests
         Using rejected = New SqlTiersTestStore().SearchTiers(rejectedName)
             Assert.AreEqual(0, rejected.Rows.Count)
         End Using
+        ' Le nom blanc est refusé avant insertion ; les deux créations suivantes
+        ' et la recherche par suffixe ci-dessous contrôlent la reprise normale.
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.CreateTiers("   ", "blank@example.test", "Allègre"))
         Dim first = store.CreateTiers("TEST-A-" & suffix, "a@example.test", "Allègre")
         Dim second = store.CreateTiers("TEST-B-" & suffix, "b@example.test", "Monlet")
         Assert.AreNotEqual(first, second)
