@@ -33,6 +33,12 @@ Public Class SqlTiersTestStoreTests
         Dim store As New SqlTiersTestStore()
         store.Initialize()
         Dim suffix = Guid.NewGuid().ToString("N").Substring(0, 12)
+        ' Une création rejetée ne doit laisser aucun tiers fantôme dans LocalDB.
+        Dim rejectedName = "TEST-REJETE-" & suffix
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.CreateTiers(rejectedName, "email-invalide", "Allègre"))
+        Using rejected = New SqlTiersTestStore().SearchTiers(rejectedName)
+            Assert.AreEqual(0, rejected.Rows.Count)
+        End Using
         Dim first = store.CreateTiers("TEST-A-" & suffix, "a@example.test", "Allègre")
         Dim second = store.CreateTiers("TEST-B-" & suffix, "b@example.test", "Monlet")
         Assert.AreNotEqual(first, second)
