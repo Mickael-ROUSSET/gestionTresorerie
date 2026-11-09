@@ -41,6 +41,13 @@ Public Class SqlTiersTestStoreTests
             Assert.AreEqual("a@example.test", CStr(unchanged.Rows(0)("Email")))
             Assert.AreEqual("Allègre", CStr(unchanged.Rows(0)("Ville")))
         End Using
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.UpdateTiers(second, "TEST-B-INVALIDE-" & suffix, "adresse-invalide", "Inconnue"))
+        Using unchangedEmail = New SqlTiersTestStore().ReadTiers(second)
+            Assert.AreEqual(1, unchangedEmail.Rows.Count)
+            Assert.AreEqual("TEST-B-" & suffix, CStr(unchangedEmail.Rows(0)("nom")))
+            Assert.AreEqual("b@example.test", CStr(unchangedEmail.Rows(0)("Email")))
+            Assert.AreEqual("Monlet", CStr(unchangedEmail.Rows(0)("Ville")))
+        End Using
         store.UpdateTiers(first, "TEST-A-CORRIGE-" & suffix, "corrige@example.test", "Céaux")
         Assert.ThrowsExactly(Of SqlException)(Sub() store.UpdateTiers(Integer.MaxValue, "Absent", "a@example.test", "Allègre"))
         ' Après une écriture refusée, rouvrir le dépôt et vérifier que les deux tiers
