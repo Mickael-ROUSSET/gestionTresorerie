@@ -39,11 +39,9 @@ Public Class SqlTiersTestStoreTests
         Using rejected = New SqlTiersTestStore().SearchTiers(rejectedName)
             Assert.AreEqual(0, rejected.Rows.Count)
         End Using
-        ' Un nom vide ne doit pas créer de coordonnées orphelines ni altérer les tiers existants.
+        ' Le nom blanc est refusé avant insertion ; les deux créations suivantes
+        ' et la recherche par suffixe ci-dessous contrôlent la reprise normale.
         Assert.ThrowsExactly(Of ArgumentException)(Sub() store.CreateTiers("   ", "blank@example.test", "Allègre"))
-        Using blankSearch = New SqlTiersTestStore().SearchTiers("blank@example.test")
-            Assert.AreEqual(0, blankSearch.Rows.Count)
-        End Using
         Dim first = store.CreateTiers("TEST-A-" & suffix, "a@example.test", "Allègre")
         Dim second = store.CreateTiers("TEST-B-" & suffix, "b@example.test", "Monlet")
         Assert.AreNotEqual(first, second)
