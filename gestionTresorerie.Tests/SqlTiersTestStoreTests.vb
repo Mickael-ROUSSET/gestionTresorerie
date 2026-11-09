@@ -34,6 +34,13 @@ Public Class SqlTiersTestStoreTests
         Dim first = store.CreateTiers("TEST-A-" & suffix, "a@example.test", "Allègre")
         Dim second = store.CreateTiers("TEST-B-" & suffix, "b@example.test", "Monlet")
         Assert.AreNotEqual(first, second)
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.UpdateTiers(first, "   ", "invalid@example.test", "Inconnue"))
+        Using unchanged = New SqlTiersTestStore().ReadTiers(first)
+            Assert.AreEqual(1, unchanged.Rows.Count)
+            Assert.AreEqual("TEST-A-" & suffix, CStr(unchanged.Rows(0)("nom")))
+            Assert.AreEqual("a@example.test", CStr(unchanged.Rows(0)("Email")))
+            Assert.AreEqual("Allègre", CStr(unchanged.Rows(0)("Ville")))
+        End Using
         store.UpdateTiers(first, "TEST-A-CORRIGE-" & suffix, "corrige@example.test", "Céaux")
         Assert.ThrowsExactly(Of SqlException)(Sub() store.UpdateTiers(Integer.MaxValue, "Absent", "a@example.test", "Allègre"))
         ' Après une écriture refusée, rouvrir le dépôt et vérifier que les deux tiers
