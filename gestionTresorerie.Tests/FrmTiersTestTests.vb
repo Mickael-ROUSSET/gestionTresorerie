@@ -111,4 +111,31 @@ Public Class FrmTiersTestTests
         Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(15)), "Le refus local ne doit pas bloquer.")
         If failure IsNot Nothing Then Throw failure
     End Sub
+
+    <TestMethod>
+    Public Sub RechercheVideEstRefuseeSansConnexionSql()
+        Dim failure As Exception = Nothing
+        Dim thread As New Thread(
+            Sub()
+                Try
+                    Using form As New FrmTiersTest()
+                        form.Show()
+                        Dim recherche = DirectCast(form.Controls.Find("RechercheTiersTest", True)(0), TextBox)
+                        Dim statut = DirectCast(form.Controls.Find("EtatTiersTest", True)(0), Label)
+                        Dim resultats = DirectCast(form.Controls.Find("ResultatsTiersTest", True)(0), DataGridView)
+                        recherche.Text = "   "
+                        DirectCast(form.Controls.Find("ChercherTiersTest", True)(0), Button).PerformClick()
+                        StringAssert.Contains(statut.Text, "Recherche TEST refusée")
+                        Assert.IsNull(resultats.DataSource, "Une recherche invalide ne doit pas afficher des résultats anciens.")
+                        Assert.IsFalse(statut.Text.Contains("impossible"), "Le refus local ne doit pas tenter LocalDB.")
+                    End Using
+                Catch ex As Exception
+                    failure = ex
+                End Try
+            End Sub)
+        thread.SetApartmentState(ApartmentState.STA)
+        thread.Start()
+        Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(15)), "La recherche vide ne doit pas attendre LocalDB.")
+        If failure IsNot Nothing Then Throw failure
+    End Sub
 End Class

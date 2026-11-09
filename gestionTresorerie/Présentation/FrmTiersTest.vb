@@ -77,6 +77,10 @@ Public NotInheritable Class FrmTiersTest
         ' Une recherche, même échouée, invalide la sélection précédente.
         _selectedId = 0
         _results.DataSource = Nothing
+        If String.IsNullOrWhiteSpace(_search.Text) Then
+            _status.Text = "Recherche TEST refusée : renseignez un nom fictif à rechercher."
+            Return
+        End If
         Try
             _store.Initialize()
             _results.DataSource = _store.SearchTiers(_search.Text)
