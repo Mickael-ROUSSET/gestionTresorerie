@@ -194,6 +194,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private Async Function ReviewSqlTestDocument(source As String) As Task
         Dim hash As String
         Dim suggested As Newtonsoft.Json.Linq.JObject = Nothing
+        Dim readableText As String = Nothing
         Dim note = "Vérifiez les champs proposés, ou saisissez ceux du document affiché. Pour un chèque, choisissez son sens."
         Using sourceLock = File.Open(source, FileMode.Open, FileAccess.Read, FileShare.Read)
             hash = DocumentArchiveProposal.HashSource(source)
@@ -210,9 +211,11 @@ Friend NotInheritable Class FrmDocumentFilePreview
                 End If
                 Try
                     If IsPdf(source) Then
-                        suggested = Await Task.Run(Function() LocalPdfInvoiceAnalysis.Extract(source, ocr))
+                        readableText = Await Task.Run(Function() LocalPdfInvoiceAnalysis.ReadLocalText(source, ocr))
+                        suggested = LocalPdfInvoiceAnalysis.ExtractText(readableText)
                     ElseIf Not String.IsNullOrWhiteSpace(ocr) Then
-                        suggested = Await Task.Run(Function() LocalPdfInvoiceAnalysis.ExtractText(OfflineImageOcr.Recognize(source, ocr)))
+                        readableText = Await Task.Run(Function() OfflineImageOcr.Recognize(source, ocr))
+                        suggested = LocalPdfInvoiceAnalysis.ExtractText(readableText)
                     Else
                         note = "Saisissez les champs du document affiché. Tesseract est facultatif pour proposer des champs de facture."
                     End If
@@ -224,6 +227,11 @@ Friend NotInheritable Class FrmDocumentFilePreview
             End If
         End Using
 
+        Dim fields = suggested?("donnees_extraites")
+        If fields IsNot Nothing AndAlso Not fields("transaction").HasValues AndAlso Not fields("identite").HasValues Then
+            ShowTranscript(readableText)
+            note = "Aucun champ de facture reconnu. Saisissez uniquement les informations que vous avez vérifiées."
+        End If
         Using editor As New FrmSqlTestDocumentEntry(source, hash, _testWorkspace.GetDocumentTestDirectory(), suggested, note)
             If editor.ShowDialog(Me) <> DialogResult.OK Then Return
             Await ConfirmProposal(editor.Proposal, TestSaveAction(), True)
@@ -241,14 +249,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
             extracted = LocalPdfInvoiceAnalysis.ExtractText(readableText)
         End Using
 
-        If Not String.IsNullOrWhiteSpace(readableText) Then
-            Using transcript As New Form With {.Text = "Texte lu localement — à vérifier", .ClientSize = New Size(760, 520),
-                                               .StartPosition = FormStartPosition.CenterParent}
-                transcript.Controls.Add(New TextBox With {.Text = readableText, .Dock = DockStyle.Fill,
-                    .Multiline = True, .ReadOnly = True, .ScrollBars = ScrollBars.Vertical})
-                transcript.ShowDialog(Me)
-            End Using
-        End If
+        ShowTranscript(readableText)
 
         Dim data = extracted("donnees_extraites")
         Dim transaction = data("transaction")
@@ -274,6 +275,17 @@ Friend NotInheritable Class FrmDocumentFilePreview
         End If
         MessageBox.Show(Me, message, "Analyse locale du PDF", MessageBoxButtons.OK, MessageBoxIcon.Information)
     End Function
+
+    Private Sub ShowTranscript(readableText As String)
+        If Not String.IsNullOrWhiteSpace(readableText) Then
+            Using transcript As New Form With {.Text = "Texte lu localement — à vérifier", .ClientSize = New Size(760, 520),
+                                               .StartPosition = FormStartPosition.CenterParent}
+                transcript.Controls.Add(New TextBox With {.Text = readableText, .Dock = DockStyle.Fill,
+                    .Multiline = True, .ReadOnly = True, .ScrollBars = ScrollBars.Vertical})
+                transcript.ShowDialog(Me)
+            End Using
+        End If
+    End Sub
 
     Private Function TestSaveAction() As Action(Of DocumentAgumaaa)
         If _sqlTest Is Nothing Then Return AddressOf _testWorkspace.SaveDocumentTestRecord
