@@ -56,6 +56,7 @@ Public NotInheritable Class FrmTiersTest
         _nom.Clear()
         _email.Clear()
         _ville.Clear()
+        _results.DataSource = Nothing
         _results.ClearSelection()
         _status.Text = "Nouvelle saisie : création d'un tiers fictif."
     End Sub
