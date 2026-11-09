@@ -18,6 +18,8 @@ Public Class SqlTiersTestStoreTests
         Assert.ThrowsExactly(Of ArgumentException)(Sub() store.CreateTiers("Fictif", tooLongEmail, "Allègre"))
         Assert.ThrowsExactly(Of ArgumentException)(Sub() store.UpdateTiers(1, "Fictif", tooLongEmail, "Allègre"))
         Assert.ThrowsExactly(Of ArgumentOutOfRangeException)(Sub() store.ReadTiers(0))
+        Assert.ThrowsExactly(Of ArgumentOutOfRangeException)(Sub() store.ReadTiers(-1))
+        Assert.ThrowsExactly(Of ArgumentOutOfRangeException)(Sub() store.UpdateTiers(-1, "Fictif", "a@example.test", "Allègre"))
         Assert.ThrowsExactly(Of ArgumentException)(Sub() store.SearchTiers(" "))
         Assert.ThrowsExactly(Of ArgumentOutOfRangeException)(Sub() store.UpdateTiers(0, "Fictif", "a@example.test", "Allègre"))
         Assert.ThrowsExactly(Of ArgumentException)(Sub() store.UpdateTiers(1, "", "a@example.test", "Allègre"))
