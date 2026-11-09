@@ -123,6 +123,14 @@ Public Class SqlTiersTestStoreTests
         Using beforeCorrection = New SqlTiersTestStore().ReadTiers(accented)
             Assert.AreEqual("Céaux-d'Allègre", CStr(beforeCorrection.Rows(0)("Ville")))
         End Using
+        ' Une correction invalide ne doit altérer ni le nom Unicode ni la ville apostrophée.
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.UpdateTiers(accented, "TEST-ÉTÉ-" & suffix, "adresse-invalide", "Inconnue"))
+        Using afterRejected = New SqlTiersTestStore().ReadTiers(accented)
+            Assert.AreEqual(1, afterRejected.Rows.Count)
+            Assert.AreEqual(accentedName, CStr(afterRejected.Rows(0)("nom")))
+            Assert.AreEqual("eleve@example.test", CStr(afterRejected.Rows(0)("Email")))
+            Assert.AreEqual("Céaux-d'Allègre", CStr(afterRejected.Rows(0)("Ville")))
+        End Using
         store.UpdateTiers(accented, "TEST-ÉTÉ-" & suffix, "ete@example.test", "Allègre")
         Using reopenedAccented = New SqlTiersTestStore().ReadTiers(accented)
             Assert.AreEqual(1, reopenedAccented.Rows.Count)
