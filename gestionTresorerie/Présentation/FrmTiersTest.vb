@@ -93,6 +93,10 @@ Public NotInheritable Class FrmTiersTest
     End Sub
 
     Private Sub CreateTiers(sender As Object, e As EventArgs)
+        If _selectedId > 0 Then
+            _status.Text = "Création TEST refusée : un tiers est sélectionné. Cliquez sur Nouvelle saisie pour créer un autre tiers."
+            Return
+        End If
         If String.IsNullOrWhiteSpace(_nom.Text) Then
             _status.Text = "Création TEST refusée : renseignez un nom fictif."
             Return
