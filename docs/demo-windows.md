@@ -62,3 +62,9 @@ Ouvrez une facture fictive intégrée ou un PDF de test, cliquez sur **Analyser 
 Après initialisation, choisissez **Ouvrir un document**, puis **Analyser / saisir le document**. Vous pouvez sélectionner vos propres PDF, JPEG, PNG ou TIFF. Vérifiez et complétez la fiche avant de confirmer son classement. La lecture de PDF textuels peut proposer des champs de facture. Pour les scans et les photos, Tesseract en français peut proposer des champs de facture si `AGUMAAA_TESSERACT_EXE` est configurée. La saisie reste disponible si l’extraction échoue. Pour les chèques, indiquez le sens, le numéro, le bénéficiaire, la date et le montant en euros. Les originaux sont conservés. Les fiches et copies peuvent contenir des données réelles et restent sur le poste, dans `bddAgumaaaTest` et dans les archives de la session TEST SQL.
 
 La validation se fait dans TEST. L’installation ne transfère aucune donnée de TEST vers PROD. Le script initial `001-initial.sql` définit la structure seule. Le chargement des données métier et la synchronisation web restent des étapes distinctes.
+
+### Données de TEST et OCR
+
+Dans l’espace TEST SQL, cliquez sur **Initialiser la base TEST**, puis sur **Initialiser TEST depuis PROD**. La copie se fait sur la même instance LocalDB et préserve les identifiants. Les tables métier de TEST doivent être vides. Les comptes, l’historique de migrations et les fichiers restent en dehors de la copie. Les chemins documentaires déjà enregistrés sont des références à leurs emplacements d’origine.
+
+Pour les PDF scannés, installez Tesseract et la langue française. L’application détecte l’installation standard Windows. Au besoin, **Configurer l’OCR local** permet de sélectionner `tesseract.exe`. Les propositions automatiques de champs restent limitées aux factures reconnues.
