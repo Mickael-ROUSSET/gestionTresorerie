@@ -58,6 +58,10 @@ Public Class FrmTiersTestSelectionTests
                         resultats.Rows(0).Selected = True
                         Assert.AreEqual("ecole@example.invalid", email.Text, "Le retour au premier homonyme doit restaurer ses coordonnées.")
                         Assert.AreEqual("Allègre", ville.Text)
+                        Assert.AreEqual(101, Convert.ToInt32(resultats.Rows(0).Cells("Id").Value), "Le premier homonyme doit conserver son identifiant.")
+                        Assert.AreEqual(303, Convert.ToInt32(resultats.Rows(2).Cells("Id").Value), "Le second homonyme doit conserver son identifiant distinct.")
+                        Assert.AreNotEqual(Convert.ToInt32(resultats.Rows(0).Cells("Id").Value), Convert.ToInt32(resultats.Rows(2).Cells("Id").Value))
+                        Assert.AreEqual("Association École fictive", nom.Text)
                         Assert.AreEqual(3, table.Rows.Count, "La navigation ne doit modifier aucun tiers fictif.")
                     End Using
                 Catch ex As Exception
