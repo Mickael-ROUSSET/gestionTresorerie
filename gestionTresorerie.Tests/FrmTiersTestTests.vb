@@ -242,6 +242,9 @@ Public Class FrmTiersTestTests
 
                         recherche.Text = "Autre recherche fictive"
                         Assert.IsNull(resultats.DataSource, "Les résultats obsolètes doivent disparaître.")
+                        Assert.AreEqual("", DirectCast(form.Controls.Find("NomTiersTest", True)(0), TextBox).Text, "Le nom de l'ancien tiers ne doit pas rester prérempli.")
+                        Assert.AreEqual("", DirectCast(form.Controls.Find("EmailTiersTest", True)(0), TextBox).Text, "L'email de l'ancien tiers ne doit pas rester prérempli.")
+                        Assert.AreEqual("", DirectCast(form.Controls.Find("VilleTiersTest", True)(0), TextBox).Text, "La ville de l'ancien tiers ne doit pas rester préremplie.")
                         StringAssert.Contains(statut.Text, "relancez Rechercher")
                         DirectCast(form.Controls.Find("ModifierTiersTest", True)(0), Button).PerformClick()
                         StringAssert.Contains(statut.Text, "Sélectionnez")
