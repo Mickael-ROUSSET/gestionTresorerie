@@ -23,8 +23,10 @@ Public Class SqlTiersRenameAndClearIntegrationTests
 
         ' Deux opérations successives depuis des instances distinctes simulent
         ' la fermeture et la réouverture de la fiche entre les corrections.
-        New SqlTiersTestStore().UpdateTiers(id, newName, "nouveau@example.test", "Céaux")
-        New SqlTiersTestStore().UpdateTiers(id, newName, "", " ")
+        Dim renameStore As New SqlTiersTestStore()
+        renameStore.UpdateTiers(id, newName, "nouveau@example.test", "Céaux")
+        Dim clearStore As New SqlTiersTestStore()
+        clearStore.UpdateTiers(id, newName, "", " ")
 
         Using fiche = New SqlTiersTestStore().ReadTiers(id),
               temoin = New SqlTiersTestStore().ReadTiers(otherId),
