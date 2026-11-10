@@ -90,6 +90,11 @@ Public NotInheritable Class FrmTiersTest
         ' Une recherche, même échouée, invalide la sélection précédente.
         _selectedId = 0
         _results.DataSource = Nothing
+        ' Une nouvelle recherche annule aussi les champs de la fiche précédemment sélectionnée,
+        ' y compris si la recherche est refusée ou échoue avant le chargement SQL.
+        _nom.Clear()
+        _email.Clear()
+        _ville.Clear()
         If String.IsNullOrWhiteSpace(_search.Text) Then
             _status.Text = "Recherche TEST refusée : renseignez un nom fictif à rechercher."
             Return
