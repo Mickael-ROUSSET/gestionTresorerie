@@ -43,6 +43,7 @@ Public NotInheritable Class FrmTiersTest
         Dim update As New Button With {.Name = "ModifierTiersTest", .Text = "Modifier le tiers choisi", .Left = 225, .Top = 355, .Width = 200}
         Dim clear As New Button With {.Name = "NouveauTiersTest", .Text = "Nouvelle saisie", .Left = 440, .Top = 355, .Width = 155}
         Controls.AddRange(New Control() {find, create, update, clear})
+        AddHandler _search.TextChanged, AddressOf InvalidateSearchSelection
         AddHandler find.Click, AddressOf SearchTiers
         AddHandler create.Click, AddressOf CreateTiers
         AddHandler update.Click, AddressOf UpdateTiers
@@ -72,6 +73,13 @@ Public NotInheritable Class FrmTiersTest
         _email.Text = If(view.Row.IsNull("Email"), "", Convert.ToString(view("Email")))
         _ville.Text = If(view.Row.IsNull("Ville"), "", Convert.ToString(view("Ville")))
         _status.Text = "Tiers fictif sélectionné : " & _selectedId.ToString()
+    End Sub
+
+    Private Sub InvalidateSearchSelection(sender As Object, e As EventArgs)
+        ' Les résultats ne correspondent plus au critère affiché : ne jamais modifier l'ancien tiers.
+        _selectedId = 0
+        _results.DataSource = Nothing
+        _status.Text = "Recherche modifiée : relancez Rechercher avant de sélectionner un tiers TEST."
     End Sub
 
     Private Sub SearchTiers(sender As Object, e As EventArgs)
