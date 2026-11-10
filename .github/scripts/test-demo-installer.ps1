@@ -160,6 +160,28 @@ try {
     $installed = $true
     Assert-SqlCatalogs 'stamp'
     Assert-Payload
+    $engine = Join-Path $installDir 'ocr/tesseract.exe'
+    $modelDirectory = Join-Path $installDir 'ocr/tessdata'
+    $imagePath = Join-Path $logs 'facture-ocr-fictive.png'
+    Add-Type -AssemblyName System.Drawing
+    $bitmap = [System.Drawing.Bitmap]::new(800, 150)
+    $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+    $font = [System.Drawing.Font]::new('Arial', 42)
+    try {
+        $graphics.Clear([System.Drawing.Color]::White)
+        $graphics.DrawString('FACTURE EXEMPLE', $font, [System.Drawing.Brushes]::Black, 20, 25)
+        $bitmap.Save($imagePath, [System.Drawing.Imaging.ImageFormat]::Png)
+    }
+    finally {
+        $font.Dispose()
+        $graphics.Dispose()
+        $bitmap.Dispose()
+    }
+    $recognized = & $engine $imagePath stdout -l fra --tessdata-dir $modelDirectory
+    if ($LASTEXITCODE -ne 0 -or ($recognized -join ' ') -notmatch 'FACTURE\s+EXEMPLE') {
+        throw 'L’OCR installé n’a pas reconnu la facture fictive en français.'
+    }
+    Write-Output 'OCR français installé et reconnaissance d’une image fictive vérifiée.'
     if (-not (Test-Path -LiteralPath $registryPath)) { throw 'Entrée Applications installées absente.' }
     $registration = Get-ItemProperty -LiteralPath $registryPath
     if ($registration.DisplayVersion -ne '0.1.0') { throw 'Version de désinstallation incorrecte.' }
@@ -234,7 +256,7 @@ try {
         $relative = [IO.Path]::GetRelativePath($payload, $_.FullName)
         Test-Path -LiteralPath (Join-Path $installDir $relative)
     })
-    if ($remainingPayload.Count -gt 0 -or
+    if ($remainingPayload.Count -gt 0 -or (Test-Path -LiteralPath $engine) -or
         (Test-Path -LiteralPath $registryPath) -or
         (Test-Path -LiteralPath $desktopLink) -or (Test-Path -LiteralPath $startGroup)) {
         throw 'Fichiers applicatifs, entrée Windows ou raccourcis conservés après désinstallation.'

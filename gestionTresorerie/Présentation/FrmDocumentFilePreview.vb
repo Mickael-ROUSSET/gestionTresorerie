@@ -20,7 +20,6 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private ReadOnly _pageNumber As New NumericUpDown With {.Minimum = 1, .Width = 72, .Visible = False}
     Private ReadOnly _pageCount As New Label With {.AutoSize = True, .Visible = False, .Margin = New Padding(3, 7, 3, 0)}
     Private ReadOnly _pathTip As New ToolTip()
-    Private _ocrExecutable As String = OfflineImageOcr.FindExecutable()
     Private _pdfSource As String
     Private _pending As Boolean
 
@@ -63,11 +62,6 @@ Friend NotInheritable Class FrmDocumentFilePreview
         columns.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         Dim commands As New FlowLayoutPanel With {.Dock = DockStyle.Fill, .AutoSize = True}
         commands.Controls.AddRange(New Control() {_analyse, _pageNumber, _pageCount})
-        If Not production Then
-            Dim configure As New Button With {.Text = "Configurer l’OCR local…", .AutoSize = True}
-            AddHandler configure.Click, AddressOf ConfigureOcr
-            commands.Controls.Add(configure)
-        End If
         columns.Controls.Add(commands, 0, 2)
         columns.SetColumnSpan(commands, 2)
         AddHandler _analyse.Click, AddressOf AnalyseSelection
@@ -177,61 +171,31 @@ Friend NotInheritable Class FrmDocumentFilePreview
         End Try
     End Sub
 
-    Private Sub ConfigureOcr(sender As Object, e As EventArgs)
-        Using picker As New OpenFileDialog With {
-            .Title = "Sélectionner tesseract.exe (langue française installée)",
-            .Filter = "Tesseract (tesseract.exe)|tesseract.exe", .CheckFileExists = True}
-            If picker.ShowDialog(Me) <> DialogResult.OK Then Return
-            If Not String.Equals(Path.GetFileName(picker.FileName), "tesseract.exe", StringComparison.OrdinalIgnoreCase) Then
-                MessageBox.Show(Me, "Sélectionnez le fichier tesseract.exe.", Text)
-                Return
-            End If
-            Environment.SetEnvironmentVariable("AGUMAAA_TESSERACT_EXE", picker.FileName, EnvironmentVariableTarget.User)
-            _ocrExecutable = picker.FileName
-        End Using
-    End Sub
-
     Private Async Function ReviewSqlTestDocument(source As String) As Task
         Dim hash As String
         Dim suggested As Newtonsoft.Json.Linq.JObject = Nothing
         Dim readableText As String = Nothing
-        Dim note = "Vérifiez les champs proposés, ou saisissez ceux du document affiché. Pour un chèque, choisissez son sens."
+        Dim note = "Vérifiez les champs proposés à partir du document. Pour un chèque, confirmez son sens."
         Using sourceLock = File.Open(source, FileMode.Open, FileAccess.Read, FileShare.Read)
             hash = DocumentArchiveProposal.HashSource(source)
             If _sqlExample Then
                 suggested = Newtonsoft.Json.Linq.JObject.Parse(DemoDocumentSamples.Invoice)
             Else
-                Dim ocr = _ocrExecutable
-                If IsPdf(source) Then
-                    If DocumentFilePreview.PdfPageCount(source) < 1 Then Throw New InvalidDataException("PDF vide.")
-                Else
-                    Using bitmap = DocumentFilePreview.ReadImage(source)
-                        If bitmap.Width < 1 Then Throw New InvalidDataException("Image vide.")
-                    End Using
-                End If
                 Try
-                    If IsPdf(source) Then
-                        readableText = Await Task.Run(Function() LocalPdfInvoiceAnalysis.ReadLocalText(source, ocr))
-                        suggested = LocalPdfInvoiceAnalysis.ExtractText(readableText)
-                    ElseIf Not String.IsNullOrWhiteSpace(ocr) Then
-                        readableText = Await Task.Run(Function() OfflineImageOcr.Recognize(source, ocr))
-                        suggested = LocalPdfInvoiceAnalysis.ExtractText(readableText)
-                    Else
-                        note = "Saisissez les champs du document affiché. Tesseract est facultatif pour proposer des champs de facture."
+                    readableText = Await Task.Run(Function() LocalDocumentAnalysis.ReadText(source))
+                    suggested = LocalDocumentAnalysis.Classify(readableText)
+                    If suggested Is Nothing Then
+                        note = "Type non reconnu. Sélectionnez Facture ou Chèque si le document correspond."
                     End If
                 Catch ex As Exception When TypeOf ex Is IOException OrElse TypeOf ex Is InvalidOperationException OrElse
-                    TypeOf ex Is InvalidDataException OrElse TypeOf ex Is TimeoutException OrElse TypeOf ex Is ArgumentException OrElse
+                    TypeOf ex Is TimeoutException OrElse TypeOf ex Is ArgumentException OrElse
                     TypeOf ex Is Global.System.ComponentModel.Win32Exception
-                    note = "Extraction automatique indisponible pour ce document. Saisissez ses champs à partir de l’aperçu."
+                    note = "Lecture automatique indisponible. " & ex.Message
                 End Try
             End If
         End Using
 
-        Dim fields = suggested?("donnees_extraites")
-        If fields IsNot Nothing AndAlso Not fields("transaction").HasValues AndAlso Not fields("identite").HasValues Then
-            ShowTranscript(readableText)
-            note = "Aucun champ de facture reconnu. Saisissez uniquement les informations que vous avez vérifiées."
-        End If
+        If suggested Is Nothing Then ShowTranscript(readableText)
         Using editor As New FrmSqlTestDocumentEntry(source, hash, _testWorkspace.GetDocumentTestDirectory(), suggested, note)
             If editor.ShowDialog(Me) <> DialogResult.OK Then Return
             Await ConfirmProposal(editor.Proposal, TestSaveAction(), True)
@@ -244,13 +208,16 @@ Friend NotInheritable Class FrmDocumentFilePreview
         Dim readableText As String
         Using sourceLock = File.Open(source, FileMode.Open, FileAccess.Read, FileShare.Read)
             hash = DocumentArchiveProposal.HashSource(source)
-            Dim ocr = _ocrExecutable
-            readableText = Await Task.Run(Function() LocalPdfInvoiceAnalysis.ReadLocalText(source, ocr))
-            extracted = LocalPdfInvoiceAnalysis.ExtractText(readableText)
+            readableText = Await Task.Run(Function() LocalDocumentAnalysis.ReadText(source))
+            extracted = LocalDocumentAnalysis.Classify(readableText)
         End Using
 
         ShowTranscript(readableText)
 
+        If extracted Is Nothing OrElse extracted("type_document")?.ToString() <> "Facture" Then
+            MessageBox.Show(Me, "Pour vérifier et classer ce document, ouvrez Analyse → Espace TEST SQL.", Text)
+            Return
+        End If
         Dim data = extracted("donnees_extraites")
         Dim transaction = data("transaction")
         Dim supplier = data("identite")("fournisseur_nom")
@@ -298,8 +265,8 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private Async Function ConfirmProposal(proposition As DocumentArchiveProposal, save As Action(Of DocumentAgumaaa), fictif As Boolean) As Task
         Dim action = If(_sqlTest IsNot Nothing, "Enregistrer dans bddAgumaaaTest et archiver localement",
                         If(fictif, "Simuler l’enregistrement et l’archivage", "Enregistrer en base et archiver"))
-        If MessageBox.Show(Me, proposition.Summary & vbCrLf & vbCrLf & "Archive proposée" & vbCrLf &
-                           proposition.Destination & vbCrLf & vbCrLf & action & " ?",
+        If MessageBox.Show(Me, proposition.Summary & vbCrLf & vbCrLf & "Nom proposé : " & Path.GetFileName(proposition.Destination) & vbCrLf &
+                           "Dossier proposé : " & Path.GetDirectoryName(proposition.Destination) & vbCrLf & vbCrLf & action & " ?",
                            action, MessageBoxButtons.YesNo, MessageBoxIcon.Question,
                            MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then Return
         If fictif Then _testWorkspace.ValidateDocumentTestDestination(proposition.Destination)

@@ -23,7 +23,7 @@ Public NotInheritable Class LocalPdfInvoiceAnalysis
         End If
         If Not hasText Then
             If String.IsNullOrWhiteSpace(tesseractExe) Then
-                Throw New InvalidOperationException("Ce PDF est un scan. Pour l’analyser hors ligne, installez Tesseract avec le français puis utilisez le bouton Configurer l’OCR local si nécessaire.")
+                Throw New InvalidOperationException("Ce PDF est un scan et le moteur OCR français est introuvable. Vérifiez l’installation de gestionTresorerie.")
             End If
             content = RecognizePages(filePath, tesseractExe)
         End If
@@ -64,7 +64,7 @@ Public NotInheritable Class LocalPdfInvoiceAnalysis
         }
     End Function
 
-    Private Shared Function UniqueMatch(content As String, pattern As String) As String
+    Friend Shared Function UniqueMatch(content As String, pattern As String) As String
         Dim values = Regex.Matches(content, pattern, RegexOptions.IgnoreCase Or RegexOptions.Multiline Or RegexOptions.CultureInvariant).
             Select(Function(result) result.Groups("v").Value.Trim()).
             Where(Function(value) value.Length > 0 AndAlso value.Length <= 200).

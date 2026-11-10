@@ -4,15 +4,17 @@ Imports System
 Imports System.Diagnostics
 Imports System.IO
 
-' OCR local facultatif : aucun téléchargement, réseau ni service payant.
-' Le chemin de l'exécutable doit être explicitement fourni par l'appelant.
+' OCR local. L’installateur Windows fournit le moteur et le modèle français.
 Public NotInheritable Class OfflineImageOcr
     Private Sub New()
     End Sub
 
     Public Shared Function FindExecutable() As String
         Dim configured = Environment.GetEnvironmentVariable("AGUMAAA_TESSERACT_EXE")
-        If Not String.IsNullOrWhiteSpace(configured) Then Return configured
+        If Not String.IsNullOrWhiteSpace(configured) AndAlso Path.IsPathFullyQualified(configured) AndAlso File.Exists(configured) Then Return configured
+
+        Dim bundled = Path.Combine(AppContext.BaseDirectory, "ocr", "tesseract.exe")
+        If File.Exists(bundled) Then Return bundled
 
         For Each folder In {Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
                             Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)}
@@ -55,6 +57,11 @@ Public NotInheritable Class OfflineImageOcr
         start.ArgumentList.Add("stdout")
         start.ArgumentList.Add("-l")
         start.ArgumentList.Add(language)
+        Dim dataDirectory = Path.Combine(Path.GetDirectoryName(tesseractExe), "tessdata")
+        If File.Exists(Path.Combine(dataDirectory, language & ".traineddata")) Then
+            start.ArgumentList.Add("--tessdata-dir")
+            start.ArgumentList.Add(dataDirectory)
+        End If
 
         Using engineProcess = Process.Start(start)
             If engineProcess Is Nothing Then Throw New InvalidOperationException("Démarrage OCR impossible.")
