@@ -59,6 +59,7 @@
   <ItemGroup>
     <EmbeddedResource Include="My Project\PromptGemini.txt" />
     <EmbeddedResource Include="Resources\Schema\001-initial.sql" LogicalName="gestionTresorerie.Schema.001.sql" />
+    <EmbeddedResource Include="Resources\Schema\import-prod-vers-test.sql" LogicalName="gestionTresorerie.Schema.ImportProdVersTest.sql" />
     <Content Include="Resources\PromptGemini.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

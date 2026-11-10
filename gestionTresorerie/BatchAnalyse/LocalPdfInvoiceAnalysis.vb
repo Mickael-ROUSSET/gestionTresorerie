@@ -11,6 +11,10 @@ Public NotInheritable Class LocalPdfInvoiceAnalysis
     End Sub
 
     Public Shared Function Extract(filePath As String, Optional tesseractExe As String = Nothing) As JObject
+        Return ExtractText(ReadLocalText(filePath, tesseractExe))
+    End Function
+
+    Friend Shared Function ReadLocalText(filePath As String, tesseractExe As String) As String
         Dim hasText As Boolean
         Dim truncated As Boolean
         Dim content = DocumentFilePreview.ReadPdfText(filePath, hasText, truncated)
@@ -19,12 +23,12 @@ Public NotInheritable Class LocalPdfInvoiceAnalysis
         End If
         If Not hasText Then
             If String.IsNullOrWhiteSpace(tesseractExe) Then
-                Throw New InvalidOperationException("Ce PDF est un scan. Pour l’analyser hors ligne, installez Tesseract avec le français et renseignez AGUMAAA_TESSERACT_EXE avec le chemin de tesseract.exe.")
+                Throw New InvalidOperationException("Ce PDF est un scan. Pour l’analyser hors ligne, installez Tesseract avec le français puis utilisez le bouton Configurer l’OCR local si nécessaire.")
             End If
             content = RecognizePages(filePath, tesseractExe)
         End If
 
-        Return ExtractText(content)
+        Return content
     End Function
 
     Friend Shared Function ExtractText(content As String) As JObject

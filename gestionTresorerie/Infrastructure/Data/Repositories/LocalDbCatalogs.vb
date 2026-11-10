@@ -44,6 +44,24 @@ Friend NotInheritable Class LocalDbCatalogs
         End Using
     End Sub
 
+    Friend Shared Sub ImportProductionIntoTest()
+        Dim target As New SqlConnectionStringBuilder(ConnectionString("bddAgumaaaTest")) With {.Pooling = False}
+        TestEnvironmentIsolation.ValidateConnectionString(target.ConnectionString)
+        Using connection As New SqlConnection(target.ConnectionString)
+            connection.Open()
+            Using command = connection.CreateCommand()
+                command.CommandTimeout = 180
+                Using stream = GetType(LocalDbCatalogs).Assembly.GetManifestResourceStream("gestionTresorerie.Schema.ImportProdVersTest.sql")
+                    If stream Is Nothing Then Throw New InvalidOperationException("Script d’import TEST introuvable.")
+                    Using reader As New Global.System.IO.StreamReader(stream)
+                        command.CommandText = reader.ReadToEnd()
+                    End Using
+                End Using
+                command.ExecuteNonQuery()
+            End Using
+        End Using
+    End Sub
+
     Friend Shared Function ConnectionString(catalog As String) As String
         Return New SqlConnectionStringBuilder With {
             .DataSource = InstanceName, .InitialCatalog = catalog, .IntegratedSecurity = True,

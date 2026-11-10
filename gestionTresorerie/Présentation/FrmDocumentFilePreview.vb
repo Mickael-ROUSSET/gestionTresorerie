@@ -7,7 +7,7 @@ Imports System.Windows.Forms
 Friend NotInheritable Class FrmDocumentFilePreview
     Inherits Form
 
-    Private ReadOnly _files As New ListBox With {.Dock = DockStyle.Fill, .HorizontalScrollbar = True}
+    Private ReadOnly _files As New ListBox With {.Dock = DockStyle.Fill, .HorizontalScrollbar = True, .DisplayMember = "Name", .IntegralHeight = False}
     Private ReadOnly _text As New TextBox With {
         .Dock = DockStyle.Fill, .Multiline = True, .ReadOnly = True, .ScrollBars = ScrollBars.Vertical}
     Private ReadOnly _image As New PictureBox With {.Dock = DockStyle.Fill, .SizeMode = PictureBoxSizeMode.Zoom}
@@ -19,6 +19,8 @@ Friend NotInheritable Class FrmDocumentFilePreview
         .Text = "Analyser le document…", .AutoSize = True, .Anchor = AnchorStyles.Left}
     Private ReadOnly _pageNumber As New NumericUpDown With {.Minimum = 1, .Width = 72, .Visible = False}
     Private ReadOnly _pageCount As New Label With {.AutoSize = True, .Visible = False, .Margin = New Padding(3, 7, 3, 0)}
+    Private ReadOnly _pathTip As New ToolTip()
+    Private _ocrExecutable As String = OfflineImageOcr.FindExecutable()
     Private _pdfSource As String
     Private _pending As Boolean
 
@@ -31,30 +33,47 @@ Friend NotInheritable Class FrmDocumentFilePreview
         _sqlTest = sqlTest
         _sqlExample = sqlExample
         If _sqlTest IsNot Nothing Then _analyse.Text = "Analyser / saisir le document…"
-        Text = "Examen des PDF et des scans"
+        Dim production = _testWorkspace Is Nothing AndAlso RealArchiveEnabled()
+        Dim scope = If(production, "PROD — données réelles",
+                    If(_sqlTest IsNot Nothing, "TEST SQL — bddAgumaaaTest", "TEST / DÉMO — analyse locale"))
+        Text = scope & " | Examen des PDF et des scans"
         ClientSize = New Size(1000, 640)
         StartPosition = FormStartPosition.CenterParent
 
-        Dim columns As New TableLayoutPanel With {.Dock = DockStyle.Fill, .ColumnCount = 2, .RowCount = 1}
-        columns.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 38.0F))
-        columns.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 62.0F))
+        Dim columns As New TableLayoutPanel With {.Dock = DockStyle.Fill, .ColumnCount = 2, .RowCount = 3}
+        columns.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 30.0F))
+        columns.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 70.0F))
         Dim preview As New Panel With {.Dock = DockStyle.Fill}
         preview.Controls.Add(_image)
         preview.Controls.Add(_text)
-        columns.Controls.Add(_files, 0, 0)
-        columns.Controls.Add(preview, 1, 0)
+        Dim banner As New Label With {
+            .Text = scope, .Dock = DockStyle.Fill, .Margin = New Padding(0),
+            .TextAlign = ContentAlignment.MiddleCenter, .ForeColor = Color.White,
+            .BackColor = If(production, Color.DarkRed, Color.DarkBlue),
+            .Font = New Font(Font.FontFamily, 17, FontStyle.Bold)}
+        columns.Controls.Add(banner, 0, 0)
+        columns.SetColumnSpan(banner, 2)
+        Dim documents As New GroupBox With {.Text = "Documents sélectionnés", .Dock = DockStyle.Fill}
+        documents.Controls.Add(_files)
+        columns.Controls.Add(documents, 0, 1)
+        columns.Controls.Add(preview, 1, 1)
         Controls.Add(columns)
-        columns.RowCount = 2
+        columns.RowStyles.Add(New RowStyle(SizeType.Absolute, 48))
         columns.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
         columns.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         Dim commands As New FlowLayoutPanel With {.Dock = DockStyle.Fill, .AutoSize = True}
         commands.Controls.AddRange(New Control() {_analyse, _pageNumber, _pageCount})
-        columns.Controls.Add(commands, 0, 1)
+        If Not production Then
+            Dim configure As New Button With {.Text = "Configurer l’OCR local…", .AutoSize = True}
+            AddHandler configure.Click, AddressOf ConfigureOcr
+            commands.Controls.Add(configure)
+        End If
+        columns.Controls.Add(commands, 0, 2)
         columns.SetColumnSpan(commands, 2)
         AddHandler _analyse.Click, AddressOf AnalyseSelection
         AddHandler _pageNumber.ValueChanged, Sub() LoadPdfPage()
 
-        _files.Items.AddRange(paths.Cast(Of Object)().ToArray())
+        _files.Items.AddRange(paths.Select(Function(path) New FileInfo(path)).Cast(Of Object)().ToArray())
         AddHandler _files.SelectedIndexChanged, AddressOf LoadSelection
         If _files.Items.Count > 0 Then _files.SelectedIndex = 0
     End Sub
@@ -81,7 +100,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
     End Function
 
     Private Async Sub AnalyseSelection(sender As Object, e As EventArgs)
-        Dim source = TryCast(_files.SelectedItem, String)
+        Dim source = TryCast(_files.SelectedItem, FileInfo)?.FullName
         If source Is Nothing OrElse _pending Then Return
         Dim fictif = _testWorkspace IsNot Nothing
         Dim local = IsPdf(source) AndAlso (fictif OrElse Not RealArchiveEnabled())
@@ -158,16 +177,31 @@ Friend NotInheritable Class FrmDocumentFilePreview
         End Try
     End Sub
 
+    Private Sub ConfigureOcr(sender As Object, e As EventArgs)
+        Using picker As New OpenFileDialog With {
+            .Title = "Sélectionner tesseract.exe (langue française installée)",
+            .Filter = "Tesseract (tesseract.exe)|tesseract.exe", .CheckFileExists = True}
+            If picker.ShowDialog(Me) <> DialogResult.OK Then Return
+            If Not String.Equals(Path.GetFileName(picker.FileName), "tesseract.exe", StringComparison.OrdinalIgnoreCase) Then
+                MessageBox.Show(Me, "Sélectionnez le fichier tesseract.exe.", Text)
+                Return
+            End If
+            Environment.SetEnvironmentVariable("AGUMAAA_TESSERACT_EXE", picker.FileName, EnvironmentVariableTarget.User)
+            _ocrExecutable = picker.FileName
+        End Using
+    End Sub
+
     Private Async Function ReviewSqlTestDocument(source As String) As Task
         Dim hash As String
         Dim suggested As Newtonsoft.Json.Linq.JObject = Nothing
+        Dim readableText As String = Nothing
         Dim note = "Vérifiez les champs proposés, ou saisissez ceux du document affiché. Pour un chèque, choisissez son sens."
         Using sourceLock = File.Open(source, FileMode.Open, FileAccess.Read, FileShare.Read)
             hash = DocumentArchiveProposal.HashSource(source)
             If _sqlExample Then
                 suggested = Newtonsoft.Json.Linq.JObject.Parse(DemoDocumentSamples.Invoice)
             Else
-                Dim ocr = Environment.GetEnvironmentVariable("AGUMAAA_TESSERACT_EXE")
+                Dim ocr = _ocrExecutable
                 If IsPdf(source) Then
                     If DocumentFilePreview.PdfPageCount(source) < 1 Then Throw New InvalidDataException("PDF vide.")
                 Else
@@ -177,9 +211,11 @@ Friend NotInheritable Class FrmDocumentFilePreview
                 End If
                 Try
                     If IsPdf(source) Then
-                        suggested = Await Task.Run(Function() LocalPdfInvoiceAnalysis.Extract(source, ocr))
+                        readableText = Await Task.Run(Function() LocalPdfInvoiceAnalysis.ReadLocalText(source, ocr))
+                        suggested = LocalPdfInvoiceAnalysis.ExtractText(readableText)
                     ElseIf Not String.IsNullOrWhiteSpace(ocr) Then
-                        suggested = Await Task.Run(Function() LocalPdfInvoiceAnalysis.ExtractText(OfflineImageOcr.Recognize(source, ocr)))
+                        readableText = Await Task.Run(Function() OfflineImageOcr.Recognize(source, ocr))
+                        suggested = LocalPdfInvoiceAnalysis.ExtractText(readableText)
                     Else
                         note = "Saisissez les champs du document affiché. Tesseract est facultatif pour proposer des champs de facture."
                     End If
@@ -191,6 +227,11 @@ Friend NotInheritable Class FrmDocumentFilePreview
             End If
         End Using
 
+        Dim fields = suggested?("donnees_extraites")
+        If fields IsNot Nothing AndAlso Not fields("transaction").HasValues AndAlso Not fields("identite").HasValues Then
+            ShowTranscript(readableText)
+            note = "Aucun champ de facture reconnu. Saisissez uniquement les informations que vous avez vérifiées."
+        End If
         Using editor As New FrmSqlTestDocumentEntry(source, hash, _testWorkspace.GetDocumentTestDirectory(), suggested, note)
             If editor.ShowDialog(Me) <> DialogResult.OK Then Return
             Await ConfirmProposal(editor.Proposal, TestSaveAction(), True)
@@ -200,11 +241,15 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private Async Function AnalysePdfLocal(source As String) As Task
         Dim hash As String
         Dim extracted As Newtonsoft.Json.Linq.JObject
+        Dim readableText As String
         Using sourceLock = File.Open(source, FileMode.Open, FileAccess.Read, FileShare.Read)
             hash = DocumentArchiveProposal.HashSource(source)
-            Dim ocr = Environment.GetEnvironmentVariable("AGUMAAA_TESSERACT_EXE")
-            extracted = Await Task.Run(Function() LocalPdfInvoiceAnalysis.Extract(source, ocr))
+            Dim ocr = _ocrExecutable
+            readableText = Await Task.Run(Function() LocalPdfInvoiceAnalysis.ReadLocalText(source, ocr))
+            extracted = LocalPdfInvoiceAnalysis.ExtractText(readableText)
         End Using
+
+        ShowTranscript(readableText)
 
         Dim data = extracted("donnees_extraites")
         Dim transaction = data("transaction")
@@ -230,6 +275,17 @@ Friend NotInheritable Class FrmDocumentFilePreview
         End If
         MessageBox.Show(Me, message, "Analyse locale du PDF", MessageBoxButtons.OK, MessageBoxIcon.Information)
     End Function
+
+    Private Sub ShowTranscript(readableText As String)
+        If Not String.IsNullOrWhiteSpace(readableText) Then
+            Using transcript As New Form With {.Text = "Texte lu localement — à vérifier", .ClientSize = New Size(760, 520),
+                                               .StartPosition = FormStartPosition.CenterParent}
+                transcript.Controls.Add(New TextBox With {.Text = readableText, .Dock = DockStyle.Fill,
+                    .Multiline = True, .ReadOnly = True, .ScrollBars = ScrollBars.Vertical})
+                transcript.ShowDialog(Me)
+            End Using
+        End If
+    End Sub
 
     Private Function TestSaveAction() As Action(Of DocumentAgumaaa)
         If _sqlTest Is Nothing Then Return AddressOf _testWorkspace.SaveDocumentTestRecord
@@ -269,9 +325,10 @@ Friend NotInheritable Class FrmDocumentFilePreview
         _pageCount.Visible = False
         _text.Visible = True
         _text.Text = ""
-        Dim filePath = TryCast(_files.SelectedItem, String)
+        Dim filePath = TryCast(_files.SelectedItem, FileInfo)?.FullName
         _analyse.Enabled = filePath IsNot Nothing AndAlso
             (IsPdf(filePath) OrElse _testWorkspace IsNot Nothing OrElse RealArchiveEnabled())
+        _pathTip.SetToolTip(_files, If(filePath, ""))
         If filePath Is Nothing Then Return
 
         Try
@@ -318,7 +375,10 @@ Friend NotInheritable Class FrmDocumentFilePreview
     End Sub
 
     Protected Overrides Sub Dispose(disposing As Boolean)
-        If disposing Then ClearImage()
+        If disposing Then
+            ClearImage()
+            _pathTip.Dispose()
+        End If
         MyBase.Dispose(disposing)
     End Sub
 End Class
