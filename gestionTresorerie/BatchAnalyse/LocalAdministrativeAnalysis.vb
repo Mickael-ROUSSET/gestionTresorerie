@@ -12,7 +12,7 @@ Friend NotInheritable Class LocalAdministrativeAnalysis
     Friend Shared Function Classify(lines As String) As JObject
         ' Rechercher les titres en haut de la page pour ignorer les listes de pièces à joindre.
         Dim heading = String.Join(vbLf, lines.Split(ChrW(10)).Where(Function(line) Not String.IsNullOrWhiteSpace(line)).Take(8))
-        Dim kind = DetectHeading(heading)
+        Dim kind = DetectHeading(heading, String.Join(vbLf, lines.Split(ChrW(10)).Take(48)))
         If kind = TypeDocument.Aucun Then Return Nothing
 
         Dim receipt = kind = TypeDocument.Recu
@@ -30,6 +30,7 @@ Friend NotInheritable Class LocalAdministrativeAnalysis
             "^[ \t]*(?:date(?:[ \t]+(?:du[ \t]+re[çc]u|de[ \t]+signature|d['’]adh[eé]sion))?[ \t]*:|le)[ \t]*(?<v>\d{2}/\d{2}/\d{4}|\d{4}-\d{2}-\d{2})[ \t]*$")
         Dim identity As New JObject
         If name IsNot Nothing Then identity("nom_complet") = name
+        If kind = TypeDocument.FormulaireAdhesion Then ExtractMembershipIdentity(lines, identity)
         Dim fields As New JObject
         Dim parsedDate As Date
         If Date.TryParseExact(documentDate, {"dd/MM/yyyy", "yyyy-MM-dd"}, CultureInfo.InvariantCulture,
@@ -50,10 +51,33 @@ Friend NotInheritable Class LocalAdministrativeAnalysis
         }
     End Function
 
-    Private Shared Function DetectHeading(heading As String) As TypeDocument
+    Private Shared Sub ExtractMembershipIdentity(lines As String, identity As JObject)
+        Dim familyName = ReadMembershipField(lines, "nom(?:[ \t]+de[ \t]+naissance)?")
+        If familyName Is Nothing Then familyName = ReadMembershipField(lines, "nom[ \t]+d['’]usage")
+        Dim firstName = ReadMembershipField(lines, "pr[eé]nom(?:s|\(s\))?")
+        Dim street = ReadMembershipField(lines, "adresse(?:[ \t]+postale)?")
+        Dim town = ReadMembershipField(lines, "(?:ville|commune)")
+        Dim postalCode = LocalPdfInvoiceAnalysis.UniqueMatch(lines, "\bcode[ \t]+postal[ \t]*[:;]?[ \t]*(?<v>\d{5})\b")
+        If familyName IsNot Nothing Then identity("nom") = familyName
+        If firstName IsNot Nothing Then identity("prenom") = firstName
+        Dim locality = String.Join(" ", {postalCode, town}.Where(Function(part) Not String.IsNullOrWhiteSpace(part)))
+        Dim address = String.Join(", ", {street, locality}.Where(Function(part) Not String.IsNullOrWhiteSpace(part)))
+        If address.Length > 0 Then identity("adresse") = address
+    End Sub
+
+    Private Shared Function ReadMembershipField(lines As String, label As String) As String
+        Const nextLabel As String = "nom(?:[ \t]+d['’]usage)?|pr[eé]nom(?:s|\(s\))?|date[ \t]+de[ \t]+naissance|code[ \t]+postal|ville|commune|adresse|e[- ]?mail|t[eé]l[eé]phone|sexe|lieu[ \t]+de[ \t]+naissance"
+        Dim value = LocalPdfInvoiceAnalysis.UniqueMatch(lines,
+            "^[ \t]*" & label & "[ \t]*[:;][ \t]*(?:\n[ \t]*)?(?<v>[^\n]+?)(?=[ \t]+(?:" & nextLabel & ")[ \t]*[:;]|[ \t]*$)")
+        If String.IsNullOrWhiteSpace(value) OrElse Not value.Any(Function(character) Char.IsLetter(character)) OrElse
+            Regex.IsMatch(value, "^(?:" & nextLabel & ")[ \t]*[:;]", RegexOptions.IgnoreCase Or RegexOptions.CultureInvariant) Then Return Nothing
+        Return value.Trim("."c, "_"c, " "c)
+    End Function
+
+    Private Shared Function DetectHeading(heading As String, lines As String) As TypeDocument
         Const options As RegexOptions = RegexOptions.IgnoreCase Or RegexOptions.Multiline Or RegexOptions.CultureInvariant
-        Dim membership = Regex.IsMatch(heading,
-            "^[ \t]*(?:bulletin|formulaire|fiche|demande)[ \t]+(?:d['’][ \t]*adh[eé]sion|de[ \t]+renouvellement[ \t]+d['’][ \t]*adh[eé]sion)\b", options)
+        Dim membership = Regex.IsMatch(lines,
+            "\b(?:bulletin|formulaire|fiche|demande)[ \t\n]+(?:d[ \t]*['’]?[ \t\n]*adh[eé]sion|de[ \t\n]+renouvellement[ \t\n]+d[ \t]*['’]?[ \t\n]*adh[eé]sion)\b", options)
         Dim medical = Regex.IsMatch(heading,
             "^[ \t]*questionnaire[ \t]+(?:m[eé]dical|(?:de[ \t]+)?sant[eé])\b[^\n]*$|^[ \t]*QS[- ]SPORT\b", options)
         Dim receipt = Regex.IsMatch(heading,

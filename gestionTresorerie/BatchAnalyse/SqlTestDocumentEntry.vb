@@ -10,7 +10,7 @@ Public NotInheritable Class SqlTestDocumentEntry
 
     Public Shared Function Prepare(source As String, hash As String, root As String, cheque As Boolean,
                                    reference As String, tiers As String, dateText As String, amountText As String,
-                                   Optional chequeEmis As Boolean? = Nothing) As DocumentArchiveProposal
+                                   Optional chequeEmis As Boolean? = Nothing, Optional archiveOnDrive As Boolean = False) As DocumentArchiveProposal
         reference = reference.Trim()
         tiers = tiers.Trim()
         If reference.Length = 0 OrElse reference.Length > 60 OrElse tiers.Length = 0 OrElse tiers.Length > 80 Then
@@ -53,6 +53,6 @@ Public NotInheritable Class SqlTestDocumentEntry
             {"type_document", If(cheque, "Cheque", "Facture")},
             {"donnees_extraites", New JObject From {{"identite", identity}, {"transaction", transaction}}}
         }
-        Return DocumentArchiveProposal.PrepareTest(source, hash, json.ToString(), root, If(cheque, chequeEmis, Nothing))
+        Return DocumentArchiveProposal.PrepareTest(source, hash, json.ToString(), root, If(cheque, chequeEmis, Nothing), archiveOnDrive)
     End Function
 End Class

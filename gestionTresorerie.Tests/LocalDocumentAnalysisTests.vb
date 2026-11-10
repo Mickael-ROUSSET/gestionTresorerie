@@ -76,4 +76,49 @@ Public Class LocalDocumentAnalysisTests
             temp.Delete(recursive:=True)
         End Try
     End Sub
+    <TestMethod>
+    Public Sub ReadsMembershipWithSplitTitleAndAdjacentLabels()
+        Dim result = Global.gestionTresorerie.LocalDocumentAnalysis.Classify(String.Join(vbLf, {
+            "SPORT VITALITÉ", "Bulletin", "d’adhésion / renouvellement d’adhésion",
+            "NOM DE NAISSANCE : EXEMPLE    NOM D’USAGE : EXEMPLE-BIS",
+            "PRÉNOM(S) : Camille    DATE DE NAISSANCE : 10/12/1990",
+            "ADRESSE : 12 rue du Stade", "VILLE : Allègre    CODE POSTAL : 43270"}))
+        Assert.AreEqual("FormulaireAdhesion", result("type_document").ToString())
+        Dim identity = result("donnees_extraites")("identite")
+        Assert.AreEqual("EXEMPLE", identity("nom").ToString())
+        Assert.AreEqual("Camille", identity("prenom").ToString())
+        Assert.AreEqual("12 rue du Stade, 43270 Allègre", identity("adresse").ToString())
+        Assert.IsNull(result("donnees_extraites")("transaction")("date_document"))
+    End Sub
+
+    <TestMethod>
+    Public Sub PersistsMembershipFieldsAndRoutesArchivesUnderDriveTestFolder()
+        Dim temp = Directory.CreateTempSubdirectory("agumaaa-drive-test-")
+        Try
+            Dim source = Path.Combine(temp.FullName, "bulletin.pdf")
+            File.WriteAllText(source, "bulletin fictif")
+            Dim hash = Global.gestionTresorerie.DocumentArchiveProposal.HashSource(source)
+            Dim proposal = Global.gestionTresorerie.DocumentArchiveProposal.PrepareAdministrativeTest(source, hash,
+                temp.FullName, TypeDocument.FormulaireAdhesion, "Exemple", "10/11/2026", "", "",
+                "Camille", "12 rue du Stade, 43270 Allègre", archiveOnDrive:=True)
+            Assert.IsTrue(proposal.Destination.StartsWith(Path.Combine(temp.FullName, "TEST", "Adhesions", "2026") &
+                Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            Assert.IsFalse(Directory.Exists(Path.Combine(temp.FullName, "TEST")))
+            Dim saved As Global.gestionTresorerie.DocumentAgumaaa = Nothing
+            proposal.Confirm(Sub(doc) saved = doc)
+            Dim data = Newtonsoft.Json.Linq.JObject.Parse(saved.metaDonnees)
+            Assert.AreEqual("Exemple", data("nom").ToString())
+            Assert.AreEqual("Camille", data("prenom").ToString())
+            Assert.AreEqual("12 rue du Stade, 43270 Allègre", data("adresse").ToString())
+            Assert.IsTrue(File.Exists(proposal.Destination))
+            Assert.IsTrue(File.Exists(source))
+
+            Dim invoice = Global.gestionTresorerie.SqlTestDocumentEntry.Prepare(source, hash, temp.FullName,
+                False, "F-42", "Exemple", "10/11/2026", "42,50", archiveOnDrive:=True)
+            Assert.IsTrue(invoice.Destination.StartsWith(Path.Combine(temp.FullName, "TEST") &
+                Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        Finally
+            temp.Delete(recursive:=True)
+        End Try
+    End Sub
 End Class

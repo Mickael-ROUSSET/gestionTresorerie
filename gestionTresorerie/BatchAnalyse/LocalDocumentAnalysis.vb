@@ -9,15 +9,15 @@ Public NotInheritable Class LocalDocumentAnalysis
     Private Sub New()
     End Sub
 
-    Friend Shared Function ReadText(source As String) As String
+    Friend Shared Function ReadText(source As String, Optional sparse As Boolean = False) As String
         Dim engine = OfflineImageOcr.FindExecutable()
         If String.Equals(Path.GetExtension(source), ".pdf", StringComparison.OrdinalIgnoreCase) Then
-            Return LocalPdfInvoiceAnalysis.ReadLocalText(source, engine)
+            Return LocalPdfInvoiceAnalysis.ReadLocalText(source, engine, sparse)
         End If
         If engine Is Nothing Then
             Throw New InvalidOperationException("Moteur OCR français introuvable. Vérifiez l’installation de gestionTresorerie.")
         End If
-        Return OfflineImageOcr.Recognize(source, engine)
+        Return OfflineImageOcr.Recognize(source, engine, sparse:=sparse)
     End Function
 
     Public Shared Function Classify(content As String) As JObject
