@@ -24,7 +24,7 @@ Public Class FrmPrincipale
 
     Private ReadOnly _menuSqlTest As New ToolStripMenuItem With {
         .Name = "EspaceTestSqlToolStripMenuItem",
-        .Text = "Espace TEST SQL (documents et archives locales)…"}
+        .Text = "Espace TEST SQL (documents et classement TEST)…"}
 
     Private ReadOnly _modeDemonstration As Boolean
     Private _isolatedSqlTest As Boolean

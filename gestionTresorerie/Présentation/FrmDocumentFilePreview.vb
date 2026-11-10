@@ -7,6 +7,8 @@ Imports System.Windows.Forms
 Friend NotInheritable Class FrmDocumentFilePreview
     Inherits Form
 
+    Private Const DriveArchiveRoot As String = "G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables"
+
     Private ReadOnly _files As New ListBox With {.Dock = DockStyle.Fill, .HorizontalScrollbar = True, .DisplayMember = "Name", .IntegralHeight = False}
     Private ReadOnly _text As New TextBox With {
         .Dock = DockStyle.Fill, .Multiline = True, .ReadOnly = True, .ScrollBars = ScrollBars.Vertical}
@@ -184,8 +186,13 @@ Friend NotInheritable Class FrmDocumentFilePreview
                 Try
                     readableText = Await Task.Run(Function() LocalDocumentAnalysis.ReadText(source))
                     suggested = LocalDocumentAnalysis.Classify(readableText)
+                    If suggested Is Nothing OrElse IsIncompleteMembership(suggested) Then
+                        suggested = Await ImproveDocumentExtraction(source, suggested)
+                    End If
                     If suggested Is Nothing Then
                         note = "Type non reconnu. Choisissez le type après avoir vérifié le document."
+                    ElseIf IsIncompleteMembership(suggested) Then
+                        note = "Bulletin d’adhésion détecté. Vérifiez les champs lus et complétez les champs vides."
                     End If
                 Catch ex As Exception When TypeOf ex Is IOException OrElse TypeOf ex Is InvalidOperationException OrElse
                     TypeOf ex Is InvalidDataException OrElse TypeOf ex Is TimeoutException OrElse TypeOf ex Is ArgumentException OrElse
@@ -196,10 +203,38 @@ Friend NotInheritable Class FrmDocumentFilePreview
         End Using
 
         If suggested Is Nothing Then ShowTranscript(readableText)
-        Using editor As New FrmSqlTestDocumentEntry(source, hash, _testWorkspace.GetDocumentTestDirectory(), suggested, note)
+        Dim archiveRoot = If(_sqlExample, _testWorkspace.GetDocumentTestDirectory(), DriveArchiveRoot)
+        Using editor As New FrmSqlTestDocumentEntry(source, hash, archiveRoot, suggested, note, archiveOnDrive:=Not _sqlExample)
             If editor.ShowDialog(Me) <> DialogResult.OK Then Return
             Await ConfirmProposal(editor.Proposal, TestSaveAction(), True)
         End Using
+    End Function
+
+    Private Shared Function IsIncompleteMembership(suggested As Newtonsoft.Json.Linq.JObject) As Boolean
+        If suggested("type_document")?.ToString() <> "FormulaireAdhesion" Then Return False
+        Dim identity = suggested("donnees_extraites")?("identite")
+        Return {"nom", "prenom", "adresse"}.Any(Function(field) String.IsNullOrWhiteSpace(identity?(field)?.ToString()))
+    End Function
+
+    Private Shared Async Function ImproveDocumentExtraction(source As String,
+        primary As Newtonsoft.Json.Linq.JObject) As Task(Of Newtonsoft.Json.Linq.JObject)
+        Dim candidate As Newtonsoft.Json.Linq.JObject
+        Try
+            Dim sparseText = Await Task.Run(Function() LocalDocumentAnalysis.ReadText(source, sparse:=True))
+            candidate = LocalDocumentAnalysis.Classify(sparseText)
+        Catch ex As Exception When TypeOf ex Is IOException OrElse TypeOf ex Is InvalidDataException OrElse
+            TypeOf ex Is InvalidOperationException OrElse TypeOf ex Is TimeoutException OrElse
+            TypeOf ex Is ArgumentException OrElse TypeOf ex Is Global.System.ComponentModel.Win32Exception
+            Return primary
+        End Try
+        If primary Is Nothing Then Return candidate
+        If candidate?("type_document")?.ToString() <> primary("type_document")?.ToString() Then Return primary
+        Dim identity = DirectCast(primary("donnees_extraites")("identite"), Newtonsoft.Json.Linq.JObject)
+        Dim additional = candidate("donnees_extraites")("identite")
+        For Each field In {"nom", "prenom", "adresse"}
+            If identity(field) Is Nothing AndAlso additional(field) IsNot Nothing Then identity(field) = additional(field).DeepClone()
+        Next
+        Return primary
     End Function
 
     Private Async Function AnalysePdfLocal(source As String) As Task
@@ -257,21 +292,34 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private Function TestSaveAction() As Action(Of DocumentAgumaaa)
         If _sqlTest Is Nothing Then Return AddressOf _testWorkspace.SaveDocumentTestRecord
         Return Sub(doc)
-                   _testWorkspace.ValidateDocumentTestDestination(doc.CheminDoc)
+                   ValidateTestDestination(doc.CheminDoc)
                    _sqlTest.Save(doc)
                End Sub
     End Function
 
+    Private Sub ValidateTestDestination(destination As String)
+        If _sqlTest Is Nothing OrElse _sqlExample Then
+            _testWorkspace.ValidateDocumentTestDestination(destination)
+            Return
+        End If
+        Dim allowedRoot = Path.Combine(DriveArchiveRoot, "TEST") & Path.DirectorySeparatorChar
+        If Not Path.GetFullPath(destination).StartsWith(allowedRoot, StringComparison.OrdinalIgnoreCase) Then
+            Throw New IOException("La destination est en dehors du dossier TEST du Drive.")
+        End If
+    End Sub
+
     Private Async Function ConfirmProposal(proposition As DocumentArchiveProposal, save As Action(Of DocumentAgumaaa), fictif As Boolean) As Task
-        Dim action = If(_sqlTest IsNot Nothing, "Enregistrer dans bddAgumaaaTest et archiver localement",
+        Dim action = If(_sqlTest IsNot Nothing, If(_sqlExample, "Enregistrer dans bddAgumaaaTest et archiver localement",
+                            "Enregistrer dans bddAgumaaaTest et archiver sur le Drive TEST"),
                         If(fictif, "Simuler l’enregistrement et l’archivage", "Enregistrer en base et archiver"))
         If MessageBox.Show(Me, proposition.Summary & vbCrLf & vbCrLf & "Nom proposé : " & Path.GetFileName(proposition.Destination) & vbCrLf &
                            "Dossier proposé : " & Path.GetDirectoryName(proposition.Destination) & vbCrLf & vbCrLf & action & " ?",
                            action, MessageBoxButtons.YesNo, MessageBoxIcon.Question,
                            MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then Return
-        If fictif Then _testWorkspace.ValidateDocumentTestDestination(proposition.Destination)
+        If fictif Then ValidateTestDestination(proposition.Destination)
         Await Task.Run(Sub() proposition.Confirm(save))
-        MessageBox.Show(Me, If(_sqlTest IsNot Nothing, "Archive locale et fiche SQL TEST enregistrées.",
+        MessageBox.Show(Me, If(_sqlTest IsNot Nothing, If(_sqlExample, "Archive locale et fiche SQL TEST enregistrées.",
+                                "Archive Drive et fiche SQL TEST enregistrées."),
                                If(fictif, "Archive et fiche TEST enregistrées.", "Document archivé et référencé en base.")),
                         action, MessageBoxButtons.OK, MessageBoxIcon.Information)
     End Function

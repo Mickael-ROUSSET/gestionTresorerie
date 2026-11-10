@@ -35,15 +35,15 @@ Public NotInheritable Class DocumentArchiveProposal
     End Function
 
     Friend Shared Function PrepareTest(source As String, hash As String, json As String, root As String,
-                                       chequeEmis As Boolean?) As DocumentArchiveProposal
-        Return PrepareCore(source, hash, json, root, AddressOf OfflineTestWorkspace.DocumentArchiveTestSetting, chequeEmis)
+                                       chequeEmis As Boolean?, Optional archiveOnDrive As Boolean = False) As DocumentArchiveProposal
+        Return PrepareCore(source, hash, json, root, AddressOf OfflineTestWorkspace.DocumentArchiveTestSetting, chequeEmis, archiveOnDrive)
     End Function
 
     Private Shared Function PrepareCore(source As String, hash As String, json As String, root As String,
-                                        setting As Func(Of String, String), chequeEmisTest As Boolean?) As DocumentArchiveProposal
+                                        setting As Func(Of String, String), chequeEmisTest As Boolean?, Optional archiveOnDrive As Boolean = False) As DocumentArchiveProposal
         If Not DocumentFilePreview.Supports(source) Then Throw New ArgumentException("Format de fichier non pris en charge.")
         If Not Path.IsPathFullyQualified(root) OrElse Not Directory.Exists(root) Then
-            Throw New IOException("La racine d’archivage configurée est inaccessible.")
+            Throw New IOException("Le dossier d’archivage est inaccessible. Vérifiez le lecteur et le chemin : " & root)
         End If
         Dim document = GmailDocumentExtractionAdapter.Extraire(json)
         Dim facture = TryCast(document, Facture)
@@ -100,15 +100,16 @@ Public NotInheritable Class DocumentArchiveProposal
         Dim summaryText = $"{document.CategorieDoc} — {sens}{vbCrLf}" &
             $"Référence : {reference}{vbCrLf}Date : {document.DateDoc:dd/MM/yyyy}{vbCrLf}" &
             $"Montant : {montant:N2} {devise}{vbCrLf}Tiers : {tiers}"
-        Return BuildProposal(source, root, hash, document, setting("repRacineComptabilité"), dossier, nom, summaryText)
+        Return BuildProposal(source, root, hash, document, If(archiveOnDrive, "TEST", setting("repRacineComptabilité")), dossier, nom, summaryText)
     End Function
 
     Public Shared Function PrepareAdministrativeTest(source As String, hash As String, root As String, kind As TypeDocument,
                                                      party As String, dateText As String, reference As String,
-                                                     amountText As String) As DocumentArchiveProposal
+                                                     amountText As String, Optional firstName As String = "",
+                                                     Optional address As String = "", Optional archiveOnDrive As Boolean = False) As DocumentArchiveProposal
         If Not DocumentFilePreview.Supports(source) Then Throw New ArgumentException("Format de fichier non pris en charge.")
         If Not Path.IsPathFullyQualified(root) OrElse Not Directory.Exists(root) Then
-            Throw New IOException("La racine d’archivage TEST est inaccessible.")
+            Throw New IOException("Le dossier d’archivage TEST est inaccessible. Vérifiez le lecteur et le chemin : " & root)
         End If
         Dim folder As String
         Dim filenamePrefix As String
@@ -139,6 +140,21 @@ Public NotInheritable Class DocumentArchiveProposal
         End If
         Dim fields As New JObject From {{"nom_complet", party}, {"date_document", documentDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}}
         Dim summary = label & vbCrLf & $"Nom : {party}{vbCrLf}Date : {documentDate:dd/MM/yyyy}"
+        If kind = TypeDocument.FormulaireAdhesion Then
+            firstName = firstName.Trim()
+            address = address.Trim()
+            If firstName.Length > 80 OrElse address.Length > 240 Then Throw New ArgumentException("Prénom ou adresse trop longue.")
+            fields("nom") = party
+            If firstName.Length > 0 Then
+                fields("prenom") = firstName
+                fields("nom_complet") = party & " " & firstName
+                summary &= vbCrLf & "Prénom : " & firstName
+            End If
+            If address.Length > 0 Then
+                fields("adresse") = address
+                summary &= vbCrLf & "Adresse : " & address
+            End If
+        End If
         If kind = TypeDocument.Recu Then
             reference = reference.Trim()
             If reference.Length > 60 Then Throw New ArgumentException("Le numéro du reçu dépasse 60 caractères.")
@@ -164,7 +180,7 @@ Public NotInheritable Class DocumentArchiveProposal
         ' Un nom neutre évite d’exposer l’identité d’un adhérent dans les noms de fichiers.
         Dim fileName = filenamePrefix & "_" & documentDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) &
             "_" & hash.Substring(0, 16) & Path.GetExtension(source)
-        Return BuildProposal(source, root, hash, document, OfflineTestWorkspace.DocumentArchiveTestSetting("repRacineComptabilité"),
+        Return BuildProposal(source, root, hash, document, If(archiveOnDrive, "TEST", OfflineTestWorkspace.DocumentArchiveTestSetting("repRacineComptabilité")),
             Path.Combine(folder, documentDate.ToString("yyyy", CultureInfo.InvariantCulture)), fileName, summary)
     End Function
 

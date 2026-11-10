@@ -14,7 +14,8 @@ Public NotInheritable Class LocalPdfInvoiceAnalysis
         Return ExtractText(ReadLocalText(filePath, tesseractExe))
     End Function
 
-    Friend Shared Function ReadLocalText(filePath As String, tesseractExe As String) As String
+    Friend Shared Function ReadLocalText(filePath As String, tesseractExe As String, Optional sparse As Boolean = False) As String
+        If sparse Then Return RecognizePages(filePath, tesseractExe, sparse:=True)
         Dim hasText As Boolean
         Dim truncated As Boolean
         Dim content = DocumentFilePreview.ReadPdfText(filePath, hasText, truncated)
@@ -72,7 +73,7 @@ Public NotInheritable Class LocalPdfInvoiceAnalysis
         Return If(values.Length = 1, values(0), Nothing)
     End Function
 
-    Private Shared Function RecognizePages(filePath As String, tesseractExe As String) As String
+    Private Shared Function RecognizePages(filePath As String, tesseractExe As String, Optional sparse As Boolean = False) As String
         Dim pages = DocumentFilePreview.PdfPageCount(filePath)
         If pages > 3 Then Throw New InvalidDataException("L’OCR local accepte les PDF de trois pages au maximum.")
         Dim temporary = Directory.CreateTempSubdirectory("gestionTresorerie-ocr-")
@@ -80,10 +81,10 @@ Public NotInheritable Class LocalPdfInvoiceAnalysis
             Dim content As New StringBuilder
             For index = 0 To pages - 1
                 Dim imagePath = Path.Combine(temporary.FullName, $"{index}.png")
-                Using page = DocumentFilePreview.RenderPdfPage(filePath, index)
+                Using page = DocumentFilePreview.RenderPdfPage(filePath, index, 3300)
                     page.Save(imagePath, Drawing.Imaging.ImageFormat.Png)
                 End Using
-                content.AppendLine(OfflineImageOcr.Recognize(imagePath, tesseractExe))
+                content.AppendLine(OfflineImageOcr.Recognize(imagePath, tesseractExe, sparse:=sparse))
             Next
             Return content.ToString()
         Finally

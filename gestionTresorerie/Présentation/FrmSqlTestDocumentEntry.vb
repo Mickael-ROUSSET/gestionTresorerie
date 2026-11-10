@@ -20,21 +20,28 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     Private ReadOnly _party As New TextBox With {.MaxLength = 80, .Dock = DockStyle.Fill}
     Private ReadOnly _date As New TextBox With {.PlaceholderText = "JJ/MM/AAAA", .Dock = DockStyle.Fill}
     Private ReadOnly _amount As New TextBox With {.PlaceholderText = "Exemple : 42,50", .Dock = DockStyle.Fill}
+    Private ReadOnly _firstName As New TextBox With {.MaxLength = 80, .Dock = DockStyle.Fill}
+    Private ReadOnly _address As New TextBox With {.MaxLength = 240, .Dock = DockStyle.Fill}
+    Private ReadOnly _firstNameLabel As New Label With {.Text = "Prénom"}
+    Private ReadOnly _addressLabel As New Label With {.Text = "Adresse postale"}
+    Private ReadOnly _archiveOnDrive As Boolean
     Private ReadOnly _partyLabel As New Label With {.AutoSize = True, .Anchor = AnchorStyles.Left}
     Private ReadOnly _source As String
     Private ReadOnly _hash As String
     Private ReadOnly _root As String
 
-    Public Sub New(source As String, hash As String, root As String, suggested As JObject, note As String)
+    Public Sub New(source As String, hash As String, root As String, suggested As JObject, note As String,
+                   Optional archiveOnDrive As Boolean = False)
         _source = source
         _hash = hash
         _root = root
+        _archiveOnDrive = archiveOnDrive
         Text = "Vérifier le document — bddAgumaaaTest"
         StartPosition = FormStartPosition.CenterParent
         FormBorderStyle = FormBorderStyle.FixedDialog
         MinimizeBox = False
         MaximizeBox = False
-        ClientSize = New Size(540, 322)
+        ClientSize = New Size(580, 389)
         AutoScaleMode = AutoScaleMode.Font
 
         _kind.Items.AddRange(New Object() {"Facture", "Chèque", "Bulletin d’adhésion", "Questionnaire médical", "Reçu"})
@@ -53,11 +60,14 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         AddField(table, 5, New Label With {.Text = "Date du document"}, _date)
         AddField(table, 6, _amountLabel, _amount)
 
+        AddField(table, 7, _firstNameLabel, _firstName)
+        AddField(table, 8, _addressLabel, _address)
+
         Dim buttons As New FlowLayoutPanel With {.Dock = DockStyle.Fill, .FlowDirection = FlowDirection.RightToLeft}
         Dim cancel As New Button With {.Text = "Annuler", .DialogResult = DialogResult.Cancel, .AutoSize = True}
         Dim validate As New Button With {.Text = "Vérifier le classement…", .AutoSize = True}
         buttons.Controls.AddRange(New Control() {cancel, validate})
-        table.Controls.Add(buttons, 0, 7)
+        table.Controls.Add(buttons, 0, 9)
         table.SetColumnSpan(buttons, 2)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 39))
         Controls.Add(table)
@@ -83,7 +93,9 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             _date.Text = If(transaction?("date_facture")?.ToString(), "")
             _amount.Text = If(transaction?("montant_ttc")?.ToString(), "")
         Else
-            _party.Text = If(identity?("nom_complet")?.ToString(), "")
+            _party.Text = If(identity?("nom")?.ToString(), If(identity?("nom_complet")?.ToString(), ""))
+            _firstName.Text = If(identity?("prenom")?.ToString(), "")
+            _address.Text = If(identity?("adresse")?.ToString(), "")
             _number.Text = If(transaction?("reference")?.ToString(), "")
             _date.Text = If(transaction?("date_document")?.ToString(), "")
             _amount.Text = If(transaction?("montant_numerique")?.ToString(), "")
@@ -92,6 +104,8 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             Sub()
                 _number.Clear()
                 _party.Clear()
+                _firstName.Clear()
+                _address.Clear()
                 _date.Clear()
                 _amount.Clear()
                 _direction.SelectedIndex = -1
@@ -126,6 +140,12 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         Dim financial = cheque OrElse receipt OrElse kind = TypeDocument.Facture
         _partyLabel.Text = If(cheque, "Bénéficiaire", If(kind = TypeDocument.Facture, "Fournisseur",
             If(receipt, "Nom ou organisme", "Nom et prénom")))
+        Dim membership = kind = TypeDocument.FormulaireAdhesion
+        If membership Then _partyLabel.Text = "Nom"
+        _firstNameLabel.Visible = membership
+        _firstName.Visible = membership
+        _addressLabel.Visible = membership
+        _address.Visible = membership
         _directionLabel.Visible = cheque
         _direction.Visible = cheque
         _numberLabel.Text = If(receipt, "Numéro (facultatif)", "Numéro du document")
@@ -144,10 +164,10 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             If kind = TypeDocument.Aucun Then Throw New ArgumentException("Sélectionnez le type de document.")
             If kind = TypeDocument.Facture OrElse kind = TypeDocument.Cheque Then
                 _proposal = SqlTestDocumentEntry.Prepare(_source, _hash, _root, kind = TypeDocument.Cheque,
-                    _number.Text, _party.Text, _date.Text, _amount.Text, emitted)
+                    _number.Text, _party.Text, _date.Text, _amount.Text, emitted, _archiveOnDrive)
             Else
                 _proposal = DocumentArchiveProposal.PrepareAdministrativeTest(_source, _hash, _root, kind,
-                    _party.Text, _date.Text, _number.Text, _amount.Text)
+                    _party.Text, _date.Text, _number.Text, _amount.Text, _firstName.Text, _address.Text, _archiveOnDrive)
             End If
             DialogResult = DialogResult.OK
         Catch ex As Exception When TypeOf ex Is ArgumentException OrElse TypeOf ex Is IO.IOException

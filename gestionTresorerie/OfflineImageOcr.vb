@@ -3,6 +3,7 @@ Option Strict On
 Imports System
 Imports System.Diagnostics
 Imports System.IO
+Imports System.Text
 
 ' OCR local. L’installateur Windows fournit le moteur et le modèle français.
 Public NotInheritable Class OfflineImageOcr
@@ -27,7 +28,8 @@ Public NotInheritable Class OfflineImageOcr
 
     Public Shared Function Recognize(imagePath As String, tesseractExe As String,
                                      Optional language As String = "fra",
-                                     Optional timeoutMilliseconds As Integer = 30000) As String
+                                     Optional timeoutMilliseconds As Integer = 30000,
+                                     Optional sparse As Boolean = False) As String
         If String.IsNullOrWhiteSpace(imagePath) Then Throw New ArgumentException("Image manquante.", NameOf(imagePath))
         If String.IsNullOrWhiteSpace(tesseractExe) Then Throw New ArgumentException("Moteur OCR local non configuré.", NameOf(tesseractExe))
         If timeoutMilliseconds < 1000 OrElse timeoutMilliseconds > 120000 Then
@@ -51,12 +53,17 @@ Public NotInheritable Class OfflineImageOcr
             .UseShellExecute = False,
             .CreateNoWindow = True,
             .RedirectStandardOutput = True,
+            .StandardOutputEncoding = Encoding.UTF8,
             .RedirectStandardError = False
         }
         start.ArgumentList.Add(Path.GetFullPath(imagePath))
         start.ArgumentList.Add("stdout")
         start.ArgumentList.Add("-l")
         start.ArgumentList.Add(language)
+        If sparse Then
+            start.ArgumentList.Add("--psm")
+            start.ArgumentList.Add("11")
+        End If
         Dim dataDirectory = Path.Combine(Path.GetDirectoryName(tesseractExe), "tessdata")
         If File.Exists(Path.Combine(dataDirectory, language & ".traineddata")) Then
             start.ArgumentList.Add("--tessdata-dir")

@@ -28,6 +28,10 @@ Public NotInheritable Class DocumentFilePreview
     End Function
 
     Public Shared Function RenderPdfPage(filePath As String, pageIndex As Integer) As Bitmap
+        Return RenderPdfPage(filePath, pageIndex, 1800)
+    End Function
+
+    Friend Shared Function RenderPdfPage(filePath As String, pageIndex As Integer, maxDimension As Integer) As Bitmap
         Using stream = OpenRead(filePath), png As New MemoryStream()
             Dim page As New System.Index(pageIndex)
             Dim size = PDFtoImage.Conversion.GetPageSize(stream, page, leaveOpen:=True)
@@ -36,7 +40,7 @@ Public NotInheritable Class DocumentFilePreview
                 Throw New InvalidDataException("Dimensions de page PDF invalides.")
             End If
 
-            Dim scale = 1800.0 / Math.Max(size.Width, size.Height)
+            Dim scale = CDbl(maxDimension) / Math.Max(size.Width, size.Height)
             Dim options As New PDFtoImage.RenderOptions(
                 Width:=Math.Max(1, CInt(size.Width * scale)),
                 Height:=Math.Max(1, CInt(size.Height * scale)))
