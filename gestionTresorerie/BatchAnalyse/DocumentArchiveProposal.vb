@@ -52,6 +52,7 @@ Public NotInheritable Class DocumentArchiveProposal
         Dim montant As Decimal
         Dim devise As String
         Dim tiers As String
+        Dim issuer As String = Nothing
         Dim sens As String
         Dim dossier As String
         Dim extension = Path.GetExtension(source)
@@ -78,6 +79,7 @@ Public NotInheritable Class DocumentArchiveProposal
             montant = cheque.montant_numerique
             devise = cheque.devise
             tiers = cheque.destinataire
+            issuer = cheque.emetteur_du_cheque
             If chequeEmisTest.HasValue Then
                 sens = If(chequeEmisTest.Value, "Emis", "Reçus")
                 document.SousCategorieDoc = sens
@@ -100,6 +102,7 @@ Public NotInheritable Class DocumentArchiveProposal
         Dim summaryText = $"{document.CategorieDoc} — {sens}{vbCrLf}" &
             $"Référence : {reference}{vbCrLf}Date : {document.DateDoc:dd/MM/yyyy}{vbCrLf}" &
             $"Montant : {montant:N2} {devise}{vbCrLf}Tiers : {tiers}"
+        If Not String.IsNullOrWhiteSpace(issuer) Then summaryText &= vbCrLf & "Émetteur : " & issuer
         Return BuildProposal(source, root, hash, document, If(archiveOnDrive, "TEST", setting("repRacineComptabilité")), dossier, nom, summaryText)
     End Function
 

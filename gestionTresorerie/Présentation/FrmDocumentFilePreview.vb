@@ -17,6 +17,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private ReadOnly _testWorkspace As OfflineTestWorkspace
     Private ReadOnly _sqlTest As SqlDocumentTestStore
     Private ReadOnly _sqlExample As Boolean
+    Private ReadOnly _initializeSqlTestOnSave As Boolean
     Private ReadOnly _analyse As New Button With {
         .Text = "Analyser le document…", .AutoSize = True, .Anchor = AnchorStyles.Left}
     Private ReadOnly _pageNumber As New NumericUpDown With {.Minimum = 1, .Width = 72, .Visible = False}
@@ -26,13 +27,15 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private _pending As Boolean
 
     Public Sub New(paths As IEnumerable(Of String), Optional testWorkspace As OfflineTestWorkspace = Nothing,
-                   Optional sqlTest As SqlDocumentTestStore = Nothing, Optional sqlExample As Boolean = False)
+                   Optional sqlTest As SqlDocumentTestStore = Nothing, Optional sqlExample As Boolean = False,
+                   Optional initializeSqlTestOnSave As Boolean = False)
         If sqlTest IsNot Nothing AndAlso testWorkspace Is Nothing Then
             Throw New ArgumentNullException(NameOf(testWorkspace))
         End If
         _testWorkspace = testWorkspace
         _sqlTest = sqlTest
         _sqlExample = sqlExample
+        _initializeSqlTestOnSave = initializeSqlTestOnSave
         If _sqlTest IsNot Nothing Then _analyse.Text = "Analyser / saisir le document…"
         Dim production = _testWorkspace Is Nothing AndAlso RealArchiveEnabled()
         Dim scope = If(production, "PROD — données réelles",
@@ -75,13 +78,15 @@ Friend NotInheritable Class FrmDocumentFilePreview
     End Sub
 
     Public Shared Sub OpenFiles(owner As IWin32Window, Optional testWorkspace As OfflineTestWorkspace = Nothing,
-                                Optional sqlTest As SqlDocumentTestStore = Nothing)
+                                Optional sqlTest As SqlDocumentTestStore = Nothing,
+                                Optional initializeSqlTestOnSave As Boolean = False)
         Using picker As New OpenFileDialog With {
             .Title = "Choisir des documents sur C: ou sur un lecteur Drive",
             .Filter = "PDF et scans (*.pdf;*.jpg;*.jpeg;*.png;*.tif;*.tiff)|*.pdf;*.jpg;*.jpeg;*.png;*.tif;*.tiff",
             .Multiselect = True, .CheckFileExists = True, .RestoreDirectory = True}
             If picker.ShowDialog(owner) <> DialogResult.OK Then Return
-            Using preview As New FrmDocumentFilePreview(picker.FileNames, testWorkspace, sqlTest)
+            Using preview As New FrmDocumentFilePreview(picker.FileNames, testWorkspace, sqlTest,
+                initializeSqlTestOnSave:=initializeSqlTestOnSave)
                 preview.ShowDialog(owner)
             End Using
         End Using
@@ -152,7 +157,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
             Await ConfirmProposal(proposition, save, fictif)
         Catch ex As ArgumentException
             MessageBox.Show(Me, ex.Message, "Document non reconnu ou incomplet", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-        Catch ex As IOException
+        Catch ex As Exception When TypeOf ex Is IOException OrElse TypeOf ex Is UnauthorizedAccessException
             MessageBox.Show(Me, ex.Message, "Analyse ou archivage impossible", MessageBoxButtons.OK, MessageBoxIcon.Warning)
         Catch ex As TimeoutException
             MessageBox.Show(Me, ex.Message, "Analyse locale interrompue", MessageBoxButtons.OK, MessageBoxIcon.Warning)
@@ -186,13 +191,13 @@ Friend NotInheritable Class FrmDocumentFilePreview
                 Try
                     readableText = Await Task.Run(Function() LocalDocumentAnalysis.ReadText(source))
                     suggested = LocalDocumentAnalysis.Classify(readableText)
-                    If suggested Is Nothing OrElse IsIncompleteMembership(suggested) Then
+                    If suggested Is Nothing OrElse NeedsSecondPass(suggested) Then
                         suggested = Await ImproveDocumentExtraction(source, suggested)
                     End If
                     If suggested Is Nothing Then
                         note = "Type non reconnu. Choisissez le type après avoir vérifié le document."
-                    ElseIf IsIncompleteMembership(suggested) Then
-                        note = "Bulletin d’adhésion détecté. Vérifiez les champs lus et complétez les champs vides."
+                    ElseIf NeedsSecondPass(suggested) Then
+                        note = "Vérifiez les champs lus et complétez les champs vides avant le classement."
                     End If
                 Catch ex As Exception When TypeOf ex Is IOException OrElse TypeOf ex Is InvalidOperationException OrElse
                     TypeOf ex Is InvalidDataException OrElse TypeOf ex Is TimeoutException OrElse TypeOf ex Is ArgumentException OrElse
@@ -202,7 +207,6 @@ Friend NotInheritable Class FrmDocumentFilePreview
             End If
         End Using
 
-        If suggested Is Nothing Then ShowTranscript(readableText)
         Dim archiveRoot = If(_sqlExample, _testWorkspace.GetDocumentTestDirectory(), DriveArchiveRoot)
         Using editor As New FrmSqlTestDocumentEntry(source, hash, archiveRoot, suggested, note, archiveOnDrive:=Not _sqlExample)
             If editor.ShowDialog(Me) <> DialogResult.OK Then Return
@@ -210,10 +214,18 @@ Friend NotInheritable Class FrmDocumentFilePreview
         End Using
     End Function
 
-    Private Shared Function IsIncompleteMembership(suggested As Newtonsoft.Json.Linq.JObject) As Boolean
-        If suggested("type_document")?.ToString() <> "FormulaireAdhesion" Then Return False
-        Dim identity = suggested("donnees_extraites")?("identite")
-        Return {"nom", "prenom", "adresse"}.Any(Function(field) String.IsNullOrWhiteSpace(identity?(field)?.ToString()))
+    Private Shared Function NeedsSecondPass(suggested As Newtonsoft.Json.Linq.JObject) As Boolean
+        Dim data = suggested("donnees_extraites")
+        Dim identity = data("identite")
+        Select Case suggested("type_document")?.ToString()
+            Case "FormulaireAdhesion"
+                Return {"nom", "prenom", "adresse"}.Any(Function(field) identity(field) Is Nothing)
+            Case "Cheque"
+                Return {"emetteur_du_cheque", "emetteur_numero_cheque", "beneficiaire_nom"}.Any(Function(field) identity(field) Is Nothing) OrElse
+                    data("transaction")("montant_numerique") Is Nothing OrElse data("transaction")("date_emission") Is Nothing
+            Case Else
+                Return False
+        End Select
     End Function
 
     Private Shared Async Function ImproveDocumentExtraction(source As String,
@@ -229,10 +241,12 @@ Friend NotInheritable Class FrmDocumentFilePreview
         End Try
         If primary Is Nothing Then Return candidate
         If candidate?("type_document")?.ToString() <> primary("type_document")?.ToString() Then Return primary
-        Dim identity = DirectCast(primary("donnees_extraites")("identite"), Newtonsoft.Json.Linq.JObject)
-        Dim additional = candidate("donnees_extraites")("identite")
-        For Each field In {"nom", "prenom", "adresse"}
-            If identity(field) Is Nothing AndAlso additional(field) IsNot Nothing Then identity(field) = additional(field).DeepClone()
+        For Each section In {"identite", "transaction"}
+            Dim existing = DirectCast(primary("donnees_extraites")(section), Newtonsoft.Json.Linq.JObject)
+            Dim additional = DirectCast(candidate("donnees_extraites")(section), Newtonsoft.Json.Linq.JObject)
+            For Each field In additional.Properties()
+                If existing(field.Name) Is Nothing Then existing(field.Name) = field.Value.DeepClone()
+            Next
         Next
         Return primary
     End Function
@@ -317,7 +331,10 @@ Friend NotInheritable Class FrmDocumentFilePreview
                            action, MessageBoxButtons.YesNo, MessageBoxIcon.Question,
                            MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then Return
         If fictif Then ValidateTestDestination(proposition.Destination)
-        Await Task.Run(Sub() proposition.Confirm(save))
+        Await Task.Run(Sub()
+                           If _initializeSqlTestOnSave Then _sqlTest.Initialize()
+                           proposition.Confirm(save)
+                       End Sub)
         MessageBox.Show(Me, If(_sqlTest IsNot Nothing, If(_sqlExample, "Archive locale et fiche SQL TEST enregistrées.",
                                 "Archive Drive et fiche SQL TEST enregistrées."),
                                If(fictif, "Archive et fiche TEST enregistrées.", "Document archivé et référencé en base.")),
