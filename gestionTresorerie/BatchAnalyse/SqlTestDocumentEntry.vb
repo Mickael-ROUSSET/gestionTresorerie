@@ -10,7 +10,8 @@ Public NotInheritable Class SqlTestDocumentEntry
 
     Public Shared Function Prepare(source As String, hash As String, root As String, cheque As Boolean,
                                    reference As String, tiers As String, dateText As String, amountText As String,
-                                   Optional chequeEmis As Boolean? = Nothing, Optional archiveOnDrive As Boolean = False) As DocumentArchiveProposal
+                                   Optional chequeEmis As Boolean? = Nothing, Optional archiveOnDrive As Boolean = False,
+                                   Optional issuer As String = "") As DocumentArchiveProposal
         reference = reference.Trim()
         tiers = tiers.Trim()
         If reference.Length = 0 OrElse reference.Length > 60 OrElse tiers.Length = 0 OrElse tiers.Length > 80 Then
@@ -38,6 +39,9 @@ Public NotInheritable Class SqlTestDocumentEntry
         Dim transaction As New JObject From {{"devise", "EUR"}}
         Dim dateIso = dateDocument.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
         If cheque Then
+            issuer = issuer.Trim()
+            If issuer.Length > 100 Then Throw New ArgumentException("Le nom de l’émetteur dépasse 100 caractères.")
+            If issuer.Length > 0 Then identity("emetteur_du_cheque") = issuer
             identity("beneficiaire_nom") = tiers
             identity("emetteur_numero_cheque") = reference
             transaction("date_emission") = dateIso

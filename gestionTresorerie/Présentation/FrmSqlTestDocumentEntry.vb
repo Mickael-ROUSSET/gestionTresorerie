@@ -20,6 +20,8 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     Private ReadOnly _party As New TextBox With {.MaxLength = 80, .Dock = DockStyle.Fill}
     Private ReadOnly _date As New TextBox With {.PlaceholderText = "JJ/MM/AAAA", .Dock = DockStyle.Fill}
     Private ReadOnly _amount As New TextBox With {.PlaceholderText = "Exemple : 42,50", .Dock = DockStyle.Fill}
+    Private ReadOnly _issuer As New TextBox With {.MaxLength = 100, .Dock = DockStyle.Fill}
+    Private ReadOnly _issuerLabel As New Label With {.Text = "Émetteur du chèque"}
     Private ReadOnly _firstName As New TextBox With {.MaxLength = 80, .Dock = DockStyle.Fill}
     Private ReadOnly _address As New TextBox With {.MaxLength = 240, .Dock = DockStyle.Fill}
     Private ReadOnly _firstNameLabel As New Label With {.Text = "Prénom"}
@@ -41,7 +43,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         FormBorderStyle = FormBorderStyle.FixedDialog
         MinimizeBox = False
         MaximizeBox = False
-        ClientSize = New Size(580, 389)
+        ClientSize = New Size(580, 420)
         AutoScaleMode = AutoScaleMode.Font
 
         _kind.Items.AddRange(New Object() {"Facture", "Chèque", "Bulletin d’adhésion", "Questionnaire médical", "Reçu"})
@@ -63,11 +65,13 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         AddField(table, 7, _firstNameLabel, _firstName)
         AddField(table, 8, _addressLabel, _address)
 
+        AddField(table, 9, _issuerLabel, _issuer)
+
         Dim buttons As New FlowLayoutPanel With {.Dock = DockStyle.Fill, .FlowDirection = FlowDirection.RightToLeft}
         Dim cancel As New Button With {.Text = "Annuler", .DialogResult = DialogResult.Cancel, .AutoSize = True}
         Dim validate As New Button With {.Text = "Vérifier le classement…", .AutoSize = True}
         buttons.Controls.AddRange(New Control() {cancel, validate})
-        table.Controls.Add(buttons, 0, 9)
+        table.Controls.Add(buttons, 0, 10)
         table.SetColumnSpan(buttons, 2)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 39))
         Controls.Add(table)
@@ -84,6 +88,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         Dim transaction = fields?("transaction")
         If detectedType = "Cheque" Then
             _party.Text = If(identity?("beneficiaire_nom")?.ToString(), "")
+            _issuer.Text = If(identity?("emetteur_du_cheque")?.ToString(), "")
             _number.Text = If(identity?("emetteur_numero_cheque")?.ToString(), "")
             _date.Text = If(transaction?("date_emission")?.ToString(), "")
             _amount.Text = If(transaction?("montant_numerique")?.ToString(), "")
@@ -104,6 +109,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             Sub()
                 _number.Clear()
                 _party.Clear()
+                _issuer.Clear()
                 _firstName.Clear()
                 _address.Clear()
                 _date.Clear()
@@ -146,6 +152,8 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         _firstName.Visible = membership
         _addressLabel.Visible = membership
         _address.Visible = membership
+        _issuerLabel.Visible = cheque
+        _issuer.Visible = cheque
         _directionLabel.Visible = cheque
         _direction.Visible = cheque
         _numberLabel.Text = If(receipt, "Numéro (facultatif)", "Numéro du document")
@@ -164,7 +172,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             If kind = TypeDocument.Aucun Then Throw New ArgumentException("Sélectionnez le type de document.")
             If kind = TypeDocument.Facture OrElse kind = TypeDocument.Cheque Then
                 _proposal = SqlTestDocumentEntry.Prepare(_source, _hash, _root, kind = TypeDocument.Cheque,
-                    _number.Text, _party.Text, _date.Text, _amount.Text, emitted, _archiveOnDrive)
+                    _number.Text, _party.Text, _date.Text, _amount.Text, emitted, _archiveOnDrive, _issuer.Text)
             Else
                 _proposal = DocumentArchiveProposal.PrepareAdministrativeTest(_source, _hash, _root, kind,
                     _party.Text, _date.Text, _number.Text, _amount.Text, _firstName.Text, _address.Text, _archiveOnDrive)

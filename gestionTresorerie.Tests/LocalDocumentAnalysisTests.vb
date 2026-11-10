@@ -121,4 +121,34 @@ Public Class LocalDocumentAnalysisTests
             temp.Delete(recursive:=True)
         End Try
     End Sub
+    <TestMethod>
+    Public Sub MapsFrenchChequeFieldsToTheArchivedCheque()
+        Dim ocr = String.Join(vbLf, {"Payez contre ce chèque", "N° de chèque : 0012345",
+            "Tireur : Camille Exemple", "À l’ordre de AGUMAAA", "Fait à Allègre le 3/11/2026", "42,50 €"})
+        Dim result = Global.gestionTresorerie.LocalDocumentAnalysis.Classify(ocr)
+        Assert.AreEqual("Cheque", result("type_document").ToString())
+        Dim fields = result("donnees_extraites")
+        Dim identity = fields("identite")
+        Dim transaction = fields("transaction")
+        Dim temp = Directory.CreateTempSubdirectory("agumaaa-cheque-")
+        Try
+            Dim source = Path.Combine(temp.FullName, "cheque.pdf")
+            File.WriteAllText(source, "chèque fictif")
+            Dim hash = Global.gestionTresorerie.DocumentArchiveProposal.HashSource(source)
+            Dim proposal = Global.gestionTresorerie.SqlTestDocumentEntry.Prepare(source, hash, temp.FullName, True,
+                identity("emetteur_numero_cheque").ToString(), identity("beneficiaire_nom").ToString(),
+                transaction("date_emission").ToString(), transaction("montant_numerique").ToString(),
+                chequeEmis:=False, archiveOnDrive:=True, issuer:=identity("emetteur_du_cheque").ToString())
+            Assert.AreEqual("CHQ_0012345.pdf", Path.GetFileName(proposal.Destination))
+            Dim saved As Global.gestionTresorerie.Cheque = Nothing
+            proposal.Confirm(Sub(document) saved = DirectCast(document, Global.gestionTresorerie.Cheque))
+            Assert.AreEqual("Camille Exemple", saved.emetteur_du_cheque)
+            Assert.AreEqual("AGUMAAA", saved.destinataire)
+            Assert.AreEqual(42.5D, saved.montant_numerique)
+            Assert.AreEqual("2026-11-03", saved.dateChq)
+            Assert.IsTrue(File.Exists(proposal.Destination))
+        Finally
+            temp.Delete(recursive:=True)
+        End Try
+    End Sub
 End Class

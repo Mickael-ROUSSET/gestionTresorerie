@@ -7,6 +7,7 @@ Public Class Cheque
     Public Property banque_code_departement As String
     Public Property banque_ville_agence As String
     Public Property banque_telephone_agence As String
+    Public Property emetteur_du_cheque As String
     Public Property emetteur_numero_compte As String
     Public Property numero_du_cheque As String ' Stocké en String pour garder les zéros initiaux
     Public Property destinataire As String
@@ -44,6 +45,7 @@ Public Class Cheque
         {"donnees_extraites.identite.banque_code_departement", "banque_code_departement"},
         {"donnees_extraites.identite.banque_ville_agence", "banque_ville_agence"},
         {"donnees_extraites.identite.banque_telephone_agence", "banque_telephone_agence"},
+        {"donnees_extraites.identite.emetteur_du_cheque", "emetteur_du_cheque"},
         {"donnees_extraites.identite.emetteur_numero_compte", "emetteur_numero_compte"},
         {"donnees_extraites.identite.emetteur_numero_cheque", "numero_du_cheque"},
         {"donnees_extraites.identite.beneficiaire_nom", "destinataire"},

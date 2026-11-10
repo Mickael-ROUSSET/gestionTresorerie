@@ -22,6 +22,9 @@ Public Class FrmPrincipale
         .Name = "EspaceTestLocalToolStripMenuItem",
         .Text = "Espace TEST local (fichiers fictifs)"}
 
+    Private ReadOnly _menuLocalDocuments As New ToolStripMenuItem With {
+        .Name = "ExaminerDocumentsDisqueToolStripMenuItem",
+        .Text = "Examiner des PDF et des scans sur disque…"}
     Private ReadOnly _menuSqlTest As New ToolStripMenuItem With {
         .Name = "EspaceTestSqlToolStripMenuItem",
         .Text = "Espace TEST SQL (documents et classement TEST)…"}
@@ -48,11 +51,8 @@ Public Class FrmPrincipale
             My.Application.SaveMySettingsOnExit = False
         End If
         InitializeComponent()
-        If Not _modeDemonstration Then
-            Dim menuFichiers As New ToolStripMenuItem("Examiner des PDF et des scans sur disque…")
-            AddHandler menuFichiers.Click, Sub() FrmDocumentFilePreview.OpenFiles(Me)
-            AnalyseToolStripMenuItem.DropDownItems.Add(menuFichiers)
-        End If
+        AddHandler _menuLocalDocuments.Click, AddressOf OpenLocalDocuments
+        AnalyseToolStripMenuItem.DropDownItems.Add(_menuLocalDocuments)
         AddHandler _menuTestWorkspace.Click, AddressOf OpenTestWorkspace
         AnalyseToolStripMenuItem.DropDownItems.Add(_menuTestWorkspace)
         AddHandler _menuSqlTest.Click, AddressOf OpenSqlTestWorkspace
@@ -189,12 +189,28 @@ Public Class FrmPrincipale
         End Try
     End Sub
 
+    Private Sub OpenLocalDocuments(sender As Object, e As EventArgs)
+        If Not _modeDemonstration AndAlso Not _isolatedSqlTest AndAlso
+           EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.PROD Then
+            FrmDocumentFilePreview.OpenFiles(Me)
+            Return
+        End If
+        Try
+            FrmDocumentFilePreview.OpenFiles(Me, CreateSqlTestWorkspace(), New SqlDocumentTestStore(), initializeSqlTestOnSave:=True)
+        Catch ex As Exception
+            MessageBox.Show(Me, ex.Message, "Examen des documents — TEST SQL", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
+
+    Private Shared Function CreateSqlTestWorkspace() As OfflineTestWorkspace
+        Dim root = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "gestionTresorerie", "TEST-SQL")
+        Return New OfflineTestWorkspace(My.Settings.repInstallationProd, root)
+    End Function
+
     Private Sub OpenSqlTestWorkspace(sender As Object, e As EventArgs)
         Try
-            Dim root = System.IO.Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "gestionTresorerie", "TEST-SQL")
-            Using window As New FrmSqlTestDocuments(New OfflineTestWorkspace(My.Settings.repInstallationProd, root))
+            Using window As New FrmSqlTestDocuments(CreateSqlTestWorkspace())
                 window.ShowDialog(Me)
             End Using
         Catch ex As Exception
@@ -290,6 +306,7 @@ Public Class FrmPrincipale
         For Each action As ToolStripItem In AnalyseToolStripMenuItem.DropDownItems
             action.Enabled = Object.ReferenceEquals(action, _menuTestWorkspace) OrElse
                              Object.ReferenceEquals(action, _menuSqlTest) OrElse
+                             Object.ReferenceEquals(action, _menuLocalDocuments) OrElse
                              Object.ReferenceEquals(action, _menuDemoDocuments) OrElse
                              Object.ReferenceEquals(action, _menuRevueDocumentsAnalyses) OrElse
                              Object.ReferenceEquals(action, _menuEffacerDocumentsFictifs)

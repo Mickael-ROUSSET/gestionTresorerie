@@ -26,8 +26,10 @@ Public NotInheritable Class LocalDocumentAnalysis
         Dim administrative = LocalAdministrativeAnalysis.Classify(lines)
         If administrative IsNot Nothing Then Return administrative
         Const options As RegexOptions = RegexOptions.IgnoreCase Or RegexOptions.Multiline Or RegexOptions.CultureInvariant
+        Const chequeReference As String = "(?:num[eé]ro[ \t]+(?:du[ \t]+)?ch[eèé]que|n[°º][ \t]+(?:du[ \t]+|de[ \t]+)?ch[eèé]que|ch[eèé]que[ \t]+(?:n[°º]|[ée]mis|re[çc]u))"
         Dim cheque = Regex.IsMatch(lines,
-            "^[ \t]*ch[eèé]que(?:[ \t]+(?:[ée]mis|re[çc]u|n[°º]|num[eé]ro))?[ \t]*[:.]?[ \t]*$|^[ \t]*(?:num[eé]ro[ \t]+(?:du[ \t]+)?ch[eèé]que|ch[eèé]que[ \t]+n[°º])[ \t]*[:.]?[ \t]*\d|^[ \t]*payez[ \t]+contre[ \t]+ce[ \t]+ch[eèé]que", options)
+            "^[ \t]*ch[eèé]que(?:[ \t]+(?:[ée]mis|re[çc]u|n[°º]|num[eé]ro))?[ \t]*[:.]?[ \t]*$|^[ \t]*" &
+            chequeReference & "[ \t]*[:.]?[ \t]*\d|\bpayez[ \t]+(?:contre[ \t]+)?(?:ce|par[ \t]+ce)[ \t]+ch[eèé]que\b", options)
         Dim facture = Regex.IsMatch(lines,
             "^[ \t]*facture(?:[ \t]+n[°º].*)?[ \t]*[:.]?[ \t]*$|^[ \t]*(?:num[eé]ro[ \t]+(?:de[ \t]+)?facture|date[ \t]+(?:de[ \t]+)?facture)[ \t]*:", options)
         If cheque = facture Then Return Nothing
@@ -36,17 +38,20 @@ Public NotInheritable Class LocalDocumentAnalysis
         Dim identity As New JObject
         Dim transaction As New JObject
         Dim number = LocalPdfInvoiceAnalysis.UniqueMatch(lines,
-            "^[ \t]*(?:num[eé]ro[ \t]+(?:du[ \t]+)?ch[eèé]que|ch[eèé]que[ \t]+n[°º])[ \t]*[:.]?[ \t]*(?<v>\d{4,20})[ \t]*$")
+            "^[ \t]*" & chequeReference & "[ \t]*[:.]?[ \t]*(?<v>\d{4,20})[ \t]*$")
         Dim beneficiary = LocalPdfInvoiceAnalysis.UniqueMatch(lines,
-            "^[ \t]*(?:b[eé]n[eé]ficiaire|[àa][ \t]+l['’]ordre[ \t]+de)[ \t]*:[ \t]*(?<v>[^\n]+)$")
+            "^[ \t]*(?:b[eé]n[eé]ficiaire[ \t]*:|[àa][ \t]+l['’]ordre[ \t]+de\b[ \t]*:?)[ \t]*(?<v>[^\n]+)$")
+        Dim issuer = LocalPdfInvoiceAnalysis.UniqueMatch(lines,
+            "^[ \t]*(?:[ée]metteur(?:[ \t]+du[ \t]+ch[eèé]que)?|tireur|titulaire(?:[ \t]+du[ \t]+compte)?)[ \t]*:[ \t]*(?<v>[^\n]+)$")
         Dim dateValue = LocalPdfInvoiceAnalysis.UniqueMatch(lines,
-            "^[ \t]*(?:date(?:[ \t]+d['’][ée]mission)?[ \t]*:|le)[ \t]*(?<v>\d{2}/\d{2}/\d{4}|\d{4}-\d{2}-\d{2})[ \t]*$")
+            "^[ \t]*(?:date(?:[ \t]+d['’][ée]mission)?[ \t]*:|(?:fait[ \t]+[àa][ \t]+[^\n]*?[ \t]+)?le)[ \t]*(?<v>\d{1,2}/\d{1,2}/\d{4}|\d{4}-\d{2}-\d{2})[ \t]*$")
         Dim amount = LocalPdfInvoiceAnalysis.UniqueMatch(lines,
-            "^[ \t]*(?:montant(?:[ \t]+en[ \t]+euros)?[ \t]*:|€)[ \t]*(?<v>\d[\d \u00A0\u202F]*[.,]\d{2})[ \t]*(?:€|EUR)?[ \t]*$")
+            "^[ \t]*(?:(?:montant(?:[ \t]+en[ \t]+euros)?[ \t]*:|€)[ \t]*(?<v>\d[\d \u00A0\u202F]*[.,]\d{2})[ \t]*(?:€|EUR)?|(?<v>\d[\d \u00A0\u202F]*[.,]\d{2})[ \t]*(?:€|EUR))[ \t]*$")
         If number IsNot Nothing Then identity("emetteur_numero_cheque") = number
         If beneficiary IsNot Nothing Then identity("beneficiaire_nom") = beneficiary
+        If issuer IsNot Nothing Then identity("emetteur_du_cheque") = issuer
         Dim parsedDate As Date
-        If Date.TryParseExact(dateValue, {"dd/MM/yyyy", "yyyy-MM-dd"}, CultureInfo.InvariantCulture, DateTimeStyles.None, parsedDate) Then
+        If Date.TryParseExact(dateValue, {"d/M/yyyy", "yyyy-MM-dd"}, CultureInfo.InvariantCulture, DateTimeStyles.None, parsedDate) Then
             transaction("date_emission") = parsedDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
         End If
         Dim parsedAmount As Decimal
