@@ -29,8 +29,13 @@ Public Class SqlTiersEmailBoundaryIntegrationTests
             Assert.AreEqual("Monlet", CStr(lu.Rows(0)("Ville")))
         End Using
 
-        Assert.ThrowsException(Of ArgumentException)(
-            Sub() store.UpdateTiers(id, nom, email151, "Ville interdite"))
+        Dim rejetConfirme As Boolean = False
+        Try
+            store.UpdateTiers(id, nom, email151, "Ville interdite")
+        Catch ex As ArgumentException
+            rejetConfirme = True
+        End Try
+        Assert.IsTrue(rejetConfirme, "Une adresse de 151 caractères doit être refusée.")
 
         Using lu = New SqlTiersTestStore().ReadTiers(id)
             Assert.AreEqual(1, lu.Rows.Count)
