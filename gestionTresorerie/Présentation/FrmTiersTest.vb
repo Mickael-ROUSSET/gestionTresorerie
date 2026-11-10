@@ -79,6 +79,10 @@ Public NotInheritable Class FrmTiersTest
         ' Les résultats ne correspondent plus au critère affiché : ne jamais modifier l'ancien tiers.
         _selectedId = 0
         _results.DataSource = Nothing
+        ' Éviter de réutiliser par erreur les coordonnées du tiers précédemment sélectionné.
+        _nom.Clear()
+        _email.Clear()
+        _ville.Clear()
         _status.Text = "Recherche modifiée : relancez Rechercher avant de sélectionner un tiers TEST."
     End Sub
 
