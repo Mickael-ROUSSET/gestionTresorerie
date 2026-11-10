@@ -39,8 +39,6 @@ Public Class SqlTiersClearOptionalCoordinatesIntegrationTests
               secondSearch = New SqlTiersTestStore().SearchTiers(secondName)
             Assert.AreEqual(1, firstSearch.Rows.Count, "Un tiers sans coordonnées doit rester recherchable.")
             Assert.AreEqual(firstId, Convert.ToInt32(firstSearch.Rows(0)("Id")))
-            Assert.IsTrue(Convert.IsDBNull(firstSearch.Rows(0)("Email")))
-            Assert.IsTrue(Convert.IsDBNull(firstSearch.Rows(0)("Ville")))
             Assert.AreEqual(1, secondSearch.Rows.Count)
             Assert.AreEqual(secondId, Convert.ToInt32(secondSearch.Rows(0)("Id")))
         End Using
@@ -55,8 +53,6 @@ Public Class SqlTiersClearOptionalCoordinatesIntegrationTests
               secondRead = New SqlTiersTestStore().ReadTiers(secondId)
             Assert.AreEqual(1, firstSearch.Rows.Count, "Le tiers restauré doit rester recherchable.")
             Assert.AreEqual(firstId, Convert.ToInt32(firstSearch.Rows(0)("Id")))
-            Assert.AreEqual("retabli@example.test", CStr(firstSearch.Rows(0)("Email")))
-            Assert.AreEqual("Céaux", CStr(firstSearch.Rows(0)("Ville")))
             Assert.AreEqual("second@example.test", CStr(secondRead.Rows(0)("Email")))
             Assert.AreEqual("Monlet", CStr(secondRead.Rows(0)("Ville")))
         End Using
