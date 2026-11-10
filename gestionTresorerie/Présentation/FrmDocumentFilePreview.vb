@@ -188,7 +188,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
                         note = "Type non reconnu. Sélectionnez Facture ou Chèque si le document correspond."
                     End If
                 Catch ex As Exception When TypeOf ex Is IOException OrElse TypeOf ex Is InvalidOperationException OrElse
-                    TypeOf ex Is TimeoutException OrElse TypeOf ex Is ArgumentException OrElse
+                    TypeOf ex Is InvalidDataException OrElse TypeOf ex Is TimeoutException OrElse TypeOf ex Is ArgumentException OrElse
                     TypeOf ex Is Global.System.ComponentModel.Win32Exception
                     note = "Lecture automatique indisponible. " & ex.Message
                 End Try

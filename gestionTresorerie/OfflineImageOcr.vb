@@ -10,11 +10,11 @@ Public NotInheritable Class OfflineImageOcr
     End Sub
 
     Public Shared Function FindExecutable() As String
-        Dim configured = Environment.GetEnvironmentVariable("AGUMAAA_TESSERACT_EXE")
-        If Not String.IsNullOrWhiteSpace(configured) AndAlso Path.IsPathFullyQualified(configured) AndAlso File.Exists(configured) Then Return configured
-
         Dim bundled = Path.Combine(AppContext.BaseDirectory, "ocr", "tesseract.exe")
         If File.Exists(bundled) Then Return bundled
+
+        Dim configured = Environment.GetEnvironmentVariable("AGUMAAA_TESSERACT_EXE")
+        If Not String.IsNullOrWhiteSpace(configured) AndAlso Path.IsPathFullyQualified(configured) AndAlso File.Exists(configured) Then Return configured
 
         For Each folder In {Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
                             Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)}

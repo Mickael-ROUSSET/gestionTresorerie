@@ -179,9 +179,9 @@ try {
     }
     $recognized = & $engine $imagePath stdout -l fra --tessdata-dir $modelDirectory
     if ($LASTEXITCODE -ne 0 -or ($recognized -join ' ') -notmatch 'FACTURE\s+EXEMPLE') {
-        throw 'L’OCR installé n’a pas reconnu la facture fictive en français.'
+        throw "L’OCR installé n’a pas reconnu la facture fictive en français."
     }
-    Write-Output 'OCR français installé et reconnaissance d’une image fictive vérifiée.'
+    Write-Output "OCR français installé et reconnaissance d’une image fictive vérifiée."
     if (-not (Test-Path -LiteralPath $registryPath)) { throw 'Entrée Applications installées absente.' }
     $registration = Get-ItemProperty -LiteralPath $registryPath
     if ($registration.DisplayVersion -ne '0.1.0') { throw 'Version de désinstallation incorrecte.' }
