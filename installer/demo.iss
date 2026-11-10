@@ -14,6 +14,10 @@
   #error SourceRoot is required.
 #endif
 
+#ifndef OcrDir
+  #error OcrDir must point to the validated French OCR payload.
+#endif
+
 [Setup]
 AppId=gestionTresorerie.Demo
 AppName=gestionTresorerie - Démonstration
@@ -51,6 +55,7 @@ Name: "desktopicon"; Description: "Créer un raccourci sur le Bureau"; Flags: un
 
 [Files]
 Source: "{#PayloadDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#OcrDir}\*"; DestDir: "{app}\ocr"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#SourceRoot}\docs\installateur-demo.txt"; DestDir: "{app}"; DestName: "LIRE_INSTALLATION.txt"; Flags: ignoreversion
 
 [Icons]

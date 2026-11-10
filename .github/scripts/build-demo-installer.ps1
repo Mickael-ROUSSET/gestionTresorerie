@@ -30,11 +30,48 @@ if (-not (Test-Path -LiteralPath $compiler -PathType Leaf)) {
     if ($null -eq $command) { throw 'Compilateur Inno Setup 6 absent du runner Windows.' }
     $compiler = $command.Source
 }
+# Préparer un moteur privé pour l’application sans installer un programme sur le runner.
+$ocr = Join-Path $root 'artifacts/ocr'
+$ocrDownload = Join-Path $root 'artifacts/tesseract-5.5.3.exe'
+$ocrExtract = Join-Path $root 'artifacts/tesseract-extract'
+$ocrUrl = 'https://github.com/tesseract-ocr/tesseract/releases/download/5.5.3/tesseract-ocr-w64-setup-5.5.3.20260724.exe'
+Invoke-WebRequest -Uri $ocrUrl -OutFile $ocrDownload
+$ocrSha256 = 'bee9e3434bd94fd65387d9be28cd467a41f61b1275383b55b0f59a1331270ae4'
+if ((Get-FileHash -LiteralPath $ocrDownload -Algorithm SHA256).Hash -ine $ocrSha256) {
+    throw 'Empreinte SHA-256 de Tesseract inattendue.'
+}
+$sevenZip = Join-Path $env:ProgramFiles '7-Zip/7z.exe'
+& $sevenZip x $ocrDownload "-o$ocrExtract" -y | Out-Null
+if ($LASTEXITCODE -ne 0) { throw 'Extraction de Tesseract impossible.' }
+$engine = @(Get-ChildItem -LiteralPath $ocrExtract -Recurse -File -Filter 'tesseract.exe')
+if ($engine.Count -ne 1) { throw 'Exécutable Tesseract introuvable ou ambigu.' }
+$tessdata = Join-Path $ocr 'tessdata'
+New-Item -ItemType Directory -Path $tessdata -Force | Out-Null
+Copy-Item -LiteralPath $engine[0].FullName -Destination $ocr
+Get-ChildItem -LiteralPath $engine[0].DirectoryName -File -Filter '*.dll' |
+    Copy-Item -Destination $ocr
+# Conserver les avis de licence distribués avec le moteur et ses dépendances.
+Get-ChildItem -LiteralPath $engine[0].DirectoryName -File |
+    Where-Object { $_.Name -match '^(COPYING|LICENSE|NOTICE|AUTHORS|README)' } |
+    Copy-Item -Destination $ocr
+$modelBase = 'https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/4.1.0'
+$model = Join-Path $tessdata 'fra.traineddata'
+Invoke-WebRequest -Uri "$modelBase/fra.traineddata" -OutFile $model
+$modelBlob = git -C $root hash-object --no-filters -- $model
+if ($LASTEXITCODE -ne 0 -or $modelBlob -cne 'd9e2b2160be0d1ca3b8f1bf2730fae476ef3b4a6') {
+    throw 'Empreinte du modèle français de Tesseract inattendue.'
+}
+Invoke-WebRequest -Uri "$modelBase/LICENSE" -OutFile (Join-Path $tessdata 'LICENSE.txt')
+$languages = & (Join-Path $ocr 'tesseract.exe') --tessdata-dir $tessdata --list-langs
+if ($LASTEXITCODE -ne 0 -or $languages -cnotcontains 'fra') {
+    throw 'Le moteur OCR préparé ne charge pas la langue française.'
+}
+
 $output = Join-Path $root 'artifacts/installer'
 if (Test-Path -LiteralPath $output) { throw 'Dossier installateur déjà présent. Utiliser un espace propre.' }
 New-Item -ItemType Directory -Path $output | Out-Null
 Write-Output "Compilateur Inno Setup : $((Get-Item -LiteralPath $compiler).VersionInfo.FileVersion)"
-& $compiler "/DPayloadDir=$payload" "/DBuildSha=$sha" "/DShortSha=$short" "/DOutputDir=$output" "/DSourceRoot=$root" (Join-Path $root 'installer/demo.iss')
+& $compiler "/DPayloadDir=$payload" "/DBuildSha=$sha" "/DShortSha=$short" "/DOutputDir=$output" "/DSourceRoot=$root" "/DOcrDir=$ocr" (Join-Path $root 'installer/demo.iss')
 if ($LASTEXITCODE -ne 0) { throw "Compilation Inno Setup échouée : $LASTEXITCODE" }
 $installer = Join-Path $output "gestionTresorerie-demo-setup-$short.exe"
 if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) { throw 'Installateur compilé absent.' }

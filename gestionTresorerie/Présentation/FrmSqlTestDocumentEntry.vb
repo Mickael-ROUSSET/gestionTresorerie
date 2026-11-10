@@ -59,13 +59,31 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
 
         AddHandler _kind.SelectedIndexChanged, AddressOf UpdateKind
         AddHandler validate.Click, AddressOf ValidateFields
-        _kind.SelectedIndex = 0
+        Dim detectedType = suggested?("type_document")?.ToString()
+        _kind.SelectedIndex = If(detectedType = "Facture", 0, If(detectedType = "Cheque", 1, -1))
+        UpdateKind(Nothing, EventArgs.Empty)
         Dim fields = suggested?("donnees_extraites")
-        _party.Text = If(fields?("identite")?("fournisseur_nom")?.ToString(), "")
+        Dim identity = fields?("identite")
         Dim transaction = fields?("transaction")
-        _number.Text = If(transaction?("numero_facture")?.ToString(), "")
-        _date.Text = If(transaction?("date_facture")?.ToString(), "")
-        _amount.Text = If(transaction?("montant_ttc")?.ToString(), "")
+        If detectedType = "Cheque" Then
+            _party.Text = If(identity?("beneficiaire_nom")?.ToString(), "")
+            _number.Text = If(identity?("emetteur_numero_cheque")?.ToString(), "")
+            _date.Text = If(transaction?("date_emission")?.ToString(), "")
+            _amount.Text = If(transaction?("montant_numerique")?.ToString(), "")
+        ElseIf detectedType = "Facture" Then
+            _party.Text = If(identity?("fournisseur_nom")?.ToString(), "")
+            _number.Text = If(transaction?("numero_facture")?.ToString(), "")
+            _date.Text = If(transaction?("date_facture")?.ToString(), "")
+            _amount.Text = If(transaction?("montant_ttc")?.ToString(), "")
+        End If
+        AddHandler _kind.SelectedIndexChanged,
+            Sub()
+                _number.Clear()
+                _party.Clear()
+                _date.Clear()
+                _amount.Clear()
+                _direction.SelectedIndex = -1
+            End Sub
     End Sub
 
     Public ReadOnly Property Proposal As DocumentArchiveProposal
@@ -92,6 +110,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         Dim emitted As Boolean? = Nothing
         If _direction.SelectedIndex >= 0 Then emitted = _direction.SelectedIndex = 0
         Try
+            If _kind.SelectedIndex < 0 Then Throw New ArgumentException("Sélectionnez le type de document.")
             _proposal = SqlTestDocumentEntry.Prepare(_source, _hash, _root, _kind.SelectedIndex = 1,
                 _number.Text, _party.Text, _date.Text, _amount.Text, emitted)
             DialogResult = DialogResult.OK
