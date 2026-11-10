@@ -3,6 +3,9 @@ Option Strict On
 Imports System.Globalization
 Imports System.IO
 Imports System.Security.Cryptography
+Imports System.Text.RegularExpressions
+Imports gestionTresorerie.Agumaaa
+Imports Newtonsoft.Json.Linq
 
 Public NotInheritable Class DocumentArchiveProposal
     Private ReadOnly _source As String
@@ -94,17 +97,88 @@ Public NotInheritable Class DocumentArchiveProposal
         If montant = 0D OrElse String.IsNullOrWhiteSpace(devise) Then Throw New ArgumentException("Montant ou devise manquant.")
         document.DateDoc = dateDocument
 
+        Dim summaryText = $"{document.CategorieDoc} — {sens}{vbCrLf}" &
+            $"Référence : {reference}{vbCrLf}Date : {document.DateDoc:dd/MM/yyyy}{vbCrLf}" &
+            $"Montant : {montant:N2} {devise}{vbCrLf}Tiers : {tiers}"
+        Return BuildProposal(source, root, hash, document, setting("repRacineComptabilité"), dossier, nom, summaryText)
+    End Function
+
+    Public Shared Function PrepareAdministrativeTest(source As String, hash As String, root As String, kind As TypeDocument,
+                                                     party As String, dateText As String, reference As String,
+                                                     amountText As String) As DocumentArchiveProposal
+        If Not DocumentFilePreview.Supports(source) Then Throw New ArgumentException("Format de fichier non pris en charge.")
+        If Not Path.IsPathFullyQualified(root) OrElse Not Directory.Exists(root) Then
+            Throw New IOException("La racine d’archivage TEST est inaccessible.")
+        End If
+        Dim folder As String
+        Dim filenamePrefix As String
+        Dim label As String
+        Select Case kind
+            Case TypeDocument.FormulaireAdhesion
+                folder = "Adhesions"
+                filenamePrefix = "ADH"
+                label = "Bulletin d’adhésion"
+            Case TypeDocument.QuestionnaireMedical
+                folder = "QuestionnairesMedicaux"
+                filenamePrefix = "QS"
+                label = "Questionnaire médical"
+            Case TypeDocument.Recu
+                folder = "Recus"
+                filenamePrefix = "RECU"
+                label = "Reçu"
+            Case Else
+                Throw New ArgumentException("Type de document administratif invalide.", NameOf(kind))
+        End Select
+
+        party = party.Trim()
+        If party.Length = 0 OrElse party.Length > 80 Then Throw New ArgumentException("Renseignez le nom indiqué sur le document.")
+        Dim documentDate = ReadDate(dateText.Trim())
+        If documentDate.Year < 1753 Then Throw New ArgumentException("La date du document est trop ancienne pour SQL TEST.")
+        If Not Regex.IsMatch(hash, "\A[0-9A-F]{64}\z", RegexOptions.CultureInvariant) Then
+            Throw New ArgumentException("Empreinte du document invalide.", NameOf(hash))
+        End If
+        Dim fields As New JObject From {{"nom_complet", party}, {"date_document", documentDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}}
+        Dim summary = label & vbCrLf & $"Nom : {party}{vbCrLf}Date : {documentDate:dd/MM/yyyy}"
+        If kind = TypeDocument.Recu Then
+            reference = reference.Trim()
+            If reference.Length > 60 Then Throw New ArgumentException("Le numéro du reçu dépasse 60 caractères.")
+            If reference.Length > 0 Then
+                fields("reference") = reference
+                summary &= vbCrLf & "Référence : " & reference
+            End If
+            If Not String.IsNullOrWhiteSpace(amountText) Then
+                Dim amount As Decimal
+                Dim normalized = Regex.Replace(amountText.Trim(), "[ \u00A0\u202F]", "").Replace(","c, "."c)
+                If Not Regex.IsMatch(normalized, "\A\d+(?:\.\d{1,2})?\z") OrElse Not Decimal.TryParse(normalized,
+                    NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, amount) OrElse amount <= 0D Then
+                    Throw New ArgumentException("Renseignez un montant de reçu valide en euros.")
+                End If
+                fields("montant_numerique") = amount
+                fields("devise") = "EUR"
+                summary &= vbCrLf & $"Montant : {amount:N2} EUR"
+            End If
+        End If
+
+        Dim document As New DocumentAgumaaaImpl(0, documentDate, Nothing, Nothing, kind.ToString(), Nothing, 0,
+            fields.ToString(Newtonsoft.Json.Formatting.None), Date.Now)
+        ' Un nom neutre évite d’exposer l’identité d’un adhérent dans les noms de fichiers.
+        Dim fileName = filenamePrefix & "_" & documentDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) &
+            "_" & hash.Substring(0, 16) & Path.GetExtension(source)
+        Return BuildProposal(source, root, hash, document, OfflineTestWorkspace.DocumentArchiveTestSetting("repRacineComptabilité"),
+            Path.Combine(folder, documentDate.ToString("yyyy", CultureInfo.InvariantCulture)), fileName, summary)
+    End Function
+
+    Private Shared Function BuildProposal(source As String, root As String, hash As String, document As DocumentAgumaaa,
+                                          relativeRoot As String, folder As String, fileName As String,
+                                          summary As String) As DocumentArchiveProposal
         Dim prefix = Path.TrimEndingDirectorySeparator(Path.GetFullPath(root))
         If Not Path.EndsInDirectorySeparator(prefix) Then prefix &= Path.DirectorySeparatorChar
-        Dim archive = Path.GetFullPath(Path.Combine(prefix, setting("repRacineComptabilité"), dossier, nom))
+        Dim archive = Path.GetFullPath(Path.Combine(prefix, relativeRoot, folder, fileName))
         If Not archive.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) Then
             Throw New ArgumentException("Le répertoire de classement sort de la racine configurée.")
         End If
         document.CheminDoc = archive
-        Dim summaryText = $"{document.CategorieDoc} — {sens}{vbCrLf}" &
-            $"Référence : {reference}{vbCrLf}Date : {document.DateDoc:dd/MM/yyyy}{vbCrLf}" &
-            $"Montant : {montant:N2} {devise}{vbCrLf}Tiers : {tiers}"
-        Return New DocumentArchiveProposal(source, root, hash, document, summaryText)
+        Return New DocumentArchiveProposal(source, root, hash, document, summary)
     End Function
 
     Public Shared Function HashSource(source As String) As String

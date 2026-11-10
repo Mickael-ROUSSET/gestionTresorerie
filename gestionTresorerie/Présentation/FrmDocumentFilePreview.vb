@@ -185,7 +185,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
                     readableText = Await Task.Run(Function() LocalDocumentAnalysis.ReadText(source))
                     suggested = LocalDocumentAnalysis.Classify(readableText)
                     If suggested Is Nothing Then
-                        note = "Type non reconnu. Sélectionnez Facture ou Chèque si le document correspond."
+                        note = "Type non reconnu. Choisissez le type après avoir vérifié le document."
                     End If
                 Catch ex As Exception When TypeOf ex Is IOException OrElse TypeOf ex Is InvalidOperationException OrElse
                     TypeOf ex Is InvalidDataException OrElse TypeOf ex Is TimeoutException OrElse TypeOf ex Is ArgumentException OrElse

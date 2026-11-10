@@ -3,10 +3,17 @@ Option Strict On
 Imports System.Drawing
 Imports System.Windows.Forms
 Imports Newtonsoft.Json.Linq
+Imports gestionTresorerie.Agumaaa
 
 Friend NotInheritable Class FrmSqlTestDocumentEntry
     Inherits Form
 
+    Private Shared ReadOnly DocumentKinds As TypeDocument() = {
+        TypeDocument.Facture, TypeDocument.Cheque, TypeDocument.FormulaireAdhesion,
+        TypeDocument.QuestionnaireMedical, TypeDocument.Recu}
+    Private ReadOnly _directionLabel As New Label With {.Text = "Sens du chèque"}
+    Private ReadOnly _numberLabel As New Label
+    Private ReadOnly _amountLabel As New Label
     Private ReadOnly _kind As New ComboBox With {.DropDownStyle = ComboBoxStyle.DropDownList, .Dock = DockStyle.Fill}
     Private ReadOnly _direction As New ComboBox With {.DropDownStyle = ComboBoxStyle.DropDownList, .Dock = DockStyle.Fill}
     Private ReadOnly _number As New TextBox With {.MaxLength = 60, .Dock = DockStyle.Fill}
@@ -30,7 +37,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         ClientSize = New Size(540, 322)
         AutoScaleMode = AutoScaleMode.Font
 
-        _kind.Items.AddRange(New Object() {"Facture", "Chèque"})
+        _kind.Items.AddRange(New Object() {"Facture", "Chèque", "Bulletin d’adhésion", "Questionnaire médical", "Reçu"})
         _direction.Items.AddRange(New Object() {"Émis", "Reçu"})
         Dim table As New TableLayoutPanel With {.Dock = DockStyle.Fill, .ColumnCount = 2, .Padding = New Padding(12)}
         table.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 155))
@@ -40,11 +47,11 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         table.SetColumnSpan(help, 2)
         table.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
         AddField(table, 1, New Label With {.Text = "Type de document"}, _kind)
-        AddField(table, 2, New Label With {.Text = "Sens du chèque"}, _direction)
-        AddField(table, 3, New Label With {.Text = "Numéro du document"}, _number)
+        AddField(table, 2, _directionLabel, _direction)
+        AddField(table, 3, _numberLabel, _number)
         AddField(table, 4, _partyLabel, _party)
         AddField(table, 5, New Label With {.Text = "Date du document"}, _date)
-        AddField(table, 6, New Label With {.Text = "Montant en EUR"}, _amount)
+        AddField(table, 6, _amountLabel, _amount)
 
         Dim buttons As New FlowLayoutPanel With {.Dock = DockStyle.Fill, .FlowDirection = FlowDirection.RightToLeft}
         Dim cancel As New Button With {.Text = "Annuler", .DialogResult = DialogResult.Cancel, .AutoSize = True}
@@ -60,7 +67,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         AddHandler _kind.SelectedIndexChanged, AddressOf UpdateKind
         AddHandler validate.Click, AddressOf ValidateFields
         Dim detectedType = suggested?("type_document")?.ToString()
-        _kind.SelectedIndex = If(detectedType = "Facture", 0, If(detectedType = "Cheque", 1, -1))
+        _kind.SelectedIndex = Array.FindIndex(DocumentKinds, Function(kind) kind.ToString() = detectedType)
         UpdateKind(Nothing, EventArgs.Empty)
         Dim fields = suggested?("donnees_extraites")
         Dim identity = fields?("identite")
@@ -75,6 +82,11 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             _number.Text = If(transaction?("numero_facture")?.ToString(), "")
             _date.Text = If(transaction?("date_facture")?.ToString(), "")
             _amount.Text = If(transaction?("montant_ttc")?.ToString(), "")
+        Else
+            _party.Text = If(identity?("nom_complet")?.ToString(), "")
+            _number.Text = If(transaction?("reference")?.ToString(), "")
+            _date.Text = If(transaction?("date_document")?.ToString(), "")
+            _amount.Text = If(transaction?("montant_numerique")?.ToString(), "")
         End If
         AddHandler _kind.SelectedIndexChanged,
             Sub()
@@ -101,20 +113,44 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         table.Controls.Add(editor, 1, row)
     End Sub
 
+    Private ReadOnly Property SelectedKind As TypeDocument
+        Get
+            Return If(_kind.SelectedIndex < 0, TypeDocument.Aucun, DocumentKinds(_kind.SelectedIndex))
+        End Get
+    End Property
+
     Private Sub UpdateKind(sender As Object, e As EventArgs)
-        _partyLabel.Text = If(_kind.SelectedIndex = 1, "Bénéficiaire", "Fournisseur")
-        _direction.Enabled = _kind.SelectedIndex = 1
+        Dim kind = SelectedKind
+        Dim cheque = kind = TypeDocument.Cheque
+        Dim receipt = kind = TypeDocument.Recu
+        Dim financial = cheque OrElse receipt OrElse kind = TypeDocument.Facture
+        _partyLabel.Text = If(cheque, "Bénéficiaire", If(kind = TypeDocument.Facture, "Fournisseur",
+            If(receipt, "Nom ou organisme", "Nom et prénom")))
+        _directionLabel.Visible = cheque
+        _direction.Visible = cheque
+        _numberLabel.Text = If(receipt, "Numéro (facultatif)", "Numéro du document")
+        _numberLabel.Visible = financial
+        _number.Visible = financial
+        _amountLabel.Text = If(receipt, "Montant EUR (facultatif)", "Montant en EUR")
+        _amountLabel.Visible = financial
+        _amount.Visible = financial
     End Sub
 
     Private Sub ValidateFields(sender As Object, e As EventArgs)
         Dim emitted As Boolean? = Nothing
         If _direction.SelectedIndex >= 0 Then emitted = _direction.SelectedIndex = 0
         Try
-            If _kind.SelectedIndex < 0 Then Throw New ArgumentException("Sélectionnez le type de document.")
-            _proposal = SqlTestDocumentEntry.Prepare(_source, _hash, _root, _kind.SelectedIndex = 1,
-                _number.Text, _party.Text, _date.Text, _amount.Text, emitted)
+            Dim kind = SelectedKind
+            If kind = TypeDocument.Aucun Then Throw New ArgumentException("Sélectionnez le type de document.")
+            If kind = TypeDocument.Facture OrElse kind = TypeDocument.Cheque Then
+                _proposal = SqlTestDocumentEntry.Prepare(_source, _hash, _root, kind = TypeDocument.Cheque,
+                    _number.Text, _party.Text, _date.Text, _amount.Text, emitted)
+            Else
+                _proposal = DocumentArchiveProposal.PrepareAdministrativeTest(_source, _hash, _root, kind,
+                    _party.Text, _date.Text, _number.Text, _amount.Text)
+            End If
             DialogResult = DialogResult.OK
-        Catch ex As ArgumentException
+        Catch ex As Exception When TypeOf ex Is ArgumentException OrElse TypeOf ex Is IO.IOException
             MessageBox.Show(Me, ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning)
         End Try
     End Sub
