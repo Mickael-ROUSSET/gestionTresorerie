@@ -23,6 +23,8 @@ Public NotInheritable Class LocalDocumentAnalysis
     Public Shared Function Classify(content As String) As JObject
         If String.IsNullOrWhiteSpace(content) Then Return Nothing
         Dim lines = content.Replace(vbCrLf, vbLf).Replace(vbCr, vbLf)
+        Dim administrative = LocalAdministrativeAnalysis.Classify(lines)
+        If administrative IsNot Nothing Then Return administrative
         Const options As RegexOptions = RegexOptions.IgnoreCase Or RegexOptions.Multiline Or RegexOptions.CultureInvariant
         Dim cheque = Regex.IsMatch(lines,
             "^[ \t]*ch[eèé]que(?:[ \t]+(?:[ée]mis|re[çc]u|n[°º]|num[eé]ro))?[ \t]*[:.]?[ \t]*$|^[ \t]*(?:num[eé]ro[ \t]+(?:du[ \t]+)?ch[eèé]que|ch[eèé]que[ \t]+n[°º])[ \t]*[:.]?[ \t]*\d|^[ \t]*payez[ \t]+contre[ \t]+ce[ \t]+ch[eèé]que", options)
