@@ -259,4 +259,50 @@ Public Class FrmTiersTestTests
         Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(15)), "L'invalidation de sélection ne doit pas attendre LocalDB.")
         If failure IsNot Nothing Then Throw failure
     End Sub
+
+    <TestMethod>
+    Public Sub RechercheRefuseeApresSelectionEffaceLaFicheSansSql()
+        Dim failure As Exception = Nothing
+        Dim thread As New Thread(
+            Sub()
+                Try
+                    Using form As New FrmTiersTest()
+                        form.Show()
+                        Dim resultats = DirectCast(form.Controls.Find("ResultatsTiersTest", True)(0), DataGridView)
+                        Dim recherche = DirectCast(form.Controls.Find("RechercheTiersTest", True)(0), TextBox)
+                        Dim nom = DirectCast(form.Controls.Find("NomTiersTest", True)(0), TextBox)
+                        Dim email = DirectCast(form.Controls.Find("EmailTiersTest", True)(0), TextBox)
+                        Dim ville = DirectCast(form.Controls.Find("VilleTiersTest", True)(0), TextBox)
+                        Dim statut = DirectCast(form.Controls.Find("EtatTiersTest", True)(0), Label)
+                        Dim table As New System.Data.DataTable()
+                        table.Columns.Add("Id", GetType(Integer))
+                        table.Columns.Add("nom", GetType(String))
+                        table.Columns.Add("Email", GetType(String))
+                        table.Columns.Add("Ville", GetType(String))
+                        table.Rows.Add(123, "Tiers fictif A", "a@example.invalid", "Ville A")
+                        table.Rows.Add(456, "Tiers fictif B", "b@example.invalid", "Ville B")
+                        resultats.DataSource = table
+                        resultats.ClearSelection()
+                        resultats.Rows(1).Selected = True
+                        Assert.AreEqual("Tiers fictif B", nom.Text)
+                        ' Le critère est déjà vide : cliquer sur Rechercher ne déclenche pas TextChanged.
+                        DirectCast(form.Controls.Find("ChercherTiersTest", True)(0), Button).PerformClick()
+                        StringAssert.Contains(statut.Text, "Recherche TEST refusée")
+                        Assert.IsNull(resultats.DataSource)
+                        Assert.AreEqual("", nom.Text)
+                        Assert.AreEqual("", email.Text)
+                        Assert.AreEqual("", ville.Text)
+                        DirectCast(form.Controls.Find("ModifierTiersTest", True)(0), Button).PerformClick()
+                        StringAssert.Contains(statut.Text, "Sélectionnez")
+                        Assert.AreEqual(2, table.Rows.Count)
+                    End Using
+                Catch ex As Exception
+                    failure = ex
+                End Try
+            End Sub)
+        thread.SetApartmentState(ApartmentState.STA)
+        thread.Start()
+        Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(15)), "La recherche refusée ne doit pas attendre LocalDB.")
+        If failure IsNot Nothing Then Throw failure
+    End Sub
 End Class
