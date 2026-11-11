@@ -170,7 +170,6 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             _amount.Text = If(transaction?("montant_numerique")?.ToString(), "")
         End If
     End Sub
-    End Sub
 
     Public ReadOnly Property Proposal As DocumentArchiveProposal
         Get
