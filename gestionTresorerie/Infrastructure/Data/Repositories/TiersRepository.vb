@@ -77,7 +77,7 @@ Public Class TiersRepository
         End If
 
         Dim newId As Integer
-        If Integer.TryParse(result.ToString(), newId) Then
+        If Integer.TryParse(result.ToString(), newId) AndAlso newId > 0 Then
             Return newId
         End If
 
