@@ -76,6 +76,9 @@ Public NotInheritable Class FrmTiersTest
         Dim candidateId As Integer
         If view Is Nothing OrElse
            Not view.Row.Table.Columns.Contains("Id") OrElse
+           Not view.Row.Table.Columns.Contains("nom") OrElse
+           Not view.Row.Table.Columns.Contains("Email") OrElse
+           Not view.Row.Table.Columns.Contains("Ville") OrElse
            view.Row.IsNull("Id") OrElse
            Not Integer.TryParse(Convert.ToString(view("Id")), candidateId) OrElse
            candidateId <= 0 Then
