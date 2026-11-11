@@ -61,7 +61,7 @@ Public NotInheritable Class LocalDocumentAnalysis
             "^[ \t]*(?:(?:montant(?:[ \t]+en[ \t]+euros)?[ \t]*:|€)[ \t]*(?<v>\d[\d \u00A0\u202F]*[.,]\d{2})[ \t]*(?:€|EUR)?|(?<v>\d[\d \u00A0\u202F]*[.,]\d{2})[ \t]*(?:€|EUR))[ \t]*$")
         If amount Is Nothing AndAlso knownCheque Then
             amount = LocalPdfInvoiceAnalysis.UniqueMatch(lines,
-                "(?<![\d.,])(?<v>\d{1,7}[.,]\d{2})[ \t]*[=|]+[ \t]*$")
+                "(?<![\d.,])(?<v>\d{1,7}[.,]\d{2})[ \t–—-]*[=|]+[ \t]*$")
         End If
         If number IsNot Nothing Then identity("emetteur_numero_cheque") = number
         If beneficiary IsNot Nothing Then identity("beneficiaire_nom") = beneficiary
