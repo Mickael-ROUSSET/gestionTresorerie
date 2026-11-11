@@ -37,7 +37,8 @@ Public Class TiersRepository
                     New SqlParameter("@dateNaissance", If(dateNaissance.HasValue, CType(dateNaissance.Value.Date, Object), DBNull.Value))
                 })
 
-        Return id
+        ' Un identifiant SQL non positif ne désigne aucun tiers sélectionnable.
+        Return If(id > 0, id, 0)
     End Function
 
     Public Function TiersExiste(nom As String, prenom As String, raisonSociale As String) As Boolean
