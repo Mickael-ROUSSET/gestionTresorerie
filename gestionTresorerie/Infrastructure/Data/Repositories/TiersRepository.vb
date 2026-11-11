@@ -60,6 +60,7 @@ Public Class TiersRepository
                             iCategorie As Integer?,
                             iSousCategorie As Integer?) As Integer
 
+        Dim horodatage As DateTime = DateTime.Now
         Dim result As Object =
             _executor.ExecuteNamedScalar(Of Object)(
                 "insertTiers",
@@ -69,8 +70,8 @@ Public Class TiersRepository
                     New SqlParameter("@raisonSociale", If(String.IsNullOrWhiteSpace(sRaisonSociale), DBNull.Value, sRaisonSociale.Trim())),
                     New SqlParameter("@categorieDefaut", If(iCategorie.HasValue, CType(iCategorie.Value, Object), DBNull.Value)),
                     New SqlParameter("@sousCategorieDefaut", If(iSousCategorie.HasValue, CType(iSousCategorie.Value, Object), DBNull.Value)),
-                    New SqlParameter("@dateCreation", DateTime.Now),
-                    New SqlParameter("@dateModification", DateTime.Now)
+                    New SqlParameter("@dateCreation", horodatage),
+                    New SqlParameter("@dateModification", horodatage)
                 })
 
         If result Is Nothing OrElse result Is DBNull.Value Then
