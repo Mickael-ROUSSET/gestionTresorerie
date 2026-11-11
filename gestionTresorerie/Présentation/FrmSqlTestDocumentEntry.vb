@@ -94,6 +94,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
                 _amount.Clear()
                 _direction.SelectedIndex = -1
             End Sub
+    End Sub
 
     Private Sub ImportChatGptAnalysis(sender As Object, e As EventArgs)
         Try
