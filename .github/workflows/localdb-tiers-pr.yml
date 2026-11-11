@@ -1,0 +1,53 @@
+name: LocalDB Tiers TEST (PR)
+on:
+  pull_request:
+    paths:
+      - 'gestionTresorerie/Infrastructure/Data/Repositories/SqlTiersTestStore.vb'
+      - 'gestionTresorerie.Tests/SqlTiers*'
+      - '.github/workflows/localdb-tiers-pr.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  localdb-tiers:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      AGUMAAA_RUN_LOCALDB_INTEGRATION: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: microsoft/setup-msbuild@v2
+      - name: Vérifier LocalDB sur le runner jetable
+        shell: pwsh
+        run: |
+          $cmd = Get-Command SqlLocalDB.exe -ErrorAction SilentlyContinue
+          if (-not $cmd) {
+            $cmd = Get-Item 'C:\Program Files\Microsoft SQL Server\*\Tools\Binn\SqlLocalDB.exe' -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $cmd) { throw 'SQL Server LocalDB absent du runner Windows ; installation nécessaire.' }
+          & $(if ($cmd -is [System.Management.Automation.ApplicationInfo]) { $cmd.Source } else { $cmd.FullName }) info
+          if ($LASTEXITCODE -ne 0) { throw 'Impossible de consulter les instances LocalDB.' }
+      - name: Restaurer et compiler les tests Windows
+        shell: pwsh
+        run: |
+          dotnet restore gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --property:Platform="Any CPU"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          msbuild gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj /t:Build /p:Configuration=Release /p:Platform="Any CPU" /p:RestoreIgnoreFailedSources=true
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Exécuter réellement les tests LocalDB Tiers
+        shell: pwsh
+        run: |
+          dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Release --no-build --property:Platform="Any CPU" --filter "FullyQualifiedName~SqlTiersReinitializationIntegrationTests" --logger "trx;LogFileName=tiers-localdb.trx"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Conserver les résultats même en échec
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tiers-localdb-results
+          path: '**/TestResults/*.trx'
+          if-no-files-found: warn
