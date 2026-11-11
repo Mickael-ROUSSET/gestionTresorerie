@@ -60,6 +60,11 @@ Public Class TiersRepository
                             iCategorie As Integer?,
                             iSousCategorie As Integer?) As Integer
 
+        ' Refuser une identité vide avant tout appel SQL, y compris hors interface.
+        If String.IsNullOrWhiteSpace(sNom) AndAlso String.IsNullOrWhiteSpace(sRaisonSociale) Then
+            Return 0
+        End If
+
         Dim horodatage As DateTime = DateTime.Now
         Dim result As Object =
             _executor.ExecuteNamedScalar(Of Object)(
