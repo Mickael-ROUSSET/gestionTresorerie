@@ -42,6 +42,11 @@ Public Class TiersRepository
     End Function
 
     Public Function TiersExiste(nom As String, prenom As String, raisonSociale As String) As Boolean
+        ' Une identité sans nom ni raison sociale ne peut pas désigner un tiers.
+        If String.IsNullOrWhiteSpace(nom) AndAlso String.IsNullOrWhiteSpace(raisonSociale) Then
+            Return False
+        End If
+
         Dim count As Integer =
             _executor.ExecuteNamedScalar(Of Integer)(
                 "cptTiers",
