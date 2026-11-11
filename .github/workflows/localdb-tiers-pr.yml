@@ -30,7 +30,7 @@ jobs:
             $cmd = Get-Item 'C:\Program Files\Microsoft SQL Server\*\Tools\Binn\SqlLocalDB.exe' -ErrorAction SilentlyContinue | Select-Object -First 1
           }
           if (-not $cmd) { throw 'SQL Server LocalDB absent du runner Windows ; installation nécessaire.' }
-          & $cmd.Source info
+          & $(if ($cmd -is [System.Management.Automation.ApplicationInfo]) { $cmd.Source } else { $cmd.FullName }) info
           if ($LASTEXITCODE -ne 0) { throw 'Impossible de consulter les instances LocalDB.' }
       - name: Restaurer et compiler les tests Windows
         shell: pwsh
