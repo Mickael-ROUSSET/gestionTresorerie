@@ -36,7 +36,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
         _sqlTest = sqlTest
         _sqlExample = sqlExample
         _initializeSqlTestOnSave = initializeSqlTestOnSave
-        If _sqlTest IsNot Nothing Then _analyse.Text = "Analyser / saisir le document…"
+        If _sqlTest IsNot Nothing Then _analyse.Text = "Relancer l’analyse…"
         Dim production = _testWorkspace Is Nothing AndAlso RealArchiveEnabled()
         Dim scope = If(production, "PROD — données réelles",
                     If(_sqlTest IsNot Nothing, "TEST SQL — bddAgumaaaTest", "TEST / DÉMO — analyse locale"))
@@ -99,6 +99,16 @@ Friend NotInheritable Class FrmDocumentFilePreview
         Return EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.PROD
 #End If
     End Function
+
+    Protected Overrides Sub OnShown(e As EventArgs)
+        MyBase.OnShown(e)
+        StartAutomaticAnalysis()
+    End Sub
+
+    Private Sub StartAutomaticAnalysis()
+        If _sqlTest Is Nothing OrElse _sqlExample OrElse Not _analyse.Enabled Then Return
+        BeginInvoke(New Action(Sub() AnalyseSelection(Me, EventArgs.Empty)))
+    End Sub
 
     Private Async Sub AnalyseSelection(sender As Object, e As EventArgs)
         Dim source = TryCast(_files.SelectedItem, FileInfo)?.FullName
@@ -207,6 +217,9 @@ Friend NotInheritable Class FrmDocumentFilePreview
             End If
         End Using
 
+        If Not _sqlExample AndAlso _pdfSource IsNot Nothing AndAlso _pageNumber.Maximum > 3 Then
+            note &= " L’OCR a examiné la première page du dossier."
+        End If
         Dim archiveRoot = If(_sqlExample, _testWorkspace.GetDocumentTestDirectory(), DriveArchiveRoot)
         Using editor As New FrmSqlTestDocumentEntry(source, hash, archiveRoot, suggested, note, archiveOnDrive:=Not _sqlExample)
             If editor.ShowDialog(Me) <> DialogResult.OK Then Return
@@ -232,8 +245,9 @@ Friend NotInheritable Class FrmDocumentFilePreview
         primary As Newtonsoft.Json.Linq.JObject) As Task(Of Newtonsoft.Json.Linq.JObject)
         Dim candidate As Newtonsoft.Json.Linq.JObject
         Try
-            Dim sparseText = Await Task.Run(Function() LocalDocumentAnalysis.ReadText(source, sparse:=True))
-            candidate = LocalDocumentAnalysis.Classify(sparseText)
+            Dim chequeLayout = primary?("type_document")?.ToString() = "Cheque"
+            Dim sparseText = Await Task.Run(Function() LocalDocumentAnalysis.ReadText(source, sparse:=True, chequeLayout:=chequeLayout))
+            candidate = LocalDocumentAnalysis.Classify(sparseText, knownCheque:=chequeLayout)
         Catch ex As Exception When TypeOf ex Is IOException OrElse TypeOf ex Is InvalidDataException OrElse
             TypeOf ex Is InvalidOperationException OrElse TypeOf ex Is TimeoutException OrElse
             TypeOf ex Is ArgumentException OrElse TypeOf ex Is Global.System.ComponentModel.Win32Exception
@@ -384,6 +398,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
         Catch ex As Exception
             _text.Text = "Impossible de lire ce fichier. Vérifiez qu’il est accessible et dans un format pris en charge."
         End Try
+        If Visible Then StartAutomaticAnalysis()
     End Sub
 
     Private Sub LoadPdfPage()

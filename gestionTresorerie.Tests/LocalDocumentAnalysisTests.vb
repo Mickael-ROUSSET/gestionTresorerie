@@ -151,4 +151,13 @@ Public Class LocalDocumentAnalysisTests
             temp.Delete(recursive:=True)
         End Try
     End Sub
+    <TestMethod>
+    Public Sub ReadsChequeAmountAndNumberFromOcrLayoutWithoutUsingPrintedDate()
+        Dim result = Global.gestionTresorerie.LocalDocumentAnalysis.Classify(String.Join(vbLf, {
+            "Titulaire : Association Exemple", "03/04/26", "exemple 144,00 — |", "Neduchéque y 1234567 Signature"}), knownCheque:=True)
+        Dim fields = result("donnees_extraites")
+        Assert.AreEqual("1234567", fields("identite")("emetteur_numero_cheque").ToString())
+        Assert.AreEqual(144D, CType(fields("transaction")("montant_numerique"), Decimal))
+        Assert.IsNull(fields("transaction")("date_emission"))
+    End Sub
 End Class

@@ -29,7 +29,7 @@ Public NotInheritable Class OfflineImageOcr
     Public Shared Function Recognize(imagePath As String, tesseractExe As String,
                                      Optional language As String = "fra",
                                      Optional timeoutMilliseconds As Integer = 30000,
-                                     Optional sparse As Boolean = False) As String
+                                     Optional sparse As Boolean = False, Optional chequeLayout As Boolean = False) As String
         If String.IsNullOrWhiteSpace(imagePath) Then Throw New ArgumentException("Image manquante.", NameOf(imagePath))
         If String.IsNullOrWhiteSpace(tesseractExe) Then Throw New ArgumentException("Moteur OCR local non configuré.", NameOf(tesseractExe))
         If timeoutMilliseconds < 1000 OrElse timeoutMilliseconds > 120000 Then
@@ -60,9 +60,9 @@ Public NotInheritable Class OfflineImageOcr
         start.ArgumentList.Add("stdout")
         start.ArgumentList.Add("-l")
         start.ArgumentList.Add(language)
-        If sparse Then
+        If sparse OrElse chequeLayout Then
             start.ArgumentList.Add("--psm")
-            start.ArgumentList.Add("11")
+            start.ArgumentList.Add(If(chequeLayout, "6", "11"))
         End If
         Dim dataDirectory = Path.Combine(Path.GetDirectoryName(tesseractExe), "tessdata")
         If File.Exists(Path.Combine(dataDirectory, language & ".traineddata")) Then
