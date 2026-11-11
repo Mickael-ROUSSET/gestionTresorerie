@@ -73,7 +73,8 @@ Public NotInheritable Class LocalPdfInvoiceAnalysis
         Return If(values.Length = 1, values(0), Nothing)
     End Function
 
-    Private Shared Function RecognizePages(filePath As String, tesseractExe As String, Optional sparse As Boolean = False) As String
+    Private Shared Function RecognizePages(filePath As String, tesseractExe As String, Optional sparse As Boolean = False,
+                                               Optional chequeLayout As Boolean = False) As String
         Dim pageCount = DocumentFilePreview.PdfPageCount(filePath)
         Dim pages = If(pageCount > 3, 1, pageCount)
         Dim temporary = Directory.CreateTempSubdirectory("gestionTresorerie-ocr-")
