@@ -3,7 +3,7 @@
 Vue de consultation générée automatiquement à partir du backlog local.
 **Ne pas modifier ce fichier pour piloter l'orchestrateur.**
 
-**Actualisation :** 2026-11-11 09:44 UTC
+**Actualisation :** 2026-11-11 12:32 UTC
 **Objectif :** Prepare safe first-use of the real Windows application: startup diagnostics, opt-in Gmail readiness, usable review workflow, offline acceptance tests and manual release gates. No live production deployment or accounting writes.
 
 | Tâche | État | Validation | Commit |
