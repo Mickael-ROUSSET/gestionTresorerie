@@ -15,7 +15,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     Private ReadOnly _numberLabel As New Label
     Private ReadOnly _amountLabel As New Label
     Private ReadOnly _kind As New ComboBox With {.DropDownStyle = ComboBoxStyle.DropDownList, .Dock = DockStyle.Fill}
-    Private ReadOnly _direction As New ComboBox With {.DropDownStyle = ComboBoxStyle.DropDownList, .Dock = DockStyle.Fill}
+    Private ReadOnly _direction As New ComboBox With {.DropDownStyle = ComboBoxStyle.DropDownList, .Dock = DockStyle.Fill, .Enabled = False}
     Private ReadOnly _number As New TextBox With {.MaxLength = 60, .Dock = DockStyle.Fill}
     Private ReadOnly _party As New TextBox With {.MaxLength = 80, .Dock = DockStyle.Fill}
     Private ReadOnly _date As New TextBox With {.PlaceholderText = "JJ/MM/AAAA", .Dock = DockStyle.Fill}
@@ -43,7 +43,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         FormBorderStyle = FormBorderStyle.FixedDialog
         MinimizeBox = False
         MaximizeBox = False
-        ClientSize = New Size(580, 420)
+        ClientSize = New Size(580, 456)
         AutoScaleMode = AutoScaleMode.Font
 
         _kind.Items.AddRange(New Object() {"Facture", "Chèque", "Bulletin d’adhésion", "Questionnaire médical", "Reçu"})
@@ -76,12 +76,18 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         table.Controls.Add(buttons, 0, 10)
         table.SetColumnSpan(buttons, 2)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 39))
+        Dim prompt As New Button With {.Text = "Copier la consigne ChatGPT", .AutoSize = True, .Anchor = AnchorStyles.Left}
+        AddHandler prompt.Click, AddressOf CopyChatGptPrompt
+        table.Controls.Add(prompt, 0, 11)
+        table.SetColumnSpan(prompt, 2)
+        table.RowStyles.Add(New RowStyle(SizeType.Absolute, 35))
         Controls.Add(table)
         CancelButton = cancel
         AcceptButton = validate
 
         AddHandler _kind.SelectedIndexChanged, AddressOf UpdateKind
         AddHandler validate.Click, AddressOf ValidateFields
+        AddHandler _issuer.TextChanged, AddressOf UpdateChequeDirection
         FillFields(suggested)
         AddHandler _kind.SelectedIndexChanged,
             Sub()
@@ -94,6 +100,39 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
                 _amount.Clear()
                 _direction.SelectedIndex = -1
             End Sub
+    End Sub
+
+    Private Sub CopyChatGptPrompt(sender As Object, e As EventArgs)
+        Dim prompt = String.Join(vbLf, {
+            "Analyse le document joint. Réponds uniquement avec un objet JSON.",
+            "Structure : {""type_document"":""..."",""donnees_extraites"":{""identite"":{},""transaction"":{}}}.",
+            "Choisis un type ci-dessous. Utilise seulement les champs du type choisi. Laisse null si illisible. N’invente rien.",
+            "Cheque : identite = emetteur_numero_cheque, emetteur_du_cheque, beneficiaire_nom. transaction = date_emission, montant_numerique.",
+            "Pour un chèque, l’émetteur est le titulaire du compte, distinct de la banque. Ignore la date préimprimée du chéquier.",
+            "Facture : identite = fournisseur_nom. transaction = numero_facture, date_facture, montant_ttc.",
+            "FormulaireAdhesion : identite = nom, prenom, adresse. transaction = date_document.",
+            "QuestionnaireMedical : identite = nom_complet. transaction = date_document. Ne transcris aucune réponse médicale.",
+            "Recu : identite = nom_complet. transaction = reference, date_document, montant_numerique.",
+            "Dates au format AAAA-MM-JJ. Montants en euros sous forme de nombres. Numéros et références sous forme de texte, avec leurs zéros initiaux."})
+        Try
+            Clipboard.SetText(prompt)
+            MessageBox.Show(Me, "Colle la consigne dans ChatGPT avec le document, puis copie le JSON obtenu.", Text)
+        Catch ex As System.Runtime.InteropServices.ExternalException
+            MessageBox.Show(Me, ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        End Try
+    End Sub
+
+    Private Sub UpdateChequeDirection(sender As Object, e As EventArgs)
+        Dim issuer = _issuer.Text.Trim()
+        If SelectedKind <> TypeDocument.Cheque OrElse issuer.Length = 0 Then
+            _direction.SelectedIndex = -1
+            Return
+        End If
+        ' Certains chèques portent la mention imprimée « ASSOC. AGUMAA ».
+        Dim isAgumaaa = System.Text.RegularExpressions.Regex.IsMatch(issuer,
+            "(?<![\p{L}\p{N}])A[ .-]*G[ .-]*U[ .-]*M[ .-]*A[ .-]*A(?:[ .-]*A)?(?![\p{L}\p{N}])",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase Or System.Text.RegularExpressions.RegexOptions.CultureInvariant)
+        _direction.SelectedIndex = If(isAgumaaa, 0, 1)
     End Sub
 
     Private Sub ImportChatGptAnalysis(sender As Object, e As EventArgs)
@@ -222,6 +261,9 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         If _direction.SelectedIndex >= 0 Then emitted = _direction.SelectedIndex = 0
         Try
             Dim kind = SelectedKind
+            If kind = TypeDocument.Cheque AndAlso Not emitted.HasValue Then
+                Throw New ArgumentException("Renseignez l’émetteur pour déterminer le sens du chèque.")
+            End If
             If kind = TypeDocument.Aucun Then Throw New ArgumentException("Sélectionnez le type de document.")
             If kind = TypeDocument.Facture OrElse kind = TypeDocument.Cheque Then
                 _proposal = SqlTestDocumentEntry.Prepare(_source, _hash, _root, kind = TypeDocument.Cheque,
