@@ -23,7 +23,7 @@ Friend NotInheritable Class LocalAdministrativeAnalysis
             Dim familyName = LocalPdfInvoiceAnalysis.UniqueMatch(lines,
                 "^[ \t]*nom(?:[ \t]+de[ \t]+naissance)?[ \t]*:[ \t]*(?<v>[^\n]+)$")
             Dim givenName = LocalPdfInvoiceAnalysis.UniqueMatch(lines,
-                "^[ \t]*pr[eé]nom(?:s|\(s\))?[ \t]*:[ \t]*(?<v>[^\n]+)$")
+                "^[ \t]*pr[eé]nom(?:s\)?|\(s\))?[ \t]*:[ \t]*(?<v>[^\n]+)$")
             If familyName IsNot Nothing AndAlso givenName IsNot Nothing Then name = familyName & " " & givenName
         End If
         Dim documentDate = LocalPdfInvoiceAnalysis.UniqueMatch(lines,
@@ -54,7 +54,7 @@ Friend NotInheritable Class LocalAdministrativeAnalysis
     Private Shared Sub ExtractMembershipIdentity(lines As String, identity As JObject)
         Dim familyName = ReadMembershipField(lines, "nom(?:[ \t]+de[ \t]+naissance)?")
         If familyName Is Nothing Then familyName = ReadMembershipField(lines, "nom[ \t]+d['’]usage")
-        Dim firstName = ReadMembershipField(lines, "pr[eé]nom(?:s|\(s\))?")
+        Dim firstName = ReadMembershipField(lines, "pr[eé]nom(?:s\)?|\(s\))?")
         Dim street = ReadMembershipField(lines, "adresse(?:[ \t]+postale)?")
         Dim town = ReadMembershipField(lines, "(?:ville|commune)")
         Dim postalCode = LocalPdfInvoiceAnalysis.UniqueMatch(lines, "\bcode[ \t]+postal[ \t]*[:;]?[ \t]*(?<v>\d{5})\b")
@@ -66,7 +66,7 @@ Friend NotInheritable Class LocalAdministrativeAnalysis
     End Sub
 
     Private Shared Function ReadMembershipField(lines As String, label As String) As String
-        Const nextLabel As String = "nom(?:[ \t]+d['’]usage)?|pr[eé]nom(?:s|\(s\))?|date[ \t]+de[ \t]+naissance|code[ \t]+postal|ville|commune|adresse|e[- ]?mail|t[eé]l[eé]phone|sexe|lieu[ \t]+de[ \t]+naissance"
+        Const nextLabel As String = "nom(?:[ \t]+d['’]usage)?|pr[eé]nom(?:s\)?|\(s\))?|date[ \t]+de[ \t]+naissance|code[ \t]+postal|ville|commune|adresse|e[- ]?mail|t[eé]l[eé]phone|sexe|lieu[ \t]+de[ \t]+naissance"
         Dim value = LocalPdfInvoiceAnalysis.UniqueMatch(lines,
             "^[ \t]*" & label & "[ \t]*[:;][ \t]*(?:\n[ \t]*)?(?<v>[^\n]+?)(?=[ \t]+(?:" & nextLabel & ")[ \t]*[:;]|[ \t]*$)")
         If String.IsNullOrWhiteSpace(value) OrElse Not value.Any(Function(character) Char.IsLetter(character)) OrElse

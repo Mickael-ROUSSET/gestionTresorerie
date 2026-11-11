@@ -14,12 +14,12 @@ Public NotInheritable Class LocalPdfInvoiceAnalysis
         Return ExtractText(ReadLocalText(filePath, tesseractExe))
     End Function
 
-    Friend Shared Function ReadLocalText(filePath As String, tesseractExe As String, Optional sparse As Boolean = False) As String
-        If sparse Then Return RecognizePages(filePath, tesseractExe, sparse:=True)
+    Friend Shared Function ReadLocalText(filePath As String, tesseractExe As String, Optional sparse As Boolean = False, Optional chequeLayout As Boolean = False) As String
+        If sparse Then Return RecognizePages(filePath, tesseractExe, sparse:=True, chequeLayout:=chequeLayout)
         Dim hasText As Boolean
         Dim truncated As Boolean
         Dim content = DocumentFilePreview.ReadPdfText(filePath, hasText, truncated)
-        If truncated Then
+        If truncated AndAlso hasText Then
             Throw New InvalidDataException("Le texte du PDF dépasse la limite d’analyse locale. Aucune donnée partielle n’est proposée.")
         End If
         If Not hasText Then
@@ -74,8 +74,8 @@ Public NotInheritable Class LocalPdfInvoiceAnalysis
     End Function
 
     Private Shared Function RecognizePages(filePath As String, tesseractExe As String, Optional sparse As Boolean = False) As String
-        Dim pages = DocumentFilePreview.PdfPageCount(filePath)
-        If pages > 3 Then Throw New InvalidDataException("L’OCR local accepte les PDF de trois pages au maximum.")
+        Dim pageCount = DocumentFilePreview.PdfPageCount(filePath)
+        Dim pages = If(pageCount > 3, 1, pageCount)
         Dim temporary = Directory.CreateTempSubdirectory("gestionTresorerie-ocr-")
         Try
             Dim content As New StringBuilder
@@ -84,7 +84,7 @@ Public NotInheritable Class LocalPdfInvoiceAnalysis
                 Using page = DocumentFilePreview.RenderPdfPage(filePath, index, 3300)
                     page.Save(imagePath, Drawing.Imaging.ImageFormat.Png)
                 End Using
-                content.AppendLine(OfflineImageOcr.Recognize(imagePath, tesseractExe, sparse:=sparse))
+                content.AppendLine(OfflineImageOcr.Recognize(imagePath, tesseractExe, sparse:=sparse, chequeLayout:=chequeLayout))
             Next
             Return content.ToString()
         Finally
