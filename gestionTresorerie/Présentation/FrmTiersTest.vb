@@ -63,7 +63,14 @@ Public NotInheritable Class FrmTiersTest
     End Sub
 
     Private Sub SelectTiers(sender As Object, e As EventArgs)
-        If _results.SelectedRows.Count <> 1 Then Return
+        If _results.SelectedRows.Count <> 1 Then
+            ' Une désélection explicite ne doit jamais laisser un identifiant éditable en mémoire.
+            _selectedId = 0
+            _nom.Clear()
+            _email.Clear()
+            _ville.Clear()
+            Return
+        End If
         Dim row = _results.SelectedRows(0)
         If row.DataBoundItem Is Nothing Then Return
         Dim view = TryCast(row.DataBoundItem, DataRowView)
