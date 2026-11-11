@@ -70,7 +70,9 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         Dim buttons As New FlowLayoutPanel With {.Dock = DockStyle.Fill, .FlowDirection = FlowDirection.RightToLeft}
         Dim cancel As New Button With {.Text = "Annuler", .DialogResult = DialogResult.Cancel, .AutoSize = True}
         Dim validate As New Button With {.Text = "Vérifier le classement…", .AutoSize = True}
-        buttons.Controls.AddRange(New Control() {cancel, validate})
+        Dim importAnalysis As New Button With {.Text = "Importer une analyse ChatGPT", .AutoSize = True}
+        AddHandler importAnalysis.Click, AddressOf ImportChatGptAnalysis
+        buttons.Controls.AddRange(New Control() {cancel, validate, importAnalysis})
         table.Controls.Add(buttons, 0, 10)
         table.SetColumnSpan(buttons, 2)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 39))
@@ -80,6 +82,67 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
 
         AddHandler _kind.SelectedIndexChanged, AddressOf UpdateKind
         AddHandler validate.Click, AddressOf ValidateFields
+        FillFields(suggested)
+        AddHandler _kind.SelectedIndexChanged,
+            Sub()
+                _number.Clear()
+                _party.Clear()
+                _issuer.Clear()
+                _firstName.Clear()
+                _address.Clear()
+                _date.Clear()
+                _amount.Clear()
+                _direction.SelectedIndex = -1
+            End Sub
+
+    Private Sub ImportChatGptAnalysis(sender As Object, e As EventArgs)
+        Try
+            Dim clipboardText = Clipboard.GetText().Trim()
+            If clipboardText.StartsWith("```json", StringComparison.OrdinalIgnoreCase) AndAlso
+                clipboardText.EndsWith("```", StringComparison.Ordinal) AndAlso clipboardText.Length > 10 Then
+                clipboardText = clipboardText.Substring(7, clipboardText.Length - 10).Trim()
+            End If
+            If clipboardText.Length = 0 OrElse clipboardText.Length > 32000 Then
+                Throw New ArgumentException("Copiez d’abord le résultat JSON de ChatGPT.")
+            End If
+
+            Dim result = JObject.Parse(clipboardText, New JsonLoadSettings With {
+                .DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error})
+            Dim kind = result("type_document")
+            Dim data = TryCast(result("donnees_extraites"), JObject)
+            If kind Is Nothing OrElse kind.Type <> JTokenType.String OrElse
+                Not Array.Exists(DocumentKinds, Function(value) value.ToString() = kind.ToString()) OrElse
+                data Is Nothing Then
+                Throw New ArgumentException("Le JSON doit contenir un type de document reconnu et les données extraites.")
+            End If
+            For Each section In {"identite", "transaction"}
+                Dim fields = TryCast(data(section), JObject)
+                If fields Is Nothing OrElse fields.Properties().Any(
+                    Function(field) field.Value.Type <> JTokenType.String AndAlso
+                        field.Value.Type <> JTokenType.Integer AndAlso field.Value.Type <> JTokenType.Float AndAlso
+                        field.Value.Type <> JTokenType.Null) Then
+                    Throw New ArgumentException("Les champs identité et transaction doivent contenir des valeurs simples.")
+                End If
+            Next
+            If MessageBox.Show(Me, "Remplacer les champs actuels par les données copiées depuis ChatGPT ?",
+                               Text, MessageBoxButtons.YesNo, MessageBoxIcon.Question,
+                               MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then Return
+            FillFields(result)
+        Catch ex As Exception When TypeOf ex Is Newtonsoft.Json.JsonException OrElse TypeOf ex Is ArgumentException OrElse
+            TypeOf ex Is System.Runtime.InteropServices.ExternalException
+            MessageBox.Show(Me, ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        End Try
+    End Sub
+
+    Private Sub FillFields(suggested As JObject)
+        _number.Clear()
+        _party.Clear()
+        _issuer.Clear()
+        _firstName.Clear()
+        _address.Clear()
+        _date.Clear()
+        _amount.Clear()
+        _direction.SelectedIndex = -1
         Dim detectedType = suggested?("type_document")?.ToString()
         _kind.SelectedIndex = Array.FindIndex(DocumentKinds, Function(kind) kind.ToString() = detectedType)
         UpdateKind(Nothing, EventArgs.Empty)
@@ -105,17 +168,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             _date.Text = If(transaction?("date_document")?.ToString(), "")
             _amount.Text = If(transaction?("montant_numerique")?.ToString(), "")
         End If
-        AddHandler _kind.SelectedIndexChanged,
-            Sub()
-                _number.Clear()
-                _party.Clear()
-                _issuer.Clear()
-                _firstName.Clear()
-                _address.Clear()
-                _date.Clear()
-                _amount.Clear()
-                _direction.SelectedIndex = -1
-            End Sub
+    End Sub
     End Sub
 
     Public ReadOnly Property Proposal As DocumentArchiveProposal
