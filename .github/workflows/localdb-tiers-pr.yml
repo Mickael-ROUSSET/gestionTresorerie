@@ -37,7 +37,7 @@ jobs:
         run: |
           dotnet restore gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --property:Platform="Any CPU"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          dotnet build gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Release --no-restore --property:Platform="Any CPU"
+          msbuild gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj /t:Build /p:Configuration=Release /p:Platform="Any CPU" /p:RestoreIgnoreFailedSources=true
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Exécuter réellement les tests LocalDB Tiers
         shell: pwsh
