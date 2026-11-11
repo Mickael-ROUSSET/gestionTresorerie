@@ -28,13 +28,24 @@ Public Class TiersInsertionParametersTests
     End Sub
 
     <TestMethod>
-    Public Sub InsererConvertitLesChampsVidesEnDbNullEtRefuseUnIdentifiantAbsent()
+    Public Sub InsererRefuseUneIdentiteVideSansAppelSql()
         Dim fake As New FakeSqlExecutor With {.ScalarResult = DBNull.Value}
         Dim repo As New TiersRepository(fake)
 
         Assert.AreEqual(0, repo.Inserer(" ", Nothing, " ", Nothing, Nothing))
+        Assert.IsNull(fake.LastQueryName, "Une identité vide doit être refusée avant SQL.")
+        Assert.IsNull(fake.LastParameters, "Aucun paramètre SQL ne doit être préparé pour une identité vide.")
+    End Sub
+
+    <TestMethod>
+    Public Sub InsererConvertitLesChampsOptionnelsVidesEnDbNullEtRefuseUnIdentifiantAbsent()
+        Dim fake As New FakeSqlExecutor With {.ScalarResult = DBNull.Value}
+        Dim repo As New TiersRepository(fake)
+
+        Assert.AreEqual(0, repo.Inserer(" Association fictive ", Nothing, " ", Nothing, Nothing))
+        Assert.AreEqual("insertTiers", fake.LastQueryName)
         Dim p = fake.LastParameters.ToDictionary(Function(x) x.ParameterName, Function(x) x.Value)
-        Assert.AreEqual(DBNull.Value, p("@raisonSociale"))
+        Assert.AreEqual("Association fictive", p("@raisonSociale"))
         Assert.AreEqual(DBNull.Value, p("@prenom"))
         Assert.AreEqual(DBNull.Value, p("@nom"))
         Assert.AreEqual(DBNull.Value, p("@categorieDefaut"))
