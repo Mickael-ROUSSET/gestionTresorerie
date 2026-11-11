@@ -8,7 +8,7 @@ Public Class TiersInsertionInvalidIdTests
     <DataTestMethod>
     <DataRow(-1)>
     <DataRow(0)>
-    <DataRow(-2147483648)>
+    <DataRow(Integer.MinValue)>
     Public Sub InsererRefuseLesIdentifiantsNonPositifs(id As Integer)
         Dim fake As New FakeSqlExecutor With {.ScalarResult = id}
         Dim repo As New TiersRepository(fake)
