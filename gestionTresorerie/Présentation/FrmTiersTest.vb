@@ -72,10 +72,22 @@ Public NotInheritable Class FrmTiersTest
             Return
         End If
         Dim row = _results.SelectedRows(0)
-        If row.DataBoundItem Is Nothing Then Return
         Dim view = TryCast(row.DataBoundItem, DataRowView)
-        If view Is Nothing Then Return
-        _selectedId = CInt(view("Id"))
+        Dim candidateId As Integer
+        If view Is Nothing OrElse
+           Not view.Row.Table.Columns.Contains("Id") OrElse
+           view.Row.IsNull("Id") OrElse
+           Not Integer.TryParse(Convert.ToString(view("Id")), candidateId) OrElse
+           candidateId <= 0 Then
+            ' Une ligne incomplète ne doit pas conserver le tiers précédemment sélectionné.
+            _selectedId = 0
+            _nom.Clear()
+            _email.Clear()
+            _ville.Clear()
+            _status.Text = "Sélection TEST invalide : choisissez un tiers avec identifiant valide."
+            Return
+        End If
+        _selectedId = candidateId
         _nom.Text = Convert.ToString(view("nom"))
         _email.Text = If(view.Row.IsNull("Email"), "", Convert.ToString(view("Email")))
         _ville.Text = If(view.Row.IsNull("Ville"), "", Convert.ToString(view("Ville")))
