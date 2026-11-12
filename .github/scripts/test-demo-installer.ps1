@@ -65,6 +65,20 @@ function Assert-SqlCatalogs([string]$Mode) {
                 if ($Mode -eq 'verify' -and $catalog -eq 'bddAgumaaaTest') {
                     $command.CommandText = "SELECT COUNT(*) FROM dbo.Documents WHERE cheminDoc=N'CI-Install-Sentinel';"
                     if ($command.ExecuteScalar() -ne 1) { throw 'Ligne TEST perdue.' }
+                    # Deux tiers et leurs coordonnées doivent rester distincts après réinstallation et désinstallation.
+                    $command.CommandText = @'
+SELECT COUNT(*) FROM dbo.Tiers t
+JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
+WHERE (t.raisonSociale=N'CI-Tiers-Fictif-A' AND c.Email=N'a@example.invalid' AND c.Ville=N'Ville A')
+   OR (t.raisonSociale=N'CI-Tiers-Fictif-B' AND c.Email=N'b@example.invalid' AND c.Ville=N'Ville B');
+'@
+                    if ($command.ExecuteScalar() -ne 2) { throw 'Coordonnées des deux tiers TEST perdues ou mélangées.' }
+                    $command.CommandText = @'
+SELECT COUNT(*) FROM dbo.Coordonnees c
+JOIN dbo.Tiers t ON t.Id=c.IdTiers
+WHERE t.raisonSociale IN (N'CI-Tiers-Fictif-A',N'CI-Tiers-Fictif-B');
+'@
+                    if ($command.ExecuteScalar() -ne 2) { throw 'Coordonnées TEST dupliquées.' }
                 }
                 if ($Mode -eq 'stamp') {
                     $command.CommandText = "EXEC sys.sp_addextendedproperty @name=N'CI-Install-Sentinel', @value=N'Conserver';"
@@ -74,7 +88,20 @@ function Assert-SqlCatalogs([string]$Mode) {
                 if ($command.ExecuteScalar() -cne 'Conserver') { throw "Sentinelle SQL perdue : $catalog." }
                 if ($Mode -eq 'stamp' -and $catalog -eq 'bddAgumaaaTest') {
                     # Simuler une installation TEST ancienne sur le runner jetable.
-                    $command.CommandText = "INSERT dbo.Documents (dateDoc,cheminDoc) VALUES (GETDATE(),N'CI-Install-Sentinel'); DROP TABLE dbo.Communes; ALTER TABLE dbo.Documents DROP COLUMN dateModif;"
+                    # Données exclusivement fictives sur le runner Windows jetable, jamais en PROD.
+                    $command.CommandText = @'
+DECLARE @a int, @b int;
+INSERT dbo.Tiers (raisonSociale,dateCreation,dateModification) VALUES (N'CI-Tiers-Fictif-A',GETDATE(),GETDATE());
+SET @a=CONVERT(int,SCOPE_IDENTITY());
+INSERT dbo.Tiers (raisonSociale,dateCreation,dateModification) VALUES (N'CI-Tiers-Fictif-B',GETDATE(),GETDATE());
+SET @b=CONVERT(int,SCOPE_IDENTITY());
+IF @a=@b OR @a<=0 OR @b<=0 THROW 51001, 'Identifiants TEST invalides', 1;
+INSERT dbo.Coordonnees (IdTiers,Email,Ville) VALUES
+(@a,N'a@example.invalid',N'Ville A'),(@b,N'b@example.invalid',N'Ville B');
+INSERT dbo.Documents (dateDoc,cheminDoc) VALUES (GETDATE(),N'CI-Install-Sentinel');
+DROP TABLE dbo.Communes;
+ALTER TABLE dbo.Documents DROP COLUMN dateModif;
+'@
                     [void]$command.ExecuteNonQuery()
                 }
             }
