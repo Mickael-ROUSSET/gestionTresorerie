@@ -62,6 +62,14 @@ function Assert-SqlCatalogs([string]$Mode) {
                 if ($command.ExecuteScalar() -ne 3) { throw "Valeurs par defaut Seances absentes : $catalog." }
                 $command.CommandText = "SELECT COL_LENGTH(N'dbo.Documents', N'dateModif');"
                 if ($command.ExecuteScalar() -eq [DBNull]::Value) { throw "Colonne dateModif absente : $catalog." }
+                if ($Mode -eq 'verify' -and $catalog -eq 'bddAgumaaa') {
+                    # Les tiers fictifs du scénario TEST ne doivent jamais apparaître en PROD.
+                    $command.CommandText = @'
+SELECT COUNT(*) FROM dbo.Tiers
+WHERE raisonSociale IN (N'CI-Tiers-Fictif-A', N'CI-Tiers-Fictif-B');
+'@
+                    if ($command.ExecuteScalar() -ne 0) { throw 'Isolation PROD violée : tiers fictifs TEST présents.' }
+                }
                 if ($Mode -eq 'verify' -and $catalog -eq 'bddAgumaaaTest') {
                     $command.CommandText = "SELECT COUNT(*) FROM dbo.Documents WHERE cheminDoc=N'CI-Install-Sentinel';"
                     if ($command.ExecuteScalar() -ne 1) { throw 'Ligne TEST perdue.' }
