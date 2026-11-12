@@ -70,7 +70,7 @@ function Assert-SqlCatalogs([string]$Mode) {
 SELECT COUNT(*) FROM dbo.Tiers t
 JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
 WHERE (t.raisonSociale=N'CI-Tiers-Fictif-A' AND c.Email=N'a@example.invalid' AND c.Ville=N'Ville A')
-   OR (t.raisonSociale=N'CI-Tiers-Fictif-B' AND c.Email=N'b@example.invalid' AND c.Ville=N'Ville B');
+   OR (t.raisonSociale=N'CI-Tiers-Fictif-B' AND c.Email=N'b-corrige@example.invalid' AND c.Ville=N'Ville B corrigée');
 '@
                     if ($command.ExecuteScalar() -ne 2) { throw 'Coordonnées des deux tiers TEST perdues ou mélangées.' }
                     $command.CommandText = @'
@@ -98,6 +98,12 @@ SET @b=CONVERT(int,SCOPE_IDENTITY());
 IF @a=@b OR @a<=0 OR @b<=0 THROW 51001, 'Identifiants TEST invalides', 1;
 INSERT dbo.Coordonnees (IdTiers,Email,Ville) VALUES
 (@a,N'a@example.invalid',N'Ville A'),(@b,N'b@example.invalid',N'Ville B');
+-- Corriger les coordonnées du seul tiers B, sans toucher au tiers A.
+UPDATE dbo.Coordonnees SET Email=N'b-corrige@example.invalid', Ville=N'Ville B corrigée'
+WHERE IdTiers=@b AND Email=N'b@example.invalid' AND Ville=N'Ville B';
+IF @@ROWCOUNT<>1 THROW 51002, 'Correction du tiers B non unique', 1;
+IF EXISTS (SELECT 1 FROM dbo.Coordonnees WHERE IdTiers=@a AND (Email<>N'a@example.invalid' OR Ville<>N'Ville A'))
+    THROW 51003, 'Le tiers A a été modifié', 1;
 INSERT dbo.Documents (dateDoc,cheminDoc) VALUES (GETDATE(),N'CI-Install-Sentinel');
 DROP TABLE dbo.Communes;
 ALTER TABLE dbo.Documents DROP COLUMN dateModif;
