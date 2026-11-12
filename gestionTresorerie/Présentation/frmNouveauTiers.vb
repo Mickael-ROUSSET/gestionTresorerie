@@ -12,12 +12,11 @@ Public Class FrmNouveauTiers
         Return New TiersRepository(executor)
     End Function
     Private Sub btnCreerTiers_Click(sender As Object, e As EventArgs) Handles btnCreerTiers.Click
-        If String.IsNullOrWhiteSpace(txtNom.Text) AndAlso String.IsNullOrWhiteSpace(txtPrenom.Text) AndAlso String.IsNullOrWhiteSpace(txtRaisonSociale.Text) Then
+        If Not IdentiteValide(txtNom.Text, txtRaisonSociale.Text) Then
             MessageBox.Show($"Veuillez remplir le nom : {txtNom.Text} et le prénom {txtPrenom.Text} ou la raison sociale {txtRaisonSociale.Text}", "Champs obligatoires", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
 
-        Dim listeTiers As ListeTiers
         ' Vérifier que le tiers n'existe pas déjà
         If TiersExisteDeJa() Then
             MessageBox.Show($"Ce tiers existe déjà : nom = {txtNom.Text}, prénom = {txtPrenom.Text}, raison sociale = {txtRaisonSociale.Text}", "Tiers existant", MessageBoxButtons.OK, MessageBoxIcon.Warning)
@@ -25,12 +24,14 @@ Public Class FrmNouveauTiers
             Return
         End If
 
-        If listeTiers Is Nothing Then
-            Dim unused2 As New ListeTiers()
-        End If
-
         ' Insérer le tiers et récupérer son Id
-        Dim newId As Integer = insereNouveauTiers(txtRaisonSociale.Text, txtNom.Text, txtPrenom.Text, _categorieSelectionne.Id, _sousCategorieSelectionne.Id)
+        Dim categorieId As Integer? = If(_categorieSelectionne Is Nothing, CType(Nothing, Integer?), _categorieSelectionne.Id)
+        Dim sousCategorieId As Integer? = If(_sousCategorieSelectionne Is Nothing, CType(Nothing, Integer?), _sousCategorieSelectionne.Id)
+        Dim newId As Integer = insereNouveauTiers(txtRaisonSociale.Text, txtPrenom.Text, txtNom.Text, categorieId, sousCategorieId)
+        If newId <= 0 Then
+            MessageBox.Show("Le tiers n'a pas été enregistré. Les coordonnées saisies sont conservées pour une nouvelle tentative.", "Enregistrement impossible", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Return
+        End If
 
         ' Si des coordonnées ont été saisies, les persister maintenant avec l'Id du tiers
         If _pendingCoordonnees IsNot Nothing Then
@@ -46,6 +47,10 @@ Public Class FrmNouveauTiers
 
         initChamps()
     End Sub
+
+    Public Shared Function IdentiteValide(nom As String, raisonSociale As String) As Boolean
+        Return Not String.IsNullOrWhiteSpace(nom) OrElse Not String.IsNullOrWhiteSpace(raisonSociale)
+    End Function
 
     Private Function verifCatSousCat(text As String) As Integer
         Dim indice As Integer = 0
@@ -221,10 +226,8 @@ Public Class FrmNouveauTiers
     'End Sub
 
     Private Sub btnCoordonnees_Click(sender As Object, e As EventArgs) Handles btnCoordonnees.Click
-        Dim idTiers As Integer? = Tiers.GetIdTiersByUser(txtNom.Text, txtPrenom.Text)
-        If idTiers = 0 Then
-            Logger.WARN($"Impossible de récupérer IdTiers pour {txtNom.Text}, {txtPrenom.Text}.")
-        End If
+        ' Nouveau tiers : ne jamais rechercher un identifiant en base avant sa création.
+        Dim idTiers As Integer? = Nothing
         ' Ouvrir le formulaire en mode sans enregistrement ; récupérer les coordonnées saisies
         Dim frm As New frmSaisieCoordonnees(idTiers, False)
         If frm.ShowDialog() = DialogResult.OK Then
@@ -239,7 +242,7 @@ Public Class FrmNouveauTiers
         titreFenetre:="Sélection de la catégorie",
         txtDestination:=txtCategorie
     )
-        txtCategorie.Text = _categorieSelectionne.Libelle
+        If _categorieSelectionne IsNot Nothing Then txtCategorie.Text = _categorieSelectionne.Libelle
     End Sub
 
     Private Sub btnSousCategorie_Click(sender As Object, e As EventArgs) Handles btnSousCategorie.Click
@@ -248,7 +251,7 @@ Public Class FrmNouveauTiers
         titreFenetre:="Sélection de la sous-catégorie",
         txtDestination:=txtSousCategorie
     )
-        txtSousCategorie.Text = _sousCategorieSelectionne.Libelle
+        If _sousCategorieSelectionne IsNot Nothing Then txtSousCategorie.Text = _sousCategorieSelectionne.Libelle
     End Sub
 
     Private Sub dtpDateNaissance_ValueChanged(sender As Object, e As EventArgs) Handles dtpDateNaissance.ValueChanged
