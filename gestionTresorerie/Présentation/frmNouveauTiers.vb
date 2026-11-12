@@ -40,7 +40,12 @@ Public Class FrmNouveauTiers
         ' Insérer le tiers et récupérer son Id
         Dim categorieId As Integer? = If(_categorieSelectionne Is Nothing, CType(Nothing, Integer?), _categorieSelectionne.Id)
         Dim sousCategorieId As Integer? = If(_sousCategorieSelectionne Is Nothing, CType(Nothing, Integer?), _sousCategorieSelectionne.Id)
-        Dim newId As Integer = insereNouveauTiers(txtRaisonSociale.Text, txtPrenom.Text, txtNom.Text, categorieId, sousCategorieId)
+        Dim newIdResult As Integer? = InsererTiersOuSignalerErreur(Function() insereNouveauTiers(txtRaisonSociale.Text, txtPrenom.Text, txtNom.Text, categorieId, sousCategorieId))
+        If Not newIdResult.HasValue Then
+            MessageBox.Show("L'enregistrement du tiers a échoué. Vérifiez la base TEST avant de réessayer : les coordonnées saisies sont conservées.", "Enregistrement impossible", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Return
+        End If
+        Dim newId As Integer = newIdResult.Value
         If Not IdentifiantTiersValide(newId) Then
             MessageBox.Show("Le tiers n'a pas été enregistré. Les coordonnées saisies sont conservées pour une nouvelle tentative.", "Enregistrement impossible", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Return
@@ -108,6 +113,18 @@ Public Class FrmNouveauTiers
             Return recherche()
         Catch ex As Exception
             Logger.ERR("Recherche des doublons impossible : " & ex.GetType().Name)
+            Return Nothing
+        End Try
+    End Function
+
+    ' Une panne SQL à l'insertion ne doit pas provoquer une exception WinForms non gérée.
+    ' Nothing signale un échec, sans supprimer les coordonnées en attente.
+    Public Shared Function InsererTiersOuSignalerErreur(insertion As Func(Of Integer)) As Integer?
+        If insertion Is Nothing Then Throw New ArgumentNullException(NameOf(insertion))
+        Try
+            Return insertion()
+        Catch ex As Exception
+            Logger.ERR("Insertion du tiers impossible : " & ex.GetType().Name)
             Return Nothing
         End Try
     End Function
