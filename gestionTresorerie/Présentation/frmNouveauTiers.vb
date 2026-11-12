@@ -154,6 +154,15 @@ Public Class FrmNouveauTiers
     End Sub
 
     Private Sub UpdateControlVisibility(isPersonneMorale As Boolean)
+        ' Éviter de conserver une identité cachée lorsque le type de tiers change.
+        ' Une personne morale ne doit pas hériter du nom/prénom précédents,
+        ' ni une personne physique de la raison sociale précédente.
+        If isPersonneMorale Then
+            txtNom.Clear()
+            txtPrenom.Clear()
+        Else
+            txtRaisonSociale.Clear()
+        End If
         txtRaisonSociale.Visible = isPersonneMorale
         txtNom.Visible = Not isPersonneMorale
         txtPrenom.Visible = Not isPersonneMorale
