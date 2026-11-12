@@ -64,4 +64,27 @@ Public Class FrmNouveauTiersIdentifiantInsertionTests
         Next
     End Sub
 
+    <TestMethod>
+    Public Sub DeuxInsertionsFictivesSuccessivesConserventLeursIdentifiantsDistincts()
+        Dim appelsPremier As Integer = 0
+        Dim appelsSecond As Integer = 0
+        Dim premier As Integer? = FrmNouveauTiers.InsererTiersOuSignalerErreur(
+            Function()
+                appelsPremier += 1
+                Return 101
+            End Function)
+        Dim second As Integer? = FrmNouveauTiers.InsererTiersOuSignalerErreur(
+            Function()
+                appelsSecond += 1
+                Return 202
+            End Function)
+        Assert.IsTrue(premier.HasValue)
+        Assert.IsTrue(second.HasValue)
+        Assert.AreEqual(101, premier.Value)
+        Assert.AreEqual(202, second.Value)
+        Assert.AreNotEqual(premier.Value, second.Value, "Deux tiers fictifs doivent conserver des identifiants distincts.")
+        Assert.AreEqual(1, appelsPremier)
+        Assert.AreEqual(1, appelsSecond)
+    End Sub
+
 End Class
