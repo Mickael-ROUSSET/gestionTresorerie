@@ -24,4 +24,30 @@ Public Class FrmNouveauTiersIdentifiantInsertionTests
         Assert.IsTrue(resultat.HasValue)
         Assert.AreEqual(73, resultat.Value)
     End Sub
+    <TestMethod>
+    Public Sub InsertionQuiEchoueNeLaissePasPasserUnIdentifiant()
+        Dim appels As Integer = 0
+        Dim resultat As Integer? = FrmNouveauTiers.InsererTiersOuSignalerErreur(
+            Function()
+                appels += 1
+                Throw New InvalidOperationException("Panne SQL fictive")
+                Return 0
+            End Function)
+        Assert.IsFalse(resultat.HasValue, "Une panne d'insertion ne doit pas autoriser l'enregistrement des coordonnées.")
+        Assert.AreEqual(1, appels, "Une panne ne doit pas déclencher de nouvelle insertion automatique.")
+    End Sub
+
+    <TestMethod>
+    Public Sub InsertionReussieNestExecuteeQuUneFois()
+        Dim appels As Integer = 0
+        Dim resultat As Integer? = FrmNouveauTiers.InsererTiersOuSignalerErreur(
+            Function()
+                appels += 1
+                Return 73
+            End Function)
+        Assert.IsTrue(resultat.HasValue)
+        Assert.AreEqual(73, resultat.Value)
+        Assert.AreEqual(1, appels, "Une insertion réussie ne doit pas être rejouée.")
+    End Sub
+
 End Class
