@@ -23,8 +23,15 @@ Public Class FrmNouveauTiers
             Return
         End If
 
+        ' Une erreur de lecture ne doit jamais être interprétée comme une absence de doublon.
+        Dim existeDeja As Boolean? = VerifierDoublonOuBloquer(Function() TiersExisteDeJa())
+        If Not existeDeja.HasValue Then
+            MessageBox.Show("La vérification des doublons est indisponible. Aucun tiers n'a été créé. Réessayez après rétablissement de la base TEST.", "Vérification impossible", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Return
+        End If
+
         ' Vérifier que le tiers n'existe pas déjà
-        If TiersExisteDeJa() Then
+        If existeDeja.Value Then
             MessageBox.Show($"Ce tiers existe déjà : nom = {txtNom.Text}, prénom = {txtPrenom.Text}, raison sociale = {txtRaisonSociale.Text}", "Tiers existant", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Logger.INFO($"Ce tiers existe déjà : nom = {txtNom.Text}, prénom = {txtPrenom.Text}, raison sociale = {txtRaisonSociale.Text}")
             Return
@@ -92,6 +99,17 @@ Public Class FrmNouveauTiers
         Else
             Return -1 ' Retourne une valeur par défaut pour indiquer une erreur
         End If
+    End Function
+
+    ' Nothing signifie que la recherche a échoué : ne jamais créer le tiers dans ce cas.
+    Public Shared Function VerifierDoublonOuBloquer(recherche As Func(Of Boolean)) As Boolean?
+        If recherche Is Nothing Then Throw New ArgumentNullException(NameOf(recherche))
+        Try
+            Return recherche()
+        Catch ex As Exception
+            Logger.ERR("Recherche des doublons impossible : " & ex.GetType().Name)
+            Return Nothing
+        End Try
     End Function
 
     Private Function TiersExisteDeJa() As Boolean
