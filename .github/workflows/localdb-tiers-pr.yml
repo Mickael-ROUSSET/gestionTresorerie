@@ -44,10 +44,22 @@ jobs:
         run: |
           dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Release --no-build --property:Platform="Any CPU" --filter "FullyQualifiedName~SqlTiersReinitializationIntegrationTests" --logger "trx;LogFileName=tiers-localdb.trx"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $trx = Get-ChildItem -Path gestionTresorerie.Tests/TestResults -Filter tiers-localdb.trx -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $trx) { throw 'Aucun fichier TRX LocalDB produit : validation impossible.' }
+          [xml]$results = Get-Content -LiteralPath $trx.FullName -Raw
+          $counters = $results.TestRun.ResultSummary.Counters
+          if (-not $counters) { throw 'Compteurs TRX absents : validation impossible.' }
+          $total = [int]$counters.total
+          $passed = [int]$counters.passed
+          $failed = [int]$counters.failed
+          Write-Host "LocalDB Tiers TRX : total=$total passed=$passed failed=$failed"
+          if ($total -lt 2 -or $passed -ne $total -or $failed -ne 0) {
+            throw "Validation LocalDB insuffisante : total=$total passed=$passed failed=$failed (2 tests minimum requis)."
+          }
       - name: Conserver les résultats même en échec
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: tiers-localdb-results
           path: '**/TestResults/*.trx'
-          if-no-files-found: warn
+          if-no-files-found: error
