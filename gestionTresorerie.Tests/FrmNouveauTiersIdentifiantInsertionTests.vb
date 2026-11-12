@@ -50,4 +50,18 @@ Public Class FrmNouveauTiersIdentifiantInsertionTests
         Assert.AreEqual(1, appels, "Une insertion réussie ne doit pas être rejouée.")
     End Sub
 
+    <TestMethod>
+    Public Sub IdentifiantsInvalidesNeDeclenchentPasDeNouvelleInsertion()
+        For Each identifiantInvalide As Integer In New Integer() {0, -1, Integer.MinValue}
+            Dim appels As Integer = 0
+            Dim resultat As Integer? = FrmNouveauTiers.InsererTiersOuSignalerErreur(
+                Function()
+                    appels += 1
+                    Return identifiantInvalide
+                End Function)
+            Assert.IsFalse(resultat.HasValue, "Identifiant fictif invalide : " & identifiantInvalide.ToString())
+            Assert.AreEqual(1, appels, "Aucune réinsertion automatique ne doit suivre un identifiant SQL invalide.")
+        Next
+    End Sub
+
 End Class
