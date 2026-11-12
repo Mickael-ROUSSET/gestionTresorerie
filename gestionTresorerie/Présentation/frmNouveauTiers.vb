@@ -122,7 +122,12 @@ Public Class FrmNouveauTiers
     Public Shared Function InsererTiersOuSignalerErreur(insertion As Func(Of Integer)) As Integer?
         If insertion Is Nothing Then Throw New ArgumentNullException(NameOf(insertion))
         Try
-            Return insertion()
+            Dim idTiers As Integer = insertion()
+            If Not IdentifiantTiersValide(idTiers) Then
+                Logger.WARN("Insertion du tiers sans identifiant positif.")
+                Return Nothing
+            End If
+            Return idTiers
         Catch ex As Exception
             Logger.ERR("Insertion du tiers impossible : " & ex.GetType().Name)
             Return Nothing
