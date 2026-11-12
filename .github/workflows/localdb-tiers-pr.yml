@@ -42,6 +42,9 @@ jobs:
       - name: Exécuter réellement les tests LocalDB Tiers
         shell: pwsh
         run: |
+          # Ne jamais accepter un rapport conservé d'une exécution précédente.
+          $resultsDir = 'gestionTresorerie.Tests/TestResults'
+          if (Test-Path -LiteralPath $resultsDir) { Remove-Item -LiteralPath $resultsDir -Recurse -Force }
           dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Release --no-build --property:Platform="Any CPU" --filter "FullyQualifiedName~SqlTiersReinitializationIntegrationTests" --logger "trx;LogFileName=tiers-localdb.trx"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $trx = Get-ChildItem -Path gestionTresorerie.Tests/TestResults -Filter tiers-localdb.trx -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -52,8 +55,10 @@ jobs:
           $total = [int]$counters.total
           $passed = [int]$counters.passed
           $failed = [int]$counters.failed
-          Write-Host "LocalDB Tiers TRX : total=$total passed=$passed failed=$failed"
-          if ($total -lt 2 -or $passed -ne $total -or $failed -ne 0) {
+          $skipped = [int]$counters.notExecuted
+          $outcome = [string]$results.TestRun.ResultSummary.outcome
+          Write-Host "LocalDB Tiers TRX : total=$total passed=$passed failed=$failed skipped=$skipped outcome=$outcome"
+          if ($total -lt 2 -or $passed -ne $total -or $failed -ne 0 -or $skipped -ne 0 -or $outcome -ne "Completed") {
             throw "Validation LocalDB insuffisante : total=$total passed=$passed failed=$failed (2 tests minimum requis)."
           }
       - name: Conserver les résultats même en échec
