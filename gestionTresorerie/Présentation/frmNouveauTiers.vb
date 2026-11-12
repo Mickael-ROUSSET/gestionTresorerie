@@ -28,7 +28,7 @@ Public Class FrmNouveauTiers
         Dim categorieId As Integer? = If(_categorieSelectionne Is Nothing, CType(Nothing, Integer?), _categorieSelectionne.Id)
         Dim sousCategorieId As Integer? = If(_sousCategorieSelectionne Is Nothing, CType(Nothing, Integer?), _sousCategorieSelectionne.Id)
         Dim newId As Integer = insereNouveauTiers(txtRaisonSociale.Text, txtPrenom.Text, txtNom.Text, categorieId, sousCategorieId)
-        If newId <= 0 Then
+        If Not IdentifiantTiersValide(newId) Then
             MessageBox.Show("Le tiers n'a pas été enregistré. Les coordonnées saisies sont conservées pour une nouvelle tentative.", "Enregistrement impossible", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Return
         End If
@@ -41,6 +41,8 @@ Public Class FrmNouveauTiers
                 Logger.INFO($"Coordonnées sauvegardées pour IdTiers={newId} : {_pendingCoordonnees}")
             Catch ex As Exception
                 Logger.ERR($"Erreur lors de la sauvegarde des coordonnées pour IdTiers={newId} : {ex.Message}")
+                MessageBox.Show("Le tiers a été créé (ID " & newId.ToString() & "), mais ses coordonnées n'ont pas été enregistrées. Ne recréez pas ce tiers : corrigez ses coordonnées depuis sa fiche existante.", "Coordonnées non enregistrées", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Return
             End Try
             _pendingCoordonnees = Nothing
         End If
@@ -50,6 +52,10 @@ Public Class FrmNouveauTiers
 
     Public Shared Function IdentiteValide(nom As String, raisonSociale As String) As Boolean
         Return Not String.IsNullOrWhiteSpace(nom) OrElse Not String.IsNullOrWhiteSpace(raisonSociale)
+    End Function
+
+    Public Shared Function IdentifiantTiersValide(idTiers As Integer) As Boolean
+        Return idTiers > 0
     End Function
 
     Private Function verifCatSousCat(text As String) As Integer
@@ -119,6 +125,9 @@ Public Class FrmNouveauTiers
             Throw New ArgumentNullException(NameOf(coordonnee))
         End If
 
+        If Not IdentifiantTiersValide(coordonnee.IdTiers) Then
+            Throw New ArgumentOutOfRangeException(NameOf(coordonnee), "Un identifiant de tiers positif est requis avant d'enregistrer les coordonnées.")
+        End If
         coordonnee.Validate()
 
         Try
