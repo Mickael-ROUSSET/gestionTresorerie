@@ -49,6 +49,7 @@ Public Class FrmNouveauTiers
                 Logger.ERR($"Erreur lors de la sauvegarde des coordonnées pour IdTiers={newId} : {ex.Message}")
                 _tiersCreeAvecCoordonneesEnEchec = newId
                 btnCreerTiers.Enabled = False
+                btnCoordonnees.Enabled = False
                 MessageBox.Show("Le tiers a été créé (ID " & newId.ToString() & "), mais ses coordonnées n'ont pas été enregistrées. Ne recréez pas ce tiers : corrigez ses coordonnées depuis sa fiche existante.", "Coordonnées non enregistrées", MessageBoxButtons.OK, MessageBoxIcon.Error)
                 Return
             End Try
@@ -206,6 +207,9 @@ Public Class FrmNouveauTiers
         _categorieSelectionne = Nothing
         _sousCategorieSelectionne = Nothing
         _pendingCoordonnees = Nothing
+        _tiersCreeAvecCoordonneesEnEchec = Nothing
+        btnCreerTiers.Enabled = True
+        btnCoordonnees.Enabled = True
     End Sub
     Private Sub ChargerDonneesNouveauTiers(dataService As IDataService, query As String, dataGridView As DataGridView)
         'TODO : utiliser la méthode de la classe UtilitairesDgv
