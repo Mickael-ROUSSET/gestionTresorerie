@@ -199,6 +199,11 @@ Public Class FrmNouveauTiers
         txtNom.Text = String.Empty
         txtPrenom.Text = String.Empty
         txtRaisonSociale.Text = String.Empty
+        txtCategorie.Text = String.Empty
+        txtSousCategorie.Text = String.Empty
+        _categorieSelectionne = Nothing
+        _sousCategorieSelectionne = Nothing
+        _pendingCoordonnees = Nothing
     End Sub
     Private Sub ChargerDonneesNouveauTiers(dataService As IDataService, query As String, dataGridView As DataGridView)
         'TODO : utiliser la méthode de la classe UtilitairesDgv
