@@ -23,8 +23,17 @@ Public Class FrmNouveauTiers
             Return
         End If
 
+        ' Une erreur de lecture ne doit jamais être interprétée comme une absence de doublon.
+        Dim existeDeja As Boolean
+        Try
+            existeDeja = TiersExisteDeJa()
+        Catch ex As Exception
+            MessageBox.Show("La vérification des doublons est indisponible. Aucun tiers n'a été créé. Réessayez après rétablissement de la base TEST.", "Vérification impossible", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Return
+        End Try
+
         ' Vérifier que le tiers n'existe pas déjà
-        If TiersExisteDeJa() Then
+        If existeDeja Then
             MessageBox.Show($"Ce tiers existe déjà : nom = {txtNom.Text}, prénom = {txtPrenom.Text}, raison sociale = {txtRaisonSociale.Text}", "Tiers existant", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Logger.INFO($"Ce tiers existe déjà : nom = {txtNom.Text}, prénom = {txtPrenom.Text}, raison sociale = {txtRaisonSociale.Text}")
             Return
