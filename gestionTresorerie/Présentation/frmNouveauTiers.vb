@@ -18,7 +18,7 @@ Public Class FrmNouveauTiers
             Return
         End If
 
-        If Not IdentiteValide(txtNom.Text, txtRaisonSociale.Text) Then
+        If Not IdentiteValidePourType(rbPersonneMorale.Checked, txtNom.Text, txtRaisonSociale.Text) Then
             MessageBox.Show($"Veuillez remplir le nom : {txtNom.Text} et le prénom {txtPrenom.Text} ou la raison sociale {txtRaisonSociale.Text}", "Champs obligatoires", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
@@ -61,6 +61,14 @@ Public Class FrmNouveauTiers
 
     Public Shared Function IdentiteValide(nom As String, raisonSociale As String) As Boolean
         Return Not String.IsNullOrWhiteSpace(nom) OrElse Not String.IsNullOrWhiteSpace(raisonSociale)
+    End Function
+
+    ' Le champ obligatoire dépend du type de tiers sélectionné.
+    Public Shared Function IdentiteValidePourType(isPersonneMorale As Boolean, nom As String, raisonSociale As String) As Boolean
+        If isPersonneMorale Then
+            Return Not String.IsNullOrWhiteSpace(raisonSociale)
+        End If
+        Return Not String.IsNullOrWhiteSpace(nom)
     End Function
 
     Public Shared Function IdentifiantTiersValide(idTiers As Integer) As Boolean
