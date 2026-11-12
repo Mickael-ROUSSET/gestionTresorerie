@@ -5,6 +5,7 @@ Public Class FrmNouveauTiers
     Private _categorieSelectionne As Categorie
     Private _sousCategorieSelectionne As SousCategorie
     Private _pendingCoordonnees As Coordonnees
+    Private _tiersCreeAvecCoordonneesEnEchec As Integer? = Nothing
     Private toolTip1 As ToolTip
     Private Shared Function CreateTiersRepository() As TiersRepository
         Dim executor As ISqlExecutor = RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
@@ -12,6 +13,11 @@ Public Class FrmNouveauTiers
         Return New TiersRepository(executor)
     End Function
     Private Sub btnCreerTiers_Click(sender As Object, e As EventArgs) Handles btnCreerTiers.Click
+        If _tiersCreeAvecCoordonneesEnEchec.HasValue Then
+            MessageBox.Show("Le tiers " & _tiersCreeAvecCoordonneesEnEchec.Value.ToString() & " existe déjà. Corrigez ses coordonnées depuis sa fiche : une nouvelle création serait un doublon.", "Création déjà effectuée", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+
         If Not IdentiteValide(txtNom.Text, txtRaisonSociale.Text) Then
             MessageBox.Show($"Veuillez remplir le nom : {txtNom.Text} et le prénom {txtPrenom.Text} ou la raison sociale {txtRaisonSociale.Text}", "Champs obligatoires", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
@@ -41,6 +47,8 @@ Public Class FrmNouveauTiers
                 Logger.INFO($"Coordonnées sauvegardées pour IdTiers={newId} : {_pendingCoordonnees}")
             Catch ex As Exception
                 Logger.ERR($"Erreur lors de la sauvegarde des coordonnées pour IdTiers={newId} : {ex.Message}")
+                _tiersCreeAvecCoordonneesEnEchec = newId
+                btnCreerTiers.Enabled = False
                 MessageBox.Show("Le tiers a été créé (ID " & newId.ToString() & "), mais ses coordonnées n'ont pas été enregistrées. Ne recréez pas ce tiers : corrigez ses coordonnées depuis sa fiche existante.", "Coordonnées non enregistrées", MessageBoxButtons.OK, MessageBoxIcon.Error)
                 Return
             End Try
