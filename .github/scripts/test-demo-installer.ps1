@@ -79,6 +79,18 @@ JOIN dbo.Tiers t ON t.Id=c.IdTiers
 WHERE t.raisonSociale IN (N'CI-Tiers-Fictif-A',N'CI-Tiers-Fictif-B');
 '@
                     if ($command.ExecuteScalar() -ne 2) { throw 'Coordonnées TEST dupliquées.' }
+                    # Le total de deux lignes ne suffit pas : exiger exactement un tiers et une coordonnée par nom.
+                    $command.CommandText = @'
+SELECT COUNT(*) FROM (
+    SELECT t.raisonSociale
+    FROM dbo.Tiers t
+    LEFT JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
+    WHERE t.raisonSociale IN (N'CI-Tiers-Fictif-A',N'CI-Tiers-Fictif-B')
+    GROUP BY t.raisonSociale
+    HAVING COUNT(DISTINCT t.Id)=1 AND COUNT(c.IdTiers)=1
+) AS valides;
+'@
+                    if ($command.ExecuteScalar() -ne 2) { throw 'Cardinalité tiers/coordonnées TEST invalide.' }
                 }
                 if ($Mode -eq 'stamp') {
                     $command.CommandText = "EXEC sys.sp_addextendedproperty @name=N'CI-Install-Sentinel', @value=N'Conserver';"
