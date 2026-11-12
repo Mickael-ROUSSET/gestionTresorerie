@@ -350,4 +350,44 @@ Public Class FrmTiersTestTests
         Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(15)), "La selection invalide ne doit pas attendre LocalDB.")
         If failure IsNot Nothing Then Throw failure
     End Sub
+
+    <TestMethod>
+    Public Sub DeuxTiersFictifsSelectionnesSuccessivementConserventLeursCoordonneesDistinctesSansSql()
+        Dim failure As Exception = Nothing
+        Dim thread As New Thread(
+            Sub()
+                Try
+                    Using form As New FrmTiersTest()
+                        form.Show()
+                        Dim grille = DirectCast(form.Controls.Find("ResultatsTiersTest", True)(0), DataGridView)
+                        Dim nom = DirectCast(form.Controls.Find("NomTiersTest", True)(0), TextBox)
+                        Dim email = DirectCast(form.Controls.Find("EmailTiersTest", True)(0), TextBox)
+                        Dim ville = DirectCast(form.Controls.Find("VilleTiersTest", True)(0), TextBox)
+                        Dim table As New System.Data.DataTable()
+                        table.Columns.Add("Id", GetType(Integer))
+                        table.Columns.Add("nom", GetType(String))
+                        table.Columns.Add("Email", GetType(String))
+                        table.Columns.Add("Ville", GetType(String))
+                        table.Rows.Add(101, "Tiers fictif A", "a@example.invalid", "Ville A")
+                        table.Rows.Add(202, "Tiers fictif B", "b@example.invalid", "Ville B")
+                        grille.DataSource = table
+                        grille.ClearSelection()
+                        For Each index As Integer In New Integer() {0, 1, 0}
+                            grille.ClearSelection()
+                            grille.Rows(index).Selected = True
+                            Assert.AreEqual(CStr(table.Rows(index)("nom")), nom.Text)
+                            Assert.AreEqual(CStr(table.Rows(index)("Email")), email.Text)
+                            Assert.AreEqual(CStr(table.Rows(index)("Ville")), ville.Text)
+                        Next
+                        Assert.AreEqual(2, table.Rows.Count)
+                    End Using
+                Catch ex As Exception
+                    failure = ex
+                End Try
+            End Sub)
+        thread.SetApartmentState(ApartmentState.STA)
+        thread.Start()
+        Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(15)), "La sélection fictive ne doit pas attendre LocalDB.")
+        If failure IsNot Nothing Then Throw failure
+    End Sub
 End Class
