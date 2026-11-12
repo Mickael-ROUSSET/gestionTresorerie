@@ -199,6 +199,8 @@ Public Class FrmNouveauTiers
         txtNom.Text = String.Empty
         txtPrenom.Text = String.Empty
         txtRaisonSociale.Text = String.Empty
+        txtDateNaissance.Text = String.Empty
+        txLieuNaissance.Text = String.Empty
         txtCategorie.Text = String.Empty
         txtSousCategorie.Text = String.Empty
         _categorieSelectionne = Nothing
