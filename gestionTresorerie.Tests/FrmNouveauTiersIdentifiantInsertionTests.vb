@@ -87,4 +87,31 @@ Public Class FrmNouveauTiersIdentifiantInsertionTests
         Assert.AreEqual(1, appelsSecond)
     End Sub
 
+    <TestMethod>
+    Public Sub ApresEchecUneNouvelleSaisiePeutInsererUnAutreTiersSansRejouerLaPremiere()
+        Dim appelsEchec As Integer = 0
+        Dim appelsReprise As Integer = 0
+
+        Dim echec As Integer? = FrmNouveauTiers.InsererTiersOuSignalerErreur(
+            Function()
+                appelsEchec += 1
+                Throw New InvalidOperationException("Echec LocalDB fictif")
+                Return 0
+            End Function)
+
+        Assert.IsFalse(echec.HasValue)
+        Assert.AreEqual(1, appelsEchec, "La premiere insertion en echec ne doit pas etre relancee automatiquement.")
+
+        Dim reprise As Integer? = FrmNouveauTiers.InsererTiersOuSignalerErreur(
+            Function()
+                appelsReprise += 1
+                Return 303
+            End Function)
+
+        Assert.IsTrue(reprise.HasValue, "Une nouvelle tentative explicite doit pouvoir aboutir.")
+        Assert.AreEqual(303, reprise.Value)
+        Assert.AreEqual(1, appelsEchec, "La reprise ne doit pas rappeler le delegue de l'ancienne saisie.")
+        Assert.AreEqual(1, appelsReprise, "La nouvelle insertion doit etre executee exactement une fois.")
+    End Sub
+
 End Class
