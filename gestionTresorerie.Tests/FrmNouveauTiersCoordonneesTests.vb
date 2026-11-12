@@ -18,7 +18,13 @@ Public Class FrmNouveauTiersCoordonneesTests
         Dim coordonneesFictives As New Coordonnees()
         coordonneesFictives.IdTiers = 0
 
-        Assert.ThrowsException(Of ArgumentOutOfRangeException)(
-            Sub() formulaire.Save(coordonneesFictives))
+        Dim exceptionLevee As Boolean = False
+        Try
+            formulaire.Save(coordonneesFictives)
+        Catch ex As ArgumentOutOfRangeException
+            exceptionLevee = True
+        End Try
+
+        Assert.IsTrue(exceptionLevee, "Save doit refuser un identifiant de tiers non persiste.")
     End Sub
 End Class
