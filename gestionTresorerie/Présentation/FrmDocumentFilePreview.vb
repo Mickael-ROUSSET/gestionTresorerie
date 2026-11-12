@@ -36,7 +36,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
         _sqlTest = sqlTest
         _sqlExample = sqlExample
         _initializeSqlTestOnSave = initializeSqlTestOnSave
-        If _sqlTest IsNot Nothing Then _analyse.Text = "Relancer l’analyse…"
+        If _sqlTest IsNot Nothing Then _analyse.Text = "Ouvrir la fiche du document…"
         Dim production = _testWorkspace Is Nothing AndAlso RealArchiveEnabled()
         Dim scope = If(production, "PROD — données réelles",
                     If(_sqlTest IsNot Nothing, "TEST SQL — bddAgumaaaTest", "TEST / DÉMO — analyse locale"))
@@ -191,78 +191,20 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private Async Function ReviewSqlTestDocument(source As String) As Task
         Dim hash As String
         Dim suggested As Newtonsoft.Json.Linq.JObject = Nothing
-        Dim readableText As String = Nothing
-        Dim note = "Vérifiez les champs proposés à partir du document. Pour un chèque, confirmez son sens."
+        Dim note = "Copiez la consigne dans ChatGPT avec le document, puis importez le JSON obtenu."
         Using sourceLock = File.Open(source, FileMode.Open, FileAccess.Read, FileShare.Read)
             hash = DocumentArchiveProposal.HashSource(source)
             If _sqlExample Then
                 suggested = Newtonsoft.Json.Linq.JObject.Parse(DemoDocumentSamples.Invoice)
-            Else
-                Try
-                    readableText = Await Task.Run(Function() LocalDocumentAnalysis.ReadText(source))
-                    suggested = LocalDocumentAnalysis.Classify(readableText)
-                    If suggested Is Nothing OrElse NeedsSecondPass(suggested) Then
-                        suggested = Await ImproveDocumentExtraction(source, suggested)
-                    End If
-                    If suggested Is Nothing Then
-                        note = "Type non reconnu. Choisissez le type après avoir vérifié le document."
-                    ElseIf NeedsSecondPass(suggested) Then
-                        note = "Vérifiez les champs lus et complétez les champs vides avant le classement."
-                    End If
-                Catch ex As Exception When TypeOf ex Is IOException OrElse TypeOf ex Is InvalidOperationException OrElse
-                    TypeOf ex Is InvalidDataException OrElse TypeOf ex Is TimeoutException OrElse TypeOf ex Is ArgumentException OrElse
-                    TypeOf ex Is Global.System.ComponentModel.Win32Exception
-                    note = "Lecture automatique indisponible. " & ex.Message
-                End Try
+                note = "Vérifiez les champs de la facture fictive avant le classement."
             End If
         End Using
 
-        If Not _sqlExample AndAlso _pdfSource IsNot Nothing AndAlso _pageNumber.Maximum > 3 Then
-            note &= " L’OCR a examiné la première page du dossier."
-        End If
         Dim archiveRoot = If(_sqlExample, _testWorkspace.GetDocumentTestDirectory(), DriveArchiveRoot)
         Using editor As New FrmSqlTestDocumentEntry(source, hash, archiveRoot, suggested, note, archiveOnDrive:=Not _sqlExample)
             If editor.ShowDialog(Me) <> DialogResult.OK Then Return
             Await ConfirmProposal(editor.Proposal, TestSaveAction(), True)
         End Using
-    End Function
-
-    Private Shared Function NeedsSecondPass(suggested As Newtonsoft.Json.Linq.JObject) As Boolean
-        Dim data = suggested("donnees_extraites")
-        Dim identity = data("identite")
-        Select Case suggested("type_document")?.ToString()
-            Case "FormulaireAdhesion"
-                Return {"nom", "prenom", "adresse"}.Any(Function(field) identity(field) Is Nothing)
-            Case "Cheque"
-                Return {"emetteur_du_cheque", "emetteur_numero_cheque", "beneficiaire_nom"}.Any(Function(field) identity(field) Is Nothing) OrElse
-                    data("transaction")("montant_numerique") Is Nothing OrElse data("transaction")("date_emission") Is Nothing
-            Case Else
-                Return False
-        End Select
-    End Function
-
-    Private Shared Async Function ImproveDocumentExtraction(source As String,
-        primary As Newtonsoft.Json.Linq.JObject) As Task(Of Newtonsoft.Json.Linq.JObject)
-        Dim candidate As Newtonsoft.Json.Linq.JObject
-        Try
-            Dim chequeLayout = primary?("type_document")?.ToString() = "Cheque"
-            Dim sparseText = Await Task.Run(Function() LocalDocumentAnalysis.ReadText(source, sparse:=True, chequeLayout:=chequeLayout))
-            candidate = LocalDocumentAnalysis.Classify(sparseText, knownCheque:=chequeLayout)
-        Catch ex As Exception When TypeOf ex Is IOException OrElse TypeOf ex Is InvalidDataException OrElse
-            TypeOf ex Is InvalidOperationException OrElse TypeOf ex Is TimeoutException OrElse
-            TypeOf ex Is ArgumentException OrElse TypeOf ex Is Global.System.ComponentModel.Win32Exception
-            Return primary
-        End Try
-        If primary Is Nothing Then Return candidate
-        If candidate?("type_document")?.ToString() <> primary("type_document")?.ToString() Then Return primary
-        For Each section In {"identite", "transaction"}
-            Dim existing = DirectCast(primary("donnees_extraites")(section), Newtonsoft.Json.Linq.JObject)
-            Dim additional = DirectCast(candidate("donnees_extraites")(section), Newtonsoft.Json.Linq.JObject)
-            For Each field In additional.Properties()
-                If existing(field.Name) Is Nothing Then existing(field.Name) = field.Value.DeepClone()
-            Next
-        Next
-        Return primary
     End Function
 
     Private Async Function AnalysePdfLocal(source As String) As Task
