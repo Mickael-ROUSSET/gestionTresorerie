@@ -20,10 +20,14 @@ Public Class FrmNouveauTiersVerificationDoublonTests
         Assert.IsTrue(resultat.Value)
     End Sub
 
+    Private Shared Function RechercheEnPanne() As Boolean
+        Throw New InvalidOperationException("Panne SQL fictive")
+    End Function
+
     <TestMethod>
     Public Sub RechercheEnErreurInterditTouteCreation()
         Dim resultat As Boolean? = FrmNouveauTiers.VerifierDoublonOuBloquer(
-            Function() Throw New InvalidOperationException("Panne SQL fictive"))
+            AddressOf RechercheEnPanne)
         Assert.IsFalse(resultat.HasValue)
     End Sub
 
