@@ -114,6 +114,14 @@ SELECT COUNT(*) FROM (
 ) AS valides;
 '@
                     if ($command.ExecuteScalar() -ne 2) { throw 'Cardinalité tiers/coordonnées TEST invalide.' }
+                    # Vérifier aussi l'intégrité référentielle de toutes les coordonnées,
+                    # pas seulement celles qui apparaissent dans la jointure des deux tiers.
+                    $command.CommandText = @'
+SELECT COUNT(*) FROM dbo.Coordonnees c
+LEFT JOIN dbo.Tiers t ON t.Id=c.IdTiers
+WHERE t.Id IS NULL;
+'@
+                    if ($command.ExecuteScalar() -ne 0) { throw 'Coordonnées orphelines détectées dans le catalogue TEST.' }
                 }
                 if ($Mode -eq 'stamp') {
                     $command.CommandText = "EXEC sys.sp_addextendedproperty @name=N'CI-Install-Sentinel', @value=N'Conserver';"
