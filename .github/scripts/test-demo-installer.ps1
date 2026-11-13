@@ -279,7 +279,12 @@ END CATCH;
     if ($null -eq $child) { throw "Impossible de démarrer le contrôle SQL ($Mode)." }
     try {
         if (-not $child.WaitForExit(90000)) {
+            # Kill(true) demande l'arrêt de l'arbre, mais ne garantit pas sa fin immédiate.
+            # Ne pas laisser un powershell.exe encore actif modifier LocalDB après l'échec.
             $child.Kill($true)
+            if (-not $child.WaitForExit(10000)) {
+                throw "Contrôle SQL ($Mode) toujours actif 10 s après l'arrêt forcé."
+            }
             throw "Délai dépassé (90 s) pour le contrôle des catalogues SQL ($Mode)."
         }
         if ($child.ExitCode -ne 0) { throw "Contrôle des catalogues SQL échoué ($Mode), code $($child.ExitCode)." }
