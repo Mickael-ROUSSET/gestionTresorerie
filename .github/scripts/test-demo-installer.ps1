@@ -286,6 +286,11 @@ END CATCH;
     # Windows PowerShell 5.1 lit un script UTF-8 sans BOM comme ANSI : les accents des
     # valeurs fictives SQL seraient corrompus (ex. « corrigée »). Forcer le BOM.
     [IO.File]::WriteAllText($sqlCheckFile, $check.ToString(), [Text.UTF8Encoding]::new($true))
+    # Vérifier les octets réellement transmis à Windows PowerShell 5.1.
+    $scriptBytes = [IO.File]::ReadAllBytes($sqlCheckFile)
+    if ($scriptBytes.Length -lt 3 -or $scriptBytes[0] -ne 0xEF -or $scriptBytes[1] -ne 0xBB -or $scriptBytes[2] -ne 0xBF) {
+        throw "Le contrôle SQL temporaire doit être encodé en UTF-8 avec BOM."
+    }
     # Éviter l'invocation native PowerShell 7 -> Windows PowerShell 5.1 :
     # sur certains runners, elle échoue avec UseShellExecute=true et des variables d'environnement.
     $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
