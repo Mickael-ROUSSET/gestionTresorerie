@@ -283,7 +283,9 @@ END CATCH;
     # Le controle SQL complet depasse la limite Windows de la ligne de commande.
     # Ecrire un fichier temporaire distinct et transmettre uniquement son chemin.
     $sqlCheckFile = Join-Path ([IO.Path]::GetTempPath()) ("gestionTresorerie-sql-" + [guid]::NewGuid().ToString('N') + ".ps1")
-    Set-Content -LiteralPath $sqlCheckFile -Value $check.ToString() -Encoding UTF8
+    # Windows PowerShell 5.1 lit un script UTF-8 sans BOM comme ANSI : les accents des
+    # valeurs fictives SQL seraient corrompus (ex. « corrigée »). Forcer le BOM.
+    [IO.File]::WriteAllText($sqlCheckFile, $check.ToString(), [Text.UTF8Encoding]::new($true))
     # Éviter l'invocation native PowerShell 7 -> Windows PowerShell 5.1 :
     # sur certains runners, elle échoue avec UseShellExecute=true et des variables d'environnement.
     $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
