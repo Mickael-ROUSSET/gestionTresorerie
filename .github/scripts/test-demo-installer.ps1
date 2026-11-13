@@ -275,6 +275,9 @@ try {
         throw 'Le raccourci ne démarre pas la démonstration installée.'
     }
     Write-Output "Raccourci exécuté et titre de démonstration confirmé."
+    # Le simple lancement de la démonstration ne doit ni migrer implicitement
+    # le catalogue TEST vieilli, ni altérer les deux tiers fictifs.
+    Assert-SqlCatalogs 'fixtures'
     $process.CloseMainWindow() | Out-Null
     if (-not $process.WaitForExit(10000)) { $process.Kill($true) }
     $process.Dispose()
