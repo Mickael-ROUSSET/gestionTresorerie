@@ -213,6 +213,21 @@ IF (SELECT COUNT(*) FROM dbo.Tiers t JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
     WHERE t.raisonSociale=N'CI-Tiers-Fictif-A' AND c.Email=N'a@example.invalid' AND c.Ville=N'Ville A') <> 1
     THROW 51023, 'Identite ou coordonnees initiales non restaurees', 1;
 IF @@TRANCOUNT <> 0 THROW 51024, 'Transaction de correction conjointe restee ouverte', 1;
+-- Après plusieurs échecs, les deux identifiants doivent toujours être distincts,
+-- et aucune coordonnée fictive ne doit être orpheline ou dupliquée.
+IF (SELECT COUNT(DISTINCT t.Id) FROM dbo.Tiers t
+    JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
+    WHERE t.raisonSociale IN (N'CI-Tiers-Fictif-A',N'CI-Tiers-Fictif-B')
+      AND c.Email IN (N'a@example.invalid',N'b-corrige@example.invalid')) <> 2
+    THROW 51025, 'Identifiants des deux tiers TEST perdus ou confondus', 1;
+IF (SELECT COUNT(*) FROM dbo.Coordonnees
+    WHERE Email IN (N'a@example.invalid',N'b-corrige@example.invalid')) <> 2
+    THROW 51026, 'Coordonnees TEST dupliquees apres rollback', 1;
+IF EXISTS (SELECT 1 FROM dbo.Coordonnees c
+    LEFT JOIN dbo.Tiers t ON t.Id=c.IdTiers
+    WHERE c.Email IN (N'a@example.invalid',N'b-corrige@example.invalid')
+      AND t.Id IS NULL)
+    THROW 51027, 'Coordonnees TEST orphelines apres rollback', 1;
 '@
                     [void]$command.ExecuteNonQuery()
                 }
