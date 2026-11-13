@@ -206,6 +206,9 @@ try {
     if ($exitCode -ne 0) { throw "Installation échouée, code $exitCode." }
     $installed = $true
     Assert-SqlCatalogs 'stamp'
+    # Vérifier immédiatement les fixtures et l'isolation des catalogues :
+    # ne pas attendre la réinstallation pour détecter une préparation incomplète.
+    Assert-SqlCatalogs 'verify'
     Assert-Payload
     if (-not (Test-Path -LiteralPath $registryPath)) { throw 'Entrée Applications installées absente.' }
     $registration = Get-ItemProperty -LiteralPath $registryPath
