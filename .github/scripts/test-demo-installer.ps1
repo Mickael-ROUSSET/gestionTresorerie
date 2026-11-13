@@ -279,6 +279,15 @@ try {
     if ($exitCode -ne 0) { throw "Réinstallation échouée, code $exitCode." }
     Assert-SqlCatalogs 'verify'
     Assert-Payload
+    # Une seconde réinstallation sur un schéma déjà migré doit être idempotente :
+    # conserver les deux tiers fictifs, leurs coordonnées et les sentinelles.
+    $repeatInstallLog = Join-Path $logs '03b-repeat-reinstall.log'
+    $exitCode = Invoke-Setup $installer @(
+        '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/TASKS=desktopicon',
+        "/LOG=`"$repeatInstallLog`"")
+    if ($exitCode -ne 0) { throw "Seconde réinstallation échouée, code $exitCode." }
+    Assert-SqlCatalogs 'verify'
+    Assert-Payload
     if ((Get-FileHash -LiteralPath $testSentinel).Hash -cne $testHash -or
         (Get-FileHash -LiteralPath $userSentinel).Hash -cne $userHash) {
         throw 'Une sentinelle a été modifiée pendant la réinstallation.'
