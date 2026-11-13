@@ -279,20 +279,24 @@ END CATCH;
         }
         finally { $connection.Dispose() }
     }
-    $source = "& {" + $check.ToString() + "} '" + $Mode + "'"
-    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($source))
+    # -EncodedCommand double la taille UTF-16 du script puis l'encode en base64.
+    # Le controle SQL complet depasse la limite Windows de la ligne de commande.
+    # Ecrire un fichier temporaire distinct et transmettre uniquement son chemin.
+    $sqlCheckFile = Join-Path ([IO.Path]::GetTempPath()) ("gestionTresorerie-sql-" + [guid]::NewGuid().ToString('N') + ".ps1")
+    Set-Content -LiteralPath $sqlCheckFile -Value $check.ToString() -Encoding UTF8
     # Éviter l'invocation native PowerShell 7 -> Windows PowerShell 5.1 :
     # sur certains runners, elle échoue avec UseShellExecute=true et des variables d'environnement.
     $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
     # Utiliser Windows PowerShell 5.1, pas pwsh 7, pour le client SQL historique.
     $startInfo.FileName = Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'
     $startInfo.UseShellExecute = $false
-    foreach ($argument in @('-NoProfile', '-NonInteractive', '-EncodedCommand', $encoded)) {
+    foreach ($argument in @('-NoProfile', '-NonInteractive', '-File', $sqlCheckFile, $Mode)) {
         [void]$startInfo.ArgumentList.Add($argument)
     }
-    $child = [System.Diagnostics.Process]::Start($startInfo)
-    if ($null -eq $child) { throw "Impossible de démarrer le contrôle SQL ($Mode)." }
+    $child = $null
     try {
+        $child = [System.Diagnostics.Process]::Start($startInfo)
+        if ($null -eq $child) { throw "Impossible de démarrer le contrôle SQL ($Mode)." }
         if (-not $child.WaitForExit(90000)) {
             # Kill(true) demande l'arrêt de l'arbre, mais ne garantit pas sa fin immédiate.
             # Ne pas laisser un powershell.exe encore actif modifier LocalDB après l'échec.
@@ -304,7 +308,10 @@ END CATCH;
         }
         if ($child.ExitCode -ne 0) { throw "Contrôle des catalogues SQL échoué ($Mode), code $($child.ExitCode)." }
     }
-    finally { $child.Dispose() }
+    finally {
+        if ($null -ne $child) { $child.Dispose() }
+        Remove-Item -LiteralPath $sqlCheckFile -Force -ErrorAction SilentlyContinue
+    }
 }
 
 function Assert-Payload {
