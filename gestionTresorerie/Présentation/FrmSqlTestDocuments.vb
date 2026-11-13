@@ -10,7 +10,7 @@ Friend NotInheritable Class FrmSqlTestDocuments
     Private ReadOnly _workspace As OfflineTestWorkspace
     Private ReadOnly _store As New SqlDocumentTestStore()
     Private ReadOnly _init As New Button With {.Text = "Initialiser la base TEST", .AutoSize = True}
-    Private ReadOnly _open As New Button With {.Text = "Ouvrir un document…", .AutoSize = True, .Enabled = False}
+    Private ReadOnly _open As New Button With {.Text = "Ouvrir un document…", .AutoSize = True}
     Private ReadOnly _example As New Button With {.Text = "Ouvrir une facture fictive", .AutoSize = True, .Enabled = False}
     Private ReadOnly _importProd As New Button With {.Text = "Initialiser TEST depuis PROD…", .AutoSize = True, .Enabled = False}
     Private ReadOnly _refresh As New Button With {.Text = "Actualiser", .AutoSize = True, .Enabled = False}
@@ -80,8 +80,8 @@ Friend NotInheritable Class FrmSqlTestDocuments
     End Sub
 
     Private Async Sub OpenDocument(sender As Object, e As EventArgs)
-        FrmDocumentFilePreview.OpenFiles(Me, _workspace, _store)
-        Await RefreshGrid()
+        FrmDocumentFilePreview.OpenFiles(Me, _workspace, _store, initializeSqlTestOnSave:=Not _ready)
+        If _ready Then Await RefreshGrid()
     End Sub
 
     Private Async Sub OpenExample(sender As Object, e As EventArgs)
@@ -124,10 +124,10 @@ Friend NotInheritable Class FrmSqlTestDocuments
     Private Sub SetBusy(value As Boolean)
         _busy = value
         _init.Enabled = Not value
-        _open.Enabled = _ready AndAlso Not value
-        _example.Enabled = _open.Enabled
-        _refresh.Enabled = _open.Enabled
-        _importProd.Enabled = _open.Enabled
+        _open.Enabled = Not value
+        _example.Enabled = _ready AndAlso Not value
+        _refresh.Enabled = _ready AndAlso Not value
+        _importProd.Enabled = _ready AndAlso Not value
     End Sub
 
     Protected Overrides Sub OnFormClosing(e As FormClosingEventArgs)
