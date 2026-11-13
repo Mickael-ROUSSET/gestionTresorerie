@@ -84,6 +84,15 @@ SELECT COUNT(*) FROM dbo.Tiers
 WHERE raisonSociale IN (N'CI-Tiers-Fictif-A', N'CI-Tiers-Fictif-B');
 '@
                     if ($command.ExecuteScalar() -ne 0) { throw 'Isolation PROD violée : tiers fictifs TEST présents.' }
+                    # Les coordonnées et le document sentinelle doivent également rester confinés à TEST,
+                    # même si un défaut d'import n'a pas créé les lignes Tiers correspondantes.
+                    $command.CommandText = @'
+SELECT COUNT(*) FROM dbo.Coordonnees
+WHERE Email IN (N'a@example.invalid',N'b@example.invalid',N'b-corrige@example.invalid');
+'@
+                    if ($command.ExecuteScalar() -ne 0) { throw 'Isolation PROD violée : coordonnées fictives TEST présentes.' }
+                    $command.CommandText = "SELECT COUNT(*) FROM dbo.Documents WHERE cheminDoc=N'CI-Install-Sentinel';"
+                    if ($command.ExecuteScalar() -ne 0) { throw 'Isolation PROD violée : document sentinelle TEST présent.' }
                 }
                 if ($Mode -in @('verify', 'fixtures') -and $catalog -eq 'bddAgumaaaTest') {
                     $command.CommandText = "SELECT COUNT(*) FROM dbo.Documents WHERE cheminDoc=N'CI-Install-Sentinel';"
