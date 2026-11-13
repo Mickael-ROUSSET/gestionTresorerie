@@ -54,6 +54,7 @@ function Assert-SqlCatalogs([string]$Mode) {
                     'Seances', 'SousCategorie', 'Tarifs', 'Tiers', 'Type', 'TypeDoc', 'TypeMouvement')
                 foreach ($table in $expectedTables) {
                     $command.CommandText = "SELECT OBJECT_ID(N'dbo.$table', N'U');"
+                    if ($Mode -eq 'fixtures' -and $catalog -eq 'bddAgumaaaTest' -and $table -eq 'Communes') { continue }
                     if ($command.ExecuteScalar() -eq [DBNull]::Value) { throw "Table $catalog.dbo.$table absente." }
                 }
                 $command.CommandText = "SELECT COUNT(*) FROM sys.foreign_keys WHERE name=N'FK_Seances_Films' AND is_disabled=0 AND is_not_trusted=0;"
@@ -61,8 +62,10 @@ function Assert-SqlCatalogs([string]$Mode) {
                 $command.CommandText = "SELECT COUNT(*) FROM sys.default_constraints WHERE parent_object_id=OBJECT_ID(N'dbo.Seances');"
                 if ($command.ExecuteScalar() -ne 3) { throw "Valeurs par defaut Seances absentes : $catalog." }
                 $command.CommandText = "SELECT COL_LENGTH(N'dbo.Documents', N'dateModif');"
-                if ($command.ExecuteScalar() -eq [DBNull]::Value) { throw "Colonne dateModif absente : $catalog." }
-                if ($Mode -eq 'verify' -and $catalog -eq 'bddAgumaaa') {
+                if ($Mode -ne 'fixtures' -or $catalog -ne 'bddAgumaaaTest') {
+                    if ($command.ExecuteScalar() -eq [DBNull]::Value) { throw "Colonne dateModif absente : $catalog." }
+                }
+                if ($Mode -in @('verify', 'fixtures') -and $catalog -eq 'bddAgumaaa') {
                     # Les tiers fictifs du scénario TEST ne doivent jamais apparaître en PROD.
                     $command.CommandText = @'
 SELECT COUNT(*) FROM dbo.Tiers
@@ -70,7 +73,7 @@ WHERE raisonSociale IN (N'CI-Tiers-Fictif-A', N'CI-Tiers-Fictif-B');
 '@
                     if ($command.ExecuteScalar() -ne 0) { throw 'Isolation PROD violée : tiers fictifs TEST présents.' }
                 }
-                if ($Mode -eq 'verify' -and $catalog -eq 'bddAgumaaaTest') {
+                if ($Mode -in @('verify', 'fixtures') -and $catalog -eq 'bddAgumaaaTest') {
                     $command.CommandText = "SELECT COUNT(*) FROM dbo.Documents WHERE cheminDoc=N'CI-Install-Sentinel';"
                     if ($command.ExecuteScalar() -ne 1) { throw 'Ligne TEST perdue.' }
                     # Deux tiers et leurs coordonnées doivent rester distincts après réinstallation et désinstallation.
@@ -206,9 +209,9 @@ try {
     if ($exitCode -ne 0) { throw "Installation échouée, code $exitCode." }
     $installed = $true
     Assert-SqlCatalogs 'stamp'
-    # Vérifier immédiatement les fixtures et l'isolation des catalogues :
-    # ne pas attendre la réinstallation pour détecter une préparation incomplète.
-    Assert-SqlCatalogs 'verify'
+    # Vérifier les fixtures avant migration, sans exiger encore la table Communes
+    # ni la colonne Documents.dateModif supprimées volontairement par 'stamp'.
+    Assert-SqlCatalogs 'fixtures'
     Assert-Payload
     if (-not (Test-Path -LiteralPath $registryPath)) { throw 'Entrée Applications installées absente.' }
     $registration = Get-ItemProperty -LiteralPath $registryPath
