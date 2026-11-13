@@ -279,7 +279,16 @@ try {
     # le catalogue TEST vieilli, ni altérer les deux tiers fictifs.
     Assert-SqlCatalogs 'fixtures'
     $process.CloseMainWindow() | Out-Null
-    if (-not $process.WaitForExit(10000)) { $process.Kill($true) }
+    if (-not $process.WaitForExit(10000)) {
+        # La fermeture graphique peut rester bloquée sur un runner sans session interactive.
+        # Attendre aussi la fin de l'arrêt forcé avant de contrôler LocalDB.
+        $process.Kill($true)
+        if (-not $process.WaitForExit(10000)) {
+            throw 'Le processus Windows ne se termine pas après arrêt forcé.'
+        }
+    }
+    $process.Refresh()
+    if (-not $process.HasExited) { throw 'Application encore active avant contrôle SQL après fermeture.' }
     $process.Dispose()
     $process = $null
     # Contrôler aussi l'état après fermeture : les handlers de sortie ne doivent
