@@ -148,6 +148,26 @@ END CATCH;
 IF EXISTS (SELECT 1 FROM dbo.Tiers WHERE raisonSociale=N'CI-Tiers-Rollback')
     THROW 51007, 'Ecriture partielle conservee apres rollback', 1;
 IF @@TRANCOUNT <> 0 THROW 51008, 'Transaction TEST restee ouverte', 1;
+-- Un second échec intervient après l'insertion des coordonnées : les deux
+-- lignes doivent disparaître ensemble, sans affecter les fixtures existantes.
+BEGIN TRY
+    BEGIN TRANSACTION;
+    INSERT dbo.Tiers (raisonSociale,dateCreation,dateModification)
+    VALUES (N'CI-Tiers-Rollback-Coord',GETDATE(),GETDATE());
+    DECLARE @rollbackId int = CONVERT(int,SCOPE_IDENTITY());
+    INSERT dbo.Coordonnees (IdTiers,Email,Ville)
+    VALUES (@rollbackId,N'rollback@example.invalid',N'Ville fictive');
+    THROW 51009, 'Echec fictif apres creation des coordonnees', 1;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    IF ERROR_NUMBER() <> 51009 THROW;
+END CATCH;
+IF EXISTS (SELECT 1 FROM dbo.Tiers WHERE raisonSociale=N'CI-Tiers-Rollback-Coord')
+    THROW 51010, 'Tiers conserve apres rollback des coordonnees', 1;
+IF EXISTS (SELECT 1 FROM dbo.Coordonnees WHERE Email=N'rollback@example.invalid')
+    THROW 51011, 'Coordonnees conservees apres rollback', 1;
+IF @@TRANCOUNT <> 0 THROW 51012, 'Transaction TEST restee ouverte apres rollback des coordonnees', 1;
 '@
                     [void]$command.ExecuteNonQuery()
                 }
