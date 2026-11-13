@@ -320,6 +320,38 @@ try {
     if ($exitCode -ne 0) { throw "Seconde réinstallation échouée, code $exitCode." }
     Assert-SqlCatalogs 'verify'
     Assert-Payload
+    # Reouvrir l'application apres les deux migrations : un demarrage sur schema
+    # TEST deja migre ne doit ni modifier les tiers ni effacer leurs coordonnees.
+    Start-Process -FilePath $desktopLink
+    $process = $null
+    for ($attempt = 0; $attempt -lt 30; $attempt++) {
+        Start-Sleep -Milliseconds 500
+        $appProcesses = @(Get-Process -Name gestionTresorerie -ErrorAction SilentlyContinue |
+            Where-Object { $_.Path -ieq (Join-Path $installDir 'gestionTresorerie.exe') })
+        if ($appProcesses.Count -gt 1) { throw 'Plusieurs instances apres migration.' }
+        if ($appProcesses.Count -eq 1) {
+            $process = $appProcesses[0]
+            $process.Refresh()
+            if ($process.MainWindowTitle -like '*DÉMONSTRATION HORS LIGNE*') { break }
+        }
+    }
+    if ($null -eq $process -or $process.HasExited -or
+        $process.MainWindowTitle -notlike '*DÉMONSTRATION HORS LIGNE*') {
+        throw 'Reouverture de la demonstration apres migration echouee.'
+    }
+    Assert-SqlCatalogs 'verify'
+    $process.CloseMainWindow() | Out-Null
+    if (-not $process.WaitForExit(10000)) {
+        $process.Kill($true)
+        if (-not $process.WaitForExit(10000)) {
+            throw 'Application non arretee apres reouverture.'
+        }
+    }
+    $process.Refresh()
+    if (-not $process.HasExited) { throw 'Application encore active apres reouverture.' }
+    $process.Dispose()
+    $process = $null
+    Assert-SqlCatalogs 'verify'
     if ((Get-FileHash -LiteralPath $testSentinel).Hash -cne $testHash -or
         (Get-FileHash -LiteralPath $userSentinel).Hash -cne $userHash) {
         throw 'Une sentinelle a été modifiée pendant la réinstallation.'
