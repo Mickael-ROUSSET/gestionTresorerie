@@ -112,6 +112,12 @@ SELECT COUNT(*) FROM (
                     $command.CommandText = @'
 BEGIN TRY
     BEGIN TRANSACTION;
+-- Refuser de contaminer le scénario avec un jeu de données déjà présent.
+-- Une seconde exécution doit échouer sans modifier les données fictives existantes.
+IF EXISTS (SELECT 1 FROM dbo.Tiers WHERE raisonSociale IN (N'CI-Tiers-Fictif-A', N'CI-Tiers-Fictif-B'))
+    THROW 51004, 'Tiers fictifs deja presents avant initialisation', 1;
+IF EXISTS (SELECT 1 FROM dbo.Documents WHERE cheminDoc=N'CI-Install-Sentinel')
+    THROW 51005, 'Sentinelle document deja presente avant initialisation', 1;
 DECLARE @a int, @b int;
 INSERT dbo.Tiers (raisonSociale,dateCreation,dateModification) VALUES (N'CI-Tiers-Fictif-A',GETDATE(),GETDATE());
 SET @a=CONVERT(int,SCOPE_IDENTITY());
