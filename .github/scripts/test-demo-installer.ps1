@@ -291,7 +291,7 @@ END CATCH;
     if ($scriptBytes.Length -lt 3 -or $scriptBytes[0] -ne 0xEF -or $scriptBytes[1] -ne 0xBB -or $scriptBytes[2] -ne 0xBF) {
         throw "Le contrôle SQL temporaire doit être encodé en UTF-8 avec BOM."
     }
-    # Éviter l'invocation native PowerShell 7 -> Windows PowerShell 5.1 :
+    # Contrôler aussi le décodage effectif : un BOM présent ne garantit pas\n    # à lui seul la conservation des caractères Unicode du scénario fictif.\n    $decodedCheck = [Text.UTF8Encoding]::new($true, $true).GetString($scriptBytes, 3, $scriptBytes.Length - 3)\n    if ($decodedCheck -cne $check.ToString()) {\n        throw "Le contrôle SQL temporaire a été altéré pendant l’écriture UTF-8."\n    }\n    # Éviter l'invocation native PowerShell 7 -> Windows PowerShell 5.1 :
     # sur certains runners, elle échoue avec UseShellExecute=true et des variables d'environnement.
     $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
     # Utiliser Windows PowerShell 5.1, pas pwsh 7, pour le client SQL historique.
