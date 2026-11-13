@@ -266,8 +266,23 @@ END CATCH;
     }
     $source = "& {" + $check.ToString() + "} '" + $Mode + "'"
     $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($source))
-    & powershell.exe -NoProfile -NonInteractive -EncodedCommand $encoded
-    if ($LASTEXITCODE -ne 0) { throw "Contrôle des catalogues SQL échoué ($Mode)." }
+    # Éviter l'invocation native PowerShell 7 -> Windows PowerShell 5.1 :
+    # sur certains runners, elle échoue avec UseShellExecute=true et des variables d'environnement.
+    $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+    $startInfo.FileName = (Join-Path $PSHOME 'powershell.exe')
+    # PSHOME pointe sur pwsh 7 : utiliser explicitement Windows PowerShell pour les composants SQL historiques.
+    $startInfo.FileName = Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    $startInfo.UseShellExecute = $false
+    foreach ($argument in @('-NoProfile', '-NonInteractive', '-EncodedCommand', $encoded)) {
+        [void]$startInfo.ArgumentList.Add($argument)
+    }
+    $child = [System.Diagnostics.Process]::Start($startInfo)
+    if ($null -eq $child) { throw "Impossible de démarrer le contrôle SQL ($Mode)." }
+    try {
+        $child.WaitForExit()
+        if ($child.ExitCode -ne 0) { throw "Contrôle des catalogues SQL échoué ($Mode), code $($child.ExitCode)." }
+    }
+    finally { $child.Dispose() }
 }
 
 function Assert-Payload {
