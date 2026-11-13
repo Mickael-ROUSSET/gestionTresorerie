@@ -132,6 +132,25 @@ WHERE t.Id IS NULL;
 '@
                     if ($command.ExecuteScalar() -ne 0) { throw 'Coordonnées orphelines détectées dans le catalogue TEST.' }
                 }
+                if ($Mode -eq 'rollback' -and $catalog -eq 'bddAgumaaaTest') {
+                    # Simuler une écriture interrompue : aucune ligne partielle ne doit survivre.
+                    $command.CommandText = @'
+BEGIN TRY
+    BEGIN TRANSACTION;
+    INSERT dbo.Tiers (raisonSociale,dateCreation,dateModification)
+    VALUES (N'CI-Tiers-Rollback',GETDATE(),GETDATE());
+    THROW 51006, 'Echec fictif avant creation des coordonnees', 1;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    IF ERROR_NUMBER() <> 51006 THROW;
+END CATCH;
+IF EXISTS (SELECT 1 FROM dbo.Tiers WHERE raisonSociale=N'CI-Tiers-Rollback')
+    THROW 51007, 'Ecriture partielle conservee apres rollback', 1;
+IF @@TRANCOUNT <> 0 THROW 51008, 'Transaction TEST restee ouverte', 1;
+'@
+                    [void]$command.ExecuteNonQuery()
+                }
                 if ($Mode -eq 'stamp') {
                     $command.CommandText = "EXEC sys.sp_addextendedproperty @name=N'CI-Install-Sentinel', @value=N'Conserver';"
                     [void]$command.ExecuteNonQuery()
@@ -318,6 +337,8 @@ try {
         '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/TASKS=desktopicon',
         "/LOG=`"$repeatInstallLog`"")
     if ($exitCode -ne 0) { throw "Seconde réinstallation échouée, code $exitCode." }
+    Assert-SqlCatalogs 'verify'
+    Assert-SqlCatalogs 'rollback'
     Assert-SqlCatalogs 'verify'
     Assert-Payload
     # Reouvrir l'application apres les deux migrations : un demarrage sur schema
