@@ -282,6 +282,9 @@ try {
     if (-not $process.WaitForExit(10000)) { $process.Kill($true) }
     $process.Dispose()
     $process = $null
+    # Contrôler aussi l'état après fermeture : les handlers de sortie ne doivent
+    # ni écrire dans TEST, ni déclencher une migration implicite.
+    Assert-SqlCatalogs 'fixtures'
 
     $reinstallLog = Join-Path $logs '03-reinstall.log'
     $exitCode = Invoke-Setup $installer @(
