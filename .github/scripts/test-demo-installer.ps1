@@ -61,8 +61,20 @@ function Assert-SqlCatalogs([string]$Mode) {
                 if ($command.ExecuteScalar() -ne 1) { throw "Cle etrangere Films-Seances absente : $catalog." }
                 $command.CommandText = "SELECT COUNT(*) FROM sys.default_constraints WHERE parent_object_id=OBJECT_ID(N'dbo.Seances');"
                 if ($command.ExecuteScalar() -ne 3) { throw "Valeurs par defaut Seances absentes : $catalog." }
-                $command.CommandText = "SELECT COL_LENGTH(N'dbo.Documents', N'dateModif');"
-                if ($Mode -ne 'fixtures' -or $catalog -ne 'bddAgumaaaTest') {
+                # Le mode fixtures doit prouver que la migration reste à effectuer.
+                # Sinon un scénario qui n'a pas réellement vieilli le schéma passerait à tort.
+                if ($Mode -eq 'fixtures' -and $catalog -eq 'bddAgumaaaTest') {
+                    $command.CommandText = "SELECT OBJECT_ID(N'dbo.Communes', N'U');"
+                    if ($command.ExecuteScalar() -ne [DBNull]::Value) {
+                        throw 'Fixture TEST invalide : table Communes encore présente avant migration.'
+                    }
+                    $command.CommandText = "SELECT COL_LENGTH(N'dbo.Documents', N'dateModif');"
+                    if ($command.ExecuteScalar() -ne [DBNull]::Value) {
+                        throw 'Fixture TEST invalide : dateModif encore présente avant migration.'
+                    }
+                }
+                else {
+                    $command.CommandText = "SELECT COL_LENGTH(N'dbo.Documents', N'dateModif');"
                     if ($command.ExecuteScalar() -eq [DBNull]::Value) { throw "Colonne dateModif absente : $catalog." }
                 }
                 if ($Mode -in @('verify', 'fixtures') -and $catalog -eq 'bddAgumaaa') {
