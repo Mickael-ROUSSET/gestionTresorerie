@@ -168,6 +168,26 @@ IF EXISTS (SELECT 1 FROM dbo.Tiers WHERE raisonSociale=N'CI-Tiers-Rollback-Coord
 IF EXISTS (SELECT 1 FROM dbo.Coordonnees WHERE Email=N'rollback@example.invalid')
     THROW 51011, 'Coordonnees conservees apres rollback', 1;
 IF @@TRANCOUNT <> 0 THROW 51012, 'Transaction TEST restee ouverte apres rollback des coordonnees', 1;
+
+-- Une correction interrompue ne doit pas laisser les coordonnées existantes modifiées.
+BEGIN TRY
+    BEGIN TRANSACTION;
+    UPDATE dbo.Coordonnees SET Email=N'ci-interrompu@example.invalid', Ville=N'Ville interrompue'
+    WHERE IdTiers=(SELECT Id FROM dbo.Tiers WHERE raisonSociale=N'CI-Tiers-Fictif-A')
+      AND Email=N'a@example.invalid' AND Ville=N'Ville A';
+    IF @@ROWCOUNT <> 1 THROW 51013, 'Fixture A absente ou ambigue', 1;
+    THROW 51014, 'Echec fictif pendant correction du tiers A', 1;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    IF ERROR_NUMBER() <> 51014 THROW;
+END CATCH;
+IF EXISTS (SELECT 1 FROM dbo.Coordonnees WHERE Email=N'ci-interrompu@example.invalid')
+    THROW 51015, 'Correction interrompue conservee', 1;
+IF (SELECT COUNT(*) FROM dbo.Coordonnees c JOIN dbo.Tiers t ON t.Id=c.IdTiers
+    WHERE t.raisonSociale=N'CI-Tiers-Fictif-A' AND c.Email=N'a@example.invalid' AND c.Ville=N'Ville A') <> 1
+    THROW 51016, 'Coordonnees initiales du tiers A non restaurees', 1;
+IF @@TRANCOUNT <> 0 THROW 51017, 'Transaction de correction restee ouverte', 1;
 '@
                     [void]$command.ExecuteNonQuery()
                 }
