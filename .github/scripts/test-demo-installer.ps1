@@ -269,8 +269,7 @@ END CATCH;
     # Éviter l'invocation native PowerShell 7 -> Windows PowerShell 5.1 :
     # sur certains runners, elle échoue avec UseShellExecute=true et des variables d'environnement.
     $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
-    $startInfo.FileName = (Join-Path $PSHOME 'powershell.exe')
-    # PSHOME pointe sur pwsh 7 : utiliser explicitement Windows PowerShell pour les composants SQL historiques.
+    # Utiliser Windows PowerShell 5.1, pas pwsh 7, pour le client SQL historique.
     $startInfo.FileName = Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'
     $startInfo.UseShellExecute = $false
     foreach ($argument in @('-NoProfile', '-NonInteractive', '-EncodedCommand', $encoded)) {
@@ -279,7 +278,10 @@ END CATCH;
     $child = [System.Diagnostics.Process]::Start($startInfo)
     if ($null -eq $child) { throw "Impossible de démarrer le contrôle SQL ($Mode)." }
     try {
-        $child.WaitForExit()
+        if (-not $child.WaitForExit(90000)) {
+            $child.Kill($true)
+            throw "Délai dépassé (90 s) pour le contrôle des catalogues SQL ($Mode)."
+        }
         if ($child.ExitCode -ne 0) { throw "Contrôle des catalogues SQL échoué ($Mode), code $($child.ExitCode)." }
     }
     finally { $child.Dispose() }
