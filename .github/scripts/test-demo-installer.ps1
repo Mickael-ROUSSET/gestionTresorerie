@@ -110,6 +110,8 @@ SELECT COUNT(*) FROM (
                     # Simuler une installation TEST ancienne sur le runner jetable.
                     # Données exclusivement fictives sur le runner Windows jetable, jamais en PROD.
                     $command.CommandText = @'
+BEGIN TRY
+    BEGIN TRANSACTION;
 DECLARE @a int, @b int;
 INSERT dbo.Tiers (raisonSociale,dateCreation,dateModification) VALUES (N'CI-Tiers-Fictif-A',GETDATE(),GETDATE());
 SET @a=CONVERT(int,SCOPE_IDENTITY());
@@ -127,6 +129,12 @@ IF EXISTS (SELECT 1 FROM dbo.Coordonnees WHERE IdTiers=@a AND (Email<>N'a@exampl
 INSERT dbo.Documents (dateDoc,cheminDoc) VALUES (GETDATE(),N'CI-Install-Sentinel');
 DROP TABLE dbo.Communes;
 ALTER TABLE dbo.Documents DROP COLUMN dateModif;
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    THROW;
+END CATCH;
 '@
                     [void]$command.ExecuteNonQuery()
                 }
