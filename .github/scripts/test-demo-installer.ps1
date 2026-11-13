@@ -188,6 +188,31 @@ IF (SELECT COUNT(*) FROM dbo.Coordonnees c JOIN dbo.Tiers t ON t.Id=c.IdTiers
     WHERE t.raisonSociale=N'CI-Tiers-Fictif-A' AND c.Email=N'a@example.invalid' AND c.Ville=N'Ville A') <> 1
     THROW 51016, 'Coordonnees initiales du tiers A non restaurees', 1;
 IF @@TRANCOUNT <> 0 THROW 51017, 'Transaction de correction restee ouverte', 1;
+
+-- Une modification conjointe du nom et des coordonnées doit rester atomique.
+BEGIN TRY
+    BEGIN TRANSACTION;
+    UPDATE dbo.Tiers SET raisonSociale=N'CI-Tiers-Fictif-A-Interrompu'
+    WHERE raisonSociale=N'CI-Tiers-Fictif-A';
+    IF @@ROWCOUNT <> 1 THROW 51018, 'Tiers A absent ou ambigu', 1;
+    UPDATE dbo.Coordonnees SET Email=N'identite-interrompue@example.invalid'
+    WHERE IdTiers=(SELECT Id FROM dbo.Tiers WHERE raisonSociale=N'CI-Tiers-Fictif-A-Interrompu')
+      AND Email=N'a@example.invalid';
+    IF @@ROWCOUNT <> 1 THROW 51019, 'Coordonnees A absentes ou ambigues', 1;
+    THROW 51020, 'Echec fictif apres modification conjointe', 1;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    IF ERROR_NUMBER() <> 51020 THROW;
+END CATCH;
+IF EXISTS (SELECT 1 FROM dbo.Tiers WHERE raisonSociale=N'CI-Tiers-Fictif-A-Interrompu')
+    THROW 51021, 'Nom temporaire conserve apres rollback', 1;
+IF EXISTS (SELECT 1 FROM dbo.Coordonnees WHERE Email=N'identite-interrompue@example.invalid')
+    THROW 51022, 'Email temporaire conserve apres rollback', 1;
+IF (SELECT COUNT(*) FROM dbo.Tiers t JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
+    WHERE t.raisonSociale=N'CI-Tiers-Fictif-A' AND c.Email=N'a@example.invalid' AND c.Ville=N'Ville A') <> 1
+    THROW 51023, 'Identite ou coordonnees initiales non restaurees', 1;
+IF @@TRANCOUNT <> 0 THROW 51024, 'Transaction de correction conjointe restee ouverte', 1;
 '@
                     [void]$command.ExecuteNonQuery()
                 }
