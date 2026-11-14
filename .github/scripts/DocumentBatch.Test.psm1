@@ -83,6 +83,59 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
                     foreach ($field in $transactionFields) {
                         if ($field -notin $allowed[$kind] -or $field -in $identityAllowed[$kind]) { throw 'unexpected-transaction-field' }
                     }
+                    # Type-check monetary and date fields before journaling; never accept prose as a number.
+                    $transaction = $doc.donnees_extraites.transaction
+                    foreach ($field in @('montant_numerique','montant_ttc')) {
+                        $property = $transaction.PSObject.Properties[$field]
+                        if ($null -ne $property -and $null -ne $property.Value) {
+                            $amount = $property.Value
+                            if ($amount -isnot [byte] -and $amount -isnot [int] -and
+                                $amount -isnot [long] -and $amount -isnot [decimal] -and
+                                $amount -isnot [double] -and $amount -isnot [single]) { throw 'invalid-amount-type' }
+                            if ([double]$amount -lt 0 -or [double]::IsNaN([double]$amount) -or
+                                [double]::IsInfinity([double]$amount)) { throw 'invalid-amount' }
+                        }
+                    }
+                    foreach ($field in @('date_emission','date_facture','date_document')) {
+                        $property = $transaction.PSObject.Properties[$field]
+                        if ($null -ne $property -and $null -ne $property.Value) {
+                            $dateText = $property.Value
+                            if ($dateText -isnot [string] -or $dateText -cnotmatch '^\\d{4}-\\d{2}-\\d{2}
+                    $allValues = @($doc.donnees_extraites.identite.PSObject.Properties.Value) +
+                                 @($doc.donnees_extraites.transaction.PSObject.Properties.Value)
+                    if (@($allValues | Where-Object { $null -ne $_ -and ([string]$_).Trim().Length -gt 0 }).Count -eq 0) {
+                        throw 'empty-extraction'
+                    }
+                    # Reject unexpected top-level sections: the simulated engine must honor the same contract as the real engine.
+                    if (@($doc.PSObject.Properties.Name | Where-Object { $_ -notin @('type_document','donnees_extraites') }).Count -gt 0) { throw 'unexpected-root-field' }
+                    if (@($doc.donnees_extraites.PSObject.Properties.Name | Where-Object { $_ -notin @('identite','transaction') }).Count -gt 0) { throw 'unexpected-section' }
+                    $status = 'valid'
+                    $reason = 'simulated-engine-validated'
+                    $journal[$hash] = 'valid'
+                } catch {
+                    $reason = 'invalid-analysis'
+                }
+            }
+        }
+        $results.Add([pscustomobject]@{ name=$file.Name; hash=$hash; status=$status; reason=$reason })
+    }
+    # Atomic replacement of the journal: an interruption before this point is retryable.
+    $journalRows = @($journal.Keys | Sort-Object | ForEach-Object { [pscustomobject]@{hash=$_;status=$journal[$_]} })
+    $temp = Join-Path $stateFull ('journal-' + [guid]::NewGuid().ToString('N') + '.tmp')
+    try {
+        ConvertTo-Json -InputObject $journalRows -Depth 4 | Set-Content -LiteralPath $temp -Encoding utf8
+        Move-Item -LiteralPath $temp -Destination $journalPath -Force
+    } finally { if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Force } }
+    return $results.ToArray()
+}
+
+Export-ModuleMember -Function Invoke-FictitiousBatch
+) { throw 'invalid-date-format' }
+                            try {
+                                [void][datetime]::ParseExact($dateText, 'yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)
+                            } catch { throw 'invalid-calendar-date' }
+                        }
+                    }
                     # A syntactically complete but entirely empty extraction cannot be classified as valid.
                     $allValues = @($doc.donnees_extraites.identite.PSObject.Properties.Value) +
                                  @($doc.donnees_extraites.transaction.PSObject.Properties.Value)
