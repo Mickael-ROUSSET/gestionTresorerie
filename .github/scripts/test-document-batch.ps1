@@ -24,6 +24,11 @@ if ($SelfTest) {
         if (-not $parentRejected -or (Test-Path -LiteralPath (Join-Path $root 'journal.json'))) { throw 'Parent state directory was accepted or journal created' }
         [IO.File]::WriteAllBytes((Join-Path $inputPath 'a.pdf'), [byte[]](37,80,68,70,45,49))
         Copy-Item -LiteralPath (Join-Path $inputPath 'a.pdf') -Destination (Join-Path $inputPath 'b.pdf')
+        # A Gmail-like nested attachment with identical bytes is deduplicated across folders.
+        $attachmentDir = Join-Path $inputPath 'gmail-fixtures'
+        [void](New-Item -ItemType Directory -Path $attachmentDir -Force)
+        Copy-Item -LiteralPath (Join-Path $inputPath 'a.pdf') -Destination (Join-Path $attachmentDir 'attachment.pdf')
+        Set-Content -LiteralPath (Join-Path $attachmentDir 'attachment.pdf.analysis.json') -Value '{"type_document":"Facture","donnees_extraites":{"identite":{"fournisseur_nom":"Entreprise fictive"},"transaction":{"numero_facture":"F-001","date_facture":"2026-11-14","montant_ttc":12.50}}}' -Encoding utf8
         [IO.File]::WriteAllBytes((Join-Path $inputPath 'invalid.pdf'), [byte[]]@())
         [IO.File]::WriteAllBytes((Join-Path $inputPath 'wrong-section.pdf'), [byte[]](37,80,68,70,45,50))
         Set-Content -LiteralPath (Join-Path $inputPath 'wrong-section.pdf.analysis.json') -Encoding utf8 -Value '{"type_document":"Facture","donnees_extraites":{"identite":{"montant_ttc":42},"transaction":{"fournisseur_nom":"Fictif"}}}'
@@ -47,7 +52,8 @@ if ($SelfTest) {
             Set-Content -LiteralPath ($filePath + '.analysis.json') -Encoding utf8 -Value $case.Json
         }
         $first = @(Invoke-FictitiousBatch $inputPath $statePath)
-        if (@($first | Where-Object status -eq 'valid').Count -ne 1 -or @($first | Where-Object status -eq 'skipped').Count -ne 1 -or @($first | Where-Object status -eq 'review').Count -ne 7) { throw 'First pass failed' }
+        if (@($first | Where-Object status -eq 'valid').Count -ne 1 -or @($first | Where-Object status -eq 'skipped').Count -ne 2 -or @($first | Where-Object status -eq 'review').Count -ne 7) { throw 'First pass failed' }
+        if (@($first | Where-Object { $_.name -eq (Join-Path 'gmail-fixtures' 'attachment.pdf') -and $_.status -eq 'skipped' }).Count -ne 1) { throw 'Nested attachment was not found or deduplicated' }
         if (@($first | Where-Object { $_.name -eq 'partial.pdf' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw 'Partial analysis was accepted' }
         if (@($first | Where-Object { $_.name -eq 'blank.pdf' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw 'Empty extraction was accepted' }
         foreach ($name in @('negative.pdf','text-amount.pdf','bad-date.pdf')) {
@@ -58,15 +64,15 @@ if ($SelfTest) {
         $sentinelTime = [datetime]::SpecifyKind([datetime]'2020-01-02T03:04:05', [DateTimeKind]::Utc)
         [IO.File]::SetLastWriteTimeUtc($resumeJournal, $sentinelTime)
         $second = @(Invoke-FictitiousBatch $inputPath $statePath)
-        if (@($second | Where-Object status -eq 'skipped').Count -ne 2 -or @($second | Where-Object status -eq 'review').Count -ne 7) { throw 'Resume failed' }
+        if (@($second | Where-Object status -eq 'skipped').Count -ne 3 -or @($second | Where-Object status -eq 'review').Count -ne 7) { throw 'Resume failed' }
         if ([IO.File]::GetLastWriteTimeUtc($resumeJournal) -ne $sentinelTime) { throw 'Unchanged journal was rewritten on resume' }
         if (@($first | Where-Object { $_.name -eq 'wrong-section.pdf' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw 'Wrong section was accepted' }
         # A previously rejected document must be retryable once the simulated analysis is corrected.
         Set-Content -LiteralPath (Join-Path $inputPath 'wrong-section.pdf.analysis.json') -Encoding utf8 -Value $json
         $third = @(Invoke-FictitiousBatch $inputPath $statePath)
-        if (@($third | Where-Object status -eq 'valid').Count -ne 1 -or @($third | Where-Object status -eq 'skipped').Count -ne 2 -or @($third | Where-Object status -eq 'review').Count -ne 6) { throw 'Corrected analysis was not retried' }
+        if (@($third | Where-Object status -eq 'valid').Count -ne 1 -or @($third | Where-Object status -eq 'skipped').Count -ne 3 -or @($third | Where-Object status -eq 'review').Count -ne 6) { throw 'Corrected analysis was not retried' }
         $fourth = @(Invoke-FictitiousBatch $inputPath $statePath)
-        if (@($fourth | Where-Object status -eq 'skipped').Count -ne 3 -or @($fourth | Where-Object status -eq 'review').Count -ne 6) { throw 'Corrected analysis was not persisted' }
+        if (@($fourth | Where-Object status -eq 'skipped').Count -ne 4 -or @($fourth | Where-Object status -eq 'review').Count -ne 6) { throw 'Corrected analysis was not persisted' }
         # A truncated journal must stop processing without destroying the recovery point.
         $journalPath = Join-Path $statePath 'journal.json'
         $goodJournal = Get-Content -LiteralPath $journalPath -Raw
@@ -96,7 +102,7 @@ if ($SelfTest) {
         if ((Get-Content -LiteralPath $journalPath -Raw).Trim() -ne $extraFieldJournal.Trim()) { throw 'Extra-field journal was overwritten' }
         Set-Content -LiteralPath $journalPath -Encoding utf8 -Value $goodJournal
         $fifth = @(Invoke-FictitiousBatch $inputPath $statePath)
-        if (@($fifth | Where-Object status -eq 'skipped').Count -ne 3) { throw 'Recovery after restoring journal failed' }
+        if (@($fifth | Where-Object status -eq 'skipped').Count -ne 4) { throw 'Recovery after restoring journal failed' }
         Write-Output 'PASS: fictitious batch, SHA256 duplicate, strict fields, retry, restart and corrupt-journal protection'
     } finally { if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force } }
 } else {
