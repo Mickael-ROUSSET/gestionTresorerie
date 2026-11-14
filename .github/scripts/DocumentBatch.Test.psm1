@@ -21,7 +21,8 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
         foreach ($entry in @($old)) {
             if ($null -eq $entry -or
                 $null -eq $entry.PSObject.Properties['hash'] -or
-                $null -eq $entry.PSObject.Properties['status']) { throw 'invalid-journal-entry' }
+                $null -eq $entry.PSObject.Properties['status'] -or
+                @($entry.PSObject.Properties.Name | Where-Object { $_ -notin @('hash','status') }).Count -gt 0) { throw 'invalid-journal-entry' }
             $key = [string]$entry.hash
             $value = [string]$entry.status
             if ($key -notmatch '^[A-Fa-f0-9]{64}$' -or $value -ne 'valid' -or $journal.ContainsKey($key)) {

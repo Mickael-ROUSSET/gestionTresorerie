@@ -81,6 +81,15 @@ if ($SelfTest) {
         if (-not $unknownRejected) { throw 'Unknown journal status was accepted' }
         if ((Get-Content -LiteralPath $journalPath -Raw).Trim() -ne $unknownStatusJournal.Trim()) { throw 'Unknown-status journal was overwritten' }
         Set-Content -LiteralPath $journalPath -Encoding utf8 -Value $goodJournal
+        # A journal entry with an unexpected property must not be trusted or overwritten.
+        $extraFieldJournal = $goodJournal -replace '"status"\s*:\s*"valid"', '"status":"valid","unexpected":"fixture"'
+        if ($extraFieldJournal -eq $goodJournal) { throw 'Unable to prepare extra-field fixture' }
+        Set-Content -LiteralPath $journalPath -Encoding utf8 -Value $extraFieldJournal
+        $extraRejected = $false
+        try { [void](Invoke-FictitiousBatch $inputPath $statePath) } catch { $extraRejected = $true }
+        if (-not $extraRejected) { throw 'Unexpected journal property was accepted' }
+        if ((Get-Content -LiteralPath $journalPath -Raw).Trim() -ne $extraFieldJournal.Trim()) { throw 'Extra-field journal was overwritten' }
+        Set-Content -LiteralPath $journalPath -Encoding utf8 -Value $goodJournal
         $fifth = @(Invoke-FictitiousBatch $inputPath $statePath)
         if (@($fifth | Where-Object status -eq 'skipped').Count -ne 3) { throw 'Recovery after restoring journal failed' }
         Write-Output 'PASS: fictitious batch, SHA256 duplicate, strict fields, retry, restart and corrupt-journal protection'
