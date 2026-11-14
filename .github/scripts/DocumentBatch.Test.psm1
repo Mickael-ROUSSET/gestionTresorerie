@@ -100,7 +100,7 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
                         $property = $transaction.PSObject.Properties[$field]
                         if ($null -ne $property -and $null -ne $property.Value) {
                             $dateText = $property.Value
-                            if ($dateText -isnot [string] -or $dateText -cnotmatch '^[0-9]{4}-[0-9]{2}-[0-9]{2}\\z') { throw 'invalid-date-format' }
+                            if ($dateText -isnot [string] -or $dateText -cnotmatch '^[0-9]{4}-[0-9]{2}-[0-9]{2}\z') { throw 'invalid-date-format' }
                             try {
                                 [void][datetime]::ParseExact($dateText, 'yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)
                             } catch { throw 'invalid-calendar-date' }
