@@ -236,6 +236,31 @@ IF (SELECT COUNT(*) FROM dbo.Tiers t
       AND c.Email=N'b-corrige@example.invalid'
       AND c.Ville=N'Ville B corrigée') <> 1
     THROW 51028, 'Ville ou coordonnees du tiers B modifiees apres rollback', 1;
+-- Simuler une correction du tiers B interrompue et vérifier que la ville,
+-- l'email et les coordonnées du tiers A restent inchangés.
+BEGIN TRY
+    BEGIN TRANSACTION;
+    UPDATE dbo.Coordonnees SET Email=N'b-echec@example.invalid', Ville=N'Ville B interrompue'
+    WHERE IdTiers=(SELECT Id FROM dbo.Tiers WHERE raisonSociale=N'CI-Tiers-Fictif-B')
+      AND Email=N'b-corrige@example.invalid' AND Ville=N'Ville B corrigée';
+    IF @@ROWCOUNT <> 1 THROW 51029, 'Fixture B absente ou ambigue', 1;
+    THROW 51030, 'Echec fictif de correction du tiers B', 1;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    IF ERROR_NUMBER() <> 51030 THROW;
+END CATCH;
+IF EXISTS (SELECT 1 FROM dbo.Coordonnees WHERE Email=N'b-echec@example.invalid')
+    THROW 51031, 'Correction interrompue du tiers B conservee', 1;
+IF (SELECT COUNT(*) FROM dbo.Tiers t JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
+    WHERE t.raisonSociale=N'CI-Tiers-Fictif-B'
+      AND c.Email=N'b-corrige@example.invalid' AND c.Ville=N'Ville B corrigée') <> 1
+    THROW 51032, 'Coordonnees initiales du tiers B non restaurees', 1;
+IF (SELECT COUNT(*) FROM dbo.Tiers t JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
+    WHERE t.raisonSociale=N'CI-Tiers-Fictif-A'
+      AND c.Email=N'a@example.invalid' AND c.Ville=N'Ville A') <> 1
+    THROW 51033, 'Tiers A modifie pendant rollback du tiers B', 1;
+IF @@TRANCOUNT <> 0 THROW 51034, 'Transaction du tiers B restee ouverte', 1;
 '@
                     [void]$command.ExecuteNonQuery()
                 }
