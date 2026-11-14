@@ -147,6 +147,19 @@ INNER JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
 WHERE c.Email=N'inconnu@example.invalid';
 '@
                     if ($command.ExecuteScalar() -ne 0) { throw 'Recherche par email inconnu : résultat inattendu.' }
+                    # La recherche par identifiant doit retrouver les deux tiers et leurs
+                    # coordonnees exactes, sans collision entre identifiants SQL.
+                    $command.CommandText = @'
+SELECT COUNT(*) FROM dbo.Tiers a
+JOIN dbo.Tiers b ON a.Id <> b.Id
+JOIN dbo.Coordonnees ca ON ca.IdTiers=a.Id
+JOIN dbo.Coordonnees cb ON cb.IdTiers=b.Id
+WHERE a.raisonSociale=N'CI-Tiers-Fictif-A'
+  AND b.raisonSociale=N'CI-Tiers-Fictif-B'
+  AND ca.Email=N'a@example.invalid' AND ca.Ville=N'Ville A'
+  AND cb.Email=N'b-corrige@example.invalid' AND cb.Ville=N'Ville B corrigée';
+'@
+                    if ($command.ExecuteScalar() -ne 1) { throw 'Recherche par identifiants : tiers TEST non distincts ou coordonnees incorrectes.' }
                     # Une recherche par email ne doit jamais attribuer les coordonnees
                     # du tiers B au tiers A, ni celles du tiers A au tiers B.
                     $command.CommandText = @'
