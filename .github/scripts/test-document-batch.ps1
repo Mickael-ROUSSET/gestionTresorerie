@@ -72,6 +72,15 @@ if ($SelfTest) {
         if (-not $rejected) { throw 'Corrupt journal was accepted' }
         if ((Get-Content -LiteralPath $journalPath -Raw).Trim() -ne $badJournal) { throw 'Corrupt journal was overwritten' }
         Set-Content -LiteralPath $journalPath -Encoding utf8 -Value $goodJournal
+        # An unknown journal status must fail closed and preserve the recovery point.
+        $unknownStatusJournal = $goodJournal -replace '"status"\s*:\s*"valid"', '"status":"pending"'
+        if ($unknownStatusJournal -eq $goodJournal) { throw 'Unable to prepare unknown-status fixture' }
+        Set-Content -LiteralPath $journalPath -Encoding utf8 -Value $unknownStatusJournal
+        $unknownRejected = $false
+        try { [void](Invoke-FictitiousBatch $inputPath $statePath) } catch { $unknownRejected = $true }
+        if (-not $unknownRejected) { throw 'Unknown journal status was accepted' }
+        if ((Get-Content -LiteralPath $journalPath -Raw).Trim() -ne $unknownStatusJournal.Trim()) { throw 'Unknown-status journal was overwritten' }
+        Set-Content -LiteralPath $journalPath -Encoding utf8 -Value $goodJournal
         $fifth = @(Invoke-FictitiousBatch $inputPath $statePath)
         if (@($fifth | Where-Object status -eq 'skipped').Count -ne 3) { throw 'Recovery after restoring journal failed' }
         Write-Output 'PASS: fictitious batch, SHA256 duplicate, strict fields, retry, restart and corrupt-journal protection'
