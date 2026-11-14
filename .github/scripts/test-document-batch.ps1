@@ -54,14 +54,14 @@ if ($SelfTest) {
             if (@($first | Where-Object { $_.name -eq $name -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw "Invalid typed field was accepted: $name" }
         }
         $second = @(Invoke-FictitiousBatch $inputPath $statePath)
-        if (@($second | Where-Object status -eq 'skipped').Count -ne 2 -or @($second | Where-Object status -eq 'review').Count -ne 4) { throw 'Resume failed' }
+        if (@($second | Where-Object status -eq 'skipped').Count -ne 2 -or @($second | Where-Object status -eq 'review').Count -ne 7) { throw 'Resume failed' }
         if (@($first | Where-Object { $_.name -eq 'wrong-section.pdf' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw 'Wrong section was accepted' }
         # A previously rejected document must be retryable once the simulated analysis is corrected.
         Set-Content -LiteralPath (Join-Path $inputPath 'wrong-section.pdf.analysis.json') -Encoding utf8 -Value $json
         $third = @(Invoke-FictitiousBatch $inputPath $statePath)
         if (@($third | Where-Object status -eq 'valid').Count -ne 1 -or @($third | Where-Object status -eq 'skipped').Count -ne 2 -or @($third | Where-Object status -eq 'review').Count -ne 6) { throw 'Corrected analysis was not retried' }
         $fourth = @(Invoke-FictitiousBatch $inputPath $statePath)
-        if (@($fourth | Where-Object status -eq 'skipped').Count -ne 3 -or @($fourth | Where-Object status -eq 'review').Count -ne 3) { throw 'Corrected analysis was not persisted' }
+        if (@($fourth | Where-Object status -eq 'skipped').Count -ne 3 -or @($fourth | Where-Object status -eq 'review').Count -ne 6) { throw 'Corrected analysis was not persisted' }
         # A truncated journal must stop processing without destroying the recovery point.
         $journalPath = Join-Path $statePath 'journal.json'
         $goodJournal = Get-Content -LiteralPath $journalPath -Raw
