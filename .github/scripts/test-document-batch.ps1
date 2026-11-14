@@ -65,7 +65,7 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
         ConvertTo-Json -InputObject $journalRows -Depth 4 | Set-Content -LiteralPath $temp -Encoding utf8
         Move-Item -LiteralPath $temp -Destination $journalPath -Force
     } finally { if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Force } }
-    return ,@($results.ToArray())
+    return $results.ToArray()
 }
 
 if ($SelfTest) {
