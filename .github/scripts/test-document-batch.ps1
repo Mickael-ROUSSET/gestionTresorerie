@@ -103,7 +103,13 @@ if ($SelfTest) {
         $second = @(Invoke-FictitiousBatch $inputPath $statePath)
         if (@($second | Where-Object status -eq 'skipped').Count -ne 2 -or @($second | Where-Object status -eq 'review').Count -ne 2) { throw 'Resume failed' }
         if (@($first | Where-Object { $_.name -eq 'wrong-section.pdf' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw 'Wrong section was accepted' }
-        Write-Output 'PASS: fictitious batch, SHA256 duplicate, schema sections, invalid file and restart'
+        # A previously rejected document must be retryable once the simulated analysis is corrected.
+        Set-Content -LiteralPath (Join-Path $inputPath 'wrong-section.pdf.analysis.json') -Encoding utf8 -Value $json
+        $third = @(Invoke-FictitiousBatch $inputPath $statePath)
+        if (@($third | Where-Object status -eq 'valid').Count -ne 1 -or @($third | Where-Object status -eq 'skipped').Count -ne 2 -or @($third | Where-Object status -eq 'review').Count -ne 1) { throw 'Corrected analysis was not retried' }
+        $fourth = @(Invoke-FictitiousBatch $inputPath $statePath)
+        if (@($fourth | Where-Object status -eq 'skipped').Count -ne 3 -or @($fourth | Where-Object status -eq 'review').Count -ne 1) { throw 'Corrected analysis was not persisted' }
+        Write-Output 'PASS: fictitious batch, SHA256 duplicate, strict schema, corrected analysis retry and restart'
     } finally { if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force } }
 } else {
     if (-not $InputDirectory -or -not $StateDirectory) { throw 'InputDirectory and StateDirectory are required' }
