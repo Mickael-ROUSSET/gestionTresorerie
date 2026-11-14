@@ -83,6 +83,29 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
                     foreach ($field in $transactionFields) {
                         if ($field -notin $allowed[$kind] -or $field -in $identityAllowed[$kind]) { throw 'unexpected-transaction-field' }
                     }
+                    # Validate typed fields before journaling.
+                    $transaction = $doc.donnees_extraites.transaction
+                    foreach ($field in @('montant_numerique','montant_ttc')) {
+                        $property = $transaction.PSObject.Properties[$field]
+                        if ($null -ne $property -and $null -ne $property.Value) {
+                            $amount = $property.Value
+                            if ($amount -isnot [byte] -and $amount -isnot [int] -and
+                                $amount -isnot [long] -and $amount -isnot [decimal] -and
+                                $amount -isnot [double] -and $amount -isnot [single]) { throw 'invalid-amount-type' }
+                            if ([double]$amount -lt 0 -or [double]::IsNaN([double]$amount) -or
+                                [double]::IsInfinity([double]$amount)) { throw 'invalid-amount' }
+                        }
+                    }
+                    foreach ($field in @('date_emission','date_facture','date_document')) {
+                        $property = $transaction.PSObject.Properties[$field]
+                        if ($null -ne $property -and $null -ne $property.Value) {
+                            $dateText = $property.Value
+                            if ($dateText -isnot [string] -or $dateText -cnotmatch '^[0-9]{4}-[0-9]{2}-[0-9]{2}\z') { throw 'invalid-date-format' }
+                            try {
+                                [void][datetime]::ParseExact($dateText, 'yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)
+                            } catch { throw 'invalid-calendar-date' }
+                        }
+                    }
                     # A syntactically complete but entirely empty extraction cannot be classified as valid.
                     $allValues = @($doc.donnees_extraites.identite.PSObject.Properties.Value) +
                                  @($doc.donnees_extraites.transaction.PSObject.Properties.Value)
