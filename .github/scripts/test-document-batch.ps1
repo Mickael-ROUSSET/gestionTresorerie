@@ -89,6 +89,12 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
                     foreach ($field in $transactionFields) {
                         if ($field -notin $allowed[$kind] -or $field -in $identityAllowed[$kind]) { throw 'unexpected-transaction-field' }
                     }
+                    # A syntactically complete but entirely empty extraction cannot be classified as valid.
+                    $allValues = @($doc.donnees_extraites.identite.PSObject.Properties.Value) +
+                                 @($doc.donnees_extraites.transaction.PSObject.Properties.Value)
+                    if (@($allValues | Where-Object { $null -ne $_ -and ([string]$_).Trim().Length -gt 0 }).Count -eq 0) {
+                        throw 'empty-extraction'
+                    }
                     # Reject unexpected top-level sections: the simulated engine must honor the same contract as the real engine.
                     if (@($doc.PSObject.Properties.Name | Where-Object { $_ -notin @('type_document','donnees_extraites') }).Count -gt 0) { throw 'unexpected-root-field' }
                     if (@($doc.donnees_extraites.PSObject.Properties.Name | Where-Object { $_ -notin @('identite','transaction') }).Count -gt 0) { throw 'unexpected-section' }
@@ -137,18 +143,22 @@ if ($SelfTest) {
         # Partial structured responses are sent to review rather than archived as valid.
         [IO.File]::WriteAllBytes((Join-Path $inputPath 'partial.pdf'), [byte[]](37,80,68,70,45,51))
         Set-Content -LiteralPath (Join-Path $inputPath 'partial.pdf.analysis.json') -Encoding utf8 -Value '{"type_document":"Facture","donnees_extraites":{"identite":{"fournisseur_nom":"Entreprise fictive"},"transaction":{"montant_ttc":15}}}'
+        # Complete JSON with only nulls is not a successful extraction.
+        [IO.File]::WriteAllBytes((Join-Path $inputPath 'blank.pdf'), [byte[]](37,80,68,70,45,52))
+        Set-Content -LiteralPath (Join-Path $inputPath 'blank.pdf.analysis.json') -Encoding utf8 -Value '{"type_document":"Facture","donnees_extraites":{"identite":{"fournisseur_nom":null},"transaction":{"numero_facture":null,"date_facture":null,"montant_ttc":null}}}'
         $first = @(Invoke-FictitiousBatch $inputPath $statePath)
-        if (@($first | Where-Object status -eq 'valid').Count -ne 1 -or @($first | Where-Object status -eq 'skipped').Count -ne 1 -or @($first | Where-Object status -eq 'review').Count -ne 3) { throw 'First pass failed' }
+        if (@($first | Where-Object status -eq 'valid').Count -ne 1 -or @($first | Where-Object status -eq 'skipped').Count -ne 1 -or @($first | Where-Object status -eq 'review').Count -ne 4) { throw 'First pass failed' }
         if (@($first | Where-Object { $_.name -eq 'partial.pdf' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw 'Partial analysis was accepted' }
+        if (@($first | Where-Object { $_.name -eq 'blank.pdf' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw 'Empty extraction was accepted' }
         $second = @(Invoke-FictitiousBatch $inputPath $statePath)
-        if (@($second | Where-Object status -eq 'skipped').Count -ne 2 -or @($second | Where-Object status -eq 'review').Count -ne 3) { throw 'Resume failed' }
+        if (@($second | Where-Object status -eq 'skipped').Count -ne 2 -or @($second | Where-Object status -eq 'review').Count -ne 4) { throw 'Resume failed' }
         if (@($first | Where-Object { $_.name -eq 'wrong-section.pdf' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw 'Wrong section was accepted' }
         # A previously rejected document must be retryable once the simulated analysis is corrected.
         Set-Content -LiteralPath (Join-Path $inputPath 'wrong-section.pdf.analysis.json') -Encoding utf8 -Value $json
         $third = @(Invoke-FictitiousBatch $inputPath $statePath)
-        if (@($third | Where-Object status -eq 'valid').Count -ne 1 -or @($third | Where-Object status -eq 'skipped').Count -ne 2 -or @($third | Where-Object status -eq 'review').Count -ne 2) { throw 'Corrected analysis was not retried' }
+        if (@($third | Where-Object status -eq 'valid').Count -ne 1 -or @($third | Where-Object status -eq 'skipped').Count -ne 2 -or @($third | Where-Object status -eq 'review').Count -ne 3) { throw 'Corrected analysis was not retried' }
         $fourth = @(Invoke-FictitiousBatch $inputPath $statePath)
-        if (@($fourth | Where-Object status -eq 'skipped').Count -ne 3 -or @($fourth | Where-Object status -eq 'review').Count -ne 2) { throw 'Corrected analysis was not persisted' }
+        if (@($fourth | Where-Object status -eq 'skipped').Count -ne 3 -or @($fourth | Where-Object status -eq 'review').Count -ne 3) { throw 'Corrected analysis was not persisted' }
         # A truncated journal must stop processing without destroying the recovery point.
         $journalPath = Join-Path $statePath 'journal.json'
         $goodJournal = Get-Content -LiteralPath $journalPath -Raw
