@@ -15,6 +15,7 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
     if (-not (Test-Path -LiteralPath $stateFull)) { [void](New-Item -ItemType Directory -Path $stateFull -Force) }
     $journalPath = Join-Path $stateFull 'journal.json'
     $journal = @{}
+    $journalChanged = $false
     if (Test-Path -LiteralPath $journalPath) {
         $old = Get-Content -LiteralPath $journalPath -Raw | ConvertFrom-Json
         # Fail closed on a corrupt journal: never silently discard history and overwrite it.
@@ -119,6 +120,7 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
                     $status = 'valid'
                     $reason = 'simulated-engine-validated'
                     $journal[$hash] = 'valid'
+                    $journalChanged = $true
                 } catch {
                     $reason = 'invalid-analysis'
                 }
@@ -126,13 +128,16 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
         }
         $results.Add([pscustomobject]@{ name=$file.Name; hash=$hash; status=$status; reason=$reason })
     }
-    # Atomic replacement of the journal: an interruption before this point is retryable.
-    $journalRows = @($journal.Keys | Sort-Object | ForEach-Object { [pscustomobject]@{hash=$_;status=$journal[$_]} })
-    $temp = Join-Path $stateFull ('journal-' + [guid]::NewGuid().ToString('N') + '.tmp')
-    try {
-        ConvertTo-Json -InputObject $journalRows -Depth 4 | Set-Content -LiteralPath $temp -Encoding utf8
-        Move-Item -LiteralPath $temp -Destination $journalPath -Force
-    } finally { if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Force } }
+    # Do not rewrite an unchanged recovery point on repeat runs or review-only batches.
+    if ($journalChanged) {
+        # Atomic replacement of the journal: an interruption before this point is retryable.
+        $journalRows = @($journal.Keys | Sort-Object | ForEach-Object { [pscustomobject]@{hash=$_;status=$journal[$_]} })
+        $temp = Join-Path $stateFull ('journal-' + [guid]::NewGuid().ToString('N') + '.tmp')
+        try {
+            ConvertTo-Json -InputObject $journalRows -Depth 4 | Set-Content -LiteralPath $temp -Encoding utf8
+            Move-Item -LiteralPath $temp -Destination $journalPath -Force
+        } finally { if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Force } }
+    }
     return $results.ToArray()
 }
 
