@@ -53,8 +53,13 @@ if ($SelfTest) {
         foreach ($name in @('negative.pdf','text-amount.pdf','bad-date.pdf')) {
             if (@($first | Where-Object { $_.name -eq $name -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw "Invalid typed field was accepted: $name" }
         }
+        # A retry with no newly valid documents must leave the existing journal untouched.
+        $resumeJournal = Join-Path $statePath 'journal.json'
+        $sentinelTime = [datetime]::SpecifyKind([datetime]'2020-01-02T03:04:05', [DateTimeKind]::Utc)
+        [IO.File]::SetLastWriteTimeUtc($resumeJournal, $sentinelTime)
         $second = @(Invoke-FictitiousBatch $inputPath $statePath)
         if (@($second | Where-Object status -eq 'skipped').Count -ne 2 -or @($second | Where-Object status -eq 'review').Count -ne 7) { throw 'Resume failed' }
+        if ([IO.File]::GetLastWriteTimeUtc($resumeJournal) -ne $sentinelTime) { throw 'Unchanged journal was rewritten on resume' }
         if (@($first | Where-Object { $_.name -eq 'wrong-section.pdf' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw 'Wrong section was accepted' }
         # A previously rejected document must be retryable once the simulated analysis is corrected.
         Set-Content -LiteralPath (Join-Path $inputPath 'wrong-section.pdf.analysis.json') -Encoding utf8 -Value $json
