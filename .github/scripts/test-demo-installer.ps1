@@ -347,6 +347,35 @@ IF EXISTS (SELECT 1 FROM dbo.Coordonnees c JOIN dbo.Tiers t ON t.Id=c.IdTiers
     THROW 51043, 'Coordonnees B attribuees au tiers A', 1;
 IF @@TRANCOUNT <> 0 THROW 51044, 'Transaction de rattachement restee ouverte', 1;
 
+-- Le tiers B doit aussi conserver atomiquement son identité et ses coordonnées
+-- lorsqu'une correction simultanée est interrompue.
+BEGIN TRY
+    BEGIN TRANSACTION;
+    UPDATE dbo.Tiers SET raisonSociale=N'CI-Tiers-Fictif-B-Interrompu'
+    WHERE raisonSociale=N'CI-Tiers-Fictif-B';
+    IF @@ROWCOUNT <> 1 THROW 51045, 'Tiers B absent ou ambigu', 1;
+    UPDATE dbo.Coordonnees SET Email=N'b-atomique-interrompu@example.invalid',
+                               Ville=N'Ville B interrompue'
+    WHERE IdTiers=(SELECT Id FROM dbo.Tiers WHERE raisonSociale=N'CI-Tiers-Fictif-B-Interrompu')
+      AND Email=N'b-corrige@example.invalid';
+    IF @@ROWCOUNT <> 1 THROW 51046, 'Coordonnees B absentes ou ambigues', 1;
+    THROW 51047, 'Correction atomique fictive interrompue pour B', 1;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    IF ERROR_NUMBER() <> 51047 THROW;
+END CATCH;
+IF EXISTS (SELECT 1 FROM dbo.Tiers WHERE raisonSociale=N'CI-Tiers-Fictif-B-Interrompu')
+    THROW 51048, 'Identite B interrompue conservee', 1;
+IF EXISTS (SELECT 1 FROM dbo.Coordonnees WHERE Email=N'b-atomique-interrompu@example.invalid')
+    THROW 51049, 'Coordonnees B interrompues conservees', 1;
+IF (SELECT COUNT(*) FROM dbo.Tiers t JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
+    WHERE t.raisonSociale=N'CI-Tiers-Fictif-B'
+      AND c.Email=N'b-corrige@example.invalid' AND c.Ville=N'Ville B corrigée') <> 1
+    THROW 51050, 'Identite et coordonnees B non restaurees', 1;
+IF @@TRANCOUNT <> 0 THROW 51051, 'Transaction de correction B restee ouverte', 1;
+
+
 '@
                     [void]$command.ExecuteNonQuery()
                 }
