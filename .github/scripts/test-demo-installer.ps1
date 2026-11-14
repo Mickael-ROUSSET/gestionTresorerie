@@ -131,6 +131,22 @@ LEFT JOIN dbo.Tiers t ON t.Id=c.IdTiers
 WHERE t.Id IS NULL;
 '@
                     if ($command.ExecuteScalar() -ne 0) { throw 'Coordonnées orphelines détectées dans le catalogue TEST.' }
+                    # Recherche fonctionnelle après réouverture d'une connexion SQL :
+                    # retrouver un tiers par son email, avec sa ville corrigée.
+                    $command.CommandText = @'
+SELECT COUNT(*) FROM dbo.Tiers t
+INNER JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
+WHERE c.Email=N'b-corrige@example.invalid'
+  AND t.raisonSociale=N'CI-Tiers-Fictif-B'
+  AND c.Ville=N'Ville B corrigée';
+'@
+                    if ($command.ExecuteScalar() -ne 1) { throw 'Recherche du tiers B par email après réouverture SQL incorrecte.' }
+                    $command.CommandText = @'
+SELECT COUNT(*) FROM dbo.Tiers t
+INNER JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
+WHERE c.Email=N'inconnu@example.invalid';
+'@
+                    if ($command.ExecuteScalar() -ne 0) { throw 'Recherche par email inconnu : résultat inattendu.' }
                 }
                 if ($Mode -eq 'rollback' -and $catalog -eq 'bddAgumaaaTest') {
                     # Simuler une écriture interrompue : aucune ligne partielle ne doit survivre.
