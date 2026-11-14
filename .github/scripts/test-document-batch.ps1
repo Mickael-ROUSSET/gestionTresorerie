@@ -8,10 +8,17 @@ $ErrorActionPreference = 'Stop'
 
 function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
     if (-not (Test-Path -LiteralPath $InputPath -PathType Container)) { throw 'Input directory missing' }
-    if (-not (Test-Path -LiteralPath $StatePath)) { [void](New-Item -ItemType Directory -Path $StatePath -Force) }
-    $inputFull = (Resolve-Path -LiteralPath $InputPath).Path
-    $stateFull = (Resolve-Path -LiteralPath $StatePath).Path
-    if ($stateFull.TrimEnd('\','/') -eq $inputFull.TrimEnd('\','/')) { throw 'State must be separate from input' }
+    # Reject overlapping directories before writing state, including nested paths.
+    $inputFull = [IO.Path]::GetFullPath((Resolve-Path -LiteralPath $InputPath).Path).TrimEnd([char[]]@('\\','/'))
+    $stateFull = [IO.Path]::GetFullPath($StatePath).TrimEnd([char[]]@('\\','/'))
+    $comparison = [StringComparison]::OrdinalIgnoreCase
+    $separator = [string][IO.Path]::DirectorySeparatorChar
+    if ($stateFull.Equals($inputFull, $comparison) -or
+        $stateFull.StartsWith($inputFull + $separator, $comparison) -or
+        $inputFull.StartsWith($stateFull + $separator, $comparison)) {
+        throw 'State and input directories must not overlap'
+    }
+    if (-not (Test-Path -LiteralPath $stateFull)) { [void](New-Item -ItemType Directory -Path $stateFull -Force) }
     $journalPath = Join-Path $stateFull 'journal.json'
     $journal = @{}
     if (Test-Path -LiteralPath $journalPath) {
@@ -111,6 +118,14 @@ if ($SelfTest) {
     $statePath = Join-Path $root 'state'
     try {
         [void](New-Item -ItemType Directory -Path $inputPath -Force)
+        # Never create a journal in the scan directory or its ancestors.
+        $nestedState = Join-Path $inputPath 'state'
+        $nestedRejected = $false
+        try { [void](Invoke-FictitiousBatch $inputPath $nestedState) } catch { $nestedRejected = $true }
+        if (-not $nestedRejected -or (Test-Path -LiteralPath $nestedState)) { throw 'Nested state directory was accepted or created' }
+        $parentRejected = $false
+        try { [void](Invoke-FictitiousBatch $inputPath $root) } catch { $parentRejected = $true }
+        if (-not $parentRejected -or (Test-Path -LiteralPath (Join-Path $root 'journal.json'))) { throw 'Parent state directory was accepted or journal created' }
         [IO.File]::WriteAllBytes((Join-Path $inputPath 'a.pdf'), [byte[]](37,80,68,70,45,49))
         Copy-Item -LiteralPath (Join-Path $inputPath 'a.pdf') -Destination (Join-Path $inputPath 'b.pdf')
         [IO.File]::WriteAllBytes((Join-Path $inputPath 'invalid.pdf'), [byte[]]@())
