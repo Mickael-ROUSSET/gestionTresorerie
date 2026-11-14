@@ -9,8 +9,8 @@ $ErrorActionPreference = 'Stop'
 function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
     if (-not (Test-Path -LiteralPath $InputPath -PathType Container)) { throw 'Input directory missing' }
     # Reject overlapping directories before writing state, including nested paths.
-    $inputFull = [IO.Path]::GetFullPath((Resolve-Path -LiteralPath $InputPath).Path).TrimEnd([char[]]@('\\','/'))
-    $stateFull = [IO.Path]::GetFullPath($StatePath).TrimEnd([char[]]@('\\','/'))
+    $inputFull = [IO.Path]::GetFullPath((Resolve-Path -LiteralPath $InputPath).Path).TrimEnd([char[]]@('\','/'))
+    $stateFull = [IO.Path]::GetFullPath($StatePath).TrimEnd([char[]]@('\','/'))
     $comparison = [StringComparison]::OrdinalIgnoreCase
     $separator = [string][IO.Path]::DirectorySeparatorChar
     if ($stateFull.Equals($inputFull, $comparison) -or
