@@ -40,7 +40,7 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
         Recu = @('nom_complet','reference','date_document','montant_numerique')
     }
     $results = New-Object System.Collections.Generic.List[object]
-    $files = @(Get-ChildItem -LiteralPath $inputFull -File | Where-Object { $_.Extension.ToLowerInvariant() -in @('.pdf','.png','.jpg','.jpeg') } | Sort-Object Name)
+    $files = @(Get-ChildItem -LiteralPath $inputFull -File -Recurse | Where-Object { $_.Extension.ToLowerInvariant() -in @('.pdf','.png','.jpg','.jpeg') } | Sort-Object FullName)
     foreach ($file in $files) {
         $hash = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
         $status = 'review'
@@ -126,7 +126,8 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
                 }
             }
         }
-        $results.Add([pscustomobject]@{ name=$file.Name; hash=$hash; status=$status; reason=$reason })
+        $relativeName = $file.FullName.Substring($inputFull.Length).TrimStart([char[]]@('\','/'))
+        $results.Add([pscustomobject]@{ name=$relativeName; hash=$hash; status=$status; reason=$reason })
     }
     # Do not rewrite an unchanged recovery point on repeat runs or review-only batches.
     if ($journalChanged) {
