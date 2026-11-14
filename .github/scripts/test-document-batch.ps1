@@ -55,6 +55,16 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
                         QuestionnaireMedical = @('nom_complet')
                         Recu = @('nom_complet')
                     }
+                    # Every declared field must exist, even when its value is null (unreadable).
+                    # A partial engine response must not be silently classified as complete.
+                    $requiredIdentity = @($identityAllowed[$kind])
+                    $requiredTransaction = @($allowed[$kind] | Where-Object { $_ -notin $requiredIdentity })
+                    foreach ($field in $requiredIdentity) {
+                        if ($field -notin $identityFields) { throw 'missing-identity-field' }
+                    }
+                    foreach ($field in $requiredTransaction) {
+                        if ($field -notin $transactionFields) { throw 'missing-transaction-field' }
+                    }
                     foreach ($field in $identityFields) {
                         if ($field -notin $identityAllowed[$kind]) { throw 'unexpected-identity-field' }
                     }
@@ -95,21 +105,25 @@ if ($SelfTest) {
         [IO.File]::WriteAllBytes((Join-Path $inputPath 'invalid.pdf'), [byte[]]@())
         [IO.File]::WriteAllBytes((Join-Path $inputPath 'wrong-section.pdf'), [byte[]](37,80,68,70,45,50))
         Set-Content -LiteralPath (Join-Path $inputPath 'wrong-section.pdf.analysis.json') -Encoding utf8 -Value '{"type_document":"Facture","donnees_extraites":{"identite":{"montant_ttc":42},"transaction":{"fournisseur_nom":"Fictif"}}}'
-        $json = '{"type_document":"Facture","donnees_extraites":{"identite":{"fournisseur_nom":"Entreprise fictive"},"transaction":{"montant_ttc":12.50}}}'
+        $json = '{"type_document":"Facture","donnees_extraites":{"identite":{"fournisseur_nom":"Entreprise fictive"},"transaction":{"numero_facture":"F-001","date_facture":"2026-11-14","montant_ttc":12.50}}}'
         Set-Content -LiteralPath (Join-Path $inputPath 'a.pdf.analysis.json') -Value $json -Encoding utf8
         Set-Content -LiteralPath (Join-Path $inputPath 'b.pdf.analysis.json') -Value $json -Encoding utf8
+        # Partial structured responses are sent to review rather than archived as valid.
+        [IO.File]::WriteAllBytes((Join-Path $inputPath 'partial.pdf'), [byte[]](37,80,68,70,45,51))
+        Set-Content -LiteralPath (Join-Path $inputPath 'partial.pdf.analysis.json') -Encoding utf8 -Value '{"type_document":"Facture","donnees_extraites":{"identite":{"fournisseur_nom":"Entreprise fictive"},"transaction":{"montant_ttc":15}}}'
         $first = @(Invoke-FictitiousBatch $inputPath $statePath)
-        if (@($first | Where-Object status -eq 'valid').Count -ne 1 -or @($first | Where-Object status -eq 'skipped').Count -ne 1 -or @($first | Where-Object status -eq 'review').Count -ne 2) { throw 'First pass failed' }
+        if (@($first | Where-Object status -eq 'valid').Count -ne 1 -or @($first | Where-Object status -eq 'skipped').Count -ne 1 -or @($first | Where-Object status -eq 'review').Count -ne 3) { throw 'First pass failed' }
+        if (@($first | Where-Object { $_.name -eq 'partial.pdf' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw 'Partial analysis was accepted' }
         $second = @(Invoke-FictitiousBatch $inputPath $statePath)
         if (@($second | Where-Object status -eq 'skipped').Count -ne 2 -or @($second | Where-Object status -eq 'review').Count -ne 2) { throw 'Resume failed' }
         if (@($first | Where-Object { $_.name -eq 'wrong-section.pdf' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw 'Wrong section was accepted' }
         # A previously rejected document must be retryable once the simulated analysis is corrected.
         Set-Content -LiteralPath (Join-Path $inputPath 'wrong-section.pdf.analysis.json') -Encoding utf8 -Value $json
         $third = @(Invoke-FictitiousBatch $inputPath $statePath)
-        if (@($third | Where-Object status -eq 'valid').Count -ne 1 -or @($third | Where-Object status -eq 'skipped').Count -ne 2 -or @($third | Where-Object status -eq 'review').Count -ne 1) { throw 'Corrected analysis was not retried' }
+        if (@($third | Where-Object status -eq 'valid').Count -ne 1 -or @($third | Where-Object status -eq 'skipped').Count -ne 2 -or @($third | Where-Object status -eq 'review').Count -ne 2) { throw 'Corrected analysis was not retried' }
         $fourth = @(Invoke-FictitiousBatch $inputPath $statePath)
         if (@($fourth | Where-Object status -eq 'skipped').Count -ne 3 -or @($fourth | Where-Object status -eq 'review').Count -ne 1) { throw 'Corrected analysis was not persisted' }
-        Write-Output 'PASS: fictitious batch, SHA256 duplicate, strict schema, corrected analysis retry and restart'
+        Write-Output 'PASS: fictitious batch, SHA256 duplicate, strict required fields, corrected analysis retry and restart'
     } finally { if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force } }
 } else {
     if (-not $InputDirectory -or -not $StateDirectory) { throw 'InputDirectory and StateDirectory are required' }
