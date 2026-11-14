@@ -147,6 +147,15 @@ INNER JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
 WHERE c.Email=N'inconnu@example.invalid';
 '@
                     if ($command.ExecuteScalar() -ne 0) { throw 'Recherche par email inconnu : résultat inattendu.' }
+                    # Une recherche par email ne doit jamais attribuer les coordonnees
+                    # du tiers B au tiers A, ni celles du tiers A au tiers B.
+                    $command.CommandText = @'
+SELECT COUNT(*) FROM dbo.Tiers t
+INNER JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
+WHERE (t.raisonSociale=N'CI-Tiers-Fictif-A' AND c.Email=N'b-corrige@example.invalid')
+   OR (t.raisonSociale=N'CI-Tiers-Fictif-B' AND c.Email=N'a@example.invalid');
+'@
+                    if ($command.ExecuteScalar() -ne 0) { throw 'Recherche email : coordonnees associees au mauvais tiers.' }
                 }
                 if ($Mode -eq 'rollback' -and $catalog -eq 'bddAgumaaaTest') {
                     # Simuler une écriture interrompue : aucune ligne partielle ne doit survivre.
