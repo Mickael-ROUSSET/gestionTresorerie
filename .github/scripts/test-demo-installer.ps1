@@ -261,6 +261,30 @@ IF (SELECT COUNT(*) FROM dbo.Tiers t JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
       AND c.Email=N'a@example.invalid' AND c.Ville=N'Ville A') <> 1
     THROW 51033, 'Tiers A modifie pendant rollback du tiers B', 1;
 IF @@TRANCOUNT <> 0 THROW 51034, 'Transaction du tiers B restee ouverte', 1;
+
+-- Une suppression accidentelle des coordonnées du tiers B doit aussi être annulée.
+-- Contrôler la restauration de la ligne complète et l'absence d'effet sur A.
+BEGIN TRY
+    BEGIN TRANSACTION;
+    DELETE FROM dbo.Coordonnees
+    WHERE IdTiers=(SELECT Id FROM dbo.Tiers WHERE raisonSociale=N'CI-Tiers-Fictif-B')
+      AND Email=N'b-corrige@example.invalid' AND Ville=N'Ville B corrigée';
+    IF @@ROWCOUNT <> 1 THROW 51035, 'Coordonnees B absentes ou ambigues', 1;
+    THROW 51036, 'Suppression fictive interrompue des coordonnees B', 1;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    IF ERROR_NUMBER() <> 51036 THROW;
+END CATCH;
+IF (SELECT COUNT(*) FROM dbo.Tiers t JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
+    WHERE t.raisonSociale=N'CI-Tiers-Fictif-B'
+      AND c.Email=N'b-corrige@example.invalid' AND c.Ville=N'Ville B corrigée') <> 1
+    THROW 51037, 'Suppression interrompue non restauree pour B', 1;
+IF (SELECT COUNT(*) FROM dbo.Tiers t JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
+    WHERE t.raisonSociale=N'CI-Tiers-Fictif-A'
+      AND c.Email=N'a@example.invalid' AND c.Ville=N'Ville A') <> 1
+    THROW 51038, 'Tiers A altere apres suppression interrompue de B', 1;
+IF @@TRANCOUNT <> 0 THROW 51039, 'Transaction de suppression B restee ouverte', 1;
 '@
                     [void]$command.ExecuteNonQuery()
                 }
