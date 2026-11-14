@@ -323,6 +323,30 @@ IF (SELECT COUNT(*) FROM dbo.Tiers t JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
       AND c.Email=N'a@example.invalid' AND c.Ville=N'Ville A') <> 1
     THROW 51038, 'Tiers A altere apres suppression interrompue de B', 1;
 IF @@TRANCOUNT <> 0 THROW 51039, 'Transaction de suppression B restee ouverte', 1;
+
+-- Une réaffectation accidentelle des coordonnées de B vers A doit être annulée.
+-- La vérification des emails seuls ne détecterait pas un IdTiers erroné.
+BEGIN TRY
+    BEGIN TRANSACTION;
+    UPDATE dbo.Coordonnees
+       SET IdTiers=(SELECT Id FROM dbo.Tiers WHERE raisonSociale=N'CI-Tiers-Fictif-A')
+     WHERE IdTiers=(SELECT Id FROM dbo.Tiers WHERE raisonSociale=N'CI-Tiers-Fictif-B')
+       AND Email=N'b-corrige@example.invalid';
+    IF @@ROWCOUNT <> 1 THROW 51040, 'Coordonnees B absentes pour test de rattachement', 1;
+    THROW 51041, 'Reaffectation fictive interrompue de B vers A', 1;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    IF ERROR_NUMBER() <> 51041 THROW;
+END CATCH;
+IF (SELECT COUNT(*) FROM dbo.Coordonnees c JOIN dbo.Tiers t ON t.Id=c.IdTiers
+    WHERE t.raisonSociale=N'CI-Tiers-Fictif-B' AND c.Email=N'b-corrige@example.invalid') <> 1
+    THROW 51042, 'Rattachement des coordonnees B non restaure', 1;
+IF EXISTS (SELECT 1 FROM dbo.Coordonnees c JOIN dbo.Tiers t ON t.Id=c.IdTiers
+    WHERE t.raisonSociale=N'CI-Tiers-Fictif-A' AND c.Email=N'b-corrige@example.invalid')
+    THROW 51043, 'Coordonnees B attribuees au tiers A', 1;
+IF @@TRANCOUNT <> 0 THROW 51044, 'Transaction de rattachement restee ouverte', 1;
+
 '@
                     [void]$command.ExecuteNonQuery()
                 }
