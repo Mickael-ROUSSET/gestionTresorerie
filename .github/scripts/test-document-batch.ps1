@@ -45,9 +45,25 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
                     $kind = [string]$doc.type_document
                     if (-not $allowed.ContainsKey($kind)) { throw 'unknown-type' }
                     if ($null -eq $doc.donnees_extraites -or $null -eq $doc.donnees_extraites.identite -or $null -eq $doc.donnees_extraites.transaction) { throw 'missing-sections' }
-                    $fields = @($doc.donnees_extraites.identite.PSObject.Properties.Name) + @($doc.donnees_extraites.transaction.PSObject.Properties.Name)
-                    foreach ($field in $fields) { if ($field -notin $allowed[$kind]) { throw 'unexpected-field' } }
-                    if ($fields.Count -eq 0) { throw 'empty-analysis' }
+                    $identityFields = @($doc.donnees_extraites.identite.PSObject.Properties.Name)
+                    $transactionFields = @($doc.donnees_extraites.transaction.PSObject.Properties.Name)
+                    if ($identityFields.Count -eq 0 -or $transactionFields.Count -eq 0) { throw 'missing-identity-or-transaction' }
+                    $identityAllowed = @{
+                        Cheque = @('emetteur_numero_cheque','emetteur_du_cheque','beneficiaire_nom')
+                        Facture = @('fournisseur_nom')
+                        FormulaireAdhesion = @('nom','prenom','adresse')
+                        QuestionnaireMedical = @('nom_complet')
+                        Recu = @('nom_complet')
+                    }
+                    foreach ($field in $identityFields) {
+                        if ($field -notin $identityAllowed[$kind]) { throw 'unexpected-identity-field' }
+                    }
+                    foreach ($field in $transactionFields) {
+                        if ($field -notin $allowed[$kind] -or $field -in $identityAllowed[$kind]) { throw 'unexpected-transaction-field' }
+                    }
+                    # Reject unexpected top-level sections: the simulated engine must honor the same contract as the real engine.
+                    if (@($doc.PSObject.Properties.Name | Where-Object { $_ -notin @('type_document','donnees_extraites') }).Count -gt 0) { throw 'unexpected-root-field' }
+                    if (@($doc.donnees_extraites.PSObject.Properties.Name | Where-Object { $_ -notin @('identite','transaction') }).Count -gt 0) { throw 'unexpected-section' }
                     $status = 'valid'
                     $reason = 'simulated-engine-validated'
                     $journal[$hash] = 'valid'
@@ -77,14 +93,17 @@ if ($SelfTest) {
         [IO.File]::WriteAllBytes((Join-Path $inputPath 'a.pdf'), [byte[]](37,80,68,70,45,49))
         Copy-Item -LiteralPath (Join-Path $inputPath 'a.pdf') -Destination (Join-Path $inputPath 'b.pdf')
         [IO.File]::WriteAllBytes((Join-Path $inputPath 'invalid.pdf'), [byte[]]@())
+        [IO.File]::WriteAllBytes((Join-Path $inputPath 'wrong-section.pdf'), [byte[]](37,80,68,70,45,50))
+        Set-Content -LiteralPath (Join-Path $inputPath 'wrong-section.pdf.analysis.json') -Encoding utf8 -Value '{"type_document":"Facture","donnees_extraites":{"identite":{"montant_ttc":42},"transaction":{"fournisseur_nom":"Fictif"}}}'
         $json = '{"type_document":"Facture","donnees_extraites":{"identite":{"fournisseur_nom":"Entreprise fictive"},"transaction":{"montant_ttc":12.50}}}'
         Set-Content -LiteralPath (Join-Path $inputPath 'a.pdf.analysis.json') -Value $json -Encoding utf8
         Set-Content -LiteralPath (Join-Path $inputPath 'b.pdf.analysis.json') -Value $json -Encoding utf8
         $first = @(Invoke-FictitiousBatch $inputPath $statePath)
-        if (@($first | Where-Object status -eq 'valid').Count -ne 1 -or @($first | Where-Object status -eq 'skipped').Count -ne 1 -or @($first | Where-Object status -eq 'review').Count -ne 1) { throw 'First pass failed' }
+        if (@($first | Where-Object status -eq 'valid').Count -ne 1 -or @($first | Where-Object status -eq 'skipped').Count -ne 1 -or @($first | Where-Object status -eq 'review').Count -ne 2) { throw 'First pass failed' }
         $second = @(Invoke-FictitiousBatch $inputPath $statePath)
-        if (@($second | Where-Object status -eq 'skipped').Count -ne 2 -or @($second | Where-Object status -eq 'review').Count -ne 1) { throw 'Resume failed' }
-        Write-Output 'PASS: fictitious batch, SHA256 duplicate, invalid file and restart'
+        if (@($second | Where-Object status -eq 'skipped').Count -ne 2 -or @($second | Where-Object status -eq 'review').Count -ne 2) { throw 'Resume failed' }
+        if (@($first | Where-Object { $_.name -eq 'wrong-section.pdf' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw 'Wrong section was accepted' }
+        Write-Output 'PASS: fictitious batch, SHA256 duplicate, schema sections, invalid file and restart'
     } finally { if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force } }
 } else {
     if (-not $InputDirectory -or -not $StateDirectory) { throw 'InputDirectory and StateDirectory are required' }
