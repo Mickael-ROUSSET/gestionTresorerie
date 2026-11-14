@@ -36,17 +36,30 @@ if ($SelfTest) {
         # Complete JSON with only nulls is not a successful extraction.
         [IO.File]::WriteAllBytes((Join-Path $inputPath 'blank.pdf'), [byte[]](37,80,68,70,45,52))
         Set-Content -LiteralPath (Join-Path $inputPath 'blank.pdf.analysis.json') -Encoding utf8 -Value '{"type_document":"Facture","donnees_extraites":{"identite":{"fournisseur_nom":null},"transaction":{"numero_facture":null,"date_facture":null,"montant_ttc":null}}}'
+        # Type validation: negative amounts, prose amounts and impossible dates remain in review.
+        foreach ($case in @(
+            @{ Name='negative'; Json='{"type_document":"Facture","donnees_extraites":{"identite":{"fournisseur_nom":"Fictif"},"transaction":{"numero_facture":"F-2","date_facture":"2026-11-14","montant_ttc":-5}}}' },
+            @{ Name='text-amount'; Json='{"type_document":"Facture","donnees_extraites":{"identite":{"fournisseur_nom":"Fictif"},"transaction":{"numero_facture":"F-3","date_facture":"2026-11-14","montant_ttc":"12 euros"}}}' },
+            @{ Name='bad-date'; Json='{"type_document":"Facture","donnees_extraites":{"identite":{"fournisseur_nom":"Fictif"},"transaction":{"numero_facture":"F-4","date_facture":"2026-02-30","montant_ttc":12}}}' }
+        )) {
+            $filePath = Join-Path $inputPath ($case.Name + '.pdf')
+            [IO.File]::WriteAllBytes($filePath, [Text.Encoding]::UTF8.GetBytes('fictitious-' + $case.Name))
+            Set-Content -LiteralPath ($filePath + '.analysis.json') -Encoding utf8 -Value $case.Json
+        }
         $first = @(Invoke-FictitiousBatch $inputPath $statePath)
-        if (@($first | Where-Object status -eq 'valid').Count -ne 1 -or @($first | Where-Object status -eq 'skipped').Count -ne 1 -or @($first | Where-Object status -eq 'review').Count -ne 4) { throw 'First pass failed' }
+        if (@($first | Where-Object status -eq 'valid').Count -ne 1 -or @($first | Where-Object status -eq 'skipped').Count -ne 1 -or @($first | Where-Object status -eq 'review').Count -ne 7) { throw 'First pass failed' }
         if (@($first | Where-Object { $_.name -eq 'partial.pdf' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw 'Partial analysis was accepted' }
         if (@($first | Where-Object { $_.name -eq 'blank.pdf' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw 'Empty extraction was accepted' }
+        foreach ($name in @('negative.pdf','text-amount.pdf','bad-date.pdf')) {
+            if (@($first | Where-Object { $_.name -eq $name -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw "Invalid typed field was accepted: $name" }
+        }
         $second = @(Invoke-FictitiousBatch $inputPath $statePath)
         if (@($second | Where-Object status -eq 'skipped').Count -ne 2 -or @($second | Where-Object status -eq 'review').Count -ne 4) { throw 'Resume failed' }
         if (@($first | Where-Object { $_.name -eq 'wrong-section.pdf' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw 'Wrong section was accepted' }
         # A previously rejected document must be retryable once the simulated analysis is corrected.
         Set-Content -LiteralPath (Join-Path $inputPath 'wrong-section.pdf.analysis.json') -Encoding utf8 -Value $json
         $third = @(Invoke-FictitiousBatch $inputPath $statePath)
-        if (@($third | Where-Object status -eq 'valid').Count -ne 1 -or @($third | Where-Object status -eq 'skipped').Count -ne 2 -or @($third | Where-Object status -eq 'review').Count -ne 3) { throw 'Corrected analysis was not retried' }
+        if (@($third | Where-Object status -eq 'valid').Count -ne 1 -or @($third | Where-Object status -eq 'skipped').Count -ne 2 -or @($third | Where-Object status -eq 'review').Count -ne 6) { throw 'Corrected analysis was not retried' }
         $fourth = @(Invoke-FictitiousBatch $inputPath $statePath)
         if (@($fourth | Where-Object status -eq 'skipped').Count -ne 3 -or @($fourth | Where-Object status -eq 'review').Count -ne 3) { throw 'Corrected analysis was not persisted' }
         # A truncated journal must stop processing without destroying the recovery point.
