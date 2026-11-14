@@ -30,6 +30,9 @@ jobs:
               throw "Erreur de syntaxe PowerShell : $script"
             }
           }
+      - name: Tester le lot documentaire fictif et la reprise
+        shell: pwsh
+        run: ./.github/scripts/test-document-batch.ps1 -SelfTest
       - name: Installer .NET 8
         uses: actions/setup-dotnet@v4
         with:
