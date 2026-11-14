@@ -23,7 +23,11 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
                 $null -eq $entry.PSObject.Properties['status']) { throw 'invalid-journal-entry' }
             $key = [string]$entry.hash
             $value = [string]$entry.status
-            if ($key -notmatch '^[A-Fa-f0-9]{64}
+            if ($key -notmatch '^[A-Fa-f0-9]{64}$' -or $value -ne 'valid' -or $journal.ContainsKey($key)) {
+                throw 'invalid-journal-entry'
+            }
+            $journal[$key] = $value
+        }
     }
     $allowed = @{
         Cheque = @('emetteur_numero_cheque','emetteur_du_cheque','beneficiaire_nom','date_emission','montant_numerique')
