@@ -228,6 +228,14 @@ IF EXISTS (SELECT 1 FROM dbo.Coordonnees c
     WHERE c.Email IN (N'a@example.invalid',N'b-corrige@example.invalid')
       AND t.Id IS NULL)
     THROW 51027, 'Coordonnees TEST orphelines apres rollback', 1;
+-- Le contrôle des identifiants et des emails ne suffit pas à prouver que
+-- la ville du tiers B n'a pas été altérée par les transactions interrompues.
+IF (SELECT COUNT(*) FROM dbo.Tiers t
+    JOIN dbo.Coordonnees c ON c.IdTiers=t.Id
+    WHERE t.raisonSociale=N'CI-Tiers-Fictif-B'
+      AND c.Email=N'b-corrige@example.invalid'
+      AND c.Ville=N'Ville B corrigée') <> 1
+    THROW 51028, 'Ville ou coordonnees du tiers B modifiees apres rollback', 1;
 '@
                     [void]$command.ExecuteNonQuery()
                 }
