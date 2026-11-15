@@ -47,7 +47,8 @@ if ($SelfTest) {
         }
         $payload = @(
             @{message_id='synthetic01';attachment_id='a01';filename='facture.pdf';content_base64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('fictive-facture'));analysis=$analysis},
-            @{message_id='synthetic02';attachment_id='a02';filename='scan.pdf';content_base64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('fictive-unknown'))}
+            @{message_id='synthetic02';attachment_id='a02';filename='scan.pdf';content_base64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('fictive-unknown'))},
+            @{message_id='synthetic03';attachment_id='a03';filename='facture-copie.pdf';content_base64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('fictive-facture'));analysis=$analysis}
         )
         ConvertTo-Json -InputObject $payload -Depth 12 | Set-Content -LiteralPath $manifest -Encoding utf8
         # A volume root is not a safe destination for synthetic attachments.
@@ -58,9 +59,9 @@ if ($SelfTest) {
         }
         if (-not $rootRejected) { throw 'volume-root-not-rejected' }
         $first = Invoke-FixturePipeline $manifest $workspace
-        if ($first.total -ne 2 -or $first.valid -ne 1 -or $first.review -ne 1 -or $first.skipped -ne 0) { throw 'first-pass-counts' }
+        if ($first.total -ne 3 -or $first.valid -ne 1 -or $first.review -ne 1 -or $first.skipped -ne 1) { throw 'first-pass-counts' }
         $second = Invoke-FixturePipeline $manifest $workspace
-        if ($second.total -ne 2 -or $second.skipped -ne 1 -or $second.review -ne 1 -or $second.valid -ne 0) { throw 'resume-counts' }
+        if ($second.total -ne 3 -or $second.skipped -ne 2 -or $second.review -ne 1 -or $second.valid -ne 0) { throw 'resume-counts' }
         if (-not (Test-Path -LiteralPath (Join-Path $workspace 'state/journal.json'))) { throw 'missing-resume-journal' }
         Write-Output 'PASS: synthetic intake -> typed validation -> review -> SHA256 resume'
     } finally {
