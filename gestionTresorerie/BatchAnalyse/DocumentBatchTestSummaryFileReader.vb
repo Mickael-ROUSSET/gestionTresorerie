@@ -25,7 +25,7 @@ Public NotInheritable Class DocumentBatchTestSummaryFileReader
                 Throw New FormatException("Bilan TEST trop volumineux.")
             End If
 
-            Using reader As New StreamReader(stream, New UTF8Encoding(False, True), True)
+            Using reader As New StreamReader(stream, New UTF8Encoding(False, True), False)
                 Dim json = reader.ReadToEnd()
                 If stream.Length > MaxSummaryBytes Then
                     Throw New FormatException("Bilan TEST trop volumineux.")
