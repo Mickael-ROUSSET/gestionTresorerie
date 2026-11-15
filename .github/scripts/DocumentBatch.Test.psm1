@@ -85,6 +85,18 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
                     foreach ($field in $transactionFields) {
                         if ($field -notin $allowed[$kind] -or $field -in $identityAllowed[$kind]) { throw 'unexpected-transaction-field' }
                     }
+                    # Identifier and name fields are textual, never coerced from JSON numbers.
+                    # This preserves leading zeros in cheque and invoice references.
+                    foreach ($field in $identityFields) {
+                        $value = $doc.donnees_extraites.identite.PSObject.Properties[$field].Value
+                        if ($null -ne $value -and $value -isnot [string]) { throw 'invalid-identity-type' }
+                    }
+                    foreach ($field in @('numero_facture','reference')) {
+                        $property = $doc.donnees_extraites.transaction.PSObject.Properties[$field]
+                        if ($null -ne $property -and $null -ne $property.Value -and $property.Value -isnot [string]) {
+                            throw 'invalid-reference-type'
+                        }
+                    }
                     # Validate typed fields before journaling.
                     $transaction = $doc.donnees_extraites.transaction
                     foreach ($field in @('montant_numerique','montant_ttc')) {
