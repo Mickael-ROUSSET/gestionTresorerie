@@ -73,6 +73,16 @@ if ($SelfTest) {
         if (@($third | Where-Object status -eq 'valid').Count -ne 1 -or @($third | Where-Object status -eq 'skipped').Count -ne 3 -or @($third | Where-Object status -eq 'review').Count -ne 6) { throw 'Corrected analysis was not retried' }
         $fourth = @(Invoke-FictitiousBatch $inputPath $statePath)
         if (@($fourth | Where-Object status -eq 'skipped').Count -ne 4 -or @($fourth | Where-Object status -eq 'review').Count -ne 6) { throw 'Corrected analysis was not persisted' }
+        # Cheque identifiers must remain text: leading zeros are significant.
+        $chequePath = Join-Path $inputPath 'cheque-leading-zero.pdf'
+        [IO.File]::WriteAllBytes($chequePath, [Text.Encoding]::UTF8.GetBytes('fictitious-cheque-leading-zero'))
+        $chequeJson = '{"type_document":"Cheque","donnees_extraites":{"identite":{"emetteur_numero_cheque":"00001234","emetteur_du_cheque":"Association fictive","beneficiaire_nom":"Tiers fictif"},"transaction":{"date_emission":"2026-11-14","montant_numerique":15.25}}}'
+        Set-Content -LiteralPath ($chequePath + '.analysis.json') -Value $chequeJson -Encoding utf8
+        $chequePass = @(Invoke-FictitiousBatch $inputPath $statePath)
+        if (@($chequePass | Where-Object { $_.name -eq 'cheque-leading-zero.pdf' -and $_.status -eq 'valid' }).Count -ne 1) { throw 'Cheque with text identifier was rejected' }
+        $chequeResume = @(Invoke-FictitiousBatch $inputPath $statePath)
+        if (@($chequeResume | Where-Object { $_.name -eq 'cheque-leading-zero.pdf' -and $_.status -eq 'skipped' }).Count -ne 1) { throw 'Cheque was not resumed by SHA256' }
+        Remove-Item -LiteralPath $chequePath, ($chequePath + '.analysis.json') -Force
         # A truncated journal must stop processing without destroying the recovery point.
         $journalPath = Join-Path $statePath 'journal.json'
         $goodJournal = Get-Content -LiteralPath $journalPath -Raw
