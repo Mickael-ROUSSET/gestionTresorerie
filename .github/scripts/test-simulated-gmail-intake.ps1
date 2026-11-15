@@ -105,6 +105,17 @@ if ($SelfTest) {
         }
         if (-not $rejectedSidecar) { throw 'tampered-sidecar-accepted' }
         Set-Content -LiteralPath $sidecar -Value $original -Encoding utf8
+        # A conflicting later entry must not leave an earlier new attachment behind.
+        $fresh = @{message_id='mail03';attachment_id='att03';filename='fresh.pdf';content_base64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('synthetic-new'))}
+        $conflicting = @{message_id='mail01';attachment_id='att01';filename='invoice.pdf';content_base64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('different-bytes'));analysis=$analysis}
+        ConvertTo-Json -InputObject @($fresh, $conflicting) -Depth 12 | Set-Content -LiteralPath $manifest -Encoding utf8
+        $rejectedBatch = $false
+        try { [void](Import-SimulatedAttachments $manifest $dest) } catch {
+            if ($_.Exception.Message -eq 'existing-attachment-conflict') { $rejectedBatch = $true }
+        }
+        if (-not $rejectedBatch) { throw 'conflicting-batch-accepted' }
+        if (Test-Path -LiteralPath (Join-Path $dest 'mail03_att03.pdf')) { throw 'partial-import-on-conflict' }
+        if (Test-Path -LiteralPath (Join-Path $dest 'mail03_att03.pdf.analysis.json')) { throw 'partial-sidecar-on-conflict' }
         $bad = @(@{message_id='../escape';attachment_id='att03';filename='x.pdf';content_base64=[Convert]::ToBase64String($bytes)})
         ConvertTo-Json -InputObject $bad -Depth 8 | Set-Content -LiteralPath $manifest -Encoding utf8
         $rejected = $false
