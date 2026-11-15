@@ -10,10 +10,12 @@ function Invoke-ScanBatch([string]$InputDirectory, [string]$StateDirectory) {
     }
     $items = @(Invoke-FictitiousBatch $InputDirectory $StateDirectory)
     return [pscustomobject]@{
+        schema_version = 1
         total = $items.Count
         valid = @($items | Where-Object status -eq 'valid').Count
         review = @($items | Where-Object status -eq 'review').Count
         skipped = @($items | Where-Object status -eq 'skipped').Count
+        requires_review = (@($items | Where-Object status -eq 'review').Count -gt 0)
         documents = $items
     }
 }
@@ -38,11 +40,19 @@ if ($SelfTest) {
         ConvertTo-Json -InputObject $analysis -Depth 12 | Set-Content -LiteralPath ($invoice + '.analysis.json') -Encoding utf8
         $first = Invoke-ScanBatch $inputDir $stateDir
         if ($first.total -ne 2 -or $first.valid -ne 1 -or $first.review -ne 1 -or $first.skipped -ne 0) { throw 'first-pass-counts' }
+        # Validate the serialized contract consumed by a future VB.NET TEST adapter.
+        $serialized = $first | ConvertTo-Json -Depth 12 | ConvertFrom-Json
+        if ($serialized.schema_version -ne 1 -or $serialized.requires_review -ne $true -or
+            $serialized.total -ne ($serialized.valid + $serialized.review + $serialized.skipped) -or
+            @($serialized.documents).Count -ne 2) { throw 'summary-json-contract' }
         $second = Invoke-ScanBatch $inputDir $stateDir
         if ($second.total -ne 2 -or $second.valid -ne 0 -or $second.review -ne 1 -or $second.skipped -ne 1) { throw 'resume-counts' }
         ConvertTo-Json -InputObject $analysis -Depth 12 | Set-Content -LiteralPath ($unknown + '.analysis.json') -Encoding utf8
         $third = Invoke-ScanBatch $inputDir $stateDir
         if ($third.total -ne 2 -or $third.valid -ne 1 -or $third.review -ne 0 -or $third.skipped -ne 1) { throw 'review-recovery-counts' }
+        $recovered = $third | ConvertTo-Json -Depth 12 | ConvertFrom-Json
+        if ($recovered.requires_review -ne $false -or $recovered.total -ne
+            ($recovered.valid + $recovered.review + $recovered.skipped)) { throw 'recovery-summary-contract' }
         $fourth = Invoke-ScanBatch $inputDir $stateDir
         if ($fourth.total -ne 2 -or $fourth.skipped -ne 2) { throw 'final-resume-counts' }
         Write-Output 'PASS: standalone synthetic scan batch and resumable review'
