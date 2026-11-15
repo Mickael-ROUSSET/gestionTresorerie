@@ -83,6 +83,20 @@ if ($SelfTest) {
         $chequeResume = @(Invoke-FictitiousBatch $inputPath $statePath)
         if (@($chequeResume | Where-Object { $_.name -eq 'cheque-leading-zero.pdf' -and $_.status -eq 'skipped' }).Count -ne 1) { throw 'Cheque was not resumed by SHA256' }
         Remove-Item -LiteralPath $chequePath, ($chequePath + '.analysis.json') -Force
+        # Numeric cheque numbers and invoice references must not be silently coerced to text.
+        foreach ($case in @(
+            @{ Name='numeric-cheque'; Json='{"type_document":"Cheque","donnees_extraites":{"identite":{"emetteur_numero_cheque":1234,"emetteur_du_cheque":"Association fictive","beneficiaire_nom":"Tiers fictif"},"transaction":{"date_emission":"2026-11-14","montant_numerique":15.25}}}' },
+            @{ Name='numeric-invoice'; Json='{"type_document":"Facture","donnees_extraites":{"identite":{"fournisseur_nom":"Entreprise fictive"},"transaction":{"numero_facture":1234,"date_facture":"2026-11-14","montant_ttc":12.50}}}' }
+        )) {
+            $fixture = Join-Path $inputPath ($case.Name + '.pdf')
+            [IO.File]::WriteAllBytes($fixture, [Text.Encoding]::UTF8.GetBytes('fictitious-' + $case.Name))
+            Set-Content -LiteralPath ($fixture + '.analysis.json') -Value $case.Json -Encoding utf8
+            $attempt = @(Invoke-FictitiousBatch $inputPath $statePath)
+            if (@($attempt | Where-Object { $_.name -eq ($case.Name + '.pdf') -and $_.status -eq 'review' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) {
+                throw "Numeric textual identifier accepted: $($case.Name)"
+            }
+            Remove-Item -LiteralPath $fixture, ($fixture + '.analysis.json') -Force
+        }
         # A truncated journal must stop processing without destroying the recovery point.
         $journalPath = Join-Path $statePath 'journal.json'
         $goodJournal = Get-Content -LiteralPath $journalPath -Raw
