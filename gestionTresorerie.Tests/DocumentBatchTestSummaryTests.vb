@@ -37,6 +37,15 @@ Public Class DocumentBatchTestSummaryTests
     End Sub
 
     <TestMethod>
+    Public Sub ProprietesJsonDupliquees_SontRefuseesAvantLecture()
+        Dim baseJson = Summary(1, 1, 0, 0, "false", Row("valid"))
+        Dim rootDuplicate = baseJson.Replace("""schema_version"":1", """schema_version"":2,""schema_version"":1")
+        Dim rowDuplicate = baseJson.Replace("""status"":""valid""", """status"":""review"",""status"":""valid""")
+        Assert.ThrowsExactly(Of FormatException)(Sub() DocumentBatchTestSummary.Parse(rootDuplicate))
+        Assert.ThrowsExactly(Of FormatException)(Sub() DocumentBatchTestSummary.Parse(rowDuplicate))
+    End Sub
+
+    <TestMethod>
     Public Sub BilansIncoherentsOuInconnus_SontRefuses()
         Dim invalid = {
             Summary(1, 1, 0, 0, "true", Row("valid")),
