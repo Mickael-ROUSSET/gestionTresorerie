@@ -58,6 +58,14 @@ if ($SelfTest) {
             if ($_.Exception.Message -eq 'workspace-volume-root-forbidden') { $rootRejected = $true } else { throw }
         }
         if (-not $rootRejected) { throw 'volume-root-not-rejected' }
+        # Reject a workspace containing the manifest before any synthetic inbox/state is created.
+        $overlapRejected = $false
+        try { [void](Invoke-FixturePipeline $manifest $root) } catch {
+            if ($_.Exception.Message -eq 'workspace-overlaps-manifest') { $overlapRejected = $true } else { throw }
+        }
+        if (-not $overlapRejected) { throw 'manifest-overlap-not-rejected' }
+        if ((Test-Path -LiteralPath (Join-Path $root 'inbox')) -or
+            (Test-Path -LiteralPath (Join-Path $root 'state'))) { throw 'manifest-overlap-created-files' }
         $first = Invoke-FixturePipeline $manifest $workspace
         if ($first.total -ne 3 -or $first.valid -ne 1 -or $first.review -ne 1 -or $first.skipped -ne 1) { throw 'first-pass-counts' }
         $second = Invoke-FixturePipeline $manifest $workspace
