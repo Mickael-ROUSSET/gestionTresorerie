@@ -33,6 +33,9 @@ jobs:
       - name: Tester le lot documentaire fictif et la reprise
         shell: pwsh
         run: ./.github/scripts/test-document-batch.ps1 -SelfTest
+      - name: Tester import Gmail simulé et prévalidation sans écriture partielle
+        shell: pwsh
+        run: ./.github/scripts/test-simulated-gmail-intake.ps1 -SelfTest
       - name: Installer .NET 8
         uses: actions/setup-dotnet@v4
         with:
