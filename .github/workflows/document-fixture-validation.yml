@@ -1,0 +1,19 @@
+name: Document fixture validation
+on:
+  push:
+    branches:
+      - feature/document-batch-gmail-fixture-20261115
+  pull_request:
+    branches:
+      - fix/document-batch-type-contract-20261115
+  workflow_dispatch:
+jobs:
+  fictitious-document-batch:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify batch engine and simulated Gmail intake
+        shell: pwsh
+        run: |
+          ./.github/scripts/test-document-batch.ps1 -SelfTest
+          ./.github/scripts/test-simulated-gmail-intake.ps1 -SelfTest
