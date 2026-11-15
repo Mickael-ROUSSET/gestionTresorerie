@@ -8,6 +8,10 @@ function Invoke-FixturePipeline([string]$Manifest, [string]$Workspace) {
     if (-not (Test-Path -LiteralPath $Manifest -PathType Leaf)) { throw 'manifest-missing' }
     $manifestFull = [IO.Path]::GetFullPath((Resolve-Path -LiteralPath $Manifest).Path)
     $workspaceFull = [IO.Path]::GetFullPath($Workspace)
+    # Never allow an intake to write its inbox/state directly at a volume root.
+    if ($workspaceFull.TrimEnd([char[]]@('\\','/')).Equals(
+        ([IO.Path]::GetPathRoot($workspaceFull)).TrimEnd([char[]]@('\\','/')),
+        [StringComparison]::OrdinalIgnoreCase)) { throw 'workspace-volume-root-forbidden' }
     $sep = [string][IO.Path]::DirectorySeparatorChar
     if ($workspaceFull.Equals($manifestFull, [StringComparison]::OrdinalIgnoreCase) -or
         $manifestFull.StartsWith($workspaceFull.TrimEnd([char[]]@('\','/')) + $sep, [StringComparison]::OrdinalIgnoreCase)) {
@@ -46,6 +50,13 @@ if ($SelfTest) {
             @{message_id='synthetic02';attachment_id='a02';filename='scan.pdf';content_base64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('fictive-unknown'))}
         )
         ConvertTo-Json -InputObject $payload -Depth 12 | Set-Content -LiteralPath $manifest -Encoding utf8
+        # A volume root is not a safe destination for synthetic attachments.
+        $volumeRoot = [IO.Path]::GetPathRoot($workspace)
+        $rootRejected = $false
+        try { [void](Invoke-FixturePipeline $manifest $volumeRoot) } catch {
+            if ($_.Exception.Message -eq 'workspace-volume-root-forbidden') { $rootRejected = $true } else { throw }
+        }
+        if (-not $rootRejected) { throw 'volume-root-not-rejected' }
         $first = Invoke-FixturePipeline $manifest $workspace
         if ($first.total -ne 2 -or $first.valid -ne 1 -or $first.review -ne 1 -or $first.skipped -ne 0) { throw 'first-pass-counts' }
         $second = Invoke-FixturePipeline $manifest $workspace
