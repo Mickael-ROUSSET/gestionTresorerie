@@ -71,6 +71,21 @@ if ($SelfTest) {
         $second = Invoke-FixturePipeline $manifest $workspace
         if ($second.total -ne 3 -or $second.skipped -ne 2 -or $second.review -ne 1 -or $second.valid -ne 0) { throw 'resume-counts' }
         if (-not (Test-Path -LiteralPath (Join-Path $workspace 'state/journal.json'))) { throw 'missing-resume-journal' }
+        # A review-only scan is retryable: adding a valid simulated engine result
+        # on a later pass must promote it to valid without reprocessing the invoice.
+        $payload[1].analysis = @{
+            type_document='Facture'
+            donnees_extraites=@{
+                identite=@{fournisseur_nom='Fournisseur scan fictif'}
+                transaction=@{numero_facture='F-0002';date_facture='2026-11-15';montant_ttc=7.25}
+            }
+        }
+        ConvertTo-Json -InputObject $payload -Depth 12 | Set-Content -LiteralPath $manifest -Encoding utf8
+        $recovered = Invoke-FixturePipeline $manifest $workspace
+        if ($recovered.total -ne 3 -or $recovered.valid -ne 1 -or $recovered.review -ne 0 -or $recovered.skipped -ne 2) { throw 'review-recovery-counts' }
+        $final = Invoke-FixturePipeline $manifest $workspace
+        if ($final.total -ne 3 -or $final.skipped -ne 3 -or $final.valid -ne 0 -or $final.review -ne 0) { throw 'review-recovery-resume' }
+
         Write-Output 'PASS: synthetic intake -> typed validation -> review -> SHA256 resume'
     } finally {
         if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force }
