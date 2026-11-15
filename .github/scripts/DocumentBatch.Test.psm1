@@ -56,7 +56,12 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
             if (Test-Path -LiteralPath $sidecar -PathType Leaf) {
                 try {
                     $doc = Get-Content -LiteralPath $sidecar -Raw | ConvertFrom-Json
-                    $kind = [string]$doc.type_document
+                    # Reject arrays, numbers and booleans before PowerShell string coercion.
+                    # A document type must be a single JSON string from the supported vocabulary.
+                    if ($null -eq $doc -or $doc -isnot [pscustomobject] -or
+                        $null -eq $doc.PSObject.Properties['type_document'] -or
+                        $doc.type_document -isnot [string]) { throw 'invalid-document-type' }
+                    $kind = $doc.type_document
                     if (-not $allowed.ContainsKey($kind)) { throw 'unknown-type' }
                     if ($null -eq $doc.donnees_extraites -or $null -eq $doc.donnees_extraites.identite -or $null -eq $doc.donnees_extraites.transaction) { throw 'missing-sections' }
                     $identityFields = @($doc.donnees_extraites.identite.PSObject.Properties.Name)
