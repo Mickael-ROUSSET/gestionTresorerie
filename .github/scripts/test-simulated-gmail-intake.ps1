@@ -45,6 +45,8 @@ function Import-SimulatedAttachments([string]$Manifest, [string]$Destination) {
             if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($entry.bytes))) { throw 'existing-attachment-conflict' }
         }
         $sidecar = $path + '.analysis.json'
+        # An orphan sidecar must not be paired with newly imported bytes.
+        if ((Test-Path -LiteralPath $sidecar) -and -not (Test-Path -LiteralPath $path -PathType Leaf)) { throw 'orphan-analysis-sidecar' }
         if (Test-Path -LiteralPath $sidecar) {
             if ($null -eq $entry.analysis) { throw 'existing-analysis-conflict' }
             $existing = Get-Content -LiteralPath $sidecar -Raw

@@ -35,7 +35,27 @@ try {
     }
     if (-not $collisionRejected) { throw 'output-filename-collision-not-rejected' }
     if (Test-Path -LiteralPath $dest) { throw 'output-filename-collision-created-inbox' }
-    Write-Output 'PASS: duplicate identity and filename collisions rejected without partial writes'
+    # An orphan analysis sidecar must not be silently associated with a new file.
+    [void](New-Item -ItemType Directory -Path $dest -Force)
+    $orphanSidecar = Join-Path $dest 'orphan_att.pdf.analysis.json'
+    Set-Content -LiteralPath $orphanSidecar -Value '{"type_document":"Facture"}' -Encoding utf8
+    $freshName = Join-Path $dest 'fresh_att.pdf'
+    $orphanEntries = @(
+        @{message_id='fresh';attachment_id='att';filename='fresh.pdf';content_base64=$bytes},
+        @{message_id='orphan';attachment_id='att';filename='orphan.pdf';content_base64=$bytes}
+    )
+    ConvertTo-Json -InputObject $orphanEntries -Depth 8 | Set-Content -LiteralPath $manifest -Encoding utf8
+    $orphanRejected = $false
+    try {
+        [void](& (Join-Path $PSScriptRoot 'test-simulated-gmail-intake.ps1') -ManifestPath $manifest -OutputDirectory $dest)
+    } catch {
+        if ($_.Exception.Message -eq 'orphan-analysis-sidecar') { $orphanRejected = $true } else { throw }
+    }
+    if (-not $orphanRejected) { throw 'orphan-sidecar-not-rejected' }
+    if (Test-Path -LiteralPath $freshName) { throw 'orphan-sidecar-partial-write' }
+    if (Test-Path -LiteralPath (Join-Path $dest 'orphan_att.pdf')) { throw 'orphan-sidecar-created-file' }
+    if (-not (Test-Path -LiteralPath $orphanSidecar)) { throw 'orphan-sidecar-destroyed' }
+    Write-Output 'PASS: duplicate IDs, filename collisions and orphan sidecars rejected without partial writes'
 } finally {
     if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force }
 }
