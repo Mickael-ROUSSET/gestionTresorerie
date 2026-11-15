@@ -54,4 +54,15 @@ Public Class DocumentBatchTestSummaryFileReaderTests
             If File.Exists(file) Then File.Delete(file)
         End Try
     End Sub
+
+    <TestMethod>
+    Public Sub BilanUtf16AvecBom_EstRefuse()
+        Dim file = Path.Combine(Path.GetTempPath(), "gt-summary-" & Guid.NewGuid().ToString("N") & ".json")
+        Try
+            File.WriteAllBytes(file, New Byte() {&HFF, &HFE, &H7B, &H0, &H7D, &H0})
+            Assert.ThrowsExactly(Of DecoderFallbackException)(Sub() DocumentBatchTestSummaryFileReader.Read(file))
+        Finally
+            If File.Exists(file) Then File.Delete(file)
+        End Try
+    End Sub
 End Class
