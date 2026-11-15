@@ -43,6 +43,25 @@ Public NotInheritable Class DocumentBatchTestSummary
         Public ReadOnly Property Reason As String
     End Class
 
+    ' System.Text.Json accepte par defaut les noms de proprietes repetes.
+    ' Refuser ces ambiguïtes avant d'interpreter un bilan TEST.
+    Private Shared Sub RejectDuplicateProperties(element As JsonElement)
+        Select Case element.ValueKind
+            Case JsonValueKind.Object
+                Dim seen As New HashSet(Of String)(StringComparer.Ordinal)
+                For Each propertyItem In element.EnumerateObject()
+                    If Not seen.Add(propertyItem.Name) Then
+                        Throw New FormatException("Propriete JSON TEST dupliquee : " & propertyItem.Name)
+                    End If
+                    RejectDuplicateProperties(propertyItem.Value)
+                Next
+            Case JsonValueKind.Array
+                For Each child In element.EnumerateArray()
+                    RejectDuplicateProperties(child)
+                Next
+        End Select
+    End Sub
+
     Private Shared Function Required(root As JsonElement, key As String, kind As JsonValueKind) As JsonElement
         Dim value As JsonElement
         If root.ValueKind <> JsonValueKind.Object OrElse
@@ -66,6 +85,7 @@ Public NotInheritable Class DocumentBatchTestSummary
         Try
             Using doc = JsonDocument.Parse(json)
                 Dim root = doc.RootElement
+                RejectDuplicateProperties(root)
                 If Count(root, "schema_version") <> 1 Then Throw New FormatException("Version de bilan non prise en charge.")
                 Dim total = Count(root, "total")
                 Dim valid = Count(root, "valid")
