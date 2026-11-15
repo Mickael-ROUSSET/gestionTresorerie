@@ -8,6 +8,7 @@ function Import-SimulatedAttachments([string]$Manifest, [string]$Destination) {
     $items = Get-Content -LiteralPath $Manifest -Raw | ConvertFrom-Json
     if ($null -eq $items -or $items -isnot [array]) { throw 'manifest-must-be-array' }
     $seen = @{}
+    $seenOutputNames = @{}
     $planned = [Collections.Generic.List[object]]::new()
     foreach ($item in $items) {
         if ($null -eq $item -or $item -isnot [pscustomobject]) { throw 'invalid-attachment' }
@@ -29,7 +30,11 @@ function Import-SimulatedAttachments([string]$Manifest, [string]$Destination) {
             $analysisText = ConvertTo-Json -InputObject $item.analysis -Depth 20 -Compress
         }
         $extension = [IO.Path]::GetExtension($item.filename).ToLowerInvariant()
-        $planned.Add([pscustomobject]@{ name=($key + $extension); bytes=$bytes; analysis=$analysisText })
+        $outputName = $key + $extension
+        # Distinct Gmail identities may collapse to the same filename when IDs contain underscores.
+        if ($seenOutputNames.ContainsKey($outputName)) { throw 'duplicate-output-filename' }
+        $seenOutputNames[$outputName] = $true
+        $planned.Add([pscustomobject]@{ name=$outputName; bytes=$bytes; analysis=$analysisText })
     }
     if (-not (Test-Path -LiteralPath $Destination)) { [void](New-Item -ItemType Directory -Path $Destination -Force) }
     # Preflight the entire import before writing any file. A previous fixture must
