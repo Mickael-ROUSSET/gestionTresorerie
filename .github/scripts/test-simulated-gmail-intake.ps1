@@ -32,11 +32,39 @@ function Import-SimulatedAttachments([string]$Manifest, [string]$Destination) {
         $planned.Add([pscustomobject]@{ name=($key + $extension); bytes=$bytes; analysis=$analysisText })
     }
     if (-not (Test-Path -LiteralPath $Destination)) { [void](New-Item -ItemType Directory -Path $Destination -Force) }
+    # Preflight the entire import before writing any file. A previous fixture must
+    # never silently retain stale analysis metadata for otherwise identical bytes.
     foreach ($entry in $planned) {
         $path = Join-Path $Destination $entry.name
         if (Test-Path -LiteralPath $path) {
             if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($entry.bytes))) { throw 'existing-attachment-conflict' }
-        } else { [IO.File]::WriteAllBytes($path, $entry.bytes) }
+        }
+        $sidecar = $path + '.analysis.json'
+        if (Test-Path -LiteralPath $sidecar) {
+            if ($null -eq $entry.analysis) { throw 'existing-analysis-conflict' }
+            $existing = Get-Content -LiteralPath $sidecar -Raw
+            try {
+                $existingJson = ConvertFrom-Json -InputObject $existing -ErrorAction Stop
+                $expectedJson = ConvertFrom-Json -InputObject $entry.analysis -ErrorAction Stop
+            } catch { throw 'existing-analysis-conflict' }
+            # Compare canonicalized JSON values, not whitespace or property ordering.
+            function Normalize-Json($value) {
+                if ($null -eq $value) { return 'null' }
+                if ($value -is [pscustomobject]) {
+                    $parts = @($value.PSObject.Properties | Sort-Object Name | ForEach-Object {
+                        (ConvertTo-Json -InputObject $_.Name -Compress) + ':' + (Normalize-Json $_.Value)
+                    })
+                    return '{' + ($parts -join ',') + '}'
+                }
+                if ($value -is [array]) { return '[' + ((@($value | ForEach-Object { Normalize-Json $_ })) -join ',') + ']' }
+                return (ConvertTo-Json -InputObject $value -Compress -Depth 20)
+            }
+            if ((Normalize-Json $existingJson) -cne (Normalize-Json $expectedJson)) { throw 'existing-analysis-conflict' }
+        }
+    }
+    foreach ($entry in $planned) {
+        $path = Join-Path $Destination $entry.name
+        if (-not (Test-Path -LiteralPath $path)) { [IO.File]::WriteAllBytes($path, $entry.bytes) }
         if ($null -ne $entry.analysis) {
             $sidecar = $path + '.analysis.json'
             if (-not (Test-Path -LiteralPath $sidecar)) { Set-Content -LiteralPath $sidecar -Value $entry.analysis -Encoding utf8 }
@@ -66,6 +94,17 @@ if ($SelfTest) {
         if (@($first | Where-Object status -eq 'valid').Count -ne 1 -or @($first | Where-Object status -eq 'skipped').Count -ne 1) { throw 'batch-dedup-failed' }
         $second = @(Invoke-FictitiousBatch $dest $state)
         if (@($second | Where-Object status -eq 'skipped').Count -ne 2) { throw 'batch-resume-failed' }
+        # Re-importing an unchanged fixture is idempotent.
+        if (@(Import-SimulatedAttachments $manifest $dest).Count -ne 2) { throw 'reimport-count' }
+        $sidecar = Join-Path $dest 'mail01_att01.pdf.analysis.json'
+        $original = Get-Content -LiteralPath $sidecar -Raw
+        Set-Content -LiteralPath $sidecar -Value '{"type_document":"Cheque"}' -Encoding utf8
+        $rejectedSidecar = $false
+        try { [void](Import-SimulatedAttachments $manifest $dest) } catch {
+            if ($_.Exception.Message -eq 'existing-analysis-conflict') { $rejectedSidecar = $true }
+        }
+        if (-not $rejectedSidecar) { throw 'tampered-sidecar-accepted' }
+        Set-Content -LiteralPath $sidecar -Value $original -Encoding utf8
         $bad = @(@{message_id='../escape';attachment_id='att03';filename='x.pdf';content_base64=[Convert]::ToBase64String($bytes)})
         ConvertTo-Json -InputObject $bad -Depth 8 | Set-Content -LiteralPath $manifest -Encoding utf8
         $rejected = $false
