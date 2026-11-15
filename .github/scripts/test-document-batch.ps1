@@ -97,6 +97,20 @@ if ($SelfTest) {
             }
             Remove-Item -LiteralPath $fixture, ($fixture + '.analysis.json') -Force
         }
+        # A JSON array or number must never be coerced into a valid document type.
+        foreach ($case in @(
+            @{ Name='array-type'; Json='{"type_document":["Facture"],"donnees_extraites":{"identite":{"fournisseur_nom":"Entreprise fictive"},"transaction":{"numero_facture":"F-1","date_facture":"2026-11-14","montant_ttc":12.50}}}' },
+            @{ Name='number-type'; Json='{"type_document":42,"donnees_extraites":{"identite":{"fournisseur_nom":"Entreprise fictive"},"transaction":{"numero_facture":"F-1","date_facture":"2026-11-14","montant_ttc":12.50}}}' }
+        )) {
+            $fixture = Join-Path $inputPath ($case.Name + '.pdf')
+            [IO.File]::WriteAllBytes($fixture, [Text.Encoding]::UTF8.GetBytes('fictitious-' + $case.Name))
+            Set-Content -LiteralPath ($fixture + '.analysis.json') -Value $case.Json -Encoding utf8
+            $attempt = @(Invoke-FictitiousBatch $inputPath $statePath)
+            if (@($attempt | Where-Object { $_.name -eq ($case.Name + '.pdf') -and $_.status -eq 'review' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) {
+                throw "Non-string document type accepted: $($case.Name)"
+            }
+            Remove-Item -LiteralPath $fixture, ($fixture + '.analysis.json') -Force
+        }
         # A truncated journal must stop processing without destroying the recovery point.
         $journalPath = Join-Path $statePath 'journal.json'
         $goodJournal = Get-Content -LiteralPath $journalPath -Raw
