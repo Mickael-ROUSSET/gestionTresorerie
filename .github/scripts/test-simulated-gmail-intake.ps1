@@ -19,8 +19,7 @@ function Import-SimulatedAttachments([string]$Manifest, [string]$Destination) {
         }
         if ($item.message_id -cnotmatch '^[A-Za-z0-9_-]{1,80}$' -or $item.attachment_id -cnotmatch '^[A-Za-z0-9_-]{1,80}$') { throw 'unsafe-identifier' }
         if ($item.filename -cnotmatch '^[^/\\:]+\.(pdf|png|jpg|jpeg)$' -or $item.filename -match '^\.\.') { throw 'unsafe-filename' }
-        # Windows device names and trailing dots/spaces are not safe file names.
-        # Validate the source name even though the output name is generated from IDs.
+        # Validate source filenames even when destination names derive from IDs.
         $stem = [IO.Path]::GetFileNameWithoutExtension($item.filename)
         if ($stem -match '^(?i:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])
         if ($seen.ContainsKey($key)) { throw 'duplicate-attachment-id' }
@@ -148,6 +147,7 @@ if ($SelfTest) {
     Import-SimulatedAttachments $ManifestPath $OutputDirectory
 }
  -or
+            $item.filename -match '[<>"|?*\x00-\x1F]' -or
             $item.filename -match '[. ]
         if ($seen.ContainsKey($key)) { throw 'duplicate-attachment-id' }
         $seen[$key] = $true
@@ -263,8 +263,7 @@ if ($SelfTest) {
     if (-not $ManifestPath -or -not $OutputDirectory) { throw 'ManifestPath and OutputDirectory required' }
     Import-SimulatedAttachments $ManifestPath $OutputDirectory
 }
- -or $item.filename -match '[<>|"*?]' -or
-            $item.filename -match '[\x00-\x1F]') { throw 'unsafe-windows-filename' }
+) { throw 'unsafe-windows-filename' }
         $key = $item.message_id + '_' + $item.attachment_id
         if ($seen.ContainsKey($key)) { throw 'duplicate-attachment-id' }
         $seen[$key] = $true
