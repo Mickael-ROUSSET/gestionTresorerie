@@ -80,6 +80,20 @@ Public NotInheritable Class DocumentBatchTestSummary
         Return number
     End Function
 
+    Private Shared Function IsSafeWindowsLeafName(name As String) As Boolean
+        If String.IsNullOrWhiteSpace(name) OrElse name = "." OrElse name = ".." Then Return False
+        If name.EndsWith(" ", StringComparison.Ordinal) OrElse name.EndsWith(".", StringComparison.Ordinal) Then Return False
+        If name.IndexOfAny(New Char() {"<"c, ">"c, ":"c, """"c, "/"c, "\"c, "|"c, "?"c, "*"c}) >= 0 Then Return False
+        For Each character In name
+            If AscW(character) < 32 Then Return False
+        Next
+        Dim stem = name.Split("."c)(0).ToUpperInvariant()
+        If stem = "CON" OrElse stem = "PRN" OrElse stem = "AUX" OrElse stem = "NUL" Then Return False
+        If stem.Length = 4 AndAlso (stem.StartsWith("COM", StringComparison.Ordinal) OrElse stem.StartsWith("LPT", StringComparison.Ordinal)) AndAlso
+           stem(3) >= "1"c AndAlso stem(3) <= "9"c Then Return False
+        Return True
+    End Function
+
     Public Shared Function Parse(json As String) As DocumentBatchTestSummary
         If String.IsNullOrWhiteSpace(json) Then Throw New FormatException("Bilan TEST vide.")
         Try
@@ -105,7 +119,7 @@ Public NotInheritable Class DocumentBatchTestSummary
                     Dim hash = Required(item, "hash", JsonValueKind.String).GetString()
                     Dim status = Required(item, "status", JsonValueKind.String).GetString()
                     Dim reason = Required(item, "reason", JsonValueKind.String).GetString()
-                    If String.IsNullOrWhiteSpace(name) OrElse String.IsNullOrWhiteSpace(reason) OrElse
+                    If Not IsSafeWindowsLeafName(name) OrElse String.IsNullOrWhiteSpace(reason) OrElse
                        String.IsNullOrWhiteSpace(hash) OrElse hash.Length <> 64 OrElse
                        Not System.Text.RegularExpressions.Regex.IsMatch(hash, "\A[0-9a-fA-F]{64}\z") OrElse
                        Not counts.ContainsKey(status) Then
