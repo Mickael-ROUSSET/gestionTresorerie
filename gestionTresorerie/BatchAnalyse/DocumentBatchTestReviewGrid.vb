@@ -13,6 +13,14 @@ Public NotInheritable Class DocumentBatchTestReviewGrid
     Private Sub New()
     End Sub
 
+    ''' <summary>
+    ''' Charge un bilan fictif valide depuis un fichier local et prepare sa grille.
+    ''' La lecture conserve le fichier source intact.
+    ''' </summary>
+    Public Shared Function CreateTableFromFile(path As String) As DataTable
+        Return CreateTable(DocumentBatchTestReviewSnapshot.FromFile(path))
+    End Function
+
     Public Shared Function CreateTable(snapshot As DocumentBatchTestReviewSnapshot) As DataTable
         If snapshot Is Nothing Then Throw New ArgumentNullException(NameOf(snapshot))
 
