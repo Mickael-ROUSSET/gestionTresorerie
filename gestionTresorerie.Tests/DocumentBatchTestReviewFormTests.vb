@@ -113,6 +113,35 @@ Public Class DocumentBatchTestReviewFormTests
                End Sub)
     End Sub
 
+    <TestMethod>
+    Public Sub BilanSupprimeApresChargementConserveLaRevueEtPermetLaReprise()
+        RunSta(Sub()
+                   Dim path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "review-missing-" & Guid.NewGuid().ToString("N") & ".json")
+                   Dim template = "{""schema_version"":1,""total"":1,""valid"":0,""review"":1,""skipped"":0,""requires_review"":true,""documents"":[{""name"":""{0}"",""hash"":""" & HashValue & """,""status"":""review"",""reason"":""verification manuelle""}]}"
+                   Try
+                       File.WriteAllText(path, template.Replace("{0}", "avant.pdf", StringComparison.Ordinal), New UTF8Encoding(False))
+                       Using form As New DocumentBatchTestReviewForm()
+                           form.LoadTestSummary(path)
+                           Dim originalTitle = form.Text
+                           Dim originalStatus = form.StatusText
+                           File.Delete(path)
+                           Assert.ThrowsExactly(Of FileNotFoundException)(Sub() form.LoadTestSummary(path))
+                           Assert.AreEqual("avant.pdf", form.ReviewGrid.Rows(0).Cells("Nom").Value)
+                           Assert.AreEqual(path, form.LoadedSummaryPath)
+                           Assert.AreEqual(originalTitle, form.Text)
+                           Assert.AreEqual(originalStatus, form.StatusText)
+                           Assert.IsTrue(form.ReloadSummaryButton.Enabled)
+                           File.WriteAllText(path, template.Replace("{0}", "retabli.pdf", StringComparison.Ordinal), New UTF8Encoding(False))
+                           form.LoadTestSummary(path)
+                           Assert.AreEqual("retabli.pdf", form.ReviewGrid.Rows(0).Cells("Nom").Value)
+                           Assert.AreEqual(originalTitle, form.Text)
+                       End Using
+                   Finally
+                       If File.Exists(path) Then File.Delete(path)
+                   End Try
+               End Sub)
+    End Sub
+
     Private Shared Sub RunSta(action As Action)
         Dim failure As Exception = Nothing
         Dim worker As New Thread(Sub()
