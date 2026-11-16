@@ -35,6 +35,20 @@ try {
     }
     if (-not $collisionRejected) { throw 'output-filename-collision-not-rejected' }
     if (Test-Path -LiteralPath $dest) { throw 'output-filename-collision-created-inbox' }
+    # A malformed later attachment must reject the entire batch before any write.
+    $malformed = @(
+        @{message_id='new';attachment_id='good';filename='good.pdf';content_base64=$bytes},
+        @{message_id='new';attachment_id='bad';filename='bad.pdf';content_base64='not-base64!'}
+    )
+    ConvertTo-Json -InputObject $malformed -Depth 8 | Set-Content -LiteralPath $manifest -Encoding utf8
+    $invalidBase64Rejected = $false
+    try {
+        [void](& (Join-Path $PSScriptRoot 'test-simulated-gmail-intake.ps1') -ManifestPath $manifest -OutputDirectory $dest)
+    } catch {
+        if ($_.Exception.Message -like '*invalid-base64*' -or $_.ToString() -like '*invalid-base64*') { $invalidBase64Rejected = $true } else { throw }
+    }
+    if (-not $invalidBase64Rejected) { throw 'invalid-base64-not-rejected' }
+    if (Test-Path -LiteralPath $dest) { throw 'invalid-base64-created-inbox' }
     # An orphan analysis sidecar must not be silently associated with a new file.
     [void](New-Item -ItemType Directory -Path $dest -Force)
     $orphanSidecar = Join-Path $dest 'orphan_att.pdf.analysis.json'
@@ -55,7 +69,7 @@ try {
     if (Test-Path -LiteralPath $freshName) { throw 'orphan-sidecar-partial-write' }
     if (Test-Path -LiteralPath (Join-Path $dest 'orphan_att.pdf')) { throw 'orphan-sidecar-created-file' }
     if (-not (Test-Path -LiteralPath $orphanSidecar)) { throw 'orphan-sidecar-destroyed' }
-    Write-Output 'PASS: duplicate IDs, filename collisions and orphan sidecars rejected without partial writes'
+    Write-Output 'PASS: duplicate IDs, filename collisions, malformed base64 and orphan sidecars rejected without partial writes'
 } finally {
     if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force }
 }
