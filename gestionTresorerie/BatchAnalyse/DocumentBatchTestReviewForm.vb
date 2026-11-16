@@ -119,5 +119,6 @@ Public NotInheritable Class DocumentBatchTestReviewForm
         _loadedSummaryPath = path
         _reloadSummaryButton.Enabled = True
         _status.Text = "TEST - Documents a examiner : " & _grid.Rows.Count.ToString(Globalization.CultureInfo.InvariantCulture)
+        Text = "TEST - Revue documentaire - " & IO.Path.GetFileName(path)
     End Sub
 End Class
