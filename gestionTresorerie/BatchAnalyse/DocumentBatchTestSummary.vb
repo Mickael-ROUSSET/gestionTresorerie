@@ -85,7 +85,7 @@ Public NotInheritable Class DocumentBatchTestSummary
         If name.EndsWith(" ", StringComparison.Ordinal) OrElse name.EndsWith(".", StringComparison.Ordinal) Then Return False
         If name.IndexOfAny(New Char() {"<"c, ">"c, ":"c, """"c, "/"c, "\"c, "|"c, "?"c, "*"c}) >= 0 Then Return False
         For Each character In name
-            If AscW(character) < 32 Then Return False
+            If Char.IsControl(character) Then Return False
         Next
         Dim stem = name.Split("."c)(0).ToUpperInvariant()
         If stem = "CON" OrElse stem = "PRN" OrElse stem = "AUX" OrElse stem = "NUL" Then Return False
