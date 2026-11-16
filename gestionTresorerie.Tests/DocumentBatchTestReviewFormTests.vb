@@ -37,10 +37,16 @@ Public Class DocumentBatchTestReviewFormTests
     <TestMethod>
     Public Sub BilanInvalideNeRemplacePasLaGrille()
         RunSta(Sub()
-                   Using form As New DocumentBatchTestReviewForm()
-                       Assert.ThrowsExactly(Of ArgumentNullException)(Sub() form.LoadTestSummary(Nothing))
+                   Dim path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "review-invalid-" & Guid.NewGuid().ToString("N") & ".json")
+                   File.WriteAllText(path, "{}", New UTF8Encoding(False))
+                   Try
+                       Using form As New DocumentBatchTestReviewForm()
+                       Assert.ThrowsExactly(Of FormatException)(Sub() form.LoadTestSummary(path))
                        Assert.IsNull(form.ReviewGrid.DataSource)
-                   End Using
+                       End Using
+                   Finally
+                       If File.Exists(path) Then File.Delete(path)
+                   End Try
                End Sub)
     End Sub
 
