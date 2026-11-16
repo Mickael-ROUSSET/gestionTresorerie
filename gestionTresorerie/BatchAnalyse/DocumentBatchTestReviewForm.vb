@@ -12,6 +12,7 @@ Public NotInheritable Class DocumentBatchTestReviewForm
     Inherits Form
 
     Private ReadOnly _grid As DataGridView
+    Private ReadOnly _status As Label
 
     Public Sub New()
         Text = "TEST - Documents a examiner"
@@ -27,7 +28,15 @@ Public NotInheritable Class DocumentBatchTestReviewForm
             .AutoGenerateColumns = True,
             .SelectionMode = DataGridViewSelectionMode.FullRowSelect
         }
+        _status = New Label() With {
+            .Dock = DockStyle.Top,
+            .AutoSize = False,
+            .Height = 32,
+            .TextAlign = System.Drawing.ContentAlignment.MiddleLeft,
+            .Text = "TEST - Aucun bilan charge"
+        }
         Controls.Add(_grid)
+        Controls.Add(_status)
     End Sub
 
     Public ReadOnly Property ReviewGrid As DataGridView
@@ -36,7 +45,14 @@ Public NotInheritable Class DocumentBatchTestReviewForm
         End Get
     End Property
 
+    Public ReadOnly Property StatusText As String
+        Get
+            Return _status.Text
+        End Get
+    End Property
+
     Public Sub LoadTestSummary(path As String)
         DocumentBatchTestReviewGridBinding.LoadFromFile(_grid, path)
+        _status.Text = "TEST - Documents a examiner : " & _grid.Rows.Count.ToString(Globalization.CultureInfo.InvariantCulture)
     End Sub
 End Class
