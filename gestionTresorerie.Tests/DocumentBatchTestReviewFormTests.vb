@@ -151,9 +151,12 @@ Public Class DocumentBatchTestReviewFormTests
                                          failure = ex
                                      End Try
                                  End Sub)
+        worker.IsBackground = True
         worker.SetApartmentState(ApartmentState.STA)
         worker.Start()
-        worker.Join()
+        If Not worker.Join(TimeSpan.FromSeconds(30)) Then
+            Assert.Fail("Le test WinForms STA a depasse 30 secondes (blocage possible d'une boite de dialogue).")
+        End If
         If failure IsNot Nothing Then Throw New AssertFailedException("Erreur du test STA", failure)
     End Sub
 End Class
