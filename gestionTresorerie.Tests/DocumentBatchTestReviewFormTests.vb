@@ -27,7 +27,6 @@ Public Class DocumentBatchTestReviewFormTests
                            Assert.IsTrue(form.ReviewGrid.ReadOnly)
                            Assert.AreEqual("OpenTestSummaryButton", form.OpenSummaryButton.Name)
                            Assert.IsTrue(form.OpenSummaryButton.Enabled)
-                       Assert.IsFalse(form.ReloadSummaryButton.Enabled)
                            Assert.IsTrue(form.ReloadSummaryButton.Enabled)
                            Assert.IsTrue(form.OpenSummaryButton.Text.Contains("TEST", StringComparison.Ordinal))
                            Assert.IsTrue(form.Text.StartsWith("TEST", StringComparison.Ordinal))
