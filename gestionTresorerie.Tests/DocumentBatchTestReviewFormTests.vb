@@ -83,6 +83,32 @@ Public Class DocumentBatchTestReviewFormTests
                End Sub)
     End Sub
 
+    <TestMethod>
+    Public Sub BilanCorrompuApresChargementConserveLaRevuePuisPermetLaReprise()
+        RunSta(Sub()
+                   Dim path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "review-recovery-" & Guid.NewGuid().ToString("N") & ".json")
+                   Dim template = "{""schema_version"":1,""total"":1,""valid"":0,""review"":1,""skipped"":0,""requires_review"":true,""documents"":[{""name"":""{0}"",""hash"":""" & HashValue & """,""status"":""review"",""reason"":""verification manuelle""}]}"
+                   Try
+                       File.WriteAllText(path, template.Replace("{0}", "initial.pdf", StringComparison.Ordinal), New UTF8Encoding(False))
+                       Using form As New DocumentBatchTestReviewForm()
+                           form.LoadTestSummary(path)
+                           Dim originalStatus = form.StatusText
+                           File.WriteAllText(path, "{", New UTF8Encoding(False))
+                           Assert.ThrowsExactly(Of FormatException)(Sub() form.LoadTestSummary(path))
+                           Assert.AreEqual("initial.pdf", form.ReviewGrid.Rows(0).Cells("Nom").Value)
+                           Assert.AreEqual(path, form.LoadedSummaryPath)
+                           Assert.AreEqual(originalStatus, form.StatusText)
+                           Assert.IsTrue(form.ReloadSummaryButton.Enabled)
+                           File.WriteAllText(path, template.Replace("{0}", "corrige.pdf", StringComparison.Ordinal), New UTF8Encoding(False))
+                           form.LoadTestSummary(path)
+                           Assert.AreEqual("corrige.pdf", form.ReviewGrid.Rows(0).Cells("Nom").Value)
+                       End Using
+                   Finally
+                       If File.Exists(path) Then File.Delete(path)
+                   End Try
+               End Sub)
+    End Sub
+
     Private Shared Sub RunSta(action As Action)
         Dim failure As Exception = Nothing
         Dim worker As New Thread(Sub()
