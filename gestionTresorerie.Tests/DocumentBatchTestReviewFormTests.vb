@@ -27,6 +27,7 @@ Public Class DocumentBatchTestReviewFormTests
                            Assert.IsTrue(form.ReviewGrid.ReadOnly)
                            Assert.IsTrue(form.Text.StartsWith("TEST", StringComparison.Ordinal))
                            Assert.AreEqual("TEST - Documents a examiner : 1", form.StatusText)
+                           Assert.AreEqual(path, form.LoadedSummaryPath)
                        End Using
                        CollectionAssert.AreEqual(before, File.ReadAllBytes(path))
                    Finally
@@ -45,6 +46,7 @@ Public Class DocumentBatchTestReviewFormTests
                        Assert.ThrowsExactly(Of FormatException)(Sub() form.LoadTestSummary(path))
                        Assert.IsNull(form.ReviewGrid.DataSource)
                        Assert.AreEqual("TEST - Aucun bilan charge", form.StatusText)
+                       Assert.IsNull(form.LoadedSummaryPath)
                        End Using
                    Finally
                        If File.Exists(path) Then File.Delete(path)
