@@ -25,6 +25,9 @@ Public Class DocumentBatchTestReviewFormTests
                            Assert.AreEqual(1, form.ReviewGrid.Rows.Count)
                            Assert.AreEqual("exemple.pdf", form.ReviewGrid.Rows(0).Cells("Nom").Value)
                            Assert.IsTrue(form.ReviewGrid.ReadOnly)
+                           Assert.AreEqual("OpenTestSummaryButton", form.OpenSummaryButton.Name)
+                           Assert.IsTrue(form.OpenSummaryButton.Enabled)
+                           Assert.IsTrue(form.OpenSummaryButton.Text.Contains("TEST", StringComparison.Ordinal))
                            Assert.IsTrue(form.Text.StartsWith("TEST", StringComparison.Ordinal))
                            Assert.AreEqual("TEST - Documents a examiner : 1", form.StatusText)
                            Assert.AreEqual(path, form.LoadedSummaryPath)
@@ -47,6 +50,7 @@ Public Class DocumentBatchTestReviewFormTests
                        Assert.IsNull(form.ReviewGrid.DataSource)
                        Assert.AreEqual("TEST - Aucun bilan charge", form.StatusText)
                        Assert.IsNull(form.LoadedSummaryPath)
+                       Assert.IsTrue(form.OpenSummaryButton.Enabled)
                        End Using
                    Finally
                        If File.Exists(path) Then File.Delete(path)

@@ -13,6 +13,7 @@ Public NotInheritable Class DocumentBatchTestReviewForm
 
     Private ReadOnly _grid As DataGridView
     Private ReadOnly _status As Label
+    Private ReadOnly _openSummaryButton As Button
     Private _loadedSummaryPath As String
 
     Public Sub New()
@@ -36,8 +37,38 @@ Public NotInheritable Class DocumentBatchTestReviewForm
             .TextAlign = System.Drawing.ContentAlignment.MiddleLeft,
             .Text = "TEST - Aucun bilan charge"
         }
+        _openSummaryButton = New Button() With {
+            .Dock = DockStyle.Top,
+            .Height = 34,
+            .Text = "Ouvrir un bilan TEST (JSON)",
+            .Name = "OpenTestSummaryButton"
+        }
+        AddHandler _openSummaryButton.Click, AddressOf OpenSummaryClick
         Controls.Add(_grid)
         Controls.Add(_status)
+        Controls.Add(_openSummaryButton)
+    End Sub
+
+    Public ReadOnly Property OpenSummaryButton As Button
+        Get
+            Return _openSummaryButton
+        End Get
+    End Property
+
+    Private Sub OpenSummaryClick(sender As Object, e As EventArgs)
+        Using picker As New OpenFileDialog() With {
+            .Title = "Choisir un bilan documentaire fictif TEST",
+            .Filter = "Bilans JSON (*.json)|*.json",
+            .CheckFileExists = True,
+            .Multiselect = False
+        }
+            If picker.ShowDialog(Me) <> DialogResult.OK Then Return
+            Try
+                LoadTestSummary(picker.FileName)
+            Catch ex As Exception When TypeOf ex Is FormatException OrElse TypeOf ex Is IO.IOException OrElse TypeOf ex Is UnauthorizedAccessException
+                MessageBox.Show(Me, "Bilan TEST non charge : " & ex.Message, "Bilan invalide", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            End Try
+        End Using
     End Sub
 
     Public ReadOnly Property ReviewGrid As DataGridView
