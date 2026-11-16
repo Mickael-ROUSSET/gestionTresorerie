@@ -32,6 +32,7 @@ Public Class DocumentBatchTestReviewFormTests
                            Assert.IsTrue(form.Text.StartsWith("TEST", StringComparison.Ordinal))
                            Assert.AreEqual("TEST - Documents a examiner : 1", form.StatusText)
                            Assert.AreEqual(path, form.LoadedSummaryPath)
+                           Assert.AreEqual("TEST - Revue documentaire - " & System.IO.Path.GetFileName(path), form.Text)
                        End Using
                        CollectionAssert.AreEqual(before, File.ReadAllBytes(path))
                    Finally
@@ -93,15 +94,18 @@ Public Class DocumentBatchTestReviewFormTests
                        Using form As New DocumentBatchTestReviewForm()
                            form.LoadTestSummary(path)
                            Dim originalStatus = form.StatusText
+                           Dim originalTitle = form.Text
                            File.WriteAllText(path, "{", New UTF8Encoding(False))
                            Assert.ThrowsExactly(Of FormatException)(Sub() form.LoadTestSummary(path))
                            Assert.AreEqual("initial.pdf", form.ReviewGrid.Rows(0).Cells("Nom").Value)
                            Assert.AreEqual(path, form.LoadedSummaryPath)
                            Assert.AreEqual(originalStatus, form.StatusText)
+                           Assert.AreEqual(originalTitle, form.Text)
                            Assert.IsTrue(form.ReloadSummaryButton.Enabled)
                            File.WriteAllText(path, template.Replace("{0}", "corrige.pdf", StringComparison.Ordinal), New UTF8Encoding(False))
                            form.LoadTestSummary(path)
                            Assert.AreEqual("corrige.pdf", form.ReviewGrid.Rows(0).Cells("Nom").Value)
+                           Assert.AreEqual(originalTitle, form.Text)
                        End Using
                    Finally
                        If File.Exists(path) Then File.Delete(path)
