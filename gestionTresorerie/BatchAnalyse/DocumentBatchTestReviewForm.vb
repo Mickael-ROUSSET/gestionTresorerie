@@ -13,6 +13,7 @@ Public NotInheritable Class DocumentBatchTestReviewForm
 
     Private ReadOnly _grid As DataGridView
     Private ReadOnly _status As Label
+    Private _loadedSummaryPath As String
 
     Public Sub New()
         Text = "TEST - Documents a examiner"
@@ -51,8 +52,15 @@ Public NotInheritable Class DocumentBatchTestReviewForm
         End Get
     End Property
 
+    Public ReadOnly Property LoadedSummaryPath As String
+        Get
+            Return _loadedSummaryPath
+        End Get
+    End Property
+
     Public Sub LoadTestSummary(path As String)
         DocumentBatchTestReviewGridBinding.LoadFromFile(_grid, path)
+        _loadedSummaryPath = path
         _status.Text = "TEST - Documents a examiner : " & _grid.Rows.Count.ToString(Globalization.CultureInfo.InvariantCulture)
     End Sub
 End Class
