@@ -66,12 +66,12 @@ Public Class DocumentBatchTestReviewFormTests
                    Dim path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "review-reload-" & Guid.NewGuid().ToString("N") & ".json")
                    Dim template = "{""schema_version"":1,""total"":1,""valid"":0,""review"":1,""skipped"":0,""requires_review"":true,""documents"":[{""name"":""{0}"",""hash"":""" & HashValue & """,""status"":""review"",""reason"":""verification manuelle""}]}"
                    Try
-                       File.WriteAllText(path, String.Format(Globalization.CultureInfo.InvariantCulture, template, "avant.pdf"), New UTF8Encoding(False))
+                       File.WriteAllText(path, template.Replace("{0}", "avant.pdf", StringComparison.Ordinal), New UTF8Encoding(False))
                        Using form As New DocumentBatchTestReviewForm()
                            Assert.IsFalse(form.ReloadSummaryButton.Enabled)
                            form.LoadTestSummary(path)
                            Assert.IsTrue(form.ReloadSummaryButton.Enabled)
-                           File.WriteAllText(path, String.Format(Globalization.CultureInfo.InvariantCulture, template, "apres.pdf"), New UTF8Encoding(False))
+                           File.WriteAllText(path, template.Replace("{0}", "apres.pdf", StringComparison.Ordinal), New UTF8Encoding(False))
                            form.ReloadSummaryButton.PerformClick()
                            Assert.AreEqual("apres.pdf", form.ReviewGrid.Rows(0).Cells("Nom").Value)
                            Assert.AreEqual(path, form.LoadedSummaryPath)
