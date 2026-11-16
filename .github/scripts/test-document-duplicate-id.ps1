@@ -61,6 +61,13 @@ try {
     if (-not (Test-Path -LiteralPath $goodPath -PathType Leaf) -or -not (Test-Path -LiteralPath $badPath -PathType Leaf)) {
         throw 'recovered-batch-incomplete'
     }
+    # Verify actual recovered bytes, not only file presence or timestamps.
+    $expectedHash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Convert]::FromBase64String($bytes)))
+    foreach ($path in @($goodPath, $badPath)) {
+        if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -cne $expectedHash) {
+            throw 'recovered-attachment-content-mismatch'
+        }
+    }
     $goodBefore = (Get-Item -LiteralPath $goodPath).LastWriteTimeUtc
     $badBefore = (Get-Item -LiteralPath $badPath).LastWriteTimeUtc
     & (Join-Path $PSScriptRoot 'test-simulated-gmail-intake.ps1') -ManifestPath $manifest -OutputDirectory $recoveryDest | Out-Null
@@ -69,6 +76,11 @@ try {
         throw 'recovery-retry-rewrote-attachments'
     }
     if (@(Get-ChildItem -LiteralPath $recoveryDest -File).Count -ne 2) { throw 'recovery-retry-created-extra-files' }
+    foreach ($path in @($goodPath, $badPath)) {
+        if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -cne $expectedHash) {
+            throw 'recovery-retry-changed-content'
+        }
+    }
     # An orphan analysis sidecar must not be silently associated with a new file.
     [void](New-Item -ItemType Directory -Path $dest -Force)
     $orphanSidecar = Join-Path $dest 'orphan_att.pdf.analysis.json'
