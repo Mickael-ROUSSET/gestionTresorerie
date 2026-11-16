@@ -13,7 +13,7 @@ Public Class DocumentBatchTestReviewGridFileTests
 
     <TestMethod>
     Public Sub ChargeUnLotFictifSansModifierLeFichier()
-        Dim path = Path.Combine(Path.GetTempPath(), "revue-test-" & Guid.NewGuid().ToString("N") & ".json")
+        Dim path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "revue-test-" & Guid.NewGuid().ToString("N") & ".json")
         Dim json = "{""schema_version"":1,""total"":1,""valid"":0,""review"":1,""skipped"":0,""requires_review"":true,""documents"":[{""name"":""facture-fictive.pdf"",""hash"":""" & HashValue & """,""status"":""review"",""reason"":""type incertain""}]}"
         Try
             File.WriteAllText(path, json, New UTF8Encoding(False))
@@ -31,7 +31,7 @@ Public Class DocumentBatchTestReviewGridFileTests
 
     <TestMethod>
     Public Sub RefuseUnBilanFictifInvalide()
-        Dim path = Path.Combine(Path.GetTempPath(), "revue-test-" & Guid.NewGuid().ToString("N") & ".json")
+        Dim path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "revue-test-" & Guid.NewGuid().ToString("N") & ".json")
         Try
             File.WriteAllText(path, "{}", New UTF8Encoding(False))
             Assert.ThrowsExactly(Of FormatException)(
