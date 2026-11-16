@@ -5,7 +5,7 @@ $ErrorActionPreference = 'Stop'
 
 function Import-SimulatedAttachments([string]$Manifest, [string]$Destination) {
     if (-not (Test-Path -LiteralPath $Manifest -PathType Leaf)) { throw 'manifest-missing' }
-    $items = Get-Content -LiteralPath $Manifest -Raw | ConvertFrom-Json
+    $items = Get-Content -LiteralPath $Manifest -Raw | ConvertFrom-Json -NoEnumerate
     if ($null -eq $items -or $items -isnot [array]) { throw 'manifest-must-be-array' }
     $seen = @{}
     $seenOutputNames = @{}

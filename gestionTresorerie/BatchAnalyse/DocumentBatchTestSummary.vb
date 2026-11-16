@@ -112,6 +112,8 @@ Public NotInheritable Class DocumentBatchTestSummary
                 Dim items = Required(root, "documents", JsonValueKind.Array)
                 If items.GetArrayLength() <> total Then Throw New FormatException("Nombre de documents incoherent.")
                 Dim rows As New List(Of DocumentStatus)()
+                ' Windows TEST: two entries with the same leaf name must never target the same file.
+                Dim seenNames As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
                 Dim counts As New Dictionary(Of String, Integer)(StringComparer.Ordinal) From {
                     {"valid", 0}, {"review", 0}, {"skipped", 0}}
                 For Each item In items.EnumerateArray()
@@ -124,6 +126,9 @@ Public NotInheritable Class DocumentBatchTestSummary
                        Not System.Text.RegularExpressions.Regex.IsMatch(hash, "\A[0-9a-fA-F]{64}\z") OrElse
                        Not counts.ContainsKey(status) Then
                         Throw New FormatException("Ligne documentaire TEST invalide.")
+                    End If
+                    If Not seenNames.Add(name) Then
+                        Throw New FormatException("Nom de scan TEST duplique : " & name)
                     End If
                     counts(status) += 1
                     rows.Add(New DocumentStatus(name, hash, status, reason))
