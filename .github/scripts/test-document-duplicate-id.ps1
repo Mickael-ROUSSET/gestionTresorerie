@@ -17,7 +17,7 @@ try {
     try {
         [void](& (Join-Path $PSScriptRoot 'test-simulated-gmail-intake.ps1') -ManifestPath $manifest -OutputDirectory $dest)
     } catch {
-        if ($_.ToString() -match '(^|\W)duplicate-attachment-id($|\W)') { $rejected = $true } else { throw }
+        if (($_.Exception.Message -like '*duplicate-attachment-id*' -or $_.ToString() -like '*duplicate-attachment-id*')) { $rejected = $true } else { throw }
     }
     if (-not $rejected) { throw 'duplicate-id-not-rejected' }
     if (Test-Path -LiteralPath $dest) { throw 'duplicate-id-created-inbox' }
@@ -31,7 +31,7 @@ try {
     try {
         [void](& (Join-Path $PSScriptRoot 'test-simulated-gmail-intake.ps1') -ManifestPath $manifest -OutputDirectory $dest)
     } catch {
-        if ($_.ToString() -match '(^|\W)duplicate-output-filename($|\W)') { $collisionRejected = $true } else { throw }
+        if (($_.Exception.Message -like '*duplicate-output-filename*' -or $_.ToString() -like '*duplicate-output-filename*')) { $collisionRejected = $true } else { throw }
     }
     if (-not $collisionRejected) { throw 'output-filename-collision-not-rejected' }
     if (Test-Path -LiteralPath $dest) { throw 'output-filename-collision-created-inbox' }
@@ -49,7 +49,7 @@ try {
     try {
         [void](& (Join-Path $PSScriptRoot 'test-simulated-gmail-intake.ps1') -ManifestPath $manifest -OutputDirectory $dest)
     } catch {
-        if ($_.ToString() -match '(^|\W)orphan-analysis-sidecar($|\W)') { $orphanRejected = $true } else { throw }
+        if (($_.Exception.Message -like '*orphan-analysis-sidecar*' -or $_.ToString() -like '*orphan-analysis-sidecar*')) { $orphanRejected = $true } else { throw }
     }
     if (-not $orphanRejected) { throw 'orphan-sidecar-not-rejected' }
     if (Test-Path -LiteralPath $freshName) { throw 'orphan-sidecar-partial-write' }
