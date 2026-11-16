@@ -47,6 +47,28 @@ try {
     ConvertTo-Json -InputObject $malformed -Depth 8 | Set-Content -LiteralPath $manifest -Encoding utf8
     Assert-RejectedFixture $manifest $dest 'invalid-base64'
     if (Test-Path -LiteralPath $dest) { throw 'invalid-base64-created-inbox' }
+    # Correcting a rejected manifest must permit a complete import and an idempotent retry.
+    # The rejected batch above must not have left even the first valid attachment behind.
+    $recoveryDest = Join-Path $root 'recovered-inbox'
+    $recovered = @(
+        @{message_id='new';attachment_id='good';filename='good.pdf';content_base64=$bytes},
+        @{message_id='new';attachment_id='bad';filename='bad.pdf';content_base64=$bytes}
+    )
+    ConvertTo-Json -InputObject $recovered -Depth 8 | Set-Content -LiteralPath $manifest -Encoding utf8
+    & (Join-Path $PSScriptRoot 'test-simulated-gmail-intake.ps1') -ManifestPath $manifest -OutputDirectory $recoveryDest | Out-Null
+    $goodPath = Join-Path $recoveryDest 'new_good.pdf'
+    $badPath = Join-Path $recoveryDest 'new_bad.pdf'
+    if (-not (Test-Path -LiteralPath $goodPath -PathType Leaf) -or -not (Test-Path -LiteralPath $badPath -PathType Leaf)) {
+        throw 'recovered-batch-incomplete'
+    }
+    $goodBefore = (Get-Item -LiteralPath $goodPath).LastWriteTimeUtc
+    $badBefore = (Get-Item -LiteralPath $badPath).LastWriteTimeUtc
+    & (Join-Path $PSScriptRoot 'test-simulated-gmail-intake.ps1') -ManifestPath $manifest -OutputDirectory $recoveryDest | Out-Null
+    if ((Get-Item -LiteralPath $goodPath).LastWriteTimeUtc -ne $goodBefore -or
+        (Get-Item -LiteralPath $badPath).LastWriteTimeUtc -ne $badBefore) {
+        throw 'recovery-retry-rewrote-attachments'
+    }
+    if (@(Get-ChildItem -LiteralPath $recoveryDest -File).Count -ne 2) { throw 'recovery-retry-created-extra-files' }
     # An orphan analysis sidecar must not be silently associated with a new file.
     [void](New-Item -ItemType Directory -Path $dest -Force)
     $orphanSidecar = Join-Path $dest 'orphan_att.pdf.analysis.json'
