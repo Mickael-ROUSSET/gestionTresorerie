@@ -27,6 +27,7 @@ Public Class DocumentBatchTestReviewFormTests
                            Assert.IsTrue(form.ReviewGrid.ReadOnly)
                            Assert.AreEqual("OpenTestSummaryButton", form.OpenSummaryButton.Name)
                            Assert.IsTrue(form.OpenSummaryButton.Enabled)
+                           Assert.IsTrue(form.ReloadSummaryButton.Enabled)
                            Assert.IsTrue(form.OpenSummaryButton.Text.Contains("TEST", StringComparison.Ordinal))
                            Assert.IsTrue(form.Text.StartsWith("TEST", StringComparison.Ordinal))
                            Assert.AreEqual("TEST - Documents a examiner : 1", form.StatusText)
@@ -51,6 +52,30 @@ Public Class DocumentBatchTestReviewFormTests
                        Assert.AreEqual("TEST - Aucun bilan charge", form.StatusText)
                        Assert.IsNull(form.LoadedSummaryPath)
                        Assert.IsTrue(form.OpenSummaryButton.Enabled)
+                       Assert.IsFalse(form.ReloadSummaryButton.Enabled)
+                       End Using
+                   Finally
+                       If File.Exists(path) Then File.Delete(path)
+                   End Try
+               End Sub)
+    End Sub
+
+    <TestMethod>
+    Public Sub ActualisationRechargeLeBilanCorrigeSansChangerDeChemin()
+        RunSta(Sub()
+                   Dim path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "review-reload-" & Guid.NewGuid().ToString("N") & ".json")
+                   Dim template = "{""schema_version"":1,""total"":1,""valid"":0,""review"":1,""skipped"":0,""requires_review"":true,""documents"":[{""name"":""{0}"",""hash"":""" & HashValue & """,""status"":""review"",""reason"":""verification manuelle""}]}"
+                   Try
+                       File.WriteAllText(path, String.Format(Globalization.CultureInfo.InvariantCulture, template, "avant.pdf"), New UTF8Encoding(False))
+                       Using form As New DocumentBatchTestReviewForm()
+                           Assert.IsFalse(form.ReloadSummaryButton.Enabled)
+                           form.LoadTestSummary(path)
+                           Assert.IsTrue(form.ReloadSummaryButton.Enabled)
+                           File.WriteAllText(path, String.Format(Globalization.CultureInfo.InvariantCulture, template, "apres.pdf"), New UTF8Encoding(False))
+                           form.ReloadSummaryButton.PerformClick()
+                           Assert.AreEqual("apres.pdf", form.ReviewGrid.Rows(0).Cells("Nom").Value)
+                           Assert.AreEqual(path, form.LoadedSummaryPath)
+                           Assert.AreEqual("TEST - Documents a examiner : 1", form.StatusText)
                        End Using
                    Finally
                        If File.Exists(path) Then File.Delete(path)
