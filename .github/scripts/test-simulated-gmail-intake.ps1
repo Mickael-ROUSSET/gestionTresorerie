@@ -25,8 +25,10 @@ function Import-SimulatedAttachments([string]$Manifest, [string]$Destination) {
             $item.filename -match '[<>"|?*\x00-\x1F]' -or
             $item.filename -match '[. ]$') { throw 'unsafe-windows-filename' }
         $key = $item.message_id + '_' + $item.attachment_id
-        if ($seen.ContainsKey($key)) { throw 'duplicate-attachment-id' }
-        $seen[$key] = $true
+        # Keep the identity tuple unambiguous: underscores are legal in both IDs.
+        $identityKey = $item.message_id.Length.ToString() + ':' + $item.message_id + ':' + $item.attachment_id
+        if ($seen.ContainsKey($identityKey)) { throw 'duplicate-attachment-id' }
+        $seen[$identityKey] = $true
         try { $bytes = [Convert]::FromBase64String($item.content_base64) } catch { throw 'invalid-base64' }
         if ($bytes.Length -eq 0 -or $bytes.Length -gt 10485760) { throw 'invalid-attachment-size' }
         $analysisText = $null
