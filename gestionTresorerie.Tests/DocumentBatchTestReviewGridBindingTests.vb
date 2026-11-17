@@ -69,6 +69,6 @@ Public Class DocumentBatchTestReviewGridBindingTests
         worker.SetApartmentState(ApartmentState.STA)
         worker.Start()
         worker.Join()
-        If failure IsNot Nothing Then Throw New AssertFailedException("Erreur du test STA", failure)
+        If failure IsNot Nothing Then System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failure).Throw()
     End Sub
 End Class
