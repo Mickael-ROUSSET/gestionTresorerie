@@ -63,7 +63,7 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
                         $null -eq $doc.PSObject.Properties['type_document'] -or
                         $doc.type_document -isnot [string]) { throw 'invalid-document-type' }
                     $kind = $doc.type_document
-                    if (-not $allowed.ContainsKey($kind)) { throw 'unknown-type' }
+                    if ($kind -cnotin @($allowed.Keys)) { throw 'unknown-type' }
                     if ($null -eq $doc.PSObject.Properties['donnees_extraites'] -or
                         $doc.donnees_extraites -isnot [pscustomobject] -or
                         $null -eq $doc.donnees_extraites.PSObject.Properties['identite'] -or
