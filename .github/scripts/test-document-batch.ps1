@@ -141,6 +141,25 @@ if ($SelfTest) {
         Set-Content -LiteralPath $journalPath -Encoding utf8 -Value $goodJournal
         $fifth = @(Invoke-FictitiousBatch $inputPath $statePath)
         if (@($fifth | Where-Object status -eq 'skipped').Count -ne 4) { throw 'Recovery after restoring journal failed' }
+        # Cover the remaining business document types with the same simulated contract.
+        # These fixtures are temporary, never sent to Gmail or persisted to SQL.
+        foreach ($case in @(
+            @{ Name='adhesion'; Type='FormulaireAdhesion'; Json='{"type_document":"FormulaireAdhesion","donnees_extraites":{"identite":{"nom":"Exemple","prenom":"Alice","adresse":"Adresse fictive"},"transaction":{"date_document":"2026-11-14"}}}' },
+            @{ Name='medical'; Type='QuestionnaireMedical'; Json='{"type_document":"QuestionnaireMedical","donnees_extraites":{"identite":{"nom_complet":"Personne fictive"},"transaction":{"date_document":"2026-11-14"}}}' },
+            @{ Name='recu'; Type='Recu'; Json='{"type_document":"Recu","donnees_extraites":{"identite":{"nom_complet":"Personne fictive"},"transaction":{"reference":"R-0007","date_document":"2026-11-14","montant_numerique":23.75}}}' }
+        )) {
+            $fixture = Join-Path $inputPath ($case.Name + '.pdf')
+            [IO.File]::WriteAllBytes($fixture, [Text.Encoding]::UTF8.GetBytes('fictitious-type-' + $case.Name))
+            Set-Content -LiteralPath ($fixture + '.analysis.json') -Encoding utf8 -Value $case.Json
+            $typed = @(Invoke-FictitiousBatch $inputPath $statePath)
+            if (@($typed | Where-Object { $_.name -eq ($case.Name + '.pdf') -and $_.status -eq 'valid' }).Count -ne 1) {
+                throw "Supported document type was rejected: $($case.Type)"
+            }
+            $resumed = @(Invoke-FictitiousBatch $inputPath $statePath)
+            if (@($resumed | Where-Object { $_.name -eq ($case.Name + '.pdf') -and $_.status -eq 'skipped' }).Count -ne 1) {
+                throw "Supported document type was not resumed: $($case.Type)"
+            }
+        }
         Write-Output 'PASS: fictitious batch, SHA256 duplicate, strict fields, retry, restart and corrupt-journal protection'
     } finally { if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force } }
 } else {
