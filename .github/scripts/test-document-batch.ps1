@@ -52,6 +52,8 @@ if ($SelfTest) {
             Set-Content -LiteralPath ($filePath + '.analysis.json') -Encoding utf8 -Value $case.Json
         }
         $first = @(Invoke-FictitiousBatch $inputPath $statePath)
+        if (@($first | Where-Object { $_.status -eq 'valid' -and $_.type_document -eq 'Facture' }).Count -ne 1) { throw 'Validated document type was not exposed for TEST classification' }
+        if (@($first | Where-Object { $_.status -eq 'review' -and $null -ne $_.type_document }).Count -ne 0) { throw 'Rejected document leaked an unvalidated type' }
         if (@($first | Where-Object status -eq 'valid').Count -ne 1 -or @($first | Where-Object status -eq 'skipped').Count -ne 2 -or @($first | Where-Object status -eq 'review').Count -ne 7) { throw 'First pass failed' }
         if (@($first | Where-Object { $_.name -eq (Join-Path 'gmail-fixtures' 'attachment.pdf') -and $_.status -eq 'skipped' }).Count -ne 1) { throw 'Nested attachment was not found or deduplicated' }
         if (@($first | Where-Object { $_.name -eq 'partial.pdf' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) { throw 'Partial analysis was accepted' }
