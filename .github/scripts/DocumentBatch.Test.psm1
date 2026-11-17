@@ -186,18 +186,4 @@ function ConvertTo-FictitiousBatchImportManifest([object[]]$Results) {
     return $manifest.ToArray()
 }
 
-Export-ModuleMember -Function Invoke-FictitiousBatch, ConvertTo-FictitiousBatchImportManifest -or
-            $item.name -isnot [string] -or [string]::IsNullOrWhiteSpace($item.name) -or
-            $item.type_document -isnot [string] -or $item.type_document -cnotin $types) {
-            throw 'invalid-valid-document'
-        }
-        $manifest.Add([pscustomobject]@{
-            name = $item.name
-            hash = $item.hash
-            type_document = $item.type_document
-        })
-    }
-    return $manifest.ToArray()
-}
-
 Export-ModuleMember -Function Invoke-FictitiousBatch, ConvertTo-FictitiousBatchImportManifest
