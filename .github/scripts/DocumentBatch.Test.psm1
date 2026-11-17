@@ -23,7 +23,7 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
             if ($null -eq $entry -or
                 $null -eq $entry.PSObject.Properties['hash'] -or
                 $null -eq $entry.PSObject.Properties['status'] -or
-                @($entry.PSObject.Properties.Name | Where-Object { $_ -notin @('hash','status') }).Count -gt 0) { throw 'invalid-journal-entry' }
+                @($entry.PSObject.Properties.Name | Where-Object { $_ -cnotin @('hash','status') }).Count -gt 0) { throw 'invalid-journal-entry' }
             $key = [string]$entry.hash
             $value = [string]$entry.status
             if ($key -notmatch '^[A-Fa-f0-9]{64}$' -or $value -ne 'valid' -or $journal.ContainsKey($key)) {
@@ -85,16 +85,16 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
                     $requiredIdentity = @($identityAllowed[$kind])
                     $requiredTransaction = @($allowed[$kind] | Where-Object { $_ -notin $requiredIdentity })
                     foreach ($field in $requiredIdentity) {
-                        if ($field -notin $identityFields) { throw 'missing-identity-field' }
+                        if ($field -cnotin $identityFields) { throw 'missing-identity-field' }
                     }
                     foreach ($field in $requiredTransaction) {
-                        if ($field -notin $transactionFields) { throw 'missing-transaction-field' }
+                        if ($field -cnotin $transactionFields) { throw 'missing-transaction-field' }
                     }
                     foreach ($field in $identityFields) {
-                        if ($field -notin $identityAllowed[$kind]) { throw 'unexpected-identity-field' }
+                        if ($field -cnotin $identityAllowed[$kind]) { throw 'unexpected-identity-field' }
                     }
                     foreach ($field in $transactionFields) {
-                        if ($field -notin $allowed[$kind] -or $field -in $identityAllowed[$kind]) { throw 'unexpected-transaction-field' }
+                        if ($field -cnotin $allowed[$kind] -or $field -cin $identityAllowed[$kind]) { throw 'unexpected-transaction-field' }
                     }
                     # Identifier and name fields are textual, never coerced from JSON numbers.
                     # This preserves leading zeros in cheque and invoice references.
@@ -138,8 +138,8 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
                         throw 'empty-extraction'
                     }
                     # Reject unexpected top-level sections: the simulated engine must honor the same contract as the real engine.
-                    if (@($doc.PSObject.Properties.Name | Where-Object { $_ -notin @('type_document','donnees_extraites') }).Count -gt 0) { throw 'unexpected-root-field' }
-                    if (@($doc.donnees_extraites.PSObject.Properties.Name | Where-Object { $_ -notin @('identite','transaction') }).Count -gt 0) { throw 'unexpected-section' }
+                    if (@($doc.PSObject.Properties.Name | Where-Object { $_ -cnotin @('type_document','donnees_extraites') }).Count -gt 0) { throw 'unexpected-root-field' }
+                    if (@($doc.donnees_extraites.PSObject.Properties.Name | Where-Object { $_ -cnotin @('identite','transaction') }).Count -gt 0) { throw 'unexpected-section' }
                     $status = 'valid'
                     $documentType = $kind
                     $reason = 'simulated-engine-validated'
