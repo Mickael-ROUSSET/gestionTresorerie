@@ -183,6 +183,16 @@ if ($SelfTest) {
         if (@($resumedType | Where-Object { $_.name -eq 'retry-type.pdf' -and $_.status -eq 'skipped' }).Count -ne 1) {
             throw 'Corrected document type was not resumed by SHA256'
         }
+        # A scan replaced at the same path is new content and must not be skipped by filename.
+        [IO.File]::WriteAllBytes($retryPath, [Text.Encoding]::UTF8.GetBytes('fictitious-retry-type-revised'))
+        $replacedType = @(Invoke-FictitiousBatch $inputPath $statePath)
+        if (@($replacedType | Where-Object { $_.name -eq 'retry-type.pdf' -and $_.status -eq 'valid' }).Count -ne 1) {
+            throw 'Changed scan content was incorrectly skipped by filename'
+        }
+        $replacedResume = @(Invoke-FictitiousBatch $inputPath $statePath)
+        if (@($replacedResume | Where-Object { $_.name -eq 'retry-type.pdf' -and $_.status -eq 'skipped' }).Count -ne 1) {
+            throw 'Changed scan content was not resumed by its new SHA256'
+        }
         Write-Output 'PASS: fictitious batch, SHA256 duplicate, strict fields, retry, restart and corrupt-journal protection'
     } finally { if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force } }
 } else {
