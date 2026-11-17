@@ -175,6 +175,8 @@ function ConvertTo-FictitiousBatchImportManifest([object[]]$Results) {
         if ($item.status -cne 'valid') { continue }
         if ($item.hash -isnot [string] -or $item.hash -cnotmatch '^[A-Fa-f0-9]{64}$' -or
             $item.name -isnot [string] -or [string]::IsNullOrWhiteSpace($item.name) -or
+            [IO.Path]::IsPathRooted([string]$item.name) -or
+            @(([string]$item.name -split '[\\/]') | Where-Object { $_ -eq '..' -or $_ -eq '.' -or $_ -eq '' }).Count -gt 0 -or
             $item.type_document -isnot [string] -or $item.type_document -cnotin $types) {
             throw 'invalid-valid-document'
         }
