@@ -173,7 +173,20 @@ function ConvertTo-FictitiousBatchImportManifest([object[]]$Results) {
     foreach ($item in @($Results)) {
         if ($null -eq $item) { throw 'invalid-batch-result' }
         if ($item.status -cne 'valid') { continue }
-        if ($item.hash -isnot [string] -or $item.hash -cnotmatch '^[A-Fa-f0-9]{64}
+        if ($item.hash -isnot [string] -or $item.hash -cnotmatch '^[A-Fa-f0-9]{64}            $item.name -isnot [string] -or [string]::IsNullOrWhiteSpace($item.name) -or
+            $item.type_document -isnot [string] -or $item.type_document -cnotin $types) {
+            throw 'invalid-valid-document'
+        }
+        $manifest.Add([pscustomobject]@{
+            name = $item.name
+            hash = $item.hash
+            type_document = $item.type_document
+        })
+    }
+    return $manifest.ToArray()
+}
+
+Export-ModuleMember -Function Invoke-FictitiousBatch, ConvertTo-FictitiousBatchImportManifest
  -or
             $item.name -isnot [string] -or [string]::IsNullOrWhiteSpace($item.name) -or
             $item.type_document -isnot [string] -or $item.type_document -cnotin $types) {
