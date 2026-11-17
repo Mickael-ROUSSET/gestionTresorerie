@@ -189,6 +189,29 @@ Public Class DocumentBatchTestReviewFormTests
                End Sub)
     End Sub
 
+    <TestMethod>
+    Public Sub BilanMixteFictifAfficheSeulementLesDocumentsAExaminer()
+        RunSta(Sub()
+                   Dim path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "review-mixed-" & Guid.NewGuid().ToString("N") & ".json")
+                   Dim otherHash = New String("b"c, 64)
+                   Dim json = "{""schema_version"":1,""total"":2,""valid"":1,""review"":1,""skipped"":0,""requires_review"":true,""documents"":[" &
+                       "{""name"":""facture.pdf"",""hash"":""" & HashValue & """,""status"":""valid"",""reason"":""""}," &
+                       "{""name"":""cheque.pdf"",""hash"":""" & otherHash & """,""status"":""review"",""reason"":""montant illisible""}]}"
+                   Try
+                       File.WriteAllText(path, json, New UTF8Encoding(False))
+                       Using form As New DocumentBatchTestReviewForm()
+                           form.LoadTestSummary(path)
+                           Assert.AreEqual(1, form.ReviewGrid.Rows.Count)
+                           Assert.AreEqual("cheque.pdf", form.ReviewGrid.Rows(0).Cells("Nom").Value)
+                           Assert.AreEqual("TEST - Documents a examiner : 1", form.StatusText)
+                           Assert.AreEqual(path, form.LoadedSummaryPath)
+                       End Using
+                   Finally
+                       If File.Exists(path) Then File.Delete(path)
+                   End Try
+               End Sub)
+    End Sub
+
     Private Shared Sub RunSta(action As Action)
         Dim failure As Exception = Nothing
         Dim worker As New Thread(Sub()
