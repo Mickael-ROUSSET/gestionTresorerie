@@ -9,8 +9,8 @@ function Invoke-FixturePipeline([string]$Manifest, [string]$Workspace) {
     $manifestFull = [IO.Path]::GetFullPath((Resolve-Path -LiteralPath $Manifest).Path)
     $workspaceFull = [IO.Path]::GetFullPath($Workspace)
     # Never allow an intake to write its inbox/state directly at a volume root.
-    if ($workspaceFull.TrimEnd([char[]]@('\\','/')).Equals(
-        ([IO.Path]::GetPathRoot($workspaceFull)).TrimEnd([char[]]@('\\','/')),
+    if ($workspaceFull.TrimEnd([char[]]@([char]92,[char]47)).Equals(
+        ([IO.Path]::GetPathRoot($workspaceFull)).TrimEnd([char[]]@([char]92,[char]47)),
         [StringComparison]::OrdinalIgnoreCase)) { throw 'workspace-volume-root-forbidden' }
     $sep = [string][IO.Path]::DirectorySeparatorChar
     if ($workspaceFull.Equals($manifestFull, [StringComparison]::OrdinalIgnoreCase) -or
