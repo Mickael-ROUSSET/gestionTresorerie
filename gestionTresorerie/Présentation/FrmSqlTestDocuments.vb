@@ -1,0 +1,152 @@
+Option Strict On
+
+Imports System.Data
+Imports System.Data.SqlClient
+Imports System.Windows.Forms
+
+Friend NotInheritable Class FrmSqlTestDocuments
+    Inherits Form
+
+    Private ReadOnly _workspace As OfflineTestWorkspace
+    Private ReadOnly _store As New SqlDocumentTestStore()
+    Private ReadOnly _init As New Button With {.Text = "Initialiser la base TEST", .AutoSize = True}
+    Private ReadOnly _open As New Button With {.Text = "Ouvrir un document…", .AutoSize = True}
+    Private ReadOnly _example As New Button With {.Text = "Ouvrir une facture fictive", .AutoSize = True, .Enabled = False}
+    Private ReadOnly _importProd As New Button With {.Text = "Initialiser TEST depuis PROD…", .AutoSize = True, .Enabled = False}
+    Private ReadOnly _refresh As New Button With {.Text = "Actualiser", .AutoSize = True, .Enabled = False}
+    Private ReadOnly _reviewSummary As New Button With {.Text = "Revue des bilans TEST (JSON)", .Name = "ReviewTestSummaryButton", .AutoSize = True}
+    Private ReadOnly _status As New Label With {.AutoSize = True, .Text = "Base : bddAgumaaaTest sur LocalDB."}
+    Private ReadOnly _grid As New DataGridView With {
+        .Dock = DockStyle.Fill, .ReadOnly = True, .AllowUserToAddRows = False, .AllowUserToDeleteRows = False,
+        .AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells}
+    Private _busy As Boolean
+    Private _ready As Boolean
+
+    Public Sub New(workspace As OfflineTestWorkspace)
+        _workspace = workspace
+        Text = "gestionTresorerie — TEST SQL documentaire"
+        ClientSize = New Drawing.Size(1080, 610)
+        StartPosition = FormStartPosition.CenterParent
+
+        Dim bar As New FlowLayoutPanel With {.AutoSize = True, .Dock = DockStyle.Top}
+        bar.Controls.AddRange(New Control() {_init, _open, _example, _reviewSummary, _refresh, _importProd, _status})
+        Controls.Add(_grid)
+        Controls.Add(bar)
+
+        AddHandler _reviewSummary.Click, AddressOf OpenReviewSummary
+        AddHandler _init.Click, AddressOf InitializeTest
+        AddHandler _open.Click, AddressOf OpenDocument
+        AddHandler _example.Click, AddressOf OpenExample
+        AddHandler _refresh.Click, AddressOf RefreshDocuments
+        AddHandler _importProd.Click, AddressOf ImportProduction
+    End Sub
+
+    Friend ReadOnly Property ReviewSummaryButton As Button
+        Get
+            Return _reviewSummary
+        End Get
+    End Property
+
+    Private Sub OpenReviewSummary(sender As Object, e As EventArgs)
+        Using review As New DocumentBatchTestReviewForm()
+            review.ShowDialog(Me)
+        End Using
+    End Sub
+
+    Private Async Sub InitializeTest(sender As Object, e As EventArgs)
+        If _busy Then Return
+        SetBusy(True)
+        Try
+            Await Task.Run(Sub() _store.Initialize())
+            _workspace.OpenOrPrepareSession()
+            _ready = True
+            Await LoadDocuments()
+        Catch ex As SqlException
+            _ready = False
+            _status.Text = "LocalDB ou bddAgumaaaTest inaccessible."
+            MessageBox.Show(Me, "Vérifiez que SQL Server Express LocalDB est installé pour votre compte Windows." &
+                            vbCrLf & ex.Message, "Initialisation SQL TEST", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        Catch ex As Exception
+            _ready = False
+            _status.Text = "Initialisation TEST impossible."
+            MessageBox.Show(Me, ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        Finally
+            SetBusy(False)
+        End Try
+    End Sub
+
+    Private Async Sub ImportProduction(sender As Object, e As EventArgs)
+        If _busy OrElse Not _ready Then Return
+        If MessageBox.Show(Me, "Copier les données métier de bddAgumaaa vers bddAgumaaaTest ?" & vbCrLf &
+                           "TEST doit être vierge. Les comptes et les fichiers d’archives sont exclus.",
+                           "Initialisation de TEST depuis PROD", MessageBoxButtons.YesNo, MessageBoxIcon.Warning,
+                           MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then Return
+        SetBusy(True)
+        Try
+            Await Task.Run(Sub() LocalDbCatalogs.ImportProductionIntoTest())
+            Await LoadDocuments()
+            MessageBox.Show(Me, "Les données métier ont été copiées dans bddAgumaaaTest.", Text)
+        Catch ex As Exception
+            MessageBox.Show(Me, ex.Message, "Import TEST", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        Finally
+            SetBusy(False)
+        End Try
+    End Sub
+
+    Private Async Sub OpenDocument(sender As Object, e As EventArgs)
+        FrmDocumentFilePreview.OpenFiles(Me, _workspace, _store, initializeSqlTestOnSave:=Not _ready)
+        If _ready Then Await RefreshGrid()
+    End Sub
+
+    Private Async Sub OpenExample(sender As Object, e As EventArgs)
+        Try
+            Dim source = _workspace.CreateDocumentTestInvoice()
+            Using preview As New FrmDocumentFilePreview({source}, _workspace, _store, sqlExample:=True)
+                preview.ShowDialog(Me)
+            End Using
+            Await RefreshGrid()
+        Catch ex As Exception
+            MessageBox.Show(Me, ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        End Try
+    End Sub
+
+    Private Async Sub RefreshDocuments(sender As Object, e As EventArgs)
+        Await RefreshGrid()
+    End Sub
+
+    Private Async Function RefreshGrid() As Task
+        If _busy Then Return
+        SetBusy(True)
+        Try
+            Await LoadDocuments()
+        Catch ex As Exception
+            _status.Text = "Lecture SQL TEST impossible."
+            MessageBox.Show(Me, ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        Finally
+            SetBusy(False)
+        End Try
+    End Function
+
+    Private Async Function LoadDocuments() As Task
+        Dim result = Await Task.Run(Function() _store.ReadDocuments())
+        Dim previous = TryCast(_grid.DataSource, DataTable)
+        _grid.DataSource = result
+        previous?.Dispose()
+        _status.Text = $"{result.Rows.Count} document(s) dans bddAgumaaaTest."
+    End Function
+
+    Private Sub SetBusy(value As Boolean)
+        _busy = value
+        _init.Enabled = Not value
+        _open.Enabled = Not value
+        _reviewSummary.Enabled = Not value
+        _example.Enabled = _ready AndAlso Not value
+        _refresh.Enabled = _ready AndAlso Not value
+        _importProd.Enabled = _ready AndAlso Not value
+    End Sub
+
+    Protected Overrides Sub OnFormClosing(e As FormClosingEventArgs)
+        MyBase.OnFormClosing(e)
+        If _busy Then e.Cancel = True
+    End Sub
+End Class
