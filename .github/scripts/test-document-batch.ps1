@@ -60,6 +60,16 @@ if ($SelfTest) {
             @($manifest[0].PSObject.Properties.Name | Where-Object { $_ -cnotin @('name','hash','type_document') }).Count -ne 0) {
             throw 'TEST import manifest included invalid or private fields'
         }
+        # Fail closed on malformed validated entries before any future SQL TEST staging.
+        foreach ($bad in @(
+            [pscustomobject]@{ name='bad.pdf'; hash='not-a-sha256'; status='valid'; type_document='Facture' },
+            [pscustomobject]@{ name='bad.pdf'; hash=('a' * 64); status='valid'; type_document='facture' },
+            [pscustomobject]@{ name=' '; hash=('a' * 64); status='valid'; type_document='Facture' }
+        )) {
+            $rejected = $false
+            try { [void](ConvertTo-FictitiousBatchImportManifest @($bad)) } catch { $rejected = $true }
+            if (-not $rejected) { throw 'Invalid validated entry reached TEST import manifest' }
+        }
         $manifestResume = @(ConvertTo-FictitiousBatchImportManifest (Invoke-FictitiousBatch $inputPath $statePath))
         if ($manifestResume.Count -ne 0) { throw 'Already validated scans were staged for import twice' }
         if (@($first | Where-Object { $_.status -eq 'valid' -and $_.type_document -eq 'Facture' }).Count -ne 1) { throw 'Validated document type was not exposed for TEST classification' }
