@@ -193,6 +193,21 @@ if ($SelfTest) {
         if (@($replacedResume | Where-Object { $_.name -eq 'retry-type.pdf' -and $_.status -eq 'skipped' }).Count -ne 1) {
             throw 'Changed scan content was not resumed by its new SHA256'
         }
+        # Malformed section shapes must not be accepted as valid metadata.
+        foreach ($case in @(
+            @{ Name='array-identity'; Json='{"type_document":"Facture","donnees_extraites":{"identite":[{"fournisseur_nom":"Fictif"}],"transaction":{"numero_facture":"F-5","date_facture":"2026-11-14","montant_ttc":12}}}' },
+            @{ Name='array-transaction'; Json='{"type_document":"Facture","donnees_extraites":{"identite":{"fournisseur_nom":"Fictif"},"transaction":[{"numero_facture":"F-5","date_facture":"2026-11-14","montant_ttc":12}]}}' },
+            @{ Name='scalar-sections'; Json='{"type_document":"Facture","donnees_extraites":"not-an-object"}' }
+        )) {
+            $fixture = Join-Path $inputPath ($case.Name + '.pdf')
+            [IO.File]::WriteAllBytes($fixture, [Text.Encoding]::UTF8.GetBytes('fictitious-section-' + $case.Name))
+            Set-Content -LiteralPath ($fixture + '.analysis.json') -Encoding utf8 -Value $case.Json
+            $attempt = @(Invoke-FictitiousBatch $inputPath $statePath)
+            if (@($attempt | Where-Object { $_.name -eq ($case.Name + '.pdf') -and $_.status -eq 'review' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) {
+                throw "Malformed section was accepted: $($case.Name)"
+            }
+            Remove-Item -LiteralPath $fixture, ($fixture + '.analysis.json') -Force
+        }
         Write-Output 'PASS: fictitious batch, SHA256 duplicate, strict fields, retry, restart and corrupt-journal protection'
     } finally { if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force } }
 } else {
