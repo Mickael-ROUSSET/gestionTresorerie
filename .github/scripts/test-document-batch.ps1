@@ -102,6 +102,8 @@ if ($SelfTest) {
         # A JSON array or number must never be coerced into a valid document type.
         foreach ($case in @(
             @{ Name='array-type'; Json='{"type_document":["Facture"],"donnees_extraites":{"identite":{"fournisseur_nom":"Entreprise fictive"},"transaction":{"numero_facture":"F-1","date_facture":"2026-11-14","montant_ttc":12.50}}}' },
+            @{ Name='lowercase-type'; Json='{"type_document":"facture","donnees_extraites":{"identite":{"fournisseur_nom":"Entreprise fictive"},"transaction":{"numero_facture":"F-1","date_facture":"2026-11-14","montant_ttc":12.50}}}' },
+            @{ Name='mixedcase-type'; Json='{"type_document":"FaCtUrE","donnees_extraites":{"identite":{"fournisseur_nom":"Entreprise fictive"},"transaction":{"numero_facture":"F-1","date_facture":"2026-11-14","montant_ttc":12.50}}}' },
             @{ Name='number-type'; Json='{"type_document":42,"donnees_extraites":{"identite":{"fournisseur_nom":"Entreprise fictive"},"transaction":{"numero_facture":"F-1","date_facture":"2026-11-14","montant_ttc":12.50}}}' }
         )) {
             $fixture = Join-Path $inputPath ($case.Name + '.pdf')
