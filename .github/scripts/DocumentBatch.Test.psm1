@@ -166,4 +166,25 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
     return $results.ToArray()
 }
 
-Export-ModuleMember -Function Invoke-FictitiousBatch
+# TEST-only projection for a future SQL TEST import: no personal fields or writes.
+function ConvertTo-FictitiousBatchImportManifest([object[]]$Results) {
+    $types = @('Cheque','Facture','FormulaireAdhesion','QuestionnaireMedical','Recu')
+    $manifest = New-Object System.Collections.Generic.List[object]
+    foreach ($item in @($Results)) {
+        if ($null -eq $item) { throw 'invalid-batch-result' }
+        if ($item.status -cne 'valid') { continue }
+        if ($item.hash -isnot [string] -or $item.hash -cnotmatch '^[A-Fa-f0-9]{64}$' -or
+            $item.name -isnot [string] -or [string]::IsNullOrWhiteSpace($item.name) -or
+            $item.type_document -isnot [string] -or $item.type_document -cnotin $types) {
+            throw 'invalid-valid-document'
+        }
+        $manifest.Add([pscustomobject]@{
+            name = $item.name
+            hash = $item.hash
+            type_document = $item.type_document
+        })
+    }
+    return $manifest.ToArray()
+}
+
+Export-ModuleMember -Function Invoke-FictitiousBatch, ConvertTo-FictitiousBatchImportManifest
