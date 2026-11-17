@@ -20,6 +20,7 @@ Public NotInheritable Class DocumentBatchTestReviewGridBinding
         grid.ReadOnly = True
         grid.AllowUserToAddRows = False
         grid.AllowUserToDeleteRows = False
+        If grid.BindingContext Is Nothing Then grid.BindingContext = New BindingContext()
         grid.DataSource = table
     End Sub
 End Class
