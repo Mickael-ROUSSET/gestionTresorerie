@@ -52,6 +52,16 @@ if ($SelfTest) {
             Set-Content -LiteralPath ($filePath + '.analysis.json') -Encoding utf8 -Value $case.Json
         }
         $first = @(Invoke-FictitiousBatch $inputPath $statePath)
+        # The SQL TEST staging projection contains only validated file identity and type.
+        # No extracted names, medical answers, amounts or review candidates may leak.
+        $manifest = @(ConvertTo-FictitiousBatchImportManifest $first)
+        if ($manifest.Count -ne 1 -or $manifest[0].type_document -cne 'Facture' -or
+            @($manifest[0].PSObject.Properties.Name).Count -ne 3 -or
+            @($manifest[0].PSObject.Properties.Name | Where-Object { $_ -cnotin @('name','hash','type_document') }).Count -ne 0) {
+            throw 'TEST import manifest included invalid or private fields'
+        }
+        $manifestResume = @(ConvertTo-FictitiousBatchImportManifest (Invoke-FictitiousBatch $inputPath $statePath))
+        if ($manifestResume.Count -ne 0) { throw 'Already validated scans were staged for import twice' }
         if (@($first | Where-Object { $_.status -eq 'valid' -and $_.type_document -eq 'Facture' }).Count -ne 1) { throw 'Validated document type was not exposed for TEST classification' }
         if (@($first | Where-Object { $_.status -eq 'review' -and $null -ne $_.type_document }).Count -ne 0) { throw 'Rejected document leaked an unvalidated type' }
         if (@($first | Where-Object status -eq 'valid').Count -ne 1 -or @($first | Where-Object status -eq 'skipped').Count -ne 2 -or @($first | Where-Object status -eq 'review').Count -ne 7) { throw 'First pass failed' }
