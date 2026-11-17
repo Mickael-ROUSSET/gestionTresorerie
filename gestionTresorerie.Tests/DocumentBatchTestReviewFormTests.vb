@@ -230,6 +230,6 @@ Public Class DocumentBatchTestReviewFormTests
         If Not worker.Join(TimeSpan.FromSeconds(30)) Then
             Assert.Fail("Le test WinForms STA a depasse 30 secondes (blocage possible d'une boite de dialogue).")
         End If
-        If failure IsNot Nothing Then Throw New AssertFailedException("Erreur du test STA", failure)
+        If failure IsNot Nothing Then System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failure).Throw()
     End Sub
 End Class
