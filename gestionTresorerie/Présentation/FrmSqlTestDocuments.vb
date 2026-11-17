@@ -14,6 +14,7 @@ Friend NotInheritable Class FrmSqlTestDocuments
     Private ReadOnly _example As New Button With {.Text = "Ouvrir une facture fictive", .AutoSize = True, .Enabled = False}
     Private ReadOnly _importProd As New Button With {.Text = "Initialiser TEST depuis PROD…", .AutoSize = True, .Enabled = False}
     Private ReadOnly _refresh As New Button With {.Text = "Actualiser", .AutoSize = True, .Enabled = False}
+    Private ReadOnly _reviewSummary As New Button With {.Text = "Revue des bilans TEST (JSON)", .Name = "ReviewTestSummaryButton", .AutoSize = True}
     Private ReadOnly _status As New Label With {.AutoSize = True, .Text = "Base : bddAgumaaaTest sur LocalDB."}
     Private ReadOnly _grid As New DataGridView With {
         .Dock = DockStyle.Fill, .ReadOnly = True, .AllowUserToAddRows = False, .AllowUserToDeleteRows = False,
@@ -28,15 +29,28 @@ Friend NotInheritable Class FrmSqlTestDocuments
         StartPosition = FormStartPosition.CenterParent
 
         Dim bar As New FlowLayoutPanel With {.AutoSize = True, .Dock = DockStyle.Top}
-        bar.Controls.AddRange(New Control() {_init, _open, _example, _refresh, _importProd, _status})
+        bar.Controls.AddRange(New Control() {_init, _open, _example, _reviewSummary, _refresh, _importProd, _status})
         Controls.Add(_grid)
         Controls.Add(bar)
 
+        AddHandler _reviewSummary.Click, AddressOf OpenReviewSummary
         AddHandler _init.Click, AddressOf InitializeTest
         AddHandler _open.Click, AddressOf OpenDocument
         AddHandler _example.Click, AddressOf OpenExample
         AddHandler _refresh.Click, AddressOf RefreshDocuments
         AddHandler _importProd.Click, AddressOf ImportProduction
+    End Sub
+
+    Friend ReadOnly Property ReviewSummaryButton As Button
+        Get
+            Return _reviewSummary
+        End Get
+    End Property
+
+    Private Sub OpenReviewSummary(sender As Object, e As EventArgs)
+        Using review As New DocumentBatchTestReviewForm()
+            review.ShowDialog(Me)
+        End Using
     End Sub
 
     Private Async Sub InitializeTest(sender As Object, e As EventArgs)
@@ -125,6 +139,7 @@ Friend NotInheritable Class FrmSqlTestDocuments
         _busy = value
         _init.Enabled = Not value
         _open.Enabled = Not value
+        _reviewSummary.Enabled = Not value
         _example.Enabled = _ready AndAlso Not value
         _refresh.Enabled = _ready AndAlso Not value
         _importProd.Enabled = _ready AndAlso Not value
