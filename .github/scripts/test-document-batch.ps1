@@ -64,7 +64,11 @@ if ($SelfTest) {
         foreach ($bad in @(
             [pscustomobject]@{ name='bad.pdf'; hash='not-a-sha256'; status='valid'; type_document='Facture' },
             [pscustomobject]@{ name='bad.pdf'; hash=('a' * 64); status='valid'; type_document='facture' },
-            [pscustomobject]@{ name=' '; hash=('a' * 64); status='valid'; type_document='Facture' }
+            [pscustomobject]@{ name=' '; hash=('a' * 64); status='valid'; type_document='Facture' },
+            [pscustomobject]@{ name='../outside.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' },
+            [pscustomobject]@{ name='folder/../outside.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' },
+            [pscustomobject]@{ name='/absolute.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' },
+            [pscustomobject]@{ name='folder//bad.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' }
         )) {
             $rejected = $false
             try { [void](ConvertTo-FictitiousBatchImportManifest @($bad)) } catch { $rejected = $true }
