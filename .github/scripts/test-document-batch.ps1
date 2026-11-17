@@ -160,6 +160,29 @@ if ($SelfTest) {
                 throw "Supported document type was not resumed: $($case.Type)"
             }
         }
+        # A wrongly typed document must remain reviewable, then become valid after correction.
+        # The journal must never mark a rejected analysis as processed.
+        $retryPath = Join-Path $inputPath 'retry-type.pdf'
+        [IO.File]::WriteAllBytes($retryPath, [Text.Encoding]::UTF8.GetBytes('fictitious-retry-type'))
+        $retryAnalysis = $retryPath + '.analysis.json'
+        Set-Content -LiteralPath $retryAnalysis -Encoding utf8 -Value '{"type_document":"TypeInconnu","donnees_extraites":{"identite":{},"transaction":{}}}'
+        $badType = @(Invoke-FictitiousBatch $inputPath $statePath)
+        if (@($badType | Where-Object { $_.name -eq 'retry-type.pdf' -and $_.status -eq 'review' -and $_.reason -eq 'invalid-analysis' }).Count -ne 1) {
+            throw 'Unknown document type was not sent to review'
+        }
+        $stillBad = @(Invoke-FictitiousBatch $inputPath $statePath)
+        if (@($stillBad | Where-Object { $_.name -eq 'retry-type.pdf' -and $_.status -eq 'review' }).Count -ne 1) {
+            throw 'Rejected document was incorrectly marked as processed'
+        }
+        Set-Content -LiteralPath $retryAnalysis -Encoding utf8 -Value '{"type_document":"Recu","donnees_extraites":{"identite":{"nom_complet":"Personne fictive"},"transaction":{"reference":"R-RETRY","date_document":"2026-11-14","montant_numerique":7.25}}}'
+        $correctedType = @(Invoke-FictitiousBatch $inputPath $statePath)
+        if (@($correctedType | Where-Object { $_.name -eq 'retry-type.pdf' -and $_.status -eq 'valid' }).Count -ne 1) {
+            throw 'Corrected document type was not accepted on retry'
+        }
+        $resumedType = @(Invoke-FictitiousBatch $inputPath $statePath)
+        if (@($resumedType | Where-Object { $_.name -eq 'retry-type.pdf' -and $_.status -eq 'skipped' }).Count -ne 1) {
+            throw 'Corrected document type was not resumed by SHA256'
+        }
         Write-Output 'PASS: fictitious batch, SHA256 duplicate, strict fields, retry, restart and corrupt-journal protection'
     } finally { if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force } }
 } else {
