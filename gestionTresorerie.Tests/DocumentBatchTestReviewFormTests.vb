@@ -186,7 +186,7 @@ Public Class DocumentBatchTestReviewFormTests
                        Assert.AreEqual("ReviewTestSummaryButton", button.Name)
                        Assert.IsTrue(button.Enabled)
                        Assert.IsTrue(button.Text.Contains("TEST", StringComparison.Ordinal))
-                       Assert.IsTrue(form.Controls.OfType(Of FlowLayoutPanel)().
+                       Assert.IsTrue(form.Controls.OfType(Of System.Windows.Forms.FlowLayoutPanel)().
                            Any(Function(panel) panel.Controls.Contains(button)))
                    End Using
                End Sub)
