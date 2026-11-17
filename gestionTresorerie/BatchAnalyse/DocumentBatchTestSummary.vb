@@ -121,7 +121,7 @@ Public NotInheritable Class DocumentBatchTestSummary
                     Dim hash = Required(item, "hash", JsonValueKind.String).GetString()
                     Dim status = Required(item, "status", JsonValueKind.String).GetString()
                     Dim reason = Required(item, "reason", JsonValueKind.String).GetString()
-                    If Not IsSafeWindowsLeafName(name) OrElse String.IsNullOrWhiteSpace(reason) OrElse
+                    If Not IsSafeWindowsLeafName(name) OrElse (status = "review" AndAlso String.IsNullOrWhiteSpace(reason)) OrElse
                        String.IsNullOrWhiteSpace(hash) OrElse hash.Length <> 64 OrElse
                        Not System.Text.RegularExpressions.Regex.IsMatch(hash, "\A[0-9a-fA-F]{64}\z") OrElse
                        Not counts.ContainsKey(status) Then
