@@ -45,6 +45,7 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
         $hash = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
         $status = 'review'
         $reason = 'missing-or-invalid-engine-result'
+        $documentType = $null
         if ($journal.ContainsKey($hash) -and $journal[$hash] -eq 'valid') {
             $status = 'skipped'
             $reason = 'previously-validated'
@@ -140,6 +141,7 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
                     if (@($doc.PSObject.Properties.Name | Where-Object { $_ -notin @('type_document','donnees_extraites') }).Count -gt 0) { throw 'unexpected-root-field' }
                     if (@($doc.donnees_extraites.PSObject.Properties.Name | Where-Object { $_ -notin @('identite','transaction') }).Count -gt 0) { throw 'unexpected-section' }
                     $status = 'valid'
+                    $documentType = $kind
                     $reason = 'simulated-engine-validated'
                     $journal[$hash] = 'valid'
                     $journalChanged = $true
@@ -149,7 +151,7 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
             }
         }
         $relativeName = $file.FullName.Substring($inputFull.Length).TrimStart([char[]]@('\','/'))
-        $results.Add([pscustomobject]@{ name=$relativeName; hash=$hash; status=$status; reason=$reason })
+        $results.Add([pscustomobject]@{ name=$relativeName; hash=$hash; status=$status; reason=$reason; type_document=$documentType })
     }
     # Do not rewrite an unchanged recovery point on repeat runs or review-only batches.
     if ($journalChanged) {
