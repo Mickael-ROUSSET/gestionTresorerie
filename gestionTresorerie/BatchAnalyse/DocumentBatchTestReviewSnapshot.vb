@@ -16,7 +16,7 @@ Public NotInheritable Class DocumentBatchTestReviewSnapshot
         Review = summary.Review
         Skipped = summary.Skipped
         RequiresReview = summary.RequiresReview
-        Pending = pending
+        Me.Pending = pending
     End Sub
 
     Public ReadOnly Property Total As Integer
