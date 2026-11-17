@@ -142,6 +142,38 @@ Public Class DocumentBatchTestReviewFormTests
                End Sub)
     End Sub
 
+
+    <TestMethod>
+    Public Sub BilanAvecNomsDupliquesNeRemplacePasUneRevueValidee()
+        RunSta(Sub()
+                   Dim path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "review-duplicate-" & Guid.NewGuid().ToString("N") & ".json")
+                   Dim document = "{""name"":""exemple.pdf"",""hash"":""" & HashValue & """,""status"":""review"",""reason"":""verification manuelle""}"
+                   Dim prefix = "{""schema_version"":1,""total"":"
+                   Dim suffix = ",""valid"":0,""review"":"
+                   Dim ending = ",""skipped"":0,""requires_review"":true,""documents"":["
+                   Try
+                       File.WriteAllText(path, prefix & "1" & suffix & "1" & ending & document & "]}", New UTF8Encoding(False))
+                       Using form As New DocumentBatchTestReviewForm()
+                           form.LoadTestSummary(path)
+                           Dim previousStatus = form.StatusText
+                           Dim previousTitle = form.Text
+                           File.WriteAllText(path, prefix & "2" & suffix & "2" & ending & document & "," & document & "]}", New UTF8Encoding(False))
+                           Assert.ThrowsExactly(Of FormatException)(Sub() form.LoadTestSummary(path))
+                           Assert.AreEqual(1, form.ReviewGrid.Rows.Count)
+                           Assert.AreEqual("exemple.pdf", form.ReviewGrid.Rows(0).Cells("Nom").Value)
+                           Assert.AreEqual(previousStatus, form.StatusText)
+                           Assert.AreEqual(previousTitle, form.Text)
+                           Assert.AreEqual(path, form.LoadedSummaryPath)
+                           File.WriteAllText(path, prefix & "1" & suffix & "1" & ending & document.Replace("exemple.pdf", "corrige.pdf", StringComparison.Ordinal) & "]}", New UTF8Encoding(False))
+                           form.LoadTestSummary(path)
+                           Assert.AreEqual("corrige.pdf", form.ReviewGrid.Rows(0).Cells("Nom").Value)
+                       End Using
+                   Finally
+                       If File.Exists(path) Then File.Delete(path)
+                   End Try
+               End Sub)
+    End Sub
+
     Private Shared Sub RunSta(action As Action)
         Dim failure As Exception = Nothing
         Dim worker As New Thread(Sub()
