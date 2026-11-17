@@ -173,7 +173,8 @@ function ConvertTo-FictitiousBatchImportManifest([object[]]$Results) {
     foreach ($item in @($Results)) {
         if ($null -eq $item) { throw 'invalid-batch-result' }
         if ($item.status -cne 'valid') { continue }
-        if ($item.hash -isnot [string] -or $item.hash -cnotmatch '^[A-Fa-f0-9]{64} -isnot [string] -or [string]::IsNullOrWhiteSpace($item.name) -or
+        if ($item.hash -isnot [string] -or $item.hash -cnotmatch '^[A-Fa-f0-9]{64}$' -or
+            $item.name -isnot [string] -or [string]::IsNullOrWhiteSpace($item.name) -or
             $item.type_document -isnot [string] -or $item.type_document -cnotin $types) {
             throw 'invalid-valid-document'
         }
