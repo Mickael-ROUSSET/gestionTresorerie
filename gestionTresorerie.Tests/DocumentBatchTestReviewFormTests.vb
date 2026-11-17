@@ -3,6 +3,7 @@ Option Explicit On
 
 Imports System
 Imports System.IO
+Imports System.Linq
 Imports System.Text
 Imports System.Threading
 Imports gestionTresorerie
@@ -171,6 +172,20 @@ Public Class DocumentBatchTestReviewFormTests
                    Finally
                        If File.Exists(path) Then File.Delete(path)
                    End Try
+               End Sub)
+    End Sub
+
+    <TestMethod>
+    Public Sub RevueDocumentaireAccessibleSansInitialisationSqlTest()
+        RunSta(Sub()
+                   Using form As New FrmSqlTestDocuments(Nothing)
+                       Dim button = form.ReviewSummaryButton
+                       Assert.AreEqual("ReviewTestSummaryButton", button.Name)
+                       Assert.IsTrue(button.Enabled)
+                       Assert.IsTrue(button.Text.Contains("TEST", StringComparison.Ordinal))
+                       Assert.IsTrue(form.Controls.OfType(Of FlowLayoutPanel)().
+                           Any(Function(panel) panel.Controls.Contains(button)))
+                   End Using
                End Sub)
     End Sub
 
