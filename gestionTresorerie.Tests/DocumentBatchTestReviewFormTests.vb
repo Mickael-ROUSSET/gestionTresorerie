@@ -74,7 +74,7 @@ Public Class DocumentBatchTestReviewFormTests
                            form.LoadTestSummary(path)
                            Assert.IsTrue(form.ReloadSummaryButton.Enabled)
                            File.WriteAllText(path, template.Replace("{0}", "apres.pdf", StringComparison.Ordinal), New UTF8Encoding(False))
-                           GetType(System.Windows.Forms.Control).GetMethod("OnClick", System.Reflection.BindingFlags.Instance Or System.Reflection.BindingFlags.NonPublic).Invoke(form.ReloadSummaryButton, New Object() {EventArgs.Empty}
+                           GetType(System.Windows.Forms.Control).GetMethod("OnClick", System.Reflection.BindingFlags.Instance Or System.Reflection.BindingFlags.NonPublic).Invoke(form.ReloadSummaryButton, New Object() {EventArgs.Empty})
                            Assert.AreEqual("apres.pdf", form.ReviewGrid.Rows(0).Cells("Nom").Value)
                            Assert.AreEqual(path, form.LoadedSummaryPath)
                            Assert.AreEqual("TEST - Documents a examiner : 1", form.StatusText)
