@@ -63,7 +63,12 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
                         $doc.type_document -isnot [string]) { throw 'invalid-document-type' }
                     $kind = $doc.type_document
                     if (-not $allowed.ContainsKey($kind)) { throw 'unknown-type' }
-                    if ($null -eq $doc.donnees_extraites -or $null -eq $doc.donnees_extraites.identite -or $null -eq $doc.donnees_extraites.transaction) { throw 'missing-sections' }
+                    if ($null -eq $doc.PSObject.Properties['donnees_extraites'] -or
+                        $doc.donnees_extraites -isnot [pscustomobject] -or
+                        $null -eq $doc.donnees_extraites.PSObject.Properties['identite'] -or
+                        $null -eq $doc.donnees_extraites.PSObject.Properties['transaction'] -or
+                        $doc.donnees_extraites.identite -isnot [pscustomobject] -or
+                        $doc.donnees_extraites.transaction -isnot [pscustomobject]) { throw 'invalid-sections' }
                     $identityFields = @($doc.donnees_extraites.identite.PSObject.Properties.Name)
                     $transactionFields = @($doc.donnees_extraites.transaction.PSObject.Properties.Name)
                     if ($identityFields.Count -eq 0 -or $transactionFields.Count -eq 0) { throw 'missing-identity-or-transaction' }
