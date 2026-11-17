@@ -140,6 +140,15 @@ if ($SelfTest) {
         if (-not $rejected) { throw 'Corrupt journal was accepted' }
         if ((Get-Content -LiteralPath $journalPath -Raw).Trim() -ne $badJournal) { throw 'Corrupt journal was overwritten' }
         Set-Content -LiteralPath $journalPath -Encoding utf8 -Value $goodJournal
+        # Journal status is a canonical persisted contract; uppercase must not be trusted.
+        $upperStatusJournal = $goodJournal -creplace '"status"\s*:\s*"valid"', '"status":"VALID"'
+        if ($upperStatusJournal -ceq $goodJournal) { throw 'Unable to prepare uppercase-status fixture' }
+        Set-Content -LiteralPath $journalPath -Encoding utf8 -Value $upperStatusJournal
+        $upperRejected = $false
+        try { [void](Invoke-FictitiousBatch $inputPath $statePath) } catch { $upperRejected = $true }
+        if (-not $upperRejected) { throw 'Noncanonical journal status was accepted' }
+        if ((Get-Content -LiteralPath $journalPath -Raw).Trim() -cne $upperStatusJournal.Trim()) { throw 'Noncanonical journal was overwritten' }
+        Set-Content -LiteralPath $journalPath -Encoding utf8 -Value $goodJournal
         # An unknown journal status must fail closed and preserve the recovery point.
         $unknownStatusJournal = $goodJournal -replace '"status"\s*:\s*"valid"', '"status":"pending"'
         if ($unknownStatusJournal -eq $goodJournal) { throw 'Unable to prepare unknown-status fixture' }
