@@ -178,8 +178,11 @@ Public Class DocumentBatchTestReviewFormTests
     <TestMethod>
     Public Sub RevueDocumentaireAccessibleSansInitialisationSqlTest()
         RunSta(Sub()
-                   Using form As New FrmSqlTestDocuments(Nothing)
-                       Dim button = form.ReviewSummaryButton
+                   Dim formType = GetType(DocumentBatchTestReviewForm).Assembly.GetType("gestionTresorerie.FrmSqlTestDocuments", throwOnError:=True)
+                   Using form = DirectCast(Activator.CreateInstance(formType, System.Reflection.BindingFlags.Instance Or System.Reflection.BindingFlags.Public Or System.Reflection.BindingFlags.NonPublic, Nothing, New Object() {Nothing}, Nothing), System.Windows.Forms.Form)
+                       Dim buttonProperty = formType.GetProperty("ReviewSummaryButton", System.Reflection.BindingFlags.Instance Or System.Reflection.BindingFlags.Public Or System.Reflection.BindingFlags.NonPublic)
+                       Assert.IsNotNull(buttonProperty)
+                       Dim button = DirectCast(buttonProperty.GetValue(form), System.Windows.Forms.Button)
                        Assert.AreEqual("ReviewTestSummaryButton", button.Name)
                        Assert.IsTrue(button.Enabled)
                        Assert.IsTrue(button.Text.Contains("TEST", StringComparison.Ordinal))

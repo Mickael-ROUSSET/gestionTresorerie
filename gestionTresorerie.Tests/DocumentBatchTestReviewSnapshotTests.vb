@@ -37,15 +37,15 @@ Public Class DocumentBatchTestReviewSnapshotTests
 
     <TestMethod>
     Public Sub ChargeUnFichierFictifSansLeModifier()
-        Dim path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") & ".json")
+        Dim filePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), Guid.NewGuid().ToString("N") & ".json")
         Try
             Dim bytes = New UTF8Encoding(False).GetBytes(Report())
-            File.WriteAllBytes(path, bytes)
-            Dim snapshot = DocumentBatchTestReviewSnapshot.FromFile(path)
+            System.IO.File.WriteAllBytes(filePath, bytes)
+            Dim snapshot = DocumentBatchTestReviewSnapshot.FromFile(filePath)
             Assert.AreEqual(1, snapshot.Pending.Count)
-            CollectionAssert.AreEqual(bytes, File.ReadAllBytes(path))
+            CollectionAssert.AreEqual(bytes, System.IO.File.ReadAllBytes(filePath))
         Finally
-            If File.Exists(path) Then File.Delete(path)
+            If System.IO.File.Exists(filePath) Then System.IO.File.Delete(filePath)
         End Try
     End Sub
 End Class

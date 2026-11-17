@@ -47,12 +47,12 @@ Public Class DocumentBatchTestReviewQueueTests
         Dim file = Path.Combine(Path.GetTempPath(), "gt-review-" & Guid.NewGuid().ToString("N") & ".json")
         Try
             Dim original = Encoding.UTF8.GetBytes(Fixture())
-            File.WriteAllBytes(file, original)
+            System.IO.File.WriteAllBytes(file, original)
             Dim pending = DocumentBatchTestReviewQueue.FromFile(file)
             Assert.AreEqual(1, pending.Count)
-            CollectionAssert.AreEqual(original, File.ReadAllBytes(file))
+            CollectionAssert.AreEqual(original, System.IO.File.ReadAllBytes(file))
         Finally
-            If File.Exists(file) Then File.Delete(file)
+            If System.IO.File.Exists(file) Then System.IO.File.Delete(file)
         End Try
     End Sub
 

@@ -22,12 +22,12 @@ Public Class DocumentBatchTestSummaryFileReaderTests
         Dim file = Path.Combine(folder, "summary.json")
         Try
             Dim original = Encoding.UTF8.GetBytes(Fixture())
-            File.WriteAllBytes(file, original)
+            System.IO.File.WriteAllBytes(file, original)
             Dim summary = DocumentBatchTestSummaryFileReader.Read(file)
             Assert.AreEqual(1, summary.Total)
             Assert.IsTrue(summary.RequiresReview)
             Assert.AreEqual("scan-fictif.pdf", summary.Documents(0).Name)
-            CollectionAssert.AreEqual(original, File.ReadAllBytes(file))
+            CollectionAssert.AreEqual(original, System.IO.File.ReadAllBytes(file))
         Finally
             Directory.Delete(folder, True)
         End Try
@@ -37,10 +37,10 @@ Public Class DocumentBatchTestSummaryFileReaderTests
     Public Sub BilanSurdimensionne_EstRefuse()
         Dim file = Path.Combine(Path.GetTempPath(), "gt-summary-" & Guid.NewGuid().ToString("N") & ".json")
         Try
-            File.WriteAllBytes(file, New Byte(1024 * 1024) {})
+            System.IO.File.WriteAllBytes(file, New Byte(1024 * 1024) {})
             Assert.ThrowsExactly(Of FormatException)(Sub() DocumentBatchTestSummaryFileReader.Read(file))
         Finally
-            If File.Exists(file) Then File.Delete(file)
+            If System.IO.File.Exists(file) Then System.IO.File.Delete(file)
         End Try
     End Sub
 
@@ -48,10 +48,10 @@ Public Class DocumentBatchTestSummaryFileReaderTests
     Public Sub EncodageUtf8Invalide_EstRefuse()
         Dim file = Path.Combine(Path.GetTempPath(), "gt-summary-" & Guid.NewGuid().ToString("N") & ".json")
         Try
-            File.WriteAllBytes(file, New Byte() {&HC3, &H28})
+            System.IO.File.WriteAllBytes(file, New Byte() {&HC3, &H28})
             Assert.ThrowsExactly(Of DecoderFallbackException)(Sub() DocumentBatchTestSummaryFileReader.Read(file))
         Finally
-            If File.Exists(file) Then File.Delete(file)
+            If System.IO.File.Exists(file) Then System.IO.File.Delete(file)
         End Try
     End Sub
 
@@ -59,10 +59,10 @@ Public Class DocumentBatchTestSummaryFileReaderTests
     Public Sub BilanUtf16AvecBom_EstRefuse()
         Dim file = Path.Combine(Path.GetTempPath(), "gt-summary-" & Guid.NewGuid().ToString("N") & ".json")
         Try
-            File.WriteAllBytes(file, New Byte() {&HFF, &HFE, &H7B, &H0, &H7D, &H0})
+            System.IO.File.WriteAllBytes(file, New Byte() {&HFF, &HFE, &H7B, &H0, &H7D, &H0})
             Assert.ThrowsExactly(Of DecoderFallbackException)(Sub() DocumentBatchTestSummaryFileReader.Read(file))
         Finally
-            If File.Exists(file) Then File.Delete(file)
+            If System.IO.File.Exists(file) Then System.IO.File.Delete(file)
         End Try
     End Sub
 End Class
