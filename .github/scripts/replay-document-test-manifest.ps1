@@ -7,7 +7,9 @@ Import-Module (Join-Path $PSScriptRoot 'DocumentBatch.Test.psm1') -Force
 function Invoke-FictitiousManifestReplay([string]$ManifestPath, [string]$CheckpointPath, [scriptblock]$Sink) {
     if (-not $Sink) { throw 'missing-test-sink' }
     if (-not [IO.File]::Exists($ManifestPath)) { throw 'missing-test-manifest' }
-    $rows = @(ConvertFrom-Json -InputObject ([IO.File]::ReadAllText($ManifestPath)))
+    $manifestJson = [IO.File]::ReadAllText($ManifestPath)
+    if ($manifestJson -cnotmatch '^\s*\[') { throw 'invalid-test-manifest-array' }
+    $rows = @(ConvertFrom-Json -InputObject $manifestJson)
     # Reject malformed or extended snapshots before projection discards unknown fields.
     foreach ($row in $rows) {
         if ($null -eq $row -or $row -isnot [pscustomobject] -or
@@ -26,7 +28,9 @@ function Invoke-FictitiousManifestReplay([string]$ManifestPath, [string]$Checkpo
     if ($validated.Count -ne $rows.Count) { throw 'invalid-test-manifest' }
     $done = @{}
     if ([IO.File]::Exists($CheckpointPath)) {
-        $previous = @(ConvertFrom-Json -InputObject ([IO.File]::ReadAllText($CheckpointPath)))
+        $checkpointJson = [IO.File]::ReadAllText($CheckpointPath)
+        if ($checkpointJson -cnotmatch '^\s*\[') { throw 'invalid-test-checkpoint-array' }
+        $previous = @(ConvertFrom-Json -InputObject $checkpointJson)
         foreach ($hash in $previous) {
             if ($hash -isnot [string] -or $hash -cnotmatch '^[a-fA-F0-9]{64}$') { throw 'invalid-test-checkpoint' }
             $key = $hash.ToLowerInvariant()
@@ -143,12 +147,14 @@ if ($SelfTest) {
         foreach ($invalidCheckpoint in @(
             '["not-a-sha256"]',
             ('["' + ('a' * 64) + '","' + ('A' * 64) + '"]'),
-            '[null]'
+            '[null]',
+            ('"' + ('a' * 64) + '"'),
+            ('{"hash":"' + ('a' * 64) + '"}')
         )) {
             [IO.File]::WriteAllText($checkpoint, $invalidCheckpoint)
             $checkpointRejected = $false
             try { [void](Invoke-FictitiousManifestReplay $manifest $checkpoint $checkpointSink) } catch {
-                if ($_.Exception.Message -notin @('invalid-test-checkpoint','duplicate-test-checkpoint')) { throw }
+                if ($_.Exception.Message -notin @('invalid-test-checkpoint','duplicate-test-checkpoint','invalid-test-checkpoint-array')) { throw }
                 $checkpointRejected = $true
             }
             if (-not $checkpointRejected -or $script:checkpointSinkCalls -ne 0 -or
@@ -163,12 +169,13 @@ if ($SelfTest) {
         foreach ($badSnapshot in @(
             ('[{"name":"fake/invoice.pdf","hash":"' + ('d' * 64) + '","type_document":"Facture","secret":"fictional"}]'),
             '[null]',
+            ('{"name":"fake/invoice.pdf","hash":"' + ('d' * 64) + '","type_document":"Facture"}'),
             ('[{"name":"fake/invoice.pdf","hash":"' + ('d' * 64) + '","type_document":"Facture","status":"valid"}]')
         )) {
             [IO.File]::WriteAllText($manifest, $badSnapshot)
             $schemaRejected = $false
             try { [void](Invoke-FictitiousManifestReplay $manifest $checkpoint $schemaSink) } catch {
-                if ($_.Exception.Message -ne 'invalid-test-manifest-schema') { throw }
+                if ($_.Exception.Message -notin @('invalid-test-manifest-schema','invalid-test-manifest-array')) { throw }
                 $schemaRejected = $true
             }
             if (-not $schemaRejected -or $script:schemaSinkCalls -ne 0 -or
