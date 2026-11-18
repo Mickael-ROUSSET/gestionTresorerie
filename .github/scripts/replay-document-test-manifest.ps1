@@ -136,6 +136,27 @@ if ($SelfTest) {
             try { [void](Invoke-FictitiousManifestReplay $manifest $badCheckpoint $countSink) } catch { $rejectedPreflight = $true }
             if (-not $rejectedPreflight -or $script:preflightCalls -ne 0) { throw 'replay-preflight-invoked-sink' }
         }
+        # A corrupt or duplicate checkpoint must fail before any sink side effect.
+        $savedCheckpoint = [IO.File]::ReadAllText($checkpoint)
+        $script:checkpointSinkCalls = 0
+        $checkpointSink = { param($item) $script:checkpointSinkCalls++ }
+        foreach ($invalidCheckpoint in @(
+            '["not-a-sha256"]',
+            ('["' + ('a' * 64) + '","' + ('A' * 64) + '"]'),
+            '[null]'
+        )) {
+            [IO.File]::WriteAllText($checkpoint, $invalidCheckpoint)
+            $checkpointRejected = $false
+            try { [void](Invoke-FictitiousManifestReplay $manifest $checkpoint $checkpointSink) } catch {
+                if ($_.Exception.Message -notin @('invalid-test-checkpoint','duplicate-test-checkpoint')) { throw }
+                $checkpointRejected = $true
+            }
+            if (-not $checkpointRejected -or $script:checkpointSinkCalls -ne 0 -or
+                [IO.File]::ReadAllText($checkpoint) -cne $invalidCheckpoint) {
+                throw 'invalid-checkpoint-replay-side-effect'
+            }
+        }
+        [IO.File]::WriteAllText($checkpoint, $savedCheckpoint)
         $before = [IO.File]::ReadAllText($checkpoint)
         $script:schemaSinkCalls = 0
         $schemaSink = { param($item) $script:schemaSinkCalls++ }
