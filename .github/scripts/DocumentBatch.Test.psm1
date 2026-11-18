@@ -184,6 +184,12 @@ function ConvertTo-FictitiousBatchImportManifest([object[]]$Results) {
             $item.type_document -isnot [string] -or $item.type_document -cnotin $types) {
             throw 'invalid-valid-document'
         }
+        # Reject Windows device names and trailing dots/spaces in any path segment.
+        foreach ($segment in @(([string]$item.name) -split '[\\/]')) {
+            if ($segment -match '[. ]$' -or $segment -match '^(?i:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\\.|$)') {
+                throw 'invalid-windows-destination'
+            }
+        }
         # A SHA-256 identifies one document payload; never stage it twice in one batch.
         if (-not $seenHashes.Add($item.hash)) { throw 'duplicate-valid-document' }
         if (-not $seenNames.Add(($item.name -replace '\\', '/'))) { throw 'duplicate-valid-path' }
