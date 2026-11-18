@@ -8,6 +8,17 @@ function Invoke-FictitiousManifestReplay([string]$ManifestPath, [string]$Checkpo
     if (-not $Sink) { throw 'missing-test-sink' }
     if (-not [IO.File]::Exists($ManifestPath)) { throw 'missing-test-manifest' }
     $rows = @(ConvertFrom-Json -InputObject ([IO.File]::ReadAllText($ManifestPath)))
+    # Reject malformed or extended snapshots before projection discards unknown fields.
+    foreach ($row in $rows) {
+        if ($null -eq $row -or $row -isnot [pscustomobject] -or
+            @($row.PSObject.Properties.Name).Count -ne 3 -or
+            @($row.PSObject.Properties.Name | Where-Object { $_ -cnotin @('name','hash','type_document') }).Count -gt 0 -or
+            $null -eq $row.PSObject.Properties['name'] -or
+            $null -eq $row.PSObject.Properties['hash'] -or
+            $null -eq $row.PSObject.Properties['type_document']) {
+            throw 'invalid-test-manifest-schema'
+        }
+    }
     # Revalidate the entire snapshot before invoking any sink callback.
     $validated = @(ConvertTo-FictitiousBatchImportManifest @($rows | ForEach-Object {
         [pscustomobject]@{ name=$_.name; hash=$_.hash; type_document=$_.type_document; status='valid' }
@@ -126,6 +137,22 @@ if ($SelfTest) {
             if (-not $rejectedPreflight -or $script:preflightCalls -ne 0) { throw 'replay-preflight-invoked-sink' }
         }
         $before = [IO.File]::ReadAllText($checkpoint)
+        $script:schemaSinkCalls = 0
+        $schemaSink = { param($item) $script:schemaSinkCalls++ }
+        foreach ($badSnapshot in @(
+            '[{"name":"fake/invoice.pdf","hash":"' + ('d' * 64) + '","type_document":"Facture","secret":"fictional"}]',
+            '[null]',
+            '[{"name":"fake/invoice.pdf","hash":"' + ('d' * 64) + '","type_document":"Facture","status":"valid"}]'
+        )) {
+            [IO.File]::WriteAllText($manifest, $badSnapshot)
+            $schemaRejected = $false
+            try { [void](Invoke-FictitiousManifestReplay $manifest $checkpoint $schemaSink) } catch {
+                if ($_.Exception.Message -ne 'invalid-test-manifest-schema') { throw }
+                $schemaRejected = $true
+            }
+            if (-not $schemaRejected -or $script:schemaSinkCalls -ne 0 -or
+                [IO.File]::ReadAllText($checkpoint) -cne $before) { throw 'invalid-schema-replay-side-effect' }
+        }
         [IO.File]::WriteAllText($manifest, '[{"name":"../escape.pdf","hash":"' + ('c' * 64) + '","type_document":"Facture"}]')
         $rejected = $false
         try { [void](Invoke-FictitiousManifestReplay $manifest $checkpoint $sink) } catch { $rejected = $true }
