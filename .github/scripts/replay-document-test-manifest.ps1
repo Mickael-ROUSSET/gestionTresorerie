@@ -47,6 +47,11 @@ function Invoke-FictitiousManifestReplay([string]$ManifestPath, [string]$Checkpo
     $checkpointDirectory = [IO.Path]::GetDirectoryName($checkpointFullPath)
     if (-not [IO.Directory]::Exists($checkpointDirectory)) { throw 'missing-test-checkpoint-directory' }
     if ([IO.Directory]::Exists($checkpointFullPath)) { throw 'checkpoint-is-directory' }
+    # A read-only checkpoint cannot be replaced reliably after a sink side effect.
+    if ([IO.File]::Exists($checkpointFullPath) -and
+        (([IO.File]::GetAttributes($checkpointFullPath) -band [IO.FileAttributes]::ReadOnly) -ne 0)) {
+        throw 'checkpoint-read-only'
+    }
     $processed = 0
     foreach ($item in $validated) {
         $key = ([string]$item.hash).ToLowerInvariant()
@@ -139,6 +144,22 @@ if ($SelfTest) {
             $rejectedPreflight = $false
             try { [void](Invoke-FictitiousManifestReplay $manifest $badCheckpoint $countSink) } catch { $rejectedPreflight = $true }
             if (-not $rejectedPreflight -or $script:preflightCalls -ne 0) { throw 'replay-preflight-invoked-sink' }
+        }
+        # Reject a read-only checkpoint before the first sink call, preserving its bytes.
+        $readonlyOriginal = [IO.File]::ReadAllText($checkpoint)
+        $script:readonlySinkCalls = 0
+        $readonlySink = { param($item) $script:readonlySinkCalls++ }
+        [IO.File]::SetAttributes($checkpoint, ([IO.File]::GetAttributes($checkpoint) -bor [IO.FileAttributes]::ReadOnly))
+        try {
+            $readonlyRejected = $false
+            try { [void](Invoke-FictitiousManifestReplay $manifest $checkpoint $readonlySink) } catch {
+                if ($_.Exception.Message -ne 'checkpoint-read-only') { throw }
+                $readonlyRejected = $true
+            }
+            if (-not $readonlyRejected -or $script:readonlySinkCalls -ne 0 -or
+                [IO.File]::ReadAllText($checkpoint) -cne $readonlyOriginal) { throw 'readonly-checkpoint-side-effect' }
+        } finally {
+            [IO.File]::SetAttributes($checkpoint, ([IO.File]::GetAttributes($checkpoint) -band (-bnot [IO.FileAttributes]::ReadOnly)))
         }
         # A corrupt or duplicate checkpoint must fail before any sink side effect.
         $savedCheckpoint = [IO.File]::ReadAllText($checkpoint)
