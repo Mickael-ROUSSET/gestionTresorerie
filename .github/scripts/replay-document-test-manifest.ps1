@@ -23,6 +23,15 @@ function Invoke-FictitiousManifestReplay([string]$ManifestPath, [string]$Checkpo
             $done[$key] = $true
         }
     }
+    # Preflight the checkpoint destination before calling a sink with side effects.
+    $checkpointFullPath = [IO.Path]::GetFullPath($CheckpointPath)
+    $manifestFullPath = [IO.Path]::GetFullPath($ManifestPath)
+    if ([string]::Equals($checkpointFullPath, $manifestFullPath, [StringComparison]::OrdinalIgnoreCase)) {
+        throw 'checkpoint-overwrites-manifest'
+    }
+    $checkpointDirectory = [IO.Path]::GetDirectoryName($checkpointFullPath)
+    if (-not [IO.Directory]::Exists($checkpointDirectory)) { throw 'missing-test-checkpoint-directory' }
+    if ([IO.Directory]::Exists($checkpointFullPath)) { throw 'checkpoint-is-directory' }
     $processed = 0
     foreach ($item in $validated) {
         $key = ([string]$item.hash).ToLowerInvariant()
@@ -30,9 +39,8 @@ function Invoke-FictitiousManifestReplay([string]$ManifestPath, [string]$Checkpo
         # The injected sink MUST be idempotent by SHA-256; a crash may occur before checkpointing.
         & $Sink $item
         $next = @($done.Keys) + @($key)
-        $path = [IO.Path]::GetFullPath($CheckpointPath)
-        $dir = [IO.Path]::GetDirectoryName($path)
-        if (-not [IO.Directory]::Exists($dir)) { throw 'missing-test-checkpoint-directory' }
+        $path = $checkpointFullPath
+        $dir = $checkpointDirectory
         $tmp = Join-Path $dir ('.replay-' + [guid]::NewGuid().ToString('N') + '.tmp')
         $bak = Join-Path $dir ('.replay-' + [guid]::NewGuid().ToString('N') + '.bak')
         try {
@@ -76,6 +84,15 @@ if ($SelfTest) {
         if (-not $failed -or $script:seen.Count -ne 1) { throw 'replay-failure-not-isolated' }
         if ((Invoke-FictitiousManifestReplay $manifest $checkpoint $sink) -ne 1) { throw 'replay-restart-count' }
         if ((Invoke-FictitiousManifestReplay $manifest $checkpoint $sink) -ne 0 -or $script:seen.Count -ne 2) { throw 'replay-not-idempotent' }
+        # A rejected checkpoint destination must never invoke the injected sink.
+        $script:preflightCalls = 0
+        $countSink = { param($item) $script:preflightCalls++ }
+        $missingDir = Join-Path (Join-Path $root 'not-created') 'checkpoint.json'
+        foreach ($badCheckpoint in @($manifest, $root, $missingDir)) {
+            $rejectedPreflight = $false
+            try { [void](Invoke-FictitiousManifestReplay $manifest $badCheckpoint $countSink) } catch { $rejectedPreflight = $true }
+            if (-not $rejectedPreflight -or $script:preflightCalls -ne 0) { throw 'replay-preflight-invoked-sink' }
+        }
         $before = [IO.File]::ReadAllText($checkpoint)
         [IO.File]::WriteAllText($manifest, '[{"name":"../escape.pdf","hash":"' + ('c' * 64) + '","type_document":"Facture"}]')
         $rejected = $false
