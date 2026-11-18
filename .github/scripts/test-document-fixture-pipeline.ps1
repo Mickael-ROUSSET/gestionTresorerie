@@ -23,7 +23,12 @@ function Invoke-FixturePipeline([string]$Manifest, [string]$Workspace) {
     [void](& (Join-Path $PSScriptRoot 'test-simulated-gmail-intake.ps1') -ManifestPath $manifestFull -OutputDirectory $inbox)
     Import-Module (Join-Path $PSScriptRoot 'DocumentBatch.Test.psm1') -Force
     $items = @(Invoke-FictitiousBatch $inbox $state)
+    # Project only validated, deduplicated files for a future SQL TEST adapter.
+    # The projection contains no extracted identity, transaction or medical fields.
+    $staged = @(ConvertTo-FictitiousBatchImportManifest $items)
     return [pscustomobject]@{
+        staged = $staged
+        staged_count = $staged.Count
         total = $items.Count
         valid = @($items | Where-Object status -eq 'valid').Count
         skipped = @($items | Where-Object status -eq 'skipped').Count
@@ -67,9 +72,9 @@ if ($SelfTest) {
         if ((Test-Path -LiteralPath (Join-Path $root 'inbox')) -or
             (Test-Path -LiteralPath (Join-Path $root 'state'))) { throw 'manifest-overlap-created-files' }
         $first = Invoke-FixturePipeline $manifest $workspace
-        if ($first.total -ne 3 -or $first.valid -ne 1 -or $first.review -ne 1 -or $first.skipped -ne 1) { throw 'first-pass-counts' }
+        if ($first.total -ne 3 -or $first.valid -ne 1 -or $first.review -ne 1 -or $first.skipped -ne 1 -or $first.staged_count -ne 1) { throw 'first-pass-counts' }
         $second = Invoke-FixturePipeline $manifest $workspace
-        if ($second.total -ne 3 -or $second.skipped -ne 2 -or $second.review -ne 1 -or $second.valid -ne 0) { throw 'resume-counts' }
+        if ($second.total -ne 3 -or $second.skipped -ne 2 -or $second.review -ne 1 -or $second.valid -ne 0 -or $second.staged_count -ne 0) { throw 'resume-counts' }
         if (-not (Test-Path -LiteralPath (Join-Path $workspace 'state/journal.json'))) { throw 'missing-resume-journal' }
         # A review-only scan is retryable: adding a valid simulated engine result
         # on a later pass must promote it to valid without reprocessing the invoice.
@@ -82,9 +87,9 @@ if ($SelfTest) {
         }
         ConvertTo-Json -InputObject $payload -Depth 12 | Set-Content -LiteralPath $manifest -Encoding utf8
         $recovered = Invoke-FixturePipeline $manifest $workspace
-        if ($recovered.total -ne 3 -or $recovered.valid -ne 1 -or $recovered.review -ne 0 -or $recovered.skipped -ne 2) { throw 'review-recovery-counts' }
+        if ($recovered.total -ne 3 -or $recovered.valid -ne 1 -or $recovered.review -ne 0 -or $recovered.skipped -ne 2 -or $recovered.staged_count -ne 1) { throw 'review-recovery-counts' }
         $final = Invoke-FixturePipeline $manifest $workspace
-        if ($final.total -ne 3 -or $final.skipped -ne 3 -or $final.valid -ne 0 -or $final.review -ne 0) { throw 'review-recovery-resume' }
+        if ($final.total -ne 3 -or $final.skipped -ne 3 -or $final.valid -ne 0 -or $final.review -ne 0 -or $final.staged_count -ne 0) { throw 'review-recovery-resume' }
 
         # Exercise all five supported document types through the same synthetic Gmail intake.
         # No OCR, network, SQL or real documents are involved.
@@ -114,9 +119,25 @@ if ($SelfTest) {
         )
         ConvertTo-Json -InputObject $allTypesPayload -Depth 12 | Set-Content -LiteralPath $allTypesManifest -Encoding utf8
         $typedFirst = Invoke-FixturePipeline $allTypesManifest $allTypesWorkspace
-        if ($typedFirst.total -ne 5 -or $typedFirst.valid -ne 5 -or $typedFirst.review -ne 0 -or
+        if ($typedFirst.total -ne 5 -or $typedFirst.valid -ne 5 -or $typedFirst.review -ne 0 -or $typedFirst.staged_count -ne 5 -or
             @($typedFirst.documents | Where-Object { $_.type_document -notin @('Cheque','Facture','FormulaireAdhesion','QuestionnaireMedical','Recu') }).Count -ne 0) {
             throw 'five-types-validation-failed'
+        }
+        foreach ($row in $typedFirst.staged) {
+            if (@($row.PSObject.Properties.Name | Where-Object { $_ -cnotin @('name','hash','type_document') }).Count -ne 0) { throw 'staging-leaks-extracted-fields' }
+            if ($row.hash -cnotmatch '^[A-Fa-f0-9]{64} $allTypesManifest $allTypesWorkspace
+        if ($typedAgain.total -ne 5 -or $typedAgain.skipped -ne 5 -or $typedAgain.valid -ne 0 -or $typedAgain.review -ne 0 -or $typedAgain.staged_count -ne 0) {
+            throw 'five-types-resume-failed'
+        }
+        Write-Output 'PASS: synthetic intake -> typed validation -> review -> SHA256 resume'
+    } finally {
+        if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force }
+    }
+} else {
+    if (-not $ManifestPath -or -not $WorkspacePath) { throw 'ManifestPath and WorkspacePath required' }
+    Invoke-FixturePipeline $ManifestPath $WorkspacePath | ConvertTo-Json -Depth 12
+}
+) { throw 'staging-invalid-hash' }
         }
         $typedAgain = Invoke-FixturePipeline $allTypesManifest $allTypesWorkspace
         if ($typedAgain.total -ne 5 -or $typedAgain.skipped -ne 5 -or $typedAgain.valid -ne 0 -or $typedAgain.review -ne 0) {
