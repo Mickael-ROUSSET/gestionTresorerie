@@ -1,6 +1,6 @@
 # TEST ONLY: orchestrates synthetic Gmail fixtures and the shared resumable document batch.
 # No Gmail network, SQL connection, real accounting documents or production writes.
-param([string]$ManifestPath, [string]$WorkspacePath, [switch]$SelfTest)
+param([string]$ManifestPath, [string]$WorkspacePath, [string]$OutputPath, [switch]$SelfTest)
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
@@ -143,11 +143,44 @@ if ($SelfTest) {
         if ($typedAgain.total -ne 5 -or $typedAgain.skipped -ne 5 -or $typedAgain.valid -ne 0 -or $typedAgain.review -ne 0 -or $typedAgain.staged_count -ne 0) {
             throw 'five-types-resume-failed'
         }
+        # The exported TEST snapshot is a machine-readable bridge for the Windows adapter.
+        # It is a last-run snapshot, not a persistent SQL import queue.
+        $snapshot = Join-Path (Join-Path $allTypesWorkspace 'state') 'last-run.json'
+        $cliJson = & $PSCommandPath -ManifestPath $allTypesManifest -WorkspacePath $allTypesWorkspace -OutputPath $snapshot
+        $cliResult = ($cliJson -join [Environment]::NewLine) | ConvertFrom-Json
+        $saved = Get-Content -LiteralPath $snapshot -Raw | ConvertFrom-Json
+        if ($cliResult.total -ne 5 -or $cliResult.skipped -ne 5 -or $cliResult.staged_count -ne 0 -or
+            $saved.total -ne 5 -or $saved.skipped -ne 5 -or $saved.staged_count -ne 0) { throw 'snapshot-contract-invalid' }
+        $blocked = $false
+        try {
+            [void](& $PSCommandPath -ManifestPath $allTypesManifest -WorkspacePath $allTypesWorkspace -OutputPath (Join-Path $root 'outside.json'))
+        } catch {
+            if ($_.Exception.Message -match 'output-must-be-test-state-json') { $blocked = $true } else { throw }
+        }
+        if (-not $blocked -or (Test-Path -LiteralPath (Join-Path $root 'outside.json'))) { throw 'snapshot-escaped-test-state' }
         Write-Output 'PASS: synthetic intake -> typed validation -> review -> SHA256 resume'
     } finally {
         if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force }
     }
 } else {
     if (-not $ManifestPath -or -not $WorkspacePath) { throw 'ManifestPath and WorkspacePath required' }
-    Invoke-FixturePipeline $ManifestPath $WorkspacePath | ConvertTo-Json -Depth 12
+    $result = Invoke-FixturePipeline $ManifestPath $WorkspacePath
+    $json = ConvertTo-Json -InputObject $result -Depth 12
+    if ($OutputPath) {
+        # Explicit TEST-only snapshot for a future Windows/SQL TEST adapter, not a durable import queue.
+        # The caller must keep this snapshot inside the isolated workspace state directory.
+        $stateDirectory = [IO.Path]::GetFullPath((Join-Path $WorkspacePath 'state'))
+        $destination = [IO.Path]::GetFullPath($OutputPath)
+        if (-not ([IO.Path]::GetDirectoryName($destination)).Equals($stateDirectory, [StringComparison]::OrdinalIgnoreCase) -or
+            [IO.Path]::GetExtension($destination) -cne '.json' -or
+            [IO.Path]::GetFileName($destination) -ceq 'journal.json') { throw 'output-must-be-test-state-json' }
+        $temporary = Join-Path $stateDirectory ('snapshot-' + [guid]::NewGuid().ToString('N') + '.tmp')
+        try {
+            $json | Set-Content -LiteralPath $temporary -Encoding utf8
+            Move-Item -LiteralPath $temporary -Destination $destination -Force
+        } finally {
+            if (Test-Path -LiteralPath $temporary) { Remove-Item -LiteralPath $temporary -Force }
+        }
+    }
+    $json
 }
