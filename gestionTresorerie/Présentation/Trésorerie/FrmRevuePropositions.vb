@@ -1,0 +1,330 @@
+Option Strict On
+Option Explicit On
+
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Drawing
+Imports System.Windows.Forms
+
+''' <summary>
+''' Grilles en lecture seule ; correction explicite des propositions en mémoire.
+''' Sans sources métier fournies et vérifiées, seule la consultation est disponible.
+''' Aucun document source ni accès à une ressource externe.
+''' </summary>
+Public NotInheritable Class FrmRevuePropositions
+    Inherits Form
+
+    Private ReadOnly sources As New Dictionary(Of DataGridViewRow, PropositionMouvement)()
+    Private ReadOnly session As PropositionSessionRevue
+    Private ReadOnly etatCorrections As New Label With {
+        .Name = "etatCorrections", .AutoSize = True,
+        .AccessibleName = "État des corrections et de leur enregistrement",
+        .Text = "Corrections locales : non conservées après fermeture. Aucune opération enregistrée."}
+    Private ReadOnly corriger As New Button With {
+        .Name = "boutonCorriger", .Text = "Corriger la sélection (sans valider)",
+        .AccessibleName = "Corriger la sélection (sans valider)", .AutoSize = True,
+        .Enabled = False, .TabIndex = 2}
+    Private ReadOnly confirmerExamen As New Button With {
+        .Name = "boutonConfirmerExamen", .Text = "Confirmer l'examen (mémoire uniquement)",
+        .AccessibleName = "Confirmer l'examen humain sans approbation ni enregistrement",
+        .AutoSize = True, .Enabled = False, .TabIndex = 3}
+
+    Private ReadOnly annulerExamen As New Button With {
+        .Name = "boutonAnnulerExamen", .Text = "Annuler la confirmation d'examen",
+        .AccessibleName = "Retirer la confirmation d'examen sans modifier la proposition",
+        .AutoSize = True, .Enabled = False, .TabIndex = 4}
+
+    Public Sub New(revue As PropositionRevue)
+        If revue Is Nothing Then Throw New ArgumentNullException(NameOf(revue))
+
+        Text = "Revue des propositions — lecture seule"
+        AccessibleName = Text
+        AutoScaleMode = AutoScaleMode.Font
+        ClientSize = New Size(1100, 650)
+        MinimumSize = New Size(700, 450)
+        StartPosition = FormStartPosition.CenterParent
+
+        Dim propositions = CreerGrille("grillePropositions", "Propositions en lecture seule", 0)
+        AjouterColonnes(propositions, {"CleSource", "TypeDocument", "Reference", "DateProposee",
+                                      "Montant", "Sens", "Libelle", "Statut", "Avertissements", "Prevalidation", "DemandeValidation"},
+                         {"Identité du document", "Type", "Référence", "Date proposée",
+                          "Montant (EUR)", "Débit / Crédit", "Libellé", "Statut", "Avertissements de validation",
+                          "Anomalies de prévalidation (diagnostic uniquement)",
+                          "Demande de validation métier (diagnostic uniquement)"})
+        propositions.Columns("DateProposee").ValueType = GetType(DateTime)
+        propositions.Columns("DateProposee").DefaultCellStyle.Format = "dd/MM/yyyy"
+        propositions.Columns("Montant").ValueType = GetType(Decimal)
+        propositions.Columns("Montant").DefaultCellStyle.Format = "N2"
+        For Each ligne In revue.Lignes
+            propositions.Rows.Add(ligne.CleSource, ligne.TypeDocument, ligne.Reference,
+                                  ligne.DateProposee, ligne.Montant,
+                                  If(ligne.Sens = PropositionMouvement.SensMouvement.Debit, "Débit", "Crédit"),
+                                  ligne.Libelle, "En attente de revue humaine",
+                                  String.Join(Environment.NewLine, ligne.AvertissementsValidation),
+                                  "Contexte documentaire non fourni",
+                                  "Indisponible : session de revue absente")
+        Next
+        ' Les identités IMAP sont longues : ne pas masquer les colonnes métier.
+        ' Leur valeur intégrale reste disponible au survol, sans modifier les données.
+        ConfigurerAffichageIdentites(propositions)
+
+        Dim rejets = CreerGrille("grilleRejets", "Diagnostics des entrées rejetées en lecture seule", 1)
+        AjouterColonnes(rejets, {"IndexEntree", "CleSource", "Motif"},
+                         {"Index d'entrée (base 0)", "Identité du document", "Motif du rejet"})
+        For Each rejet In revue.Rejets
+            rejets.Rows.Add(rejet.IndexEntree, rejet.CleSource, rejet.Motif)
+        Next
+        ConfigurerAffichageIdentites(rejets)
+        ' Profiter de la largeur libérée pour lire les motifs de rejet.
+        rejets.Columns("Motif").AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+        rejets.Columns("Motif").MinimumWidth = 240
+
+        Dim fermer As New Button With {
+            .Name = "boutonFermer", .Text = "&Fermer", .AccessibleName = "Fermer la revue",
+            .AutoSize = True, .Anchor = AnchorStyles.Right, .TabIndex = 3,
+            .DialogResult = DialogResult.Cancel}
+        AddHandler fermer.Click, Sub(sender As Object, e As EventArgs) Close()
+        CancelButton = fermer
+
+        Dim disposition As New TableLayoutPanel With {
+            .Dock = DockStyle.Fill, .ColumnCount = 1, .RowCount = 6, .Padding = New Padding(10)}
+        disposition.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100.0F))
+        disposition.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        disposition.RowStyles.Add(New RowStyle(SizeType.Percent, 65.0F))
+        disposition.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        disposition.RowStyles.Add(New RowStyle(SizeType.Percent, 35.0F))
+        disposition.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        disposition.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        disposition.Controls.Add(New Label With {.Text = "Propositions — lecture seule", .AutoSize = True}, 0, 0)
+        disposition.Controls.Add(propositions, 0, 1)
+        disposition.Controls.Add(New Label With {.Text = "Entrées rejetées — diagnostics uniquement", .AutoSize = True}, 0, 2)
+        disposition.Controls.Add(rejets, 0, 3)
+        Dim actions As New FlowLayoutPanel With {.AutoSize = True, .Dock = DockStyle.Fill}
+        actions.Controls.AddRange(New Control() {corriger, confirmerExamen, annulerExamen, fermer})
+        disposition.Controls.Add(actions, 0, 4)
+        disposition.Controls.Add(etatCorrections, 0, 5)
+        AddHandler propositions.SelectionChanged, Sub() ActualiserAction(propositions)
+        AddHandler corriger.Click, Sub() CorrigerSelection()
+        AddHandler confirmerExamen.Click, Sub() ConfirmerExamenSelection()
+        AddHandler annulerExamen.Click, Sub() AnnulerExamenSelection()
+        Controls.Add(disposition)
+    End Sub
+
+    ''' <summary>Sources déjà parsées, dans l'ordre exact de l'instantané, sans identité ambiguë.</summary>
+    Public Sub New(revue As PropositionRevue, propositions As IEnumerable(Of PropositionMouvement))
+        Me.New(revue, propositions, Nothing)
+    End Sub
+
+    ''' <summary>Associe une session en memoire aux corrections effectuees dans la fenetre.
+    ''' La session doit contenir les memes instances que l'instantane presente.
+    ''' Aucune approbation ou persistance n'est possible depuis cette fenetre.</summary>
+    Public Sub New(revue As PropositionRevue, propositions As IEnumerable(Of PropositionMouvement),
+                   sessionRevue As PropositionSessionRevue)
+        Me.New(revue)
+        If propositions Is Nothing Then Throw New ArgumentNullException(NameOf(propositions))
+        Dim liste = propositions.ToList()
+        Dim identites As New HashSet(Of String)(StringComparer.Ordinal)
+        If liste.Count <> revue.Lignes.Count Then Throw New ArgumentException("Sources incompatibles avec la revue.", NameOf(propositions))
+        For i As Integer = 0 To liste.Count - 1
+            Dim source = liste(i)
+            Dim ligne = revue.Lignes(i)
+            If source Is Nothing OrElse Not identites.Add(source.CleSource) OrElse
+                source.Etat <> PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine OrElse
+                Not String.Equals(source.CleSource, ligne.CleSource, StringComparison.Ordinal) OrElse
+                Not String.Equals(source.TypeDocument, ligne.TypeDocument, StringComparison.Ordinal) OrElse
+                source.DateProposee <> ligne.DateProposee OrElse source.Montant <> ligne.Montant OrElse
+                source.Sens <> ligne.Sens OrElse Not String.Equals(source.Libelle, ligne.Libelle, StringComparison.Ordinal) OrElse
+                Not String.Equals(source.Reference, ligne.Reference, StringComparison.Ordinal) OrElse
+                Not source.AvertissementsValidation.SequenceEqual(ligne.AvertissementsValidation) Then
+                Throw New ArgumentException("Correspondance source non prouvée.", NameOf(propositions))
+            End If
+        Next
+        If sessionRevue IsNot Nothing Then
+            If sessionRevue.Propositions.Count <> liste.Count Then
+                Throw New ArgumentException("Session incompatible avec la revue.", NameOf(sessionRevue))
+            End If
+            For Each source In liste
+                Dim courante As PropositionMouvement = Nothing
+                If Not sessionRevue.Propositions.TryGetValue(source.CleSource, courante) OrElse
+                   Not Object.ReferenceEquals(courante, source) Then
+                    Throw New ArgumentException("Session incompatible avec la revue.", NameOf(sessionRevue))
+                End If
+            Next
+        End If
+        session = sessionRevue
+        ActualiserEtatCorrections()
+        Dim grille = DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView)
+        For i As Integer = 0 To liste.Count - 1
+            sources.Add(grille.Rows(i), liste(i))
+        Next
+        ' Une reouverture doit restaurer aussi les examens confirmes en memoire.
+        ActualiserSession()
+        ActualiserAction(grille)
+    End Sub
+
+    ''' <summary>Diagnostic en lecture seule. Sans identifiant de document ni historique
+    ''' d'identités fourni, la proposition ne peut jamais être considérée approuvée.</summary>
+    Private Sub ActualiserDiagnosticsPrevalidation()
+        If session Is Nothing Then Return
+        For Each entree In sources
+            Dim diagnostic = session.Prevalider(entree.Value.CleSource, 0, Nothing)
+            entree.Key.Cells("Prevalidation").Value = String.Join(Environment.NewLine,
+                diagnostic.Anomalies.Select(Function(anomalie) anomalie.ToString()))
+        Next
+    End Sub
+
+    ''' <summary>Reprend les corrections faites ailleurs dans la session en mémoire.
+    ''' Ne valide, n'approuve et n'enregistre aucune proposition.</summary>
+    Public Sub ActualiserSession()
+        If session Is Nothing Then Return
+        For Each ligne As DataGridViewRow In sources.Keys.ToArray()
+            Dim cle = sources(ligne).CleSource
+            Dim courante As PropositionMouvement = Nothing
+            If Not session.Propositions.TryGetValue(cle, courante) OrElse courante Is Nothing Then
+                Throw New InvalidOperationException("Proposition absente de la session.")
+            End If
+            sources(ligne) = courante
+            ligne.Cells("DateProposee").Value = courante.DateProposee
+            ligne.Cells("Montant").Value = courante.Montant
+            ligne.Cells("Sens").Value = If(courante.Sens = PropositionMouvement.SensMouvement.Debit, "Débit", "Crédit")
+            ligne.Cells("Libelle").Value = courante.Libelle
+            ligne.Cells("Reference").Value = courante.Reference
+            ligne.Cells("Statut").Value = If(session.EstExamenConfirme(cle),
+                "Examen confirmé (sans approbation)", "En attente de revue humaine")
+            ligne.Cells("Avertissements").Value = String.Join(Environment.NewLine, courante.AvertissementsValidation)
+            ' L'examen humain ne suffit jamais : l'identite documentaire est absente
+            ' de cette revue hors ligne. Aucun bouton de validation n'est propose.
+            ligne.Cells("DemandeValidation").Value = If(session.EstExamenConfirme(cle),
+                "Bloquée : identité documentaire non vérifiée", "Bloquée : examen humain non confirmé")
+        Next
+        ActualiserDiagnosticsPrevalidation()
+        ActualiserEtatCorrections()
+        ActualiserAction(DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView))
+    End Sub
+
+    Private Sub ActualiserEtatCorrections()
+        If session IsNot Nothing Then
+            etatCorrections.Text = $"Corrections tracées en mémoire : {session.Audits.Count}. " &
+                $"Examens confirmés : {session.NombreExamensConfirmes} (sans approbation). " &
+                "Aucune opération validée ni enregistrée."
+        End If
+    End Sub
+
+    Private Sub ActualiserAction(grille As DataGridView)
+        Dim selectionUnique = grille.SelectedRows.Count = 1 AndAlso sources.ContainsKey(grille.SelectedRows(0))
+        corriger.Enabled = selectionUnique
+        confirmerExamen.Enabled = False
+        annulerExamen.Enabled = False
+        If selectionUnique AndAlso session IsNot Nothing Then
+            Dim estConfirme = session.EstExamenConfirme(sources(grille.SelectedRows(0)).CleSource)
+            confirmerExamen.Enabled = Not estConfirme
+            annulerExamen.Enabled = estConfirme
+        End If
+    End Sub
+
+    ''' <summary>Accuse reception de l'examen humain, sans approbation ni SQL.
+    ''' La confirmation ne concerne que la version actuellement affichee.</summary>
+    Public Function ConfirmerExamenSelection() As Boolean
+        If session Is Nothing Then Return False
+        ActualiserSession()
+        If Not confirmerExamen.Enabled Then Return False
+        Dim grille = DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView)
+        Dim source = sources(grille.SelectedRows(0))
+        session.ConfirmerExamen(source.CleSource, source)
+        ActualiserSession()
+        Return True
+    End Function
+
+    ''' <summary>Retire une confirmation d'examen explicite, uniquement en memoire.
+    ''' La selection et la version courante sont reverifiees avant l'annulation.</summary>
+    Public Function AnnulerExamenSelection() As Boolean
+        If session Is Nothing Then Return False
+        ActualiserSession()
+        If Not annulerExamen.Enabled Then Return False
+        Dim grille = DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView)
+        Dim source = sources(grille.SelectedRows(0))
+        If Not session.AnnulerExamen(source.CleSource, source) Then Return False
+        ActualiserSession()
+        Return True
+    End Function
+
+    ''' <summary>Correction locale ; le présentateur optionnel permet les tests sans dialogue modal.</summary>
+    Public Function CorrigerSelection(Optional afficher As Func(Of FrmCorrectionProposition, DialogResult) = Nothing) As Boolean
+        Dim grille = DirectCast(Controls.Find("grillePropositions", True)(0), DataGridView)
+        ' Une correction externe peut avoir remplacé l'instance depuis l'ouverture.
+        ' Synchroniser avant de construire le dialogue pour éviter une correction obsolète.
+        If session IsNot Nothing Then ActualiserSession()
+        ActualiserAction(grille)
+        If Not corriger.Enabled Then Return False
+        Dim ligne = grille.SelectedRows(0)
+        Dim source = sources(ligne)
+        If source.Etat <> PropositionMouvement.EtatProposition.EnAttenteDeRevueHumaine Then Return False
+        Using correction As New FrmCorrectionProposition(source)
+            Dim resultat = If(afficher Is Nothing, correction.ShowDialog(Me), afficher(correction))
+            If resultat <> DialogResult.OK OrElse correction.PropositionCorrigee Is Nothing Then
+                ' Une correction externe pendant le dialogue peut avoir revoque
+                ' l'examen confirme : rafraichir meme si l'utilisateur annule.
+                If session IsNot Nothing Then ActualiserSession()
+                Return False
+            End If
+            Dim proposition = correction.PropositionCorrigee
+            If session IsNot Nothing Then
+                ' Une correction externe pendant le dialogue rend la proposition affichée obsolète.
+                ' Ne pas écraser cette correction ; rafraîchir la revue sans valider.
+                Dim courante As PropositionMouvement = Nothing
+                If Not session.Propositions.TryGetValue(source.CleSource, courante) OrElse
+                   Not Object.ReferenceEquals(courante, source) Then
+                    ActualiserSession()
+                    Return False
+                End If
+                session.AppliquerCorrection(source.CleSource, correction.ResultatCorrection)
+            End If
+            sources(ligne) = proposition
+            ligne.Cells("DateProposee").Value = proposition.DateProposee
+            ligne.Cells("Montant").Value = proposition.Montant
+            ligne.Cells("Sens").Value = If(proposition.Sens = PropositionMouvement.SensMouvement.Debit, "Débit", "Crédit")
+            ligne.Cells("Libelle").Value = proposition.Libelle
+            ligne.Cells("Reference").Value = proposition.Reference
+            ligne.Cells("Avertissements").Value = String.Join(Environment.NewLine, proposition.AvertissementsValidation)
+            ' Rafraichir aussi le statut d'examen : toute correction revoque
+            ' la confirmation precedente, meme sans fermeture de la fenetre.
+            If session IsNot Nothing Then ActualiserSession()
+            Return True
+        End Using
+    End Function
+
+    Private Shared Function CreerGrille(nom As String, description As String, ordre As Integer) As DataGridView
+        Dim grille As New DataGridView With {
+            .Name = nom, .AccessibleName = description, .AccessibleDescription = description,
+            .Dock = DockStyle.Fill, .TabIndex = ordre, .ReadOnly = True,
+            .AllowUserToAddRows = False, .AllowUserToDeleteRows = False,
+            .AllowUserToOrderColumns = False, .AutoGenerateColumns = False,
+            .AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells,
+            .AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells,
+            .RowHeadersVisible = False, .SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+            .MultiSelect = False, .EditMode = DataGridViewEditMode.EditProgrammatically}
+        grille.DefaultCellStyle.WrapMode = DataGridViewTriState.True
+        Return grille
+    End Function
+
+    Private Shared Sub ConfigurerAffichageIdentites(grille As DataGridView)
+        Dim identite = grille.Columns("CleSource")
+        identite.AutoSizeMode = DataGridViewAutoSizeColumnMode.None
+        identite.MinimumWidth = 120
+        identite.Width = 190
+        grille.ShowCellToolTips = True
+        For Each ligne As DataGridViewRow In grille.Rows
+            Dim cellule = ligne.Cells("CleSource")
+            cellule.ToolTipText = Convert.ToString(cellule.Value)
+        Next
+    End Sub
+
+    Private Shared Sub AjouterColonnes(grille As DataGridView, noms As String(), titres As String())
+        For i As Integer = 0 To noms.Length - 1
+            grille.Columns.Add(New DataGridViewTextBoxColumn With {
+                .Name = noms(i), .HeaderText = titres(i), .ReadOnly = True,
+                .SortMode = DataGridViewColumnSortMode.NotSortable})
+        Next
+    End Sub
+End Class

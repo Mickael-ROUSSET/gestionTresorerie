@@ -1,4 +1,4 @@
-﻿Imports System.IO
+Imports System.IO
 
 Public Class Logger
     ' Niveau de log minimum (DBG, INFO, WARN, ERR)
@@ -56,7 +56,7 @@ Public Class Logger
 
             'Console.WriteLine("Trace écrite avec succès.")
         Catch ex As Exception
-            Dim unused = MsgBox($"Erreur lors de l'écriture dans le fichier de trace : {ex.Message}")
+            System.Diagnostics.Trace.TraceError($"Erreur lors de l'écriture dans le fichier de trace : {ex.Message}")
         End Try
     End Sub
 
