@@ -60,3 +60,7 @@ if ($SelfTest) {
         if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force }
     }
 }
+
+if ($SelfTest) {
+    & (Join-Path $PSScriptRoot 'replay-document-test-manifest.ps1') -SelfTest
+}
