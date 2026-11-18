@@ -1,0 +1,205 @@
+# TEST-only reusable batch engine. No Gmail, SQL or production access.
+Set-StrictMode -Version Latest
+function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
+    if (-not (Test-Path -LiteralPath $InputPath -PathType Container)) { throw 'Input directory missing' }
+    # Reject overlapping directories before writing state, including nested paths.
+    $inputFull = [IO.Path]::GetFullPath((Resolve-Path -LiteralPath $InputPath).Path).TrimEnd([char[]]@('\','/'))
+    $stateFull = [IO.Path]::GetFullPath($StatePath).TrimEnd([char[]]@('\','/'))
+    $comparison = [StringComparison]::OrdinalIgnoreCase
+    $separator = [string][IO.Path]::DirectorySeparatorChar
+    if ($stateFull.Equals($inputFull, $comparison) -or
+        $stateFull.StartsWith($inputFull + $separator, $comparison) -or
+        $inputFull.StartsWith($stateFull + $separator, $comparison)) {
+        throw 'State and input directories must not overlap'
+    }
+    if (-not (Test-Path -LiteralPath $stateFull)) { [void](New-Item -ItemType Directory -Path $stateFull -Force) }
+    $journalPath = Join-Path $stateFull 'journal.json'
+    $journal = @{}
+    $journalChanged = $false
+    if (Test-Path -LiteralPath $journalPath) {
+        $old = Get-Content -LiteralPath $journalPath -Raw | ConvertFrom-Json
+        # Fail closed on a corrupt journal: never silently discard history and overwrite it.
+        foreach ($entry in @($old)) {
+            if ($null -eq $entry -or
+                $null -eq $entry.PSObject.Properties['hash'] -or
+                $null -eq $entry.PSObject.Properties['status'] -or
+                @($entry.PSObject.Properties.Name | Where-Object { $_ -cnotin @('hash','status') }).Count -gt 0) { throw 'invalid-journal-entry' }
+            $key = [string]$entry.hash
+            $value = [string]$entry.status
+            if ($key -notmatch '^[A-Fa-f0-9]{64}$' -or $value -cne 'valid' -or $journal.ContainsKey($key)) {
+                throw 'invalid-journal-entry'
+            }
+            $journal[$key] = $value
+        }
+    }
+    $allowed = @{
+        Cheque = @('emetteur_numero_cheque','emetteur_du_cheque','beneficiaire_nom','date_emission','montant_numerique')
+        Facture = @('fournisseur_nom','numero_facture','date_facture','montant_ttc')
+        FormulaireAdhesion = @('nom','prenom','adresse','date_document')
+        QuestionnaireMedical = @('nom_complet','date_document')
+        Recu = @('nom_complet','reference','date_document','montant_numerique')
+    }
+    $results = New-Object System.Collections.Generic.List[object]
+    $files = @(Get-ChildItem -LiteralPath $inputFull -File -Recurse | Where-Object { $_.Extension.ToLowerInvariant() -in @('.pdf','.png','.jpg','.jpeg') } | Sort-Object FullName)
+    foreach ($file in $files) {
+        $hash = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
+        $status = 'review'
+        $reason = 'missing-or-invalid-engine-result'
+        $documentType = $null
+        if ($journal.ContainsKey($hash) -and $journal[$hash] -eq 'valid') {
+            $status = 'skipped'
+            $reason = 'previously-validated'
+        } elseif ($file.Length -eq 0) {
+            $reason = 'empty-file'
+        } else {
+            # Simulated engine contract: sidecar JSON is TEST-only, never an OCR result.
+            $sidecar = $file.FullName + '.analysis.json'
+            if (Test-Path -LiteralPath $sidecar -PathType Leaf) {
+                try {
+                    $doc = Get-Content -LiteralPath $sidecar -Raw | ConvertFrom-Json
+                    # Reject arrays, numbers and booleans before PowerShell string coercion.
+                    # A document type must be a single JSON string from the supported vocabulary.
+                    if ($null -eq $doc -or $doc -isnot [pscustomobject] -or
+                        $null -eq $doc.PSObject.Properties['type_document'] -or
+                        $doc.type_document -isnot [string]) { throw 'invalid-document-type' }
+                    $kind = $doc.type_document
+                    if ($kind -cnotin @($allowed.Keys)) { throw 'unknown-type' }
+                    if ($null -eq $doc.PSObject.Properties['donnees_extraites'] -or
+                        $doc.donnees_extraites -isnot [pscustomobject] -or
+                        $null -eq $doc.donnees_extraites.PSObject.Properties['identite'] -or
+                        $null -eq $doc.donnees_extraites.PSObject.Properties['transaction'] -or
+                        $doc.donnees_extraites.identite -isnot [pscustomobject] -or
+                        $doc.donnees_extraites.transaction -isnot [pscustomobject]) { throw 'invalid-sections' }
+                    $identityFields = @($doc.donnees_extraites.identite.PSObject.Properties.Name)
+                    $transactionFields = @($doc.donnees_extraites.transaction.PSObject.Properties.Name)
+                    if ($identityFields.Count -eq 0 -or $transactionFields.Count -eq 0) { throw 'missing-identity-or-transaction' }
+                    $identityAllowed = @{
+                        Cheque = @('emetteur_numero_cheque','emetteur_du_cheque','beneficiaire_nom')
+                        Facture = @('fournisseur_nom')
+                        FormulaireAdhesion = @('nom','prenom','adresse')
+                        QuestionnaireMedical = @('nom_complet')
+                        Recu = @('nom_complet')
+                    }
+                    # Every declared field must exist, even when its value is null (unreadable).
+                    # A partial engine response must not be silently classified as complete.
+                    $requiredIdentity = @($identityAllowed[$kind])
+                    $requiredTransaction = @($allowed[$kind] | Where-Object { $_ -notin $requiredIdentity })
+                    foreach ($field in $requiredIdentity) {
+                        if ($field -cnotin $identityFields) { throw 'missing-identity-field' }
+                    }
+                    foreach ($field in $requiredTransaction) {
+                        if ($field -cnotin $transactionFields) { throw 'missing-transaction-field' }
+                    }
+                    foreach ($field in $identityFields) {
+                        if ($field -cnotin $identityAllowed[$kind]) { throw 'unexpected-identity-field' }
+                    }
+                    foreach ($field in $transactionFields) {
+                        if ($field -cnotin $allowed[$kind] -or $field -cin $identityAllowed[$kind]) { throw 'unexpected-transaction-field' }
+                    }
+                    # Identifier and name fields are textual, never coerced from JSON numbers.
+                    # This preserves leading zeros in cheque and invoice references.
+                    foreach ($field in $identityFields) {
+                        $value = $doc.donnees_extraites.identite.PSObject.Properties[$field].Value
+                        if ($null -ne $value -and $value -isnot [string]) { throw 'invalid-identity-type' }
+                    }
+                    foreach ($field in @('numero_facture','reference')) {
+                        $property = $doc.donnees_extraites.transaction.PSObject.Properties[$field]
+                        if ($null -ne $property -and $null -ne $property.Value -and $property.Value -isnot [string]) {
+                            throw 'invalid-reference-type'
+                        }
+                    }
+                    # Validate typed fields before journaling.
+                    $transaction = $doc.donnees_extraites.transaction
+                    foreach ($field in @('montant_numerique','montant_ttc')) {
+                        $property = $transaction.PSObject.Properties[$field]
+                        if ($null -ne $property -and $null -ne $property.Value) {
+                            $amount = $property.Value
+                            if ($amount -isnot [byte] -and $amount -isnot [int] -and
+                                $amount -isnot [long] -and $amount -isnot [decimal] -and
+                                $amount -isnot [double] -and $amount -isnot [single]) { throw 'invalid-amount-type' }
+                            if ([double]$amount -lt 0 -or [double]::IsNaN([double]$amount) -or
+                                [double]::IsInfinity([double]$amount)) { throw 'invalid-amount' }
+                        }
+                    }
+                    foreach ($field in @('date_emission','date_facture','date_document')) {
+                        $property = $transaction.PSObject.Properties[$field]
+                        if ($null -ne $property -and $null -ne $property.Value) {
+                            $dateText = $property.Value
+                            if ($dateText -isnot [string] -or $dateText -cnotmatch '^[0-9]{4}-[0-9]{2}-[0-9]{2}\z') { throw 'invalid-date-format' }
+                            try {
+                                [void][datetime]::ParseExact($dateText, 'yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)
+                            } catch { throw 'invalid-calendar-date' }
+                        }
+                    }
+                    # A syntactically complete but entirely empty extraction cannot be classified as valid.
+                    $allValues = @($doc.donnees_extraites.identite.PSObject.Properties.Value) +
+                                 @($doc.donnees_extraites.transaction.PSObject.Properties.Value)
+                    if (@($allValues | Where-Object { $null -ne $_ -and ([string]$_).Trim().Length -gt 0 }).Count -eq 0) {
+                        throw 'empty-extraction'
+                    }
+                    # Reject unexpected top-level sections: the simulated engine must honor the same contract as the real engine.
+                    if (@($doc.PSObject.Properties.Name | Where-Object { $_ -cnotin @('type_document','donnees_extraites') }).Count -gt 0) { throw 'unexpected-root-field' }
+                    if (@($doc.donnees_extraites.PSObject.Properties.Name | Where-Object { $_ -cnotin @('identite','transaction') }).Count -gt 0) { throw 'unexpected-section' }
+                    $status = 'valid'
+                    $documentType = $kind
+                    $reason = 'simulated-engine-validated'
+                    $journal[$hash] = 'valid'
+                    $journalChanged = $true
+                } catch {
+                    $reason = 'invalid-analysis'
+                }
+            }
+        }
+        $relativeName = $file.FullName.Substring($inputFull.Length).TrimStart([char[]]@('\','/'))
+        $results.Add([pscustomobject]@{ name=$relativeName; hash=$hash; status=$status; reason=$reason; type_document=$documentType })
+    }
+    # Do not rewrite an unchanged recovery point on repeat runs or review-only batches.
+    if ($journalChanged) {
+        # Atomic replacement of the journal: an interruption before this point is retryable.
+        $journalRows = @($journal.Keys | Sort-Object | ForEach-Object { [pscustomobject]@{hash=$_;status=$journal[$_]} })
+        $temp = Join-Path $stateFull ('journal-' + [guid]::NewGuid().ToString('N') + '.tmp')
+        try {
+            ConvertTo-Json -InputObject $journalRows -Depth 4 | Set-Content -LiteralPath $temp -Encoding utf8
+            Move-Item -LiteralPath $temp -Destination $journalPath -Force
+        } finally { if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Force } }
+    }
+    return $results.ToArray()
+}
+
+# TEST-only projection for a future SQL TEST import: no personal fields or writes.
+function ConvertTo-FictitiousBatchImportManifest([object[]]$Results) {
+    $types = @('Cheque','Facture','FormulaireAdhesion','QuestionnaireMedical','Recu')
+    $manifest = New-Object System.Collections.Generic.List[object]
+    $seenHashes = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    $seenNames = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($item in @($Results)) {
+        if ($null -eq $item) { throw 'invalid-batch-result' }
+        if ($item.status -cne 'valid') { continue }
+        if ($item.hash -isnot [string] -or $item.hash -cnotmatch '^[A-Fa-f0-9]{64}$' -or
+            $item.name -isnot [string] -or [string]::IsNullOrWhiteSpace($item.name) -or
+            [IO.Path]::IsPathRooted([string]$item.name) -or
+            $item.name -match '[:\x00-\x1f]' -or
+            $item.name -match '^[\\/]' -or
+            @(([string]$item.name -split '[\\/]') | Where-Object { $_ -eq '..' -or $_ -eq '.' -or $_ -eq '' }).Count -gt 0 -or
+            $item.type_document -isnot [string] -or $item.type_document -cnotin $types) {
+            throw 'invalid-valid-document'
+        }
+        # Reject Windows device names and trailing dots/spaces in any path segment.
+        foreach ($segment in @(([string]$item.name) -split '[\\/]')) {
+            if ($segment -match '[. ]$' -or $segment -match '^(?i:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)') {
+                throw 'invalid-windows-destination'
+            }
+        }
+        # A SHA-256 identifies one document payload; never stage it twice in one batch.
+        if (-not $seenHashes.Add($item.hash)) { throw 'duplicate-valid-document' }
+        if (-not $seenNames.Add(($item.name -replace '\\', '/'))) { throw 'duplicate-valid-path' }
+        $manifest.Add([pscustomobject]@{
+            name = $item.name
+            hash = $item.hash
+            type_document = $item.type_document
+        })
+    }
+    return $manifest.ToArray()
+}
+
+Export-ModuleMember -Function Invoke-FictitiousBatch, ConvertTo-FictitiousBatchImportManifest

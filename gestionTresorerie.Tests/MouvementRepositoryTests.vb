@@ -1,4 +1,4 @@
-﻿Imports Microsoft.VisualStudio.TestTools.UnitTesting
+Imports Microsoft.VisualStudio.TestTools.UnitTesting
 Imports System.Linq
 
 <TestClass>
@@ -7,7 +7,7 @@ Public Class MouvementRepositoryTests
     <TestMethod>
     Public Sub Supprimer_UtiliseDelMvt_AvecBonId()
         Dim fake As New FakeSqlExecutor()
-        Dim repo As New MouvementRepository(fake, Nothing, Nothing)
+        Dim repo As New MouvementRepository(fake, New UnusedConnectionFactory(), New UnusedSqlTextProvider())
 
         Dim nb = repo.Supprimer(42)
 
@@ -24,7 +24,7 @@ Public Class MouvementRepositoryTests
     <TestMethod>
     Public Sub MettreAJourIdDoc_UtiliseUpdMvtIdDoc()
         Dim fake As New FakeSqlExecutor()
-        Dim repo As New MouvementRepository(fake, Nothing, Nothing)
+        Dim repo As New MouvementRepository(fake, New UnusedConnectionFactory(), New UnusedSqlTextProvider())
 
         Dim nb = repo.MettreAJourIdDoc(10, 99)
 
@@ -34,11 +34,11 @@ Public Class MouvementRepositoryTests
         Dim p = fake.LastParameters.ToList()
         Assert.HasCount(2, p)
 
-        Assert.AreEqual("@IdMvt", p(0).ParameterName)
-        Assert.AreEqual(10, p(0).Value)
+        Assert.AreEqual("@nouvelIdDoc", p(0).ParameterName)
+        Assert.AreEqual(99, p(0).Value)
 
-        Assert.AreEqual("@IdDoc", p(1).ParameterName)
-        Assert.AreEqual(99, p(1).Value)
+        Assert.AreEqual("@idMouvement", p(1).ParameterName)
+        Assert.AreEqual(10, p(1).Value)
     End Sub
 
 End Class
