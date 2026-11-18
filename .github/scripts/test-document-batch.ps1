@@ -72,6 +72,9 @@ if ($SelfTest) {
             [pscustomobject]@{ name='C:\\absolute.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' },
             [pscustomobject]@{ name='\\\\server\\share\\file.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' },
             [pscustomobject]@{ name='folder/unsafe:name.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' },
+            [pscustomobject]@{ name='folder/CON.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' },
+            [pscustomobject]@{ name='LPT1.txt'; hash=('a' * 64); status='valid'; type_document='Facture' },
+            [pscustomobject]@{ name='folder/trailing. '; hash=('a' * 64); status='valid'; type_document='Facture' },
             [pscustomobject]@{ name='folder//bad.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' }
         )) {
             $rejected = $false
