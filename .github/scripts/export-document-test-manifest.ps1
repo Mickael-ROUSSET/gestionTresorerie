@@ -16,7 +16,13 @@ function Export-FictitiousBatchManifest([object[]]$Results, [string]$Destination
     try {
         $json = ConvertTo-Json -InputObject $manifest -Depth 4
         [IO.File]::WriteAllText($temporary, $json, [Text.UTF8Encoding]::new($false))
-        Move-Item -LiteralPath $temporary -Destination $fullPath -Force
+        # A rename with -Force can delete the previous snapshot before moving the new one.
+        # Use a same-directory atomic filesystem replacement when the target exists.
+        if ([IO.File]::Exists($fullPath)) {
+            [IO.File]::Replace($temporary, $fullPath, $null)
+        } else {
+            [IO.File]::Move($temporary, $fullPath)
+        }
     } finally {
         if (Test-Path -LiteralPath $temporary) { Remove-Item -LiteralPath $temporary -Force }
     }
@@ -32,6 +38,9 @@ if ($SelfTest) {
         $review = [pscustomobject]@{ name='unreadable.pdf'; hash=('b' * 64); status='review'; type_document=$null }
         if ((Export-FictitiousBatchManifest @($valid, $review) $target) -ne 1) { throw 'valid-staging-count' }
         $saved = Get-Content -LiteralPath $target -Raw
+        # Replacing an existing snapshot must work without retaining a backup or temp file.
+        if ((Export-FictitiousBatchManifest @($valid) $target) -ne 1) { throw 'existing-staging-replace-count' }
+        if ((Get-Content -LiteralPath $target -Raw) -cne $saved) { throw 'existing-staging-replace-content' }
         $rows = @(ConvertFrom-Json -InputObject $saved)
         if ($rows.Count -ne 1 -or $rows[0].name -cne $valid.name -or
             @($rows[0].PSObject.Properties.Name).Count -ne 3 -or $saved.Contains('secret') -or
