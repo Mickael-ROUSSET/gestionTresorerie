@@ -125,10 +125,11 @@ if ($SelfTest) {
             if (@($row.PSObject.Properties.Name | Where-Object { $_ -cnotin @('name','hash','type_document') }).Count -ne 0) { throw 'staging-leaks-extracted-fields' }
             if ($row.hash -cnotmatch '^[A-Fa-f0-9]{64}$') { throw 'staging-invalid-hash' }
         }
+        # The simulated Gmail intake names files from message_id + attachment_id, not the original filename.
         # Verify staging metadata against actual fictional attachment bytes.
         $expectedTypes = @{}
         for ($i = 0; $i -lt $cases.Count; $i++) {
-            $expectedTypes['document-' + $i + '.pdf'] = $cases[$i].kind
+            $expectedTypes['synthetic-type-' + $i + '_attachment-' + $i + '.pdf'] = $cases[$i].kind
         }
         foreach ($row in $typedFirst.staged) {
             if (-not $expectedTypes.ContainsKey([string]$row.name)) { throw 'staging-unexpected-filename' }
