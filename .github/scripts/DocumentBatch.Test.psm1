@@ -171,18 +171,22 @@ function ConvertTo-FictitiousBatchImportManifest([object[]]$Results) {
     $types = @('Cheque','Facture','FormulaireAdhesion','QuestionnaireMedical','Recu')
     $manifest = New-Object System.Collections.Generic.List[object]
     $seenHashes = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    $seenNames = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     foreach ($item in @($Results)) {
         if ($null -eq $item) { throw 'invalid-batch-result' }
         if ($item.status -cne 'valid') { continue }
         if ($item.hash -isnot [string] -or $item.hash -cnotmatch '^[A-Fa-f0-9]{64}$' -or
             $item.name -isnot [string] -or [string]::IsNullOrWhiteSpace($item.name) -or
             [IO.Path]::IsPathRooted([string]$item.name) -or
+            $item.name -match '[:\x00-\x1f]' -or
+            $item.name -match '^[\\/]' -or
             @(([string]$item.name -split '[\\/]') | Where-Object { $_ -eq '..' -or $_ -eq '.' -or $_ -eq '' }).Count -gt 0 -or
             $item.type_document -isnot [string] -or $item.type_document -cnotin $types) {
             throw 'invalid-valid-document'
         }
         # A SHA-256 identifies one document payload; never stage it twice in one batch.
         if (-not $seenHashes.Add($item.hash)) { throw 'duplicate-valid-document' }
+        if (-not $seenNames.Add(($item.name -replace '\\', '/'))) { throw 'duplicate-valid-path' }
         $manifest.Add([pscustomobject]@{
             name = $item.name
             hash = $item.hash

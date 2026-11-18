@@ -68,6 +68,10 @@ if ($SelfTest) {
             [pscustomobject]@{ name='../outside.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' },
             [pscustomobject]@{ name='folder/../outside.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' },
             [pscustomobject]@{ name='/absolute.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' },
+            [pscustomobject]@{ name='C:relative.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' },
+            [pscustomobject]@{ name='C:\\absolute.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' },
+            [pscustomobject]@{ name='\\\\server\\share\\file.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' },
+            [pscustomobject]@{ name='folder/unsafe:name.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' },
             [pscustomobject]@{ name='folder//bad.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' }
         )) {
             $rejected = $false
@@ -80,6 +84,11 @@ if ($SelfTest) {
         $duplicateRejected = $false
         try { [void](ConvertTo-FictitiousBatchImportManifest @($validA, $validB)) } catch { $duplicateRejected = $true }
         if (-not $duplicateRejected) { throw 'Duplicate SHA256 was staged twice for SQL TEST' }
+        # Windows destinations are case-insensitive; alternate separators must not bypass collision checks.
+        $sameDestination = [pscustomobject]@{ name='FOLDER\\A.PDF'; hash=('b' * 64); status='valid'; type_document='Facture' }
+        $collisionRejected = $false
+        try { [void](ConvertTo-FictitiousBatchImportManifest @($validA, $sameDestination)) } catch { $collisionRejected = $true }
+        if (-not $collisionRejected) { throw 'Duplicate Windows destination was staged twice' }
         $uniqueManifest = @(ConvertTo-FictitiousBatchImportManifest @($validA))
         if ($uniqueManifest.Count -ne 1) { throw 'Unique valid SHA256 was rejected' }
         $manifestResume = @(ConvertTo-FictitiousBatchImportManifest (Invoke-FictitiousBatch $inputPath $statePath))
