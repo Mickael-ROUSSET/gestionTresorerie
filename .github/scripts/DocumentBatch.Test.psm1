@@ -170,6 +170,7 @@ function Invoke-FictitiousBatch([string]$InputPath, [string]$StatePath) {
 function ConvertTo-FictitiousBatchImportManifest([object[]]$Results) {
     $types = @('Cheque','Facture','FormulaireAdhesion','QuestionnaireMedical','Recu')
     $manifest = New-Object System.Collections.Generic.List[object]
+    $seenHashes = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     foreach ($item in @($Results)) {
         if ($null -eq $item) { throw 'invalid-batch-result' }
         if ($item.status -cne 'valid') { continue }
@@ -180,6 +181,8 @@ function ConvertTo-FictitiousBatchImportManifest([object[]]$Results) {
             $item.type_document -isnot [string] -or $item.type_document -cnotin $types) {
             throw 'invalid-valid-document'
         }
+        # A SHA-256 identifies one document payload; never stage it twice in one batch.
+        if (-not $seenHashes.Add($item.hash)) { throw 'duplicate-valid-document' }
         $manifest.Add([pscustomobject]@{
             name = $item.name
             hash = $item.hash
