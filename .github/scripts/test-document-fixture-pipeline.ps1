@@ -123,19 +123,7 @@ if ($SelfTest) {
         }
         foreach ($row in $typedFirst.staged) {
             if (@($row.PSObject.Properties.Name | Where-Object { $_ -cnotin @('name','hash','type_document') }).Count -ne 0) { throw 'staging-leaks-extracted-fields' }
-            if ($row.hash -cnotmatch '^[A-Fa-f0-9]{64} $allTypesManifest $allTypesWorkspace
-        if ($typedAgain.total -ne 5 -or $typedAgain.skipped -ne 5 -or $typedAgain.valid -ne 0 -or $typedAgain.review -ne 0 -or $typedAgain.staged_count -ne 0) {
-            throw 'five-types-resume-failed'
-        }
-        Write-Output 'PASS: synthetic intake -> typed validation -> review -> SHA256 resume'
-    } finally {
-        if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force }
-    }
-} else {
-    if (-not $ManifestPath -or -not $WorkspacePath) { throw 'ManifestPath and WorkspacePath required' }
-    Invoke-FixturePipeline $ManifestPath $WorkspacePath | ConvertTo-Json -Depth 12
-}
-) { throw 'staging-invalid-hash' }
+            if ($row.hash -cnotmatch '^[A-Fa-f0-9]{64}$') { throw 'staging-invalid-hash' }
         }
         $typedAgain = Invoke-FixturePipeline $allTypesManifest $allTypesWorkspace
         if ($typedAgain.total -ne 5 -or $typedAgain.skipped -ne 5 -or $typedAgain.valid -ne 0 -or $typedAgain.review -ne 0 -or $typedAgain.staged_count -ne 0) {
