@@ -1,0 +1,164 @@
+Option Strict On
+
+Imports System
+Imports System.Data
+Imports System.Data.SqlClient
+Imports gestionTresorerie
+Imports Microsoft.VisualStudio.TestTools.UnitTesting
+
+<TestClass>
+Public Class SqlTiersTestStoreTests
+    <TestMethod>
+    Public Sub RefuseUneSaisieInvalideAvantToutAccesSql()
+        Dim store As New SqlTiersTestStore()
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.CreateTiers("", "a@example.test", "Allègre"))
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.CreateTiers("Fictif", "invalide", "Allègre"))
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.CreateTiers(New String("x"c, 51), "", "Allègre"))
+        Dim tooLongEmail = New String("a"c, 145) & "@test.example"
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.CreateTiers("Fictif", tooLongEmail, "Allègre"))
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.UpdateTiers(1, "Fictif", tooLongEmail, "Allègre"))
+        Assert.ThrowsExactly(Of ArgumentOutOfRangeException)(Sub() store.ReadTiers(0))
+        Assert.ThrowsExactly(Of ArgumentOutOfRangeException)(Sub() store.ReadTiers(-1))
+        Assert.ThrowsExactly(Of ArgumentOutOfRangeException)(Sub() store.UpdateTiers(-1, "Fictif", "a@example.test", "Allègre"))
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.SearchTiers(" "))
+        Assert.ThrowsExactly(Of ArgumentOutOfRangeException)(Sub() store.UpdateTiers(0, "Fictif", "a@example.test", "Allègre"))
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.UpdateTiers(1, "", "a@example.test", "Allègre"))
+    End Sub
+
+    <TestMethod, TestCategory("LocalDbIntegration")>
+    Public Sub DeuxTiersFictifsConserventLeursCoordonneesSeparees()
+        If Environment.GetEnvironmentVariable("AGUMAAA_RUN_LOCALDB_INTEGRATION") <> "1" Then
+            Assert.Inconclusive("LocalDB réservé au runner Windows jetable.")
+        End If
+        Dim store As New SqlTiersTestStore()
+        store.Initialize()
+        Dim suffix = Guid.NewGuid().ToString("N").Substring(0, 12)
+        ' Une création rejetée ne doit laisser aucun tiers fantôme dans LocalDB.
+        Dim rejectedName = "TEST-REJETE-" & suffix
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.CreateTiers(rejectedName, "email-invalide", "Allègre"))
+        Using rejected = New SqlTiersTestStore().SearchTiers(rejectedName)
+            Assert.AreEqual(0, rejected.Rows.Count)
+        End Using
+        ' Le nom blanc est refusé avant insertion ; les deux créations suivantes
+        ' et la recherche par suffixe ci-dessous contrôlent la reprise normale.
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.CreateTiers("   ", "blank@example.test", "Allègre"))
+        Dim first = store.CreateTiers("TEST-A-" & suffix, "a@example.test", "Allègre")
+        Dim second = store.CreateTiers("TEST-B-" & suffix, "b@example.test", "Monlet")
+        Assert.AreNotEqual(first, second)
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.UpdateTiers(first, "   ", "invalid@example.test", "Inconnue"))
+        Using unchanged = New SqlTiersTestStore().ReadTiers(first)
+            Assert.AreEqual(1, unchanged.Rows.Count)
+            Assert.AreEqual("TEST-A-" & suffix, CStr(unchanged.Rows(0)("nom")))
+            Assert.AreEqual("a@example.test", CStr(unchanged.Rows(0)("Email")))
+            Assert.AreEqual("Allègre", CStr(unchanged.Rows(0)("Ville")))
+        End Using
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.UpdateTiers(second, "TEST-B-INVALIDE-" & suffix, "adresse-invalide", "Inconnue"))
+        Using unchangedEmail = New SqlTiersTestStore().ReadTiers(second)
+            Assert.AreEqual(1, unchangedEmail.Rows.Count)
+            Assert.AreEqual("TEST-B-" & suffix, CStr(unchangedEmail.Rows(0)("nom")))
+            Assert.AreEqual("b@example.test", CStr(unchangedEmail.Rows(0)("Email")))
+            Assert.AreEqual("Monlet", CStr(unchangedEmail.Rows(0)("Ville")))
+        End Using
+        store.UpdateTiers(first, "TEST-A-CORRIGE-" & suffix, "corrige@example.test", "Céaux")
+        Assert.ThrowsExactly(Of SqlException)(Sub() store.UpdateTiers(Integer.MaxValue, "Absent", "a@example.test", "Allègre"))
+        ' Après une écriture refusée, rouvrir le dépôt et vérifier que les deux tiers
+        ' fictifs sont intacts, puis qu'une correction ultérieure reste possible.
+        Using unchangedA = New SqlTiersTestStore().ReadTiers(first),
+              unchangedB = New SqlTiersTestStore().ReadTiers(second)
+            Assert.AreEqual(1, unchangedA.Rows.Count)
+            Assert.AreEqual(1, unchangedB.Rows.Count)
+            Assert.AreEqual("TEST-A-CORRIGE-" & suffix, CStr(unchangedA.Rows(0)("nom")))
+            Assert.AreEqual("corrige@example.test", CStr(unchangedA.Rows(0)("Email")))
+            Assert.AreEqual("b@example.test", CStr(unchangedB.Rows(0)("Email")))
+            Assert.AreEqual("Monlet", CStr(unchangedB.Rows(0)("Ville")))
+        End Using
+        store.UpdateTiers(second, "TEST-B-REPRIS-" & suffix, "repris@example.test", "Vernassal")
+        Using resumed = New SqlTiersTestStore().ReadTiers(second)
+            Assert.AreEqual("TEST-B-REPRIS-" & suffix, CStr(resumed.Rows(0)("nom")))
+            Assert.AreEqual("repris@example.test", CStr(resumed.Rows(0)("Email")))
+            Assert.AreEqual("Vernassal", CStr(resumed.Rows(0)("Ville")))
+        End Using
+        Using corrected = New SqlTiersTestStore().ReadTiers(first)
+            Assert.AreEqual("TEST-A-CORRIGE-" & suffix, CStr(corrected.Rows(0)("nom")))
+            Assert.AreEqual("corrige@example.test", CStr(corrected.Rows(0)("Email")))
+            Assert.AreEqual("Céaux", CStr(corrected.Rows(0)("Ville")))
+        End Using
+        Using a = New SqlTiersTestStore().ReadTiers(first), b = New SqlTiersTestStore().ReadTiers(second)
+            Assert.AreEqual(1, a.Rows.Count)
+            Assert.AreEqual(1, b.Rows.Count)
+            Assert.AreEqual("corrige@example.test", CStr(a.Rows(0)("Email")))
+            Assert.AreEqual("Céaux", CStr(a.Rows(0)("Ville")))
+            Assert.AreEqual("repris@example.test", CStr(b.Rows(0)("Email")))
+            Assert.AreEqual("Vernassal", CStr(b.Rows(0)("Ville")))
+        End Using
+        Using matches = New SqlTiersTestStore().SearchTiers(suffix)
+            Assert.AreEqual(2, matches.Rows.Count)
+        End Using
+        Dim special = store.CreateTiers("TEST-[A]_%" & suffix, "special@example.test", "Allègre")
+        Using exactBracket = New SqlTiersTestStore().SearchTiers("[A]_%")
+            Assert.AreEqual(1, exactBracket.Rows.Count)
+            Assert.AreEqual(special, CInt(exactBracket.Rows(0)("Id")))
+        End Using
+        Using literalUnderscore = New SqlTiersTestStore().SearchTiers("_%" & suffix)
+            Assert.AreEqual(1, literalUnderscore.Rows.Count)
+            Assert.AreEqual(special, CInt(literalUnderscore.Rows(0)("Id")))
+        End Using
+        ' Une apostrophe et une tentative d'injection sont des textes de recherche littéraux.
+        Dim quoted = store.CreateTiers("TEST-O'BRIEN-" & suffix, "quoted@example.test", "Allègre")
+        Using apostrophe = New SqlTiersTestStore().SearchTiers("O'BRIEN-" & suffix)
+            Assert.AreEqual(1, apostrophe.Rows.Count)
+            Assert.AreEqual(quoted, CInt(apostrophe.Rows(0)("Id")))
+        End Using
+        Using injection = New SqlTiersTestStore().SearchTiers("' OR 1=1 --")
+            Assert.AreEqual(0, injection.Rows.Count)
+        End Using
+        ' Vérifier les caractères accentués lors d'une création, recherche et correction,
+        ' avec réouverture du dépôt pour détecter une conversion SQL destructrice.
+        Dim accentedName = "TEST-ÉLÈVE-" & suffix
+        Dim accented = store.CreateTiers(accentedName, "eleve@example.test", "Céaux-d'Allègre")
+        Using foundAccented = New SqlTiersTestStore().SearchTiers("ÉLÈVE-" & suffix)
+            Assert.AreEqual(1, foundAccented.Rows.Count)
+            Assert.AreEqual(accented, CInt(foundAccented.Rows(0)("Id")))
+        End Using
+        Using beforeCorrection = New SqlTiersTestStore().ReadTiers(accented)
+            Assert.AreEqual("Céaux-d'Allègre", CStr(beforeCorrection.Rows(0)("Ville")))
+        End Using
+        ' Une correction invalide ne doit altérer ni le nom Unicode ni la ville apostrophée.
+        Assert.ThrowsExactly(Of ArgumentException)(Sub() store.UpdateTiers(accented, "TEST-ÉTÉ-" & suffix, "adresse-invalide", "Inconnue"))
+        Using afterRejected = New SqlTiersTestStore().ReadTiers(accented)
+            Assert.AreEqual(1, afterRejected.Rows.Count)
+            Assert.AreEqual(accentedName, CStr(afterRejected.Rows(0)("nom")))
+            Assert.AreEqual("eleve@example.test", CStr(afterRejected.Rows(0)("Email")))
+            Assert.AreEqual("Céaux-d'Allègre", CStr(afterRejected.Rows(0)("Ville")))
+        End Using
+        ' Le refus ne doit pas rendre l'ancien tiers introuvable ni créer une entrée renommée.
+        Using stillFound = New SqlTiersTestStore().SearchTiers("ÉLÈVE-" & suffix)
+            Assert.AreEqual(1, stillFound.Rows.Count)
+            Assert.AreEqual(accented, CInt(stillFound.Rows(0)("Id")))
+        End Using
+        Using rejectedRename = New SqlTiersTestStore().SearchTiers("ÉTÉ-" & suffix)
+            Assert.AreEqual(0, rejectedRename.Rows.Count)
+        End Using
+        store.UpdateTiers(accented, "TEST-ÉTÉ-" & suffix, "ete@example.test", "Céaux-d'Allègre")
+        Using reopenedAccented = New SqlTiersTestStore().ReadTiers(accented)
+            Assert.AreEqual(1, reopenedAccented.Rows.Count)
+            Assert.AreEqual("TEST-ÉTÉ-" & suffix, CStr(reopenedAccented.Rows(0)("nom")))
+            Assert.AreEqual("ete@example.test", CStr(reopenedAccented.Rows(0)("Email")))
+            Assert.AreEqual("Céaux-d'Allègre", CStr(reopenedAccented.Rows(0)("Ville")))
+        End Using
+        ' La correction ne doit pas créer un doublon ni altérer les deux autres tiers.
+        Using oldName = New SqlTiersTestStore().SearchTiers("ÉLÈVE-" & suffix)
+            Assert.AreEqual(0, oldName.Rows.Count)
+        End Using
+        Using newName = New SqlTiersTestStore().SearchTiers("ÉTÉ-" & suffix)
+            Assert.AreEqual(1, newName.Rows.Count)
+            Assert.AreEqual(accented, CInt(newName.Rows(0)("Id")))
+        End Using
+        Using unaffected = New SqlTiersTestStore().ReadTiers(first)
+            Assert.AreEqual("Céaux", CStr(unaffected.Rows(0)("Ville")))
+        End Using
+        Using literalWildcard = New SqlTiersTestStore().SearchTiers("TEST-%")
+            Assert.AreEqual(0, literalWildcard.Rows.Count)
+        End Using
+    End Sub
+End Class

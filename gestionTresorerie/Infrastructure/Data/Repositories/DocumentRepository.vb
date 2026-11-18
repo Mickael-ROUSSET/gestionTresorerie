@@ -20,20 +20,30 @@ Public Class DocumentRepository
     End Sub
 
     Public Sub Inserer(doc As DocumentAgumaaa)
+        _executor.ExecuteNamedNonQuery("insertDocAgumaaa", InsertionParameters(doc))
+    End Sub
+
+    ' Le verrou de plage protège la vérification et l’insertion dans une seule instruction.
+    Friend Const ArchiveInsertSql As String =
+            "INSERT INTO [dbo].[Documents] (dateDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees) " &
+            "SELECT @dateDoc, @cheminDoc, @categorieDoc, @sousCategorieDoc, @idMvtDoc, @metaDonnees " &
+            "WHERE NOT EXISTS (SELECT 1 FROM [dbo].[Documents] WITH (UPDLOCK, HOLDLOCK) WHERE cheminDoc = @cheminDoc);"
+    Public Sub InsererArchiveSiAbsente(doc As DocumentAgumaaa)
+        _executor.ExecuteNonQuery(ArchiveInsertSql, InsertionParameters(doc))
+    End Sub
+
+    Friend Shared Function InsertionParameters(doc As DocumentAgumaaa) As List(Of SqlParameter)
         If doc Is Nothing Then Throw New ArgumentNullException(NameOf(doc))
 
-        _executor.ExecuteNamedNonQuery(
-            "insertDocAgumaaa",
-            ToSqlParameters(New Dictionary(Of String, Object) From {
-                {"@dateDoc", doc.DateDoc},
-                {"@cheminDoc", doc.CheminDoc},
-                {"@categorieDoc", If(String.IsNullOrEmpty(doc.CategorieDoc), DBNull.Value, doc.CategorieDoc)},
-                {"@sousCategorieDoc", If(String.IsNullOrEmpty(doc.SousCategorieDoc), DBNull.Value, doc.SousCategorieDoc)},
-                {"@idMvtDoc", If(doc.IdMvtDoc = 0, DBNull.Value, doc.IdMvtDoc)},
-                {"@metaDonnees", If(doc.metaDonnees, DBNull.Value)}
-            })
-        )
-    End Sub
+        Return ToSqlParameters(New Dictionary(Of String, Object) From {
+            {"@dateDoc", doc.DateDoc},
+            {"@cheminDoc", doc.CheminDoc},
+            {"@categorieDoc", If(String.IsNullOrEmpty(doc.CategorieDoc), DBNull.Value, doc.CategorieDoc)},
+            {"@sousCategorieDoc", If(String.IsNullOrEmpty(doc.SousCategorieDoc), DBNull.Value, doc.SousCategorieDoc)},
+            {"@idMvtDoc", If(doc.IdMvtDoc = 0, DBNull.Value, doc.IdMvtDoc)},
+            {"@metaDonnees", If(doc.metaDonnees, DBNull.Value)}
+        })
+    End Function
 
     Public Function LireTous() As DataTable
         Return ExecuteNamedDataTable("reqDocs", Nothing)

@@ -1,55 +1,85 @@
-﻿Imports System.IO
+Imports System.Drawing
+Imports System.Drawing.Imaging
+Imports System.IO
 Imports gestionTresorerie
 Imports Microsoft.VisualStudio.TestTools.UnitTesting
+
 <TestClass>
 Public Class GestionFichiersTests
+    Private _testDir As String
 
-    Private ReadOnly _testDir As String = Path.Combine(Path.GetTempPath(), "gestionTresorerieTests")
+    <TestInitialize>
+    Public Sub Initialiser()
+        _testDir = Path.Combine(Path.GetTempPath(), "gestionTresorerieTests", Guid.NewGuid().ToString())
+        Directory.CreateDirectory(_testDir)
+    End Sub
 
-    Public Sub New()
-        ' Crée un dossier temporaire pour les tests
-        If Not Directory.Exists(_testDir) Then Directory.CreateDirectory(_testDir)
+    <TestCleanup>
+    Public Sub Nettoyer()
+        If Directory.Exists(_testDir) Then Directory.Delete(_testDir, True)
+    End Sub
+
+    Private Shared Sub CreerImage(chemin As String)
+        Using image As New Bitmap(64, 64)
+            Using dessin = Graphics.FromImage(image)
+                dessin.Clear(Color.White)
+                dessin.FillRectangle(Brushes.Black, 16, 16, 32, 32)
+            End Using
+            image.Save(chemin, ImageFormat.Png)
+        End Using
     End Sub
 
     <TestMethod>
     Public Sub CalculerHashPerceptuel_SameImage_ShouldReturnSameHash()
-        ' Préparer deux copies identiques d'une image
-        Dim imgPath1 As String = Path.Combine(_testDir, "img1.jpg")
-        Dim imgPath2 As String = Path.Combine(_testDir, "img2.jpg")
+        Dim imgPath1 = Path.Combine(_testDir, "img1.png")
+        Dim imgPath2 = Path.Combine(_testDir, "img2.png")
+        CreerImage(imgPath1)
+        File.Copy(imgPath1, imgPath2)
 
-        ' Pour le test, tu peux copier une image existante ou générer un Bitmap
-        File.Copy("chemin_vers_image_source.jpg", imgPath1, True)
-        File.Copy(imgPath1, imgPath2, True)
-
-        ' Appel à la fonction
         Dim hash1 = UtilitairesHash.CalculerHashPerceptuel(imgPath1)
         Dim hash2 = UtilitairesHash.CalculerHashPerceptuel(imgPath2)
 
+        Assert.IsFalse(String.IsNullOrEmpty(hash1), "Le hash d'une image valide doit être calculé.")
         Assert.AreEqual(hash1, hash2)
     End Sub
 
     <TestMethod>
+    <Timeout(10000)>
     Public Async Function DeplacerDoublons_ShouldMoveDuplicateFiles() As Task
-        ' Arrange
-        Dim repertoireTest As String = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())
-        Directory.CreateDirectory(repertoireTest)
+        Dim fichier1 = Path.Combine(_testDir, "fichier1.png")
+        Dim fichier2 = Path.Combine(_testDir, "fichier2.png")
+        CreerImage(fichier1)
+        File.Copy(fichier1, fichier2)
 
-        Dim fichier1 As String = Path.Combine(repertoireTest, "fichier1.txt")
-        Dim fichier2 As String = Path.Combine(repertoireTest, "fichier2.txt")
-
-        File.WriteAllText(fichier1, "contenu identique")
-        File.WriteAllText(fichier2, "contenu identique")
-
-        ' Act
-        Dim fichiersDeplaces As List(Of String) =
-        Await GestionDoublons.ExecuterTraitementAsync(repertoireTest)
-
-        ' Assert
-        Dim dossierDoublons As String = Path.Combine(repertoireTest, "Doublons")
+        Dim fichiersDeplaces = Await GestionDoublons.ExecuterTraitementAsync(_testDir)
+        Dim dossierDoublons = Path.Combine(_testDir, "Doublons")
 
         Assert.IsTrue(Directory.Exists(dossierDoublons))
-        Assert.AreEqual(1, fichiersDeplaces.Count)
-        Assert.AreEqual(1, Directory.GetFiles(dossierDoublons).Length)
-    End Function
-End Class
+        Assert.HasCount(1, fichiersDeplaces)
+        Assert.HasCount(1, Directory.GetFiles(dossierDoublons))
+        Assert.HasCount(1, Directory.GetFiles(_testDir, "*.png"))
+        Assert.IsTrue(File.Exists(fichiersDeplaces(0)))
 
+        ' Une deuxième exécution doit exclure le dossier des doublons.
+        Dim secondPassage = Await GestionDoublons.ExecuterTraitementAsync(_testDir)
+        Assert.IsEmpty(secondPassage)
+        Assert.HasCount(1, Directory.GetFiles(dossierDoublons))
+    End Function
+
+    <TestMethod>
+    <Timeout(10000)>
+    Public Async Function DeplacerDoublons_FichierNonImage_EstIgnore() As Task
+        Dim chemin = Path.Combine(_testDir, "texte.txt")
+        File.WriteAllText(chemin, "Données fictives, pas une image.")
+
+        Dim deplaces = Await GestionDoublons.ExecuterTraitementAsync(_testDir)
+
+        Assert.IsEmpty(deplaces)
+        Assert.IsTrue(File.Exists(chemin))
+    End Function
+
+    <TestMethod>
+    Public Sub CalculerHashPerceptuel_FichierAbsent_RetourneHashVide()
+        Assert.AreEqual(String.Empty, UtilitairesHash.CalculerHashPerceptuel(Path.Combine(_testDir, "absent.png")))
+    End Sub
+End Class
