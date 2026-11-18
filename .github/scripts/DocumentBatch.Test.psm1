@@ -186,7 +186,7 @@ function ConvertTo-FictitiousBatchImportManifest([object[]]$Results) {
         }
         # Reject Windows device names and trailing dots/spaces in any path segment.
         foreach ($segment in @(([string]$item.name) -split '[\\/]')) {
-            if ($segment -match '[. ]$' -or $segment -match '^(?i:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\\.|$)') {
+            if ($segment -match '[. ]$' -or $segment -match '^(?i:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)') {
                 throw 'invalid-windows-destination'
             }
         }
