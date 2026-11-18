@@ -138,7 +138,7 @@ if ($SelfTest) {
 ) { throw 'staging-invalid-hash' }
         }
         $typedAgain = Invoke-FixturePipeline $allTypesManifest $allTypesWorkspace
-        if ($typedAgain.total -ne 5 -or $typedAgain.skipped -ne 5 -or $typedAgain.valid -ne 0 -or $typedAgain.review -ne 0) {
+        if ($typedAgain.total -ne 5 -or $typedAgain.skipped -ne 5 -or $typedAgain.valid -ne 0 -or $typedAgain.review -ne 0 -or $typedAgain.staged_count -ne 0) {
             throw 'five-types-resume-failed'
         }
         Write-Output 'PASS: synthetic intake -> typed validation -> review -> SHA256 resume'
