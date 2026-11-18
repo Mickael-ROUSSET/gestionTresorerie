@@ -125,6 +125,19 @@ if ($SelfTest) {
             if (@($row.PSObject.Properties.Name | Where-Object { $_ -cnotin @('name','hash','type_document') }).Count -ne 0) { throw 'staging-leaks-extracted-fields' }
             if ($row.hash -cnotmatch '^[A-Fa-f0-9]{64}$') { throw 'staging-invalid-hash' }
         }
+        # Verify staging metadata against actual fictional attachment bytes.
+        $expectedTypes = @{}
+        for ($i = 0; $i -lt $cases.Count; $i++) {
+            $expectedTypes['document-' + $i + '.pdf'] = $cases[$i].kind
+        }
+        foreach ($row in $typedFirst.staged) {
+            if (-not $expectedTypes.ContainsKey([string]$row.name)) { throw 'staging-unexpected-filename' }
+            if ($row.type_document -cne $expectedTypes[[string]$row.name]) { throw 'staging-type-mismatch' }
+            $attachmentPath = Join-Path (Join-Path $allTypesWorkspace 'inbox') ([string]$row.name)
+            if (-not (Test-Path -LiteralPath $attachmentPath -PathType Leaf)) { throw 'staging-file-missing' }
+            $actualHash = (Get-FileHash -LiteralPath $attachmentPath -Algorithm SHA256).Hash
+            if ($row.hash -cne $actualHash) { throw 'staging-content-hash-mismatch' }
+        }
         $typedAgain = Invoke-FixturePipeline $allTypesManifest $allTypesWorkspace
         if ($typedAgain.total -ne 5 -or $typedAgain.skipped -ne 5 -or $typedAgain.valid -ne 0 -or $typedAgain.review -ne 0 -or $typedAgain.staged_count -ne 0) {
             throw 'five-types-resume-failed'
