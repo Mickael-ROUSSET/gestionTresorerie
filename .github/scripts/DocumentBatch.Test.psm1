@@ -184,6 +184,25 @@ function ConvertTo-FictitiousBatchImportManifest([object[]]$Results) {
             $item.type_document -isnot [string] -or $item.type_document -cnotin $types) {
             throw 'invalid-valid-document'
         }
+        # Windows forbids reserved device basenames (even with extensions) and trailing dots/spaces.
+        foreach ($segment in @(([string]$item.name) -split '[\\/]')) {
+            if ($segment -match '[. ]
+        if (-not $seenHashes.Add($item.hash)) { throw 'duplicate-valid-document' }
+        if (-not $seenNames.Add(($item.name -replace '\\', '/'))) { throw 'duplicate-valid-path' }
+        $manifest.Add([pscustomobject]@{
+            name = $item.name
+            hash = $item.hash
+            type_document = $item.type_document
+        })
+    }
+    return $manifest.ToArray()
+}
+
+Export-ModuleMember -Function Invoke-FictitiousBatch, ConvertTo-FictitiousBatchImportManifest
+ -or $segment -match '^(?i:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\\.|$)') {
+                throw 'invalid-windows-destination'
+            }
+        }
         # A SHA-256 identifies one document payload; never stage it twice in one batch.
         if (-not $seenHashes.Add($item.hash)) { throw 'duplicate-valid-document' }
         if (-not $seenNames.Add(($item.name -replace '\\', '/'))) { throw 'duplicate-valid-path' }
