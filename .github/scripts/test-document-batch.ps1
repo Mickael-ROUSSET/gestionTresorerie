@@ -288,3 +288,7 @@ if ($SelfTest) {
     if (-not $InputDirectory -or -not $StateDirectory) { throw 'InputDirectory and StateDirectory are required' }
     Invoke-FictitiousBatch $InputDirectory $StateDirectory | ConvertTo-Json -Depth 4
 }
+
+if ($SelfTest) {
+    & (Join-Path $PSScriptRoot 'export-document-test-manifest.ps1') -SelfTest
+}
