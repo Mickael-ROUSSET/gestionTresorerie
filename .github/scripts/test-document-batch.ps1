@@ -73,13 +73,15 @@ if ($SelfTest) {
             [pscustomobject]@{ name='\\\\server\\share\\file.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' },
             [pscustomobject]@{ name='folder/unsafe:name.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' },
             [pscustomobject]@{ name='folder/CON.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' },
+            [pscustomobject]@{ name='folder/con.PDF'; hash=('a' * 64); status='valid'; type_document='Facture' },
+            [pscustomobject]@{ name='folder/AUX.csv'; hash=('a' * 64); status='valid'; type_document='Facture' },
             [pscustomobject]@{ name='LPT1.txt'; hash=('a' * 64); status='valid'; type_document='Facture' },
             [pscustomobject]@{ name='folder/trailing. '; hash=('a' * 64); status='valid'; type_document='Facture' },
             [pscustomobject]@{ name='folder//bad.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' }
         )) {
             $rejected = $false
             try { [void](ConvertTo-FictitiousBatchImportManifest @($bad)) } catch { $rejected = $true }
-            if (-not $rejected) { throw 'Invalid validated entry reached TEST import manifest' }
+            if (-not $rejected) { throw "Invalid validated entry reached TEST import manifest: $($bad.name)" }
         }
         # Two distinct paths with identical bytes must never be staged twice in SQL TEST.
         $validA = [pscustomobject]@{ name='folder/a.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' }
