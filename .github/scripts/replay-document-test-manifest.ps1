@@ -52,6 +52,17 @@ function Invoke-FictitiousManifestReplay([string]$ManifestPath, [string]$Checkpo
         (([IO.File]::GetAttributes($checkpointFullPath) -band [IO.FileAttributes]::ReadOnly) -ne 0)) {
         throw 'checkpoint-read-only'
     }
+    # Verify directory write access before the first sink side effect. This cannot
+    # guarantee future writes (disk-full/ACL changes), so the sink remains idempotent.
+    $probe = Join-Path $checkpointDirectory ('.replay-probe-' + [guid]::NewGuid().ToString('N') + '.tmp')
+    try {
+        $stream = [IO.File]::Open($probe, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+        try { $stream.WriteByte(0); $stream.Flush($true) } finally { $stream.Dispose() }
+    } catch {
+        throw 'checkpoint-directory-not-writable'
+    } finally {
+        if ([IO.File]::Exists($probe)) { [IO.File]::Delete($probe) }
+    }
     $processed = 0
     foreach ($item in $validated) {
         $key = ([string]$item.hash).ToLowerInvariant()
@@ -207,6 +218,8 @@ if ($SelfTest) {
         try { [void](Invoke-FictitiousManifestReplay $manifest $checkpoint $sink) } catch { $rejected = $true }
         if (-not $rejected -or [IO.File]::ReadAllText($checkpoint) -cne $before) { throw 'invalid-replay-mutated-checkpoint' }
         if (@(Get-ChildItem -LiteralPath $root -Filter '.replay-*').Count -ne 0) { throw 'replay-temp-files-remain' }
+        # Successful and rejected replays must not leave a write-probe behind.
+        if (@(Get-ChildItem -LiteralPath $root -Filter '.replay-probe-*').Count -ne 0) { throw 'replay-probe-remains' }
         Write-Output 'Fictitious manifest replay and restart: PASS'
     } finally { Remove-Item -LiteralPath $root -Recurse -Force }
 }
