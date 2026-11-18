@@ -1,0 +1,225 @@
+# TEST-only replay of validated fictitious staging. Sink is injected; no SQL or Gmail connection.
+param([switch]$SelfTest)
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+Import-Module (Join-Path $PSScriptRoot 'DocumentBatch.Test.psm1') -Force
+
+function Invoke-FictitiousManifestReplay([string]$ManifestPath, [string]$CheckpointPath, [scriptblock]$Sink) {
+    if (-not $Sink) { throw 'missing-test-sink' }
+    if (-not [IO.File]::Exists($ManifestPath)) { throw 'missing-test-manifest' }
+    $manifestJson = [IO.File]::ReadAllText($ManifestPath)
+    if ($manifestJson -cnotmatch '^\s*\[') { throw 'invalid-test-manifest-array' }
+    $rows = @(ConvertFrom-Json -InputObject $manifestJson)
+    # Reject malformed or extended snapshots before projection discards unknown fields.
+    foreach ($row in $rows) {
+        if ($null -eq $row -or $row -isnot [pscustomobject] -or
+            @($row.PSObject.Properties.Name).Count -ne 3 -or
+            @($row.PSObject.Properties.Name | Where-Object { $_ -cnotin @('name','hash','type_document') }).Count -gt 0 -or
+            $null -eq $row.PSObject.Properties['name'] -or
+            $null -eq $row.PSObject.Properties['hash'] -or
+            $null -eq $row.PSObject.Properties['type_document']) {
+            throw 'invalid-test-manifest-schema'
+        }
+    }
+    # Revalidate the entire snapshot before invoking any sink callback.
+    $validated = @(ConvertTo-FictitiousBatchImportManifest @($rows | ForEach-Object {
+        [pscustomobject]@{ name=$_.name; hash=$_.hash; type_document=$_.type_document; status='valid' }
+    }))
+    if ($validated.Count -ne $rows.Count) { throw 'invalid-test-manifest' }
+    $done = @{}
+    if ([IO.File]::Exists($CheckpointPath)) {
+        $checkpointJson = [IO.File]::ReadAllText($CheckpointPath)
+        if ($checkpointJson -cnotmatch '^\s*\[') { throw 'invalid-test-checkpoint-array' }
+        $previous = @(ConvertFrom-Json -InputObject $checkpointJson)
+        foreach ($hash in $previous) {
+            if ($hash -isnot [string] -or $hash -cnotmatch '^[a-fA-F0-9]{64}$') { throw 'invalid-test-checkpoint' }
+            $key = $hash.ToLowerInvariant()
+            if ($done.ContainsKey($key)) { throw 'duplicate-test-checkpoint' }
+            $done[$key] = $true
+        }
+    }
+    # Preflight the checkpoint destination before calling a sink with side effects.
+    $checkpointFullPath = [IO.Path]::GetFullPath($CheckpointPath)
+    $manifestFullPath = [IO.Path]::GetFullPath($ManifestPath)
+    if ([string]::Equals($checkpointFullPath, $manifestFullPath, [StringComparison]::OrdinalIgnoreCase)) {
+        throw 'checkpoint-overwrites-manifest'
+    }
+    $checkpointDirectory = [IO.Path]::GetDirectoryName($checkpointFullPath)
+    if (-not [IO.Directory]::Exists($checkpointDirectory)) { throw 'missing-test-checkpoint-directory' }
+    if ([IO.Directory]::Exists($checkpointFullPath)) { throw 'checkpoint-is-directory' }
+    # A read-only checkpoint cannot be replaced reliably after a sink side effect.
+    if ([IO.File]::Exists($checkpointFullPath) -and
+        (([IO.File]::GetAttributes($checkpointFullPath) -band [IO.FileAttributes]::ReadOnly) -ne 0)) {
+        throw 'checkpoint-read-only'
+    }
+    # Verify directory write access before the first sink side effect. This cannot
+    # guarantee future writes (disk-full/ACL changes), so the sink remains idempotent.
+    $probe = Join-Path $checkpointDirectory ('.replay-probe-' + [guid]::NewGuid().ToString('N') + '.tmp')
+    try {
+        $stream = [IO.File]::Open($probe, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+        try { $stream.WriteByte(0); $stream.Flush($true) } finally { $stream.Dispose() }
+    } catch {
+        throw 'checkpoint-directory-not-writable'
+    } finally {
+        if ([IO.File]::Exists($probe)) { [IO.File]::Delete($probe) }
+    }
+    $processed = 0
+    foreach ($item in $validated) {
+        $key = ([string]$item.hash).ToLowerInvariant()
+        if ($done.ContainsKey($key)) { continue }
+        # The injected sink MUST be idempotent by SHA-256; a crash may occur before checkpointing.
+        & $Sink $item
+        $next = @($done.Keys) + @($key)
+        $path = $checkpointFullPath
+        $dir = $checkpointDirectory
+        $tmp = Join-Path $dir ('.replay-' + [guid]::NewGuid().ToString('N') + '.tmp')
+        $bak = Join-Path $dir ('.replay-' + [guid]::NewGuid().ToString('N') + '.bak')
+        try {
+            [IO.File]::WriteAllText($tmp, (ConvertTo-Json -InputObject @($next) -Compress), [Text.UTF8Encoding]::new($false))
+            if ([IO.File]::Exists($path)) { [IO.File]::Replace($tmp, $path, $bak) }
+            else { [IO.File]::Move($tmp, $path) }
+        } finally {
+            if ([IO.File]::Exists($tmp)) { [IO.File]::Delete($tmp) }
+            if ([IO.File]::Exists($bak)) { [IO.File]::Delete($bak) }
+        }
+        $done[$key] = $true
+        $processed++
+    }
+    return $processed
+}
+
+if ($SelfTest) {
+    $root = Join-Path ([IO.Path]::GetTempPath()) ('gt-replay-' + [guid]::NewGuid().ToString('N'))
+    [void](New-Item -ItemType Directory -Path $root)
+    try {
+        $manifest = Join-Path $root 'staging.json'
+        $checkpoint = Join-Path $root 'checkpoint.json'
+        $a = [pscustomobject]@{ name='fake/invoice.pdf'; hash=('a' * 64); type_document='Facture' }
+        $b = [pscustomobject]@{ name='fake/receipt.pdf'; hash=('b' * 64); type_document='Recu' }
+        [IO.File]::WriteAllText($manifest, (ConvertTo-Json -InputObject @($a,$b)))
+        $script:seen = @()
+        $script:failOnce = $true
+        $sink = {
+            param($item)
+            if ($item.hash -eq ('b' * 64) -and $script:failOnce) {
+                $script:failOnce = $false
+                throw 'simulated-sink-failure'
+            }
+            $script:seen += $item.hash
+        }
+        $failed = $false
+        try { [void](Invoke-FictitiousManifestReplay $manifest $checkpoint $sink) } catch {
+            if ($_.Exception.Message -ne 'simulated-sink-failure') { throw }
+            $failed = $true
+        }
+        if (-not $failed -or $script:seen.Count -ne 1) { throw 'replay-failure-not-isolated' }
+        if ((Invoke-FictitiousManifestReplay $manifest $checkpoint $sink) -ne 1) { throw 'replay-restart-count' }
+        if ((Invoke-FictitiousManifestReplay $manifest $checkpoint $sink) -ne 0 -or $script:seen.Count -ne 2) { throw 'replay-not-idempotent' }
+        # Simulate a crash AFTER a durable sink write but BEFORE the checkpoint update.
+        # An idempotent sink must recognize the same SHA on restart.
+        $c = [pscustomobject]@{ name='fake/cheque.pdf'; hash=('c' * 64); type_document='Cheque' }
+        [IO.File]::WriteAllText($manifest, (ConvertTo-Json -InputObject @($a,$b,$c)))
+        $sinkLedger = Join-Path $root 'sink-ledger.txt'
+        $script:crashAfterWrite = $true
+        $durableSink = {
+            param($item)
+            $existing = if ([IO.File]::Exists($sinkLedger)) { @([IO.File]::ReadAllLines($sinkLedger)) } else { @() }
+            if ($item.hash -notin $existing) {
+                [IO.File]::AppendAllText($sinkLedger, $item.hash + [Environment]::NewLine)
+            }
+            if ($item.hash -eq ('c' * 64) -and $script:crashAfterWrite) {
+                $script:crashAfterWrite = $false
+                throw 'simulated-post-write-crash'
+            }
+        }
+        $postWriteFailed = $false
+        try { [void](Invoke-FictitiousManifestReplay $manifest $checkpoint $durableSink) } catch {
+            if ($_.Exception.Message -ne 'simulated-post-write-crash') { throw }
+            $postWriteFailed = $true
+        }
+        if (-not $postWriteFailed -or @(Get-Content -LiteralPath $sinkLedger).Count -ne 1) {
+            throw 'post-write-crash-not-reproduced'
+        }
+        if ((Invoke-FictitiousManifestReplay $manifest $checkpoint $durableSink) -ne 1) {
+            throw 'post-write-replay-count'
+        }
+        if ((Invoke-FictitiousManifestReplay $manifest $checkpoint $durableSink) -ne 0 -or
+            @(Get-Content -LiteralPath $sinkLedger).Count -ne 1) {
+            throw 'post-write-replay-duplicated-sink'
+        }
+        # A rejected checkpoint destination must never invoke the injected sink.
+        $script:preflightCalls = 0
+        $countSink = { param($item) $script:preflightCalls++ }
+        $missingDir = Join-Path (Join-Path $root 'not-created') 'checkpoint.json'
+        foreach ($badCheckpoint in @($manifest, $root, $missingDir)) {
+            $rejectedPreflight = $false
+            try { [void](Invoke-FictitiousManifestReplay $manifest $badCheckpoint $countSink) } catch { $rejectedPreflight = $true }
+            if (-not $rejectedPreflight -or $script:preflightCalls -ne 0) { throw 'replay-preflight-invoked-sink' }
+        }
+        # Reject a read-only checkpoint before the first sink call, preserving its bytes.
+        $readonlyOriginal = [IO.File]::ReadAllText($checkpoint)
+        $script:readonlySinkCalls = 0
+        $readonlySink = { param($item) $script:readonlySinkCalls++ }
+        [IO.File]::SetAttributes($checkpoint, ([IO.File]::GetAttributes($checkpoint) -bor [IO.FileAttributes]::ReadOnly))
+        try {
+            $readonlyRejected = $false
+            try { [void](Invoke-FictitiousManifestReplay $manifest $checkpoint $readonlySink) } catch {
+                if ($_.Exception.Message -ne 'checkpoint-read-only') { throw }
+                $readonlyRejected = $true
+            }
+            if (-not $readonlyRejected -or $script:readonlySinkCalls -ne 0 -or
+                [IO.File]::ReadAllText($checkpoint) -cne $readonlyOriginal) { throw 'readonly-checkpoint-side-effect' }
+        } finally {
+            [IO.File]::SetAttributes($checkpoint, ([IO.File]::GetAttributes($checkpoint) -band (-bnot [IO.FileAttributes]::ReadOnly)))
+        }
+        # A corrupt or duplicate checkpoint must fail before any sink side effect.
+        $savedCheckpoint = [IO.File]::ReadAllText($checkpoint)
+        $script:checkpointSinkCalls = 0
+        $checkpointSink = { param($item) $script:checkpointSinkCalls++ }
+        foreach ($invalidCheckpoint in @(
+            '["not-a-sha256"]',
+            ('["' + ('a' * 64) + '","' + ('A' * 64) + '"]'),
+            '[null]',
+            ('"' + ('a' * 64) + '"'),
+            ('{"hash":"' + ('a' * 64) + '"}')
+        )) {
+            [IO.File]::WriteAllText($checkpoint, $invalidCheckpoint)
+            $checkpointRejected = $false
+            try { [void](Invoke-FictitiousManifestReplay $manifest $checkpoint $checkpointSink) } catch {
+                if ($_.Exception.Message -notin @('invalid-test-checkpoint','duplicate-test-checkpoint','invalid-test-checkpoint-array')) { throw }
+                $checkpointRejected = $true
+            }
+            if (-not $checkpointRejected -or $script:checkpointSinkCalls -ne 0 -or
+                [IO.File]::ReadAllText($checkpoint) -cne $invalidCheckpoint) {
+                throw 'invalid-checkpoint-replay-side-effect'
+            }
+        }
+        [IO.File]::WriteAllText($checkpoint, $savedCheckpoint)
+        $before = [IO.File]::ReadAllText($checkpoint)
+        $script:schemaSinkCalls = 0
+        $schemaSink = { param($item) $script:schemaSinkCalls++ }
+        foreach ($badSnapshot in @(
+            ('[{"name":"fake/invoice.pdf","hash":"' + ('d' * 64) + '","type_document":"Facture","secret":"fictional"}]'),
+            '[null]',
+            ('{"name":"fake/invoice.pdf","hash":"' + ('d' * 64) + '","type_document":"Facture"}'),
+            ('[{"name":"fake/invoice.pdf","hash":"' + ('d' * 64) + '","type_document":"Facture","status":"valid"}]')
+        )) {
+            [IO.File]::WriteAllText($manifest, $badSnapshot)
+            $schemaRejected = $false
+            try { [void](Invoke-FictitiousManifestReplay $manifest $checkpoint $schemaSink) } catch {
+                if ($_.Exception.Message -notin @('invalid-test-manifest-schema','invalid-test-manifest-array')) { throw }
+                $schemaRejected = $true
+            }
+            if (-not $schemaRejected -or $script:schemaSinkCalls -ne 0 -or
+                [IO.File]::ReadAllText($checkpoint) -cne $before) { throw 'invalid-schema-replay-side-effect' }
+        }
+        [IO.File]::WriteAllText($manifest, '[{"name":"../escape.pdf","hash":"' + ('c' * 64) + '","type_document":"Facture"}]')
+        $rejected = $false
+        try { [void](Invoke-FictitiousManifestReplay $manifest $checkpoint $sink) } catch { $rejected = $true }
+        if (-not $rejected -or [IO.File]::ReadAllText($checkpoint) -cne $before) { throw 'invalid-replay-mutated-checkpoint' }
+        if (@(Get-ChildItem -LiteralPath $root -Filter '.replay-*').Count -ne 0) { throw 'replay-temp-files-remain' }
+        # Successful and rejected replays must not leave a write-probe behind.
+        if (@(Get-ChildItem -LiteralPath $root -Filter '.replay-probe-*').Count -ne 0) { throw 'replay-probe-remains' }
+        Write-Output 'Fictitious manifest replay and restart: PASS'
+    } finally { Remove-Item -LiteralPath $root -Recurse -Force }
+}

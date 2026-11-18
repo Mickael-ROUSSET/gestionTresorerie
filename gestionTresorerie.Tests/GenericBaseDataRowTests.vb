@@ -1,4 +1,4 @@
-﻿Imports Xunit
+Imports Xunit
 Imports System.Reflection
 Imports System.Data
 
@@ -26,6 +26,7 @@ Public MustInherit Class BaseDataRowTests(Of T As {BaseDataRow, New})
     ' --- Teste que les propriétés peuvent être lues et écrites ---
     <Fact>
     Public Sub Properties_CanBeSetAndGet()
+        Dim avant = DateTime.Now
         Dim entity As New T()
         For Each prop In GetType(T).GetProperties(BindingFlags.Public Or BindingFlags.Instance)
             If Not prop.CanWrite OrElse Not prop.CanRead Then Continue For
@@ -33,7 +34,7 @@ Public MustInherit Class BaseDataRowTests(Of T As {BaseDataRow, New})
             If value IsNot Nothing Then
                 prop.SetValue(entity, value)
                 Dim actual = prop.GetValue(entity)
-                Assert.Equal(value, actual)
+                VerifierValeur(prop, value, actual, avant)
             End If
         Next
     End Sub
@@ -41,6 +42,7 @@ Public MustInherit Class BaseDataRowTests(Of T As {BaseDataRow, New})
     ' --- Teste la conversion DataRow → entité ---
     <Fact>
     Public Sub FromDataRow_ShouldPopulateEntity()
+        Dim avant = DateTime.Now
         Dim dt As New DataTable()
 
         ' Crée les colonnes correspondant aux propriétés
@@ -56,14 +58,23 @@ Public MustInherit Class BaseDataRowTests(Of T As {BaseDataRow, New})
         dt.Rows.Add(dr)
 
         ' Appelle FromDataRow
-        Dim entityFromRow = GetType(T).GetMethod("FromDataRow", BindingFlags.Public Or BindingFlags.Static).Invoke(Nothing, New Object() {dr})
+        Dim entityFromRow = BaseDataRow.FromDataRow(Of T)(dr)
 
         ' Vérifie que toutes les propriétés sont bien remplies
         For Each prop In GetType(T).GetProperties(BindingFlags.Public Or BindingFlags.Instance)
             Dim expected = dr(prop.Name)
             Dim actual = prop.GetValue(entityFromRow)
-            Assert.Equal(expected, actual)
+            VerifierValeur(prop, expected, actual, avant)
         Next
     End Sub
 
+    Private Sub VerifierValeur(prop As PropertyInfo, expected As Object, actual As Object, avant As DateTime)
+        ' Les setters de suivi de Tiers enregistrent l'heure de l'affectation.
+        If GetType(T) Is GetType(Tiers) AndAlso
+            (prop.Name = "dateCreation" OrElse prop.Name = "dateModification") Then
+            Assert.InRange(CDate(actual), avant, DateTime.Now)
+        Else
+            Assert.Equal(expected, actual)
+        End If
+    End Sub
 End Class
