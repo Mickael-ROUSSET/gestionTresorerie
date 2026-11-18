@@ -140,9 +140,9 @@ if ($SelfTest) {
         $script:schemaSinkCalls = 0
         $schemaSink = { param($item) $script:schemaSinkCalls++ }
         foreach ($badSnapshot in @(
-            '[{"name":"fake/invoice.pdf","hash":"' + ('d' * 64) + '","type_document":"Facture","secret":"fictional"}]',
+            ('[{"name":"fake/invoice.pdf","hash":"' + ('d' * 64) + '","type_document":"Facture","secret":"fictional"}]'),
             '[null]',
-            '[{"name":"fake/invoice.pdf","hash":"' + ('d' * 64) + '","type_document":"Facture","status":"valid"}]'
+            ('[{"name":"fake/invoice.pdf","hash":"' + ('d' * 64) + '","type_document":"Facture","status":"valid"}]')
         )) {
             [IO.File]::WriteAllText($manifest, $badSnapshot)
             $schemaRejected = $false
