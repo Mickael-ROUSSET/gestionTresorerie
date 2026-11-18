@@ -13,18 +13,20 @@ function Export-FictitiousBatchManifest([object[]]$Results, [string]$Destination
     if (-not (Test-Path -LiteralPath $parent -PathType Container)) { throw 'missing-manifest-directory' }
     if (Test-Path -LiteralPath $fullPath -PathType Container) { throw 'manifest-destination-is-directory' }
     $temporary = Join-Path $parent ('.manifest-' + [guid]::NewGuid().ToString('N') + '.tmp')
+    $backup = Join-Path $parent ('.manifest-' + [guid]::NewGuid().ToString('N') + '.bak')
     try {
         $json = ConvertTo-Json -InputObject $manifest -Depth 4
         [IO.File]::WriteAllText($temporary, $json, [Text.UTF8Encoding]::new($false))
         # A rename with -Force can delete the previous snapshot before moving the new one.
         # Use a same-directory atomic filesystem replacement when the target exists.
         if ([IO.File]::Exists($fullPath)) {
-            [IO.File]::Replace($temporary, $fullPath, $null)
+            [IO.File]::Replace($temporary, $fullPath, $backup)
         } else {
             [IO.File]::Move($temporary, $fullPath)
         }
     } finally {
         if (Test-Path -LiteralPath $temporary) { Remove-Item -LiteralPath $temporary -Force }
+        if (Test-Path -LiteralPath $backup) { Remove-Item -LiteralPath $backup -Force }
     }
     return $manifest.Count
 }
@@ -52,6 +54,7 @@ if ($SelfTest) {
         if ((Export-FictitiousBatchManifest @($review) $target) -ne 0) { throw 'review-only-staging-count' }
         if (@(ConvertFrom-Json -InputObject (Get-Content -LiteralPath $target -Raw)).Count -ne 0) { throw 'review-only-staging-not-empty' }
         if (@(Get-ChildItem -LiteralPath $root -Filter '.manifest-*.tmp').Count -ne 0) { throw 'temporary-manifest-left-behind' }
+        if (@(Get-ChildItem -LiteralPath $root -Filter '.manifest-*.bak').Count -ne 0) { throw 'backup-manifest-left-behind' }
         Write-Output 'Fictitious TEST manifest staging: PASS'
     } finally {
         if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force }
