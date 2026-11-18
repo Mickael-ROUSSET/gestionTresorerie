@@ -86,6 +86,42 @@ if ($SelfTest) {
         $final = Invoke-FixturePipeline $manifest $workspace
         if ($final.total -ne 3 -or $final.skipped -ne 3 -or $final.valid -ne 0 -or $final.review -ne 0) { throw 'review-recovery-resume' }
 
+        # Exercise all five supported document types through the same synthetic Gmail intake.
+        # No OCR, network, SQL or real documents are involved.
+        $allTypesManifest = Join-Path $root 'all-types.json'
+        $allTypesWorkspace = Join-Path $root 'all-types-workspace'
+        $cases = @(
+            @{ kind='Cheque'; identity=@{emetteur_numero_cheque='00042';emetteur_du_cheque='Personne fictive';beneficiaire_nom='AGUMAAA fictive'}; transaction=@{date_emission='2026-11-15';montant_numerique=12.50} },
+            @{ kind='Facture'; identity=@{fournisseur_nom='Entreprise fictive'}; transaction=@{numero_facture='F-0003';date_facture='2026-11-15';montant_ttc=22.50} },
+            @{ kind='FormulaireAdhesion'; identity=@{nom='Fictif';prenom='Camille';adresse='Adresse fictive'}; transaction=@{date_document='2026-11-15'} },
+            @{ kind='QuestionnaireMedical'; identity=@{nom_complet='Camille Fictif'}; transaction=@{date_document='2026-11-15'} },
+            @{ kind='Recu'; identity=@{nom_complet='Camille Fictif'}; transaction=@{reference='R-0004';date_document='2026-11-15';montant_numerique=9.25} }
+        )
+        $allTypesPayload = @(
+            for ($i = 0; $i -lt $cases.Count; $i++) {
+                $case = $cases[$i]
+                @{
+                    message_id=('synthetic-type-' + $i)
+                    attachment_id=('attachment-' + $i)
+                    filename=('document-' + $i + '.pdf')
+                    content_base64=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('fictional-content-' + $i))
+                    analysis=@{
+                        type_document=$case.kind
+                        donnees_extraites=@{identite=$case.identity;transaction=$case.transaction}
+                    }
+                }
+            }
+        )
+        ConvertTo-Json -InputObject $allTypesPayload -Depth 12 | Set-Content -LiteralPath $allTypesManifest -Encoding utf8
+        $typedFirst = Invoke-FixturePipeline $allTypesManifest $allTypesWorkspace
+        if ($typedFirst.total -ne 5 -or $typedFirst.valid -ne 5 -or $typedFirst.review -ne 0 -or
+            @($typedFirst.documents | Where-Object { $_.type_document -notin @('Cheque','Facture','FormulaireAdhesion','QuestionnaireMedical','Recu') }).Count -ne 0) {
+            throw 'five-types-validation-failed'
+        }
+        $typedAgain = Invoke-FixturePipeline $allTypesManifest $allTypesWorkspace
+        if ($typedAgain.total -ne 5 -or $typedAgain.skipped -ne 5 -or $typedAgain.valid -ne 0 -or $typedAgain.review -ne 0) {
+            throw 'five-types-resume-failed'
+        }
         Write-Output 'PASS: synthetic intake -> typed validation -> review -> SHA256 resume'
     } finally {
         if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force }
