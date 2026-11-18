@@ -74,6 +74,14 @@ if ($SelfTest) {
             try { [void](ConvertTo-FictitiousBatchImportManifest @($bad)) } catch { $rejected = $true }
             if (-not $rejected) { throw 'Invalid validated entry reached TEST import manifest' }
         }
+        # Two distinct paths with identical bytes must never be staged twice in SQL TEST.
+        $validA = [pscustomobject]@{ name='folder/a.pdf'; hash=('a' * 64); status='valid'; type_document='Facture' }
+        $validB = [pscustomobject]@{ name='folder/b.pdf'; hash=('A' * 64); status='valid'; type_document='Facture' }
+        $duplicateRejected = $false
+        try { [void](ConvertTo-FictitiousBatchImportManifest @($validA, $validB)) } catch { $duplicateRejected = $true }
+        if (-not $duplicateRejected) { throw 'Duplicate SHA256 was staged twice for SQL TEST' }
+        $uniqueManifest = @(ConvertTo-FictitiousBatchImportManifest @($validA))
+        if ($uniqueManifest.Count -ne 1) { throw 'Unique valid SHA256 was rejected' }
         $manifestResume = @(ConvertTo-FictitiousBatchImportManifest (Invoke-FictitiousBatch $inputPath $statePath))
         if ($manifestResume.Count -ne 0) { throw 'Already validated scans were staged for import twice' }
         if (@($first | Where-Object { $_.status -eq 'valid' -and $_.type_document -eq 'Facture' }).Count -ne 1) { throw 'Validated document type was not exposed for TEST classification' }
