@@ -23,8 +23,6 @@ function Invoke-FixturePipeline([string]$Manifest, [string]$Workspace) {
     [void](& (Join-Path $PSScriptRoot 'test-simulated-gmail-intake.ps1') -ManifestPath $manifestFull -OutputDirectory $inbox)
     Import-Module (Join-Path $PSScriptRoot 'DocumentBatch.Test.psm1') -Force
     $items = @(Invoke-FictitiousBatch $inbox $state)
-    # Project only validated, deduplicated files for a future SQL TEST adapter.
-    # The projection contains no extracted identity, transaction or medical fields.
     $staged = @(ConvertTo-FictitiousBatchImportManifest $items)
     return [pscustomobject]@{
         staged = $staged
