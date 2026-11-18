@@ -84,6 +84,38 @@ if ($SelfTest) {
         if (-not $failed -or $script:seen.Count -ne 1) { throw 'replay-failure-not-isolated' }
         if ((Invoke-FictitiousManifestReplay $manifest $checkpoint $sink) -ne 1) { throw 'replay-restart-count' }
         if ((Invoke-FictitiousManifestReplay $manifest $checkpoint $sink) -ne 0 -or $script:seen.Count -ne 2) { throw 'replay-not-idempotent' }
+        # Simulate a crash AFTER a durable sink write but BEFORE the checkpoint update.
+        # An idempotent sink must recognize the same SHA on restart.
+        $c = [pscustomobject]@{ name='fake/cheque.pdf'; hash=('c' * 64); type_document='Cheque' }
+        [IO.File]::WriteAllText($manifest, (ConvertTo-Json -InputObject @($a,$b,$c)))
+        $sinkLedger = Join-Path $root 'sink-ledger.txt'
+        $script:crashAfterWrite = $true
+        $durableSink = {
+            param($item)
+            $existing = if ([IO.File]::Exists($sinkLedger)) { @([IO.File]::ReadAllLines($sinkLedger)) } else { @() }
+            if ($item.hash -notin $existing) {
+                [IO.File]::AppendAllText($sinkLedger, $item.hash + [Environment]::NewLine)
+            }
+            if ($item.hash -eq ('c' * 64) -and $script:crashAfterWrite) {
+                $script:crashAfterWrite = $false
+                throw 'simulated-post-write-crash'
+            }
+        }
+        $postWriteFailed = $false
+        try { [void](Invoke-FictitiousManifestReplay $manifest $checkpoint $durableSink) } catch {
+            if ($_.Exception.Message -ne 'simulated-post-write-crash') { throw }
+            $postWriteFailed = $true
+        }
+        if (-not $postWriteFailed -or @(Get-Content -LiteralPath $sinkLedger).Count -ne 1) {
+            throw 'post-write-crash-not-reproduced'
+        }
+        if ((Invoke-FictitiousManifestReplay $manifest $checkpoint $durableSink) -ne 1) {
+            throw 'post-write-replay-count'
+        }
+        if ((Invoke-FictitiousManifestReplay $manifest $checkpoint $durableSink) -ne 0 -or
+            @(Get-Content -LiteralPath $sinkLedger).Count -ne 1) {
+            throw 'post-write-replay-duplicated-sink'
+        }
         # A rejected checkpoint destination must never invoke the injected sink.
         $script:preflightCalls = 0
         $countSink = { param($item) $script:preflightCalls++ }
