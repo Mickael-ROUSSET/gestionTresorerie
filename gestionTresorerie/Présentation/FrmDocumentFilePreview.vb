@@ -36,7 +36,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
         _sqlTest = sqlTest
         _sqlExample = sqlExample
         _initializeSqlTestOnSave = initializeSqlTestOnSave
-        If _sqlTest IsNot Nothing Then _analyse.Text = "Ouvrir la fiche du document…"
+        If _sqlTest IsNot Nothing Then _analyse.Text = "Vérifier le document…"
         Dim production = _testWorkspace Is Nothing AndAlso RealArchiveEnabled()
         Dim scope = If(production, "PROD — données réelles",
                     If(_sqlTest IsNot Nothing, "TEST SQL — bddAgumaaaTest", "TEST / DÉMO — analyse locale"))
@@ -81,7 +81,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
                                 Optional sqlTest As SqlDocumentTestStore = Nothing,
                                 Optional initializeSqlTestOnSave As Boolean = False)
         Using picker As New OpenFileDialog With {
-            .Title = "Choisir des documents sur C: ou sur un lecteur Drive",
+            .Title = If(sqlTest Is Nothing, "Choisir des documents", "Sélectionner les documents à analyser avec ChatGPT (PDF : première page)"),
             .Filter = "PDF et scans (*.pdf;*.jpg;*.jpeg;*.png;*.tif;*.tiff)|*.pdf;*.jpg;*.jpeg;*.png;*.tif;*.tiff",
             .Multiselect = True, .CheckFileExists = True, .RestoreDirectory = True}
             If picker.ShowDialog(owner) <> DialogResult.OK Then Return
@@ -100,8 +100,35 @@ Friend NotInheritable Class FrmDocumentFilePreview
 #End If
     End Function
 
-    Protected Overrides Sub OnShown(e As EventArgs)
+    Private ReadOnly _results As New Dictionary(Of String, Newtonsoft.Json.Linq.JObject)(StringComparer.Ordinal)
+    Private ReadOnly _issues As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
+
+    Protected Overrides Async Sub OnShown(e As EventArgs)
         MyBase.OnShown(e)
+        If _sqlTest Is Nothing OrElse _sqlExample Then Return
+        _pending = True
+        _files.Enabled = False
+        _analyse.Enabled = False
+        Try
+            Dim index = 0
+            For Each item As FileInfo In _files.Items.OfType(Of FileInfo)()
+                index += 1
+                _analyse.Text = $"Analyse ChatGPT {index}/{_files.Items.Count}…"
+                Try
+                    Using guard = File.Open(item.FullName, FileMode.Open, FileAccess.Read, FileShare.Read)
+                        Dim hash = DocumentArchiveProposal.HashSource(item.FullName)
+                        If Not _results.ContainsKey(hash) Then _results(hash) = Await ChatGptDocumentReader.ReadAsync(item.FullName)
+                    End Using
+                Catch ex As Exception
+                    _issues(item.FullName) = ex.Message
+                End Try
+            Next
+        Finally
+            _pending = False
+            _files.Enabled = True
+            _analyse.Enabled = True
+            _analyse.Text = "Vérifier le document…"
+        End Try
         StartAutomaticAnalysis()
     End Sub
 
@@ -191,12 +218,20 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private Async Function ReviewSqlTestDocument(source As String) As Task
         Dim hash As String
         Dim suggested As Newtonsoft.Json.Linq.JObject = Nothing
-        Dim note = "Copiez la consigne dans ChatGPT avec le document, puis importez le JSON obtenu."
+        Dim note = "Vérifiez les champs lus par ChatGPT avant le classement."
         Using sourceLock = File.Open(source, FileMode.Open, FileAccess.Read, FileShare.Read)
             hash = DocumentArchiveProposal.HashSource(source)
             If _sqlExample Then
                 suggested = Newtonsoft.Json.Linq.JObject.Parse(DemoDocumentSamples.Invoice)
                 note = "Vérifiez les champs de la facture fictive avant le classement."
+            ElseIf Not _results.TryGetValue(hash, suggested) Then
+                Dim reason As String = Nothing
+                If _issues.Remove(source, reason) Then
+                    note = "Lecture automatique impossible. " & reason
+                Else
+                    suggested = Await ChatGptDocumentReader.ReadAsync(source)
+                    _results(hash) = suggested
+                End If
             End If
         End Using
 

@@ -54,6 +54,7 @@ Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 Name: "desktopicon"; Description: "Créer un raccourci sur le Bureau"; Flags: unchecked
 
 [Files]
+Source: "{#CodexDir}\*"; DestDir: "{app}\analyse"; Flags: ignoreversion
 Source: "{#PayloadDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#OcrDir}\*"; DestDir: "{app}\ocr"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#SourceRoot}\docs\installateur-demo.txt"; DestDir: "{app}"; DestName: "LIRE_INSTALLATION.txt"; Flags: ignoreversion

@@ -160,6 +160,10 @@ try {
     $installed = $true
     Assert-SqlCatalogs 'stamp'
     Assert-Payload
+    $codex = Join-Path $installDir 'analyse/codex.exe'
+    if ((Get-FileHash $codex).Hash -ine 'ce1945eb440b5481ed1233ebaf32b7056ee7e4e452fa62ffe1cbfb26103cdee0') { throw 'Moteur Codex installé incorrect.' }
+    & $codex exec --help | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'Moteur installé inutilisable.' }
     $engine = Join-Path $installDir 'ocr/tesseract.exe'
     $modelDirectory = Join-Path $installDir 'ocr/tessdata'
     $imagePath = Join-Path $logs 'facture-ocr-fictive.png'
