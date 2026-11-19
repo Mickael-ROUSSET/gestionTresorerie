@@ -25,7 +25,7 @@ function Read-TestDocumentSnapshot([string]$Snapshot, [string]$Workspace) {
     $projection = @(
         foreach ($entry in $entries) {
             if ($null -eq $entry -or @($entry.PSObject.Properties.Name | Where-Object { $_ -cnotin @('name','hash','type_document') }).Count -gt 0 -or
-                @($entry.PSObject.Properties.Name | Where-Object { $_ -cnotin @('name','hash','type_document') }).Count -ne 3 -or
+                @($entry.PSObject.Properties.Name).Count -ne 3 -or
                 $null -eq $entry.name -or $null -eq $entry.hash -or $null -eq $entry.type_document) {
                 throw 'snapshot-unexpected-fields'
             }
