@@ -158,14 +158,22 @@ if ($SelfTest) {
             if ($_.Exception.Message -match 'output-must-be-test-state-json') { $blocked = $true } else { throw }
         }
         if (-not $blocked -or (Test-Path -LiteralPath (Join-Path $root 'outside.json'))) { throw 'snapshot-escaped-test-state' }
+        # A rejected CLI output path must not trigger even the simulated Gmail import.
+        $freshWorkspace = Join-Path $root 'preflight-workspace'
+        $preflightRejected = $false
+        try {
+            [void](& $PSCommandPath -ManifestPath $allTypesManifest -WorkspacePath $freshWorkspace -OutputPath (Join-Path $root 'preflight-outside.json'))
+        } catch {
+            if ($_.Exception.Message -match 'output-must-be-test-state-json') { $preflightRejected = $true } else { throw }
+        }
+        if (-not $preflightRejected -or (Test-Path -LiteralPath $freshWorkspace)) { throw 'snapshot-preflight-had-side-effects' }
         Write-Output 'PASS: synthetic intake -> typed validation -> review -> SHA256 resume'
     } finally {
         if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force }
     }
 } else {
     if (-not $ManifestPath -or -not $WorkspacePath) { throw 'ManifestPath and WorkspacePath required' }
-    $result = Invoke-FixturePipeline $ManifestPath $WorkspacePath
-    $json = ConvertTo-Json -InputObject $result -Depth 12
+    # Reject unsafe snapshot destinations before importing any attachment or changing TEST state.
     if ($OutputPath) {
         # Explicit TEST-only snapshot for a future Windows/SQL TEST adapter, not a durable import queue.
         # The caller must keep this snapshot inside the isolated workspace state directory.
@@ -174,6 +182,10 @@ if ($SelfTest) {
         if (-not ([IO.Path]::GetDirectoryName($destination)).Equals($stateDirectory, [StringComparison]::OrdinalIgnoreCase) -or
             [IO.Path]::GetExtension($destination) -cne '.json' -or
             [IO.Path]::GetFileName($destination) -ceq 'journal.json') { throw 'output-must-be-test-state-json' }
+    }
+    $result = Invoke-FixturePipeline $ManifestPath $WorkspacePath
+    $json = ConvertTo-Json -InputObject $result -Depth 12
+    if ($OutputPath) {
         $temporary = Join-Path $stateDirectory ('snapshot-' + [guid]::NewGuid().ToString('N') + '.tmp')
         try {
             $json | Set-Content -LiteralPath $temporary -Encoding utf8
