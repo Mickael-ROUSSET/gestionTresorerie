@@ -24,7 +24,9 @@ function Read-TestDocumentSnapshot([string]$Snapshot, [string]$Workspace) {
     $seenNames = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     $projection = @(
         foreach ($entry in $entries) {
-            if ($null -eq $entry -or @($entry.PSObject.Properties.Name | Where-Object { $_ -cnotin @('name','hash','type_document') }).Count -gt 0) {
+            if ($null -eq $entry -or @($entry.PSObject.Properties.Name | Where-Object { $_ -cnotin @('name','hash','type_document') }).Count -gt 0 -or
+                @($entry.PSObject.Properties.Name | Where-Object { $_ -cnotin @('name','hash','type_document') }).Count -ne 3 -or
+                $null -eq $entry.name -or $null -eq $entry.hash -or $null -eq $entry.type_document) {
                 throw 'snapshot-unexpected-fields'
             }
             $name = [string]$entry.name
@@ -110,6 +112,18 @@ if ($SelfTest) {
         $rejected = $false
         try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-duplicate-name') { $rejected = $true } else { throw } }
         if (-not $rejected) { throw 'adapter-duplicate-name-not-rejected' }
+        # Required metadata cannot be silently coerced from absent/null JSON fields.
+        $payload.staged_count = 1
+        $payload.staged = @(@{name='fiction.pdf';type_document='Facture'})
+        ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+        $rejected = $false
+        try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-unexpected-fields') { $rejected = $true } else { throw } }
+        if (-not $rejected) { throw 'adapter-missing-hash-not-rejected' }
+        $payload.staged = @(@{name='fiction.pdf';hash=$hash;type_document=$null})
+        ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+        $rejected = $false
+        try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-unexpected-fields') { $rejected = $true } else { throw } }
+        if (-not $rejected) { throw 'adapter-null-type-not-rejected' }
         # A zero-document replay must produce a valid empty projection.
         $payload.staged_count = 0
         $payload.staged = @()
