@@ -16,7 +16,9 @@ function Read-TestDocumentSnapshot([string]$Snapshot, [string]$Workspace) {
     $data = Get-Content -LiteralPath $source -Raw | ConvertFrom-Json
     if ($null -eq $data.staged -or $null -eq $data.staged_count) { throw 'snapshot-invalid-contract' }
     $entries = @($data.staged)
-    if ([int]$data.staged_count -ne $entries.Count) { throw 'snapshot-count-mismatch' }
+    # JSON counts must be integral numbers, not strings or rounded fractional values.
+    if ($data.staged_count -isnot [long] -and $data.staged_count -isnot [int] -and $data.staged_count -isnot [decimal]) { throw 'snapshot-invalid-count' }
+    if ([decimal]$data.staged_count -lt 0 -or [decimal]$data.staged_count -ne [decimal]$entries.Count) { throw 'snapshot-count-mismatch' }
     $allowed = @('Cheque','Facture','FormulaireAdhesion','QuestionnaireMedical','Recu')
     $seen = @{}
     $seenNames = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
@@ -74,6 +76,17 @@ if ($SelfTest) {
         $rejected = $false
         try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-count-mismatch') { $rejected = $true } else { throw } }
         if (-not $rejected) { throw 'adapter-count-not-rejected' }
+        # A fractional or string count must not be rounded/coerced into a valid count.
+        $payload.staged_count = 1.5
+        ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+        $rejected = $false
+        try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-count-mismatch') { $rejected = $true } else { throw } }
+        if (-not $rejected) { throw 'adapter-fractional-count-not-rejected' }
+        $payload.staged_count = '1'
+        ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+        $rejected = $false
+        try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-invalid-count') { $rejected = $true } else { throw } }
+        if (-not $rejected) { throw 'adapter-string-count-not-rejected' }
         $payload.staged_count = 2
         $payload.staged = @(
             @{name='fiction.pdf';hash=$hash;type_document='Facture'},
