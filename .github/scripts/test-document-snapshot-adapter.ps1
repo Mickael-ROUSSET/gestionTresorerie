@@ -39,6 +39,8 @@ function Read-TestDocumentSnapshot([string]$Snapshot, [string]$Workspace) {
             if ($unknownNames.Count -gt 0 -or $missingNames.Count -gt 0 -or
                 $fieldNames.Count -ne 3 -or
                 $null -eq $entry.name -or $null -eq $entry.hash -or $null -eq $entry.type_document) {
+                # Counts only: never print filenames, hashes or extracted fields in CI logs.
+                Write-Warning ('snapshot-fields: actual=' + $fieldNames.Count + '; unknown=' + $unknownNames.Count + '; missing=' + $missingNames.Count + '; null=' + [int]($null -eq $entry.name -or $null -eq $entry.hash -or $null -eq $entry.type_document))
                 throw 'snapshot-unexpected-fields'
             }
             if ($entry.name -isnot [string] -or $entry.hash -isnot [string] -or $entry.type_document -isnot [string]) { throw 'snapshot-invalid-field-type' }
