@@ -146,7 +146,10 @@ if ($SelfTest) {
         $rejected = $false
         try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-unexpected-fields') { $rejected = $true } else { throw } }
         if (-not $rejected) { throw 'adapter-extra-property-not-rejected' }
-        $payload.staged = @(@('fiction.pdf',$hash,'Facture'))
+        # Unary comma preserves the inner JSON array as one staged entry. Without it,
+        # PowerShell flattens the three values and the count guard fires first.
+        $payload.staged = ,@('fiction.pdf',$hash,'Facture')
+        if ($payload.staged.Count -ne 1 -or $payload.staged[0] -isnot [array]) { throw 'adapter-array-fixture-shape-invalid' }
         ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
         $rejected = $false
         try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-unexpected-fields') { $rejected = $true } else { throw } }
