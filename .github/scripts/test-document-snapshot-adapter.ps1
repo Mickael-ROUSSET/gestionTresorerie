@@ -19,6 +19,7 @@ function Read-TestDocumentSnapshot([string]$Snapshot, [string]$Workspace) {
     if ([int]$data.staged_count -ne $entries.Count) { throw 'snapshot-count-mismatch' }
     $allowed = @('Cheque','Facture','FormulaireAdhesion','QuestionnaireMedical','Recu')
     $seen = @{}
+    $seenNames = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     $projection = @(
         foreach ($entry in $entries) {
             if ($null -eq $entry -or @($entry.PSObject.Properties.Name | Where-Object { $_ -cnotin @('name','hash','type_document') }).Count -gt 0) {
@@ -31,6 +32,7 @@ function Read-TestDocumentSnapshot([string]$Snapshot, [string]$Workspace) {
                 $name -in @('.','..') -or $name.Contains([char]92) -or $name.Contains([char]47)) { throw 'snapshot-invalid-name' }
             if ($hash -cnotmatch '^[A-Fa-f0-9]{64}$' -or $kind -cnotin $allowed) { throw 'snapshot-invalid-entry' }
             if ($seen.ContainsKey($hash)) { throw 'snapshot-duplicate-hash' }
+            if (-not $seenNames.Add($name)) { throw 'snapshot-duplicate-name' }
             $seen[$hash] = $true
             $file = Join-Path $inbox $name
             if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw 'snapshot-file-missing' }
@@ -81,6 +83,16 @@ if ($SelfTest) {
         $rejected = $false
         try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-duplicate-hash') { $rejected = $true } else { throw } }
         if (-not $rejected) { throw 'adapter-duplicate-not-rejected' }
+        # Windows paths are case-insensitive: two entries cannot target the same inbox file.
+        $payload.staged_count = 2
+        $payload.staged = @(
+            @{name='fiction.pdf';hash=$hash;type_document='Facture'},
+            @{name='FICTION.PDF';hash=('0' * 64);type_document='Recu'}
+        )
+        ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+        $rejected = $false
+        try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-duplicate-name') { $rejected = $true } else { throw } }
+        if (-not $rejected) { throw 'adapter-duplicate-name-not-rejected' }
         # A zero-document replay must produce a valid empty projection.
         $payload.staged_count = 0
         $payload.staged = @()
