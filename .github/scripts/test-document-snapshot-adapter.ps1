@@ -18,7 +18,8 @@ function Read-TestDocumentSnapshot([string]$Snapshot, [string]$Workspace) {
         $data.PSObject.Properties.Name -cnotcontains 'staged' -or
         $data.PSObject.Properties.Name -cnotcontains 'staged_count' -or
         $data.staged -isnot [array] -or $null -eq $data.staged_count) { throw 'snapshot-invalid-contract' }
-    $entries = @($data.staged)
+    # Enumerate the JSON array explicitly: an empty staged array must count as zero.
+    $entries = @($data.staged | ForEach-Object { $_ })
     # JSON counts must be integral numbers, not strings or rounded fractional values.
     if ($data.staged_count -isnot [ValueType] -or $data.staged_count -is [bool]) { throw 'snapshot-invalid-count' }
     if ([decimal]$data.staged_count -lt 0 -or [decimal]$data.staged_count -ne [decimal]$entries.Count) { throw 'snapshot-count-mismatch' }
@@ -189,6 +190,9 @@ if ($SelfTest) {
         $payload.staged = @()
         ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
         if (@(Read-TestDocumentSnapshot $snapshot $root).Count -ne 0) { throw 'adapter-empty-replay-failed' }
+        # Re-read a persisted empty snapshot, not just an in-memory payload.
+        $persisted = Get-Content -LiteralPath $snapshot -Raw | ConvertFrom-Json
+        if ($persisted.staged_count -ne 0 -or @($persisted.staged | ForEach-Object { $_ }).Count -ne 0) { throw 'adapter-empty-snapshot-count-failed' }
         Write-Output 'PASS: TEST snapshot adapter contract, content hash and traversal'
     } finally {
         if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force }
