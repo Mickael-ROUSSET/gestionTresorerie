@@ -70,7 +70,7 @@ Partial Public NotInheritable Class SqlDocumentTestStore
         End Using
     End Function
 
-    Friend Function SaveVerified(proposal As DocumentArchiveProposal, approve As Func(Of String, Boolean?)) As Integer?
+    Public Function SaveVerified(proposal As DocumentArchiveProposal, approve As Func(Of String, Boolean?)) As Integer?
         Dim member = proposal.Document.CategorieDoc = "FormulaireAdhesion"
         Dim fields As JObject = Nothing
         Dim snapshot As JObject = Nothing

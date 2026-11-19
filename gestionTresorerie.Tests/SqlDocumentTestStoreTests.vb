@@ -70,13 +70,13 @@ Public Class SqlDocumentTestStoreTests
             Dim name = "Fictif" & Guid.NewGuid().ToString("N").Substring(0, 10)
             Dim fields As New Newtonsoft.Json.Linq.JObject From {{"ville", "Ville A"}, {"telephone", "0600000000"}, {"genre", "F"}}
             Dim hash = DocumentArchiveProposal.HashSource(source)
-            Dim first = DocumentArchiveProposal.PrepareAdministrativeTest(source, hash, root, gestionTresorerie.Agumaaa.TypeDocument.FormulaireAdhesion,
+            Dim first = DocumentArchiveProposal.PrepareAdministrativeTest(source, hash, root, Global.gestionTresorerie.Agumaaa.TypeDocument.FormulaireAdhesion,
                 name, "01/11/2026", "", "", "Éloïse", "1 rue des Tests", True, fields)
             Assert.IsTrue(store.SaveVerified(first, Function(delta) ThrowUnexpectedReview()).HasValue)
             Assert.IsTrue(File.Exists(first.Destination))
             fields.Remove("telephone")
             fields("ville") = "Ville B"
-            Dim second = DocumentArchiveProposal.PrepareAdministrativeTest(source, hash, root, gestionTresorerie.Agumaaa.TypeDocument.FormulaireAdhesion,
+            Dim second = DocumentArchiveProposal.PrepareAdministrativeTest(source, hash, root, Global.gestionTresorerie.Agumaaa.TypeDocument.FormulaireAdhesion,
                 name, "02/11/2026", "", "", "Eloise", "", True, fields)
             Dim cancelled = store.SaveVerified(second, Function(delta)
                 StringAssert.Contains(delta, "Ville A → Ville B")
