@@ -36,11 +36,15 @@ function Read-TestDocumentSnapshot([string]$Snapshot, [string]$Workspace) {
             $requiredNames = @('name','hash','type_document')
             $unknownNames = @($fieldNames | Where-Object { $_ -cnotin $requiredNames })
             $missingNames = @($requiredNames | Where-Object { $_ -cnotin $fieldNames })
+            # Inspect values only for properties that exist. StrictMode throws when
+            # accessing a missing property, masking the intended contract error.
+            $nullNames = @($requiredNames | Where-Object {
+                $fieldNames -ccontains $_ -and $null -eq $entry.PSObject.Properties[$_].Value
+            })
             if ($unknownNames.Count -gt 0 -or $missingNames.Count -gt 0 -or
-                $fieldNames.Count -ne 3 -or
-                $null -eq $entry.name -or $null -eq $entry.hash -or $null -eq $entry.type_document) {
+                $fieldNames.Count -ne 3 -or $nullNames.Count -gt 0) {
                 # Counts only: never print filenames, hashes or extracted fields in CI logs.
-                Write-Warning ('snapshot-fields: actual=' + $fieldNames.Count + '; unknown=' + $unknownNames.Count + '; missing=' + $missingNames.Count + '; null=' + [int]($null -eq $entry.name -or $null -eq $entry.hash -or $null -eq $entry.type_document))
+                Write-Warning ('snapshot-fields: actual=' + $fieldNames.Count + '; unknown=' + $unknownNames.Count + '; missing=' + $missingNames.Count + '; null=' + $nullNames.Count)
                 throw 'snapshot-unexpected-fields'
             }
             if ($entry.name -isnot [string] -or $entry.hash -isnot [string] -or $entry.type_document -isnot [string]) { throw 'snapshot-invalid-field-type' }
