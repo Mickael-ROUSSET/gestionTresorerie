@@ -14,7 +14,10 @@ function Read-TestDocumentSnapshot([string]$Snapshot, [string]$Workspace) {
     }
     if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw 'snapshot-missing' }
     $data = Get-Content -LiteralPath $source -Raw | ConvertFrom-Json
-    if ($null -eq $data.staged -or $null -eq $data.staged_count) { throw 'snapshot-invalid-contract' }
+    if ($null -eq $data -or $data -is [array] -or $data -isnot [pscustomobject] -or
+        $data.PSObject.Properties.Name -cnotcontains 'staged' -or
+        $data.PSObject.Properties.Name -cnotcontains 'staged_count' -or
+        $data.staged -isnot [array] -or $null -eq $data.staged_count) { throw 'snapshot-invalid-contract' }
     $entries = @($data.staged)
     # JSON counts must be integral numbers, not strings or rounded fractional values.
     if ($data.staged_count -isnot [ValueType] -or $data.staged_count -is [bool]) { throw 'snapshot-invalid-count' }
@@ -145,6 +148,19 @@ if ($SelfTest) {
             $rejected = $false
             try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-invalid-name') { $rejected = $true } else { throw } }
             if (-not $rejected) { throw ('adapter-windows-alias-not-rejected: ' + $unsafeName) }
+        }
+        # The JSON envelope must be an object with a genuine array, even for one document.
+        $payload.staged_count = 1
+        $payload.staged = @(@{name='fiction.pdf';hash=$hash;type_document='Facture'})
+        $badEnvelopes = @(
+            '[{"staged_count":1,"staged":[{"name":"fiction.pdf"}]}]',
+            '{"staged_count":1,"staged":{"name":"fiction.pdf","hash":"' + $hash + '","type_document":"Facture"}}'
+        )
+        foreach ($badEnvelope in $badEnvelopes) {
+            [IO.File]::WriteAllText($snapshot, $badEnvelope)
+            $rejected = $false
+            try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-invalid-contract') { $rejected = $true } else { throw } }
+            if (-not $rejected) { throw 'adapter-invalid-envelope-not-rejected' }
         }
         # A zero-document replay must produce a valid empty projection.
         $payload.staged_count = 0
