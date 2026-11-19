@@ -65,6 +65,27 @@ if ($SelfTest) {
         $rejected = $false
         try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-invalid-name') { $rejected = $true } else { throw } }
         if (-not $rejected) { throw 'adapter-traversal-not-rejected' }
+        # Reject a forged count and duplicate bytes before exposing an import projection.
+        $payload.staged[0].name = 'fiction.pdf'
+        $payload.staged_count = 2
+        ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+        $rejected = $false
+        try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-count-mismatch') { $rejected = $true } else { throw } }
+        if (-not $rejected) { throw 'adapter-count-not-rejected' }
+        $payload.staged_count = 2
+        $payload.staged = @(
+            @{name='fiction.pdf';hash=$hash;type_document='Facture'},
+            @{name='fiction.pdf';hash=$hash;type_document='Recu'}
+        )
+        ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+        $rejected = $false
+        try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-duplicate-hash') { $rejected = $true } else { throw } }
+        if (-not $rejected) { throw 'adapter-duplicate-not-rejected' }
+        # A zero-document replay must produce a valid empty projection.
+        $payload.staged_count = 0
+        $payload.staged = @()
+        ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+        if (@(Read-TestDocumentSnapshot $snapshot $root).Count -ne 0) { throw 'adapter-empty-replay-failed' }
         Write-Output 'PASS: TEST snapshot adapter contract, content hash and traversal'
     } finally {
         if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force }
