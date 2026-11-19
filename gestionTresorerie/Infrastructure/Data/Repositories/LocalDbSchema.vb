@@ -36,6 +36,11 @@ Friend NotInheritable Class LocalDbSchema
                 End Using
             End Using
             command.ExecuteNonQuery()
+            If Not production Then
+                command.CommandText = "IF COL_LENGTH('dbo.Tiers','nomUsage') IS NULL ALTER TABLE dbo.Tiers ADD nomUsage nvarchar(50) NULL;" &
+                                      "IF COL_LENGTH('dbo.Tiers','genre') IS NULL ALTER TABLE dbo.Tiers ADD genre nvarchar(30) NULL;"
+                command.ExecuteNonQuery()
+            End If
         End Using
     End Sub
 End Class

@@ -13,7 +13,7 @@ Friend NotInheritable Class ChatGptDocumentReader
             "Cheque : identite = emetteur_numero_cheque, emetteur_du_cheque, beneficiaire_nom. transaction = date_emission, montant_numerique.",
             "Pour un chèque, l’émetteur est le titulaire du compte, distinct de la banque. Ignore la date préimprimée du chéquier.",
             "Facture : identite = fournisseur_nom. transaction = numero_facture, date_facture, montant_ttc.",
-            "FormulaireAdhesion : identite = nom, prenom, adresse. transaction = date_document.",
+            "FormulaireAdhesion : identite = nom (nom de naissance), prenom, nom_usage, adresse (rue et complément, sans code postal ni ville), ville, code_postal, mail, telephone, genre. Conserve les zéros initiaux du code postal et du téléphone. Lis le genre indiqué sans le déduire du prénom. transaction = date_document (date du bulletin, jamais la date de naissance).",
             "QuestionnaireMedical : identite = nom_complet. transaction = date_document. Ne transcris aucune réponse médicale.",
             "Recu : identite = nom_complet. transaction = reference, date_document, montant_numerique.",
             "Dates au format AAAA-MM-JJ. Montants en euros sous forme de nombres. Numéros et références sous forme de texte, avec leurs zéros initiaux."}) & vbLf &

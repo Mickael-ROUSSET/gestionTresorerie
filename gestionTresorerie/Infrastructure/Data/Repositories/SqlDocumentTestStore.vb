@@ -3,7 +3,7 @@ Option Strict On
 Imports System.Data
 Imports System.Data.SqlClient
 
-Public NotInheritable Class SqlDocumentTestStore
+Partial Public NotInheritable Class SqlDocumentTestStore
     Private Const DatabaseName As String = "bddAgumaaaTest"
     Private Const ReadSql As String =
         "SELECT idDoc, dateDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees FROM dbo.Documents"

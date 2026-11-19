@@ -238,7 +238,26 @@ Friend NotInheritable Class FrmDocumentFilePreview
         Dim archiveRoot = If(_sqlExample, _testWorkspace.GetDocumentTestDirectory(), DriveArchiveRoot)
         Using editor As New FrmSqlTestDocumentEntry(source, hash, archiveRoot, suggested, note, archiveOnDrive:=Not _sqlExample)
             If editor.ShowDialog(Me) <> DialogResult.OK Then Return
-            Await ConfirmProposal(editor.Proposal, TestSaveAction(), True)
+            Dim proposal = editor.Proposal
+            ValidateTestDestination(proposal.Destination)
+            Dim approve As Func(Of String, Boolean?) =
+                Function(changes)
+                    Dim choice As DialogResult = CType(Invoke(New Func(Of DialogResult)(
+                        Function() MessageBox.Show(Me, changes & vbCrLf & vbCrLf &
+                            "Oui : appliquer ces modifications. Non : conserver la fiche existante. Annuler : abandonner le classement.",
+                            "Vérifier les modifications du tiers", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question,
+                            MessageBoxDefaultButton.Button3))), DialogResult)
+                    If choice = DialogResult.Cancel Then Return Nothing
+                    Return choice = DialogResult.Yes
+                End Function
+            Dim id = Await Task.Run(Function()
+                _sqlTest.Initialize()
+                Return _sqlTest.SaveVerified(proposal, approve)
+            End Function)
+            If id.HasValue Then
+                MessageBox.Show(Me, "Document n° " & id.Value & " enregistré dans bddAgumaaaTest.dbo.Documents." &
+                    vbCrLf & vbCrLf & "Copie vérifiée :" & vbCrLf & proposal.Destination, "Classement terminé")
+            End If
         End Using
     End Function
 

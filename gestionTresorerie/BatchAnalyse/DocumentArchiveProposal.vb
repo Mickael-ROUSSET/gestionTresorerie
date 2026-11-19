@@ -21,6 +21,12 @@ Public NotInheritable Class DocumentArchiveProposal
         Me.Summary = summary
     End Sub
 
+    Friend ReadOnly Property Document As DocumentAgumaaa
+        Get
+            Return _document
+        End Get
+    End Property
+
     Public ReadOnly Property Summary As String
 
     Public ReadOnly Property Destination As String
@@ -109,7 +115,7 @@ Public NotInheritable Class DocumentArchiveProposal
     Public Shared Function PrepareAdministrativeTest(source As String, hash As String, root As String, kind As TypeDocument,
                                                      party As String, dateText As String, reference As String,
                                                      amountText As String, Optional firstName As String = "",
-                                                     Optional address As String = "", Optional archiveOnDrive As Boolean = False) As DocumentArchiveProposal
+                                                     Optional address As String = "", Optional archiveOnDrive As Boolean = False, Optional identity As JObject = Nothing) As DocumentArchiveProposal
         If Not DocumentFilePreview.Supports(source) Then Throw New ArgumentException("Format de fichier non pris en charge.")
         If Not Path.IsPathFullyQualified(root) OrElse Not Directory.Exists(root) Then
             Throw New IOException("Le dossier d’archivage TEST est inaccessible. Vérifiez le lecteur et le chemin : " & root)
@@ -147,6 +153,12 @@ Public NotInheritable Class DocumentArchiveProposal
             firstName = firstName.Trim()
             address = address.Trim()
             If firstName.Length > 80 OrElse address.Length > 240 Then Throw New ArgumentException("Prénom ou adresse trop longue.")
+            If identity IsNot Nothing Then
+                For Each key In {"nom_usage", "ville", "code_postal", "mail", "telephone", "genre"}
+                    Dim value = identity(key)?.ToString().Trim()
+                    If Not String.IsNullOrEmpty(value) Then fields(key) = value
+                Next
+            End If
             fields("nom") = party
             If firstName.Length > 0 Then
                 fields("prenom") = firstName
