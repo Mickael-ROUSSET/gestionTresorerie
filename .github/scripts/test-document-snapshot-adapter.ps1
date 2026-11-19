@@ -17,7 +17,7 @@ function Read-TestDocumentSnapshot([string]$Snapshot, [string]$Workspace) {
     if ($null -eq $data.staged -or $null -eq $data.staged_count) { throw 'snapshot-invalid-contract' }
     $entries = @($data.staged)
     # JSON counts must be integral numbers, not strings or rounded fractional values.
-    if ($data.staged_count -isnot [long] -and $data.staged_count -isnot [int] -and $data.staged_count -isnot [decimal]) { throw 'snapshot-invalid-count' }
+    if ($data.staged_count -isnot [ValueType] -or $data.staged_count -is [bool]) { throw 'snapshot-invalid-count' }
     if ([decimal]$data.staged_count -lt 0 -or [decimal]$data.staged_count -ne [decimal]$entries.Count) { throw 'snapshot-count-mismatch' }
     $allowed = @('Cheque','Facture','FormulaireAdhesion','QuestionnaireMedical','Recu')
     $seen = @{}
@@ -77,6 +77,10 @@ if ($SelfTest) {
         try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-count-mismatch') { $rejected = $true } else { throw } }
         if (-not $rejected) { throw 'adapter-count-not-rejected' }
         # A fractional or string count must not be rounded/coerced into a valid count.
+        # ConvertFrom-Json can represent a JSON numeric count as Double; integral values remain valid. 
+        $payload.staged_count = 1.0
+        ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+        if (@(Read-TestDocumentSnapshot $snapshot $root).Count -ne 1) { throw 'adapter-double-integral-count-rejected' }
         $payload.staged_count = 1.5
         ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
         $rejected = $false
