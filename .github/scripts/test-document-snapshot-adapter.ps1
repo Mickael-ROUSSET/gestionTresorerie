@@ -27,8 +27,15 @@ function Read-TestDocumentSnapshot([string]$Snapshot, [string]$Workspace) {
     $seenNames = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     $projection = @(
         foreach ($entry in $entries) {
-            if ($null -eq $entry -or @($entry.PSObject.Properties.Name | Where-Object { $_ -cnotin @('name','hash','type_document') }).Count -gt 0 -or
-                @($entry.PSObject.Properties.Name).Count -ne 3 -or
+            # Compare property names as a set; do not depend on PowerShell's
+            # scalar/array unrolling of PSObject.Properties.Name.
+            if ($null -eq $entry -or $entry -isnot [pscustomobject]) { throw 'snapshot-unexpected-fields' }
+            $fieldNames = @($entry.PSObject.Properties | ForEach-Object { $_.Name })
+            $requiredNames = @('name','hash','type_document')
+            $unknownNames = @($fieldNames | Where-Object { $_ -cnotin $requiredNames })
+            $missingNames = @($requiredNames | Where-Object { $_ -cnotin $fieldNames })
+            if ($unknownNames.Count -gt 0 -or $missingNames.Count -gt 0 -or
+                $fieldNames.Count -ne 3 -or
                 $null -eq $entry.name -or $null -eq $entry.hash -or $null -eq $entry.type_document) {
                 throw 'snapshot-unexpected-fields'
             }
