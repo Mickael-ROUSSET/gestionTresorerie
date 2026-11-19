@@ -32,6 +32,11 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     Private ReadOnly _hash As String
     Private ReadOnly _root As String
 
+    Private ReadOnly _extra As New Dictionary(Of String, TextBox)
+    Private ReadOnly _extraLabels As New List(Of Label)
+    Private ReadOnly _destination As New TextBox With {.ReadOnly = True, .Multiline = True, .Dock = DockStyle.Fill, .ScrollBars = ScrollBars.Vertical}
+    Private _ready As Boolean
+
     Public Sub New(source As String, hash As String, root As String, suggested As JObject, note As String,
                    Optional archiveOnDrive As Boolean = False)
         _source = source
@@ -40,21 +45,21 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         _archiveOnDrive = archiveOnDrive
         Text = "Vérifier le document — bddAgumaaaTest"
         StartPosition = FormStartPosition.CenterParent
-        FormBorderStyle = FormBorderStyle.FixedDialog
+        FormBorderStyle = FormBorderStyle.Sizable
         MinimizeBox = False
         MaximizeBox = False
-        ClientSize = New Size(580, 456)
+        ClientSize = New Size(820, Math.Min(740, Screen.FromControl(Me).WorkingArea.Height - 90))
         AutoScaleMode = AutoScaleMode.Font
 
         _kind.Items.AddRange(New Object() {"Facture", "Chèque", "Bulletin d’adhésion", "Questionnaire médical", "Reçu"})
         _direction.Items.AddRange(New Object() {"Émis", "Reçu"})
-        Dim table As New TableLayoutPanel With {.Dock = DockStyle.Fill, .ColumnCount = 2, .Padding = New Padding(12)}
+        Dim table As New TableLayoutPanel With {.AutoScroll = True, .Dock = DockStyle.Fill, .ColumnCount = 2, .Padding = New Padding(12)}
         table.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 155))
         table.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
         Dim help As New Label With {.Text = note, .Dock = DockStyle.Fill, .AutoSize = True}
         table.Controls.Add(help, 0, 0)
         table.SetColumnSpan(help, 2)
-        table.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
+        table.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         AddField(table, 1, New Label With {.Text = "Type de document"}, _kind)
         AddField(table, 2, _directionLabel, _direction)
         AddField(table, 3, _numberLabel, _number)
@@ -67,18 +72,28 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
 
         AddField(table, 9, _issuerLabel, _issuer)
 
+        AddIdentityField(table, 10, "nom_usage", "Nom d’usage", 50)
+        AddIdentityField(table, 11, "ville", "Ville", 50)
+        AddIdentityField(table, 12, "code_postal", "Code postal", 10)
+        AddIdentityField(table, 13, "mail", "E-mail", 150)
+        AddIdentityField(table, 14, "telephone", "Téléphone", 30)
+        AddIdentityField(table, 15, "genre", "Genre", 30)
+        table.Controls.Add(New Label With {.Text = "Destination de la copie", .AutoSize = True}, 0, 16)
+        table.Controls.Add(_destination, 1, 16)
+        table.RowStyles.Add(New RowStyle(SizeType.Absolute, 54))
+
         Dim buttons As New FlowLayoutPanel With {.Dock = DockStyle.Fill, .FlowDirection = FlowDirection.RightToLeft}
         Dim cancel As New Button With {.Text = "Annuler", .DialogResult = DialogResult.Cancel, .AutoSize = True}
-        Dim validate As New Button With {.Text = "Vérifier le classement…", .AutoSize = True}
+        Dim validate As New Button With {.Text = "Enregistrer et archiver", .AutoSize = True}
         Dim importAnalysis As New Button With {.Text = "Importer une analyse ChatGPT", .AutoSize = True}
         AddHandler importAnalysis.Click, AddressOf ImportChatGptAnalysis
         buttons.Controls.AddRange(New Control() {cancel, validate, importAnalysis})
-        table.Controls.Add(buttons, 0, 10)
+        table.Controls.Add(buttons, 0, 17)
         table.SetColumnSpan(buttons, 2)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 39))
         Dim prompt As New Button With {.Text = "Copier la consigne ChatGPT", .AutoSize = True, .Anchor = AnchorStyles.Left}
         AddHandler prompt.Click, AddressOf CopyChatGptPrompt
-        table.Controls.Add(prompt, 0, 11)
+        table.Controls.Add(prompt, 0, 18)
         table.SetColumnSpan(prompt, 2)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 35))
         Controls.Add(table)
@@ -96,10 +111,36 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
                 _issuer.Clear()
                 _firstName.Clear()
                 _address.Clear()
-                _date.Clear()
+                For Each field In _extra.Values
+                    field.Clear()
+                Next
+                _date.Text = Today.ToString("dd/MM/yyyy")
                 _amount.Clear()
                 _direction.SelectedIndex = -1
             End Sub
+        For Each field In table.Controls.OfType(Of TextBox)().Where(Function(t) t IsNot _destination)
+            AddHandler field.TextChanged, Sub() RefreshDestination()
+        Next
+        AddHandler _kind.SelectedIndexChanged, Sub() RefreshDestination()
+        _ready = True
+        RefreshDestination()
+    End Sub
+
+    Private Sub AddIdentityField(table As TableLayoutPanel, row As Integer, key As String, caption As String, capacity As Integer)
+        Dim field As New TextBox With {.Dock = DockStyle.Fill, .MaxLength = capacity}
+        Dim label As New Label With {.Text = caption}
+        _extra.Add(key, field)
+        _extraLabels.Add(label)
+        AddField(table, row, label, field)
+    End Sub
+
+    Private Sub RefreshDestination()
+        If Not _ready Then Return
+        Try
+            _destination.Text = BuildProposal().Destination
+        Catch ex As Exception When TypeOf ex Is ArgumentException OrElse TypeOf ex Is IO.IOException
+            _destination.Text = IO.Path.Combine(_root, If(_archiveOnDrive, "TEST", "")) & Environment.NewLine & ex.Message
+        End Try
     End Sub
 
     Private Sub CopyChatGptPrompt(sender As Object, e As EventArgs)
@@ -148,6 +189,9 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     End Sub
 
     Private Sub FillFields(suggested As JObject)
+        For Each field In _extra.Values
+            field.Clear()
+        Next
         _number.Clear()
         _party.Clear()
         _issuer.Clear()
@@ -177,10 +221,14 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             _party.Text = If(identity?("nom")?.ToString(), If(identity?("nom_complet")?.ToString(), ""))
             _firstName.Text = If(identity?("prenom")?.ToString(), "")
             _address.Text = If(identity?("adresse")?.ToString(), "")
+            For Each pair In _extra
+                pair.Value.Text = If(identity?(pair.Key)?.ToString(), "")
+            Next
             _number.Text = If(transaction?("reference")?.ToString(), "")
             _date.Text = If(transaction?("date_document")?.ToString(), "")
             _amount.Text = If(transaction?("montant_numerique")?.ToString(), "")
         End If
+        If String.IsNullOrWhiteSpace(_date.Text) Then _date.Text = Today.ToString("dd/MM/yyyy")
     End Sub
 
     Public ReadOnly Property Proposal As DocumentArchiveProposal
@@ -193,7 +241,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     Private Shared Sub AddField(table As TableLayoutPanel, row As Integer, caption As Label, editor As Control)
         caption.AutoSize = True
         caption.Anchor = AnchorStyles.Left
-        table.RowStyles.Add(New RowStyle(SizeType.Absolute, 32))
+        table.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         table.Controls.Add(caption, 0, row)
         table.Controls.Add(editor, 1, row)
     End Sub
@@ -213,6 +261,12 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             If(receipt, "Nom ou organisme", "Nom et prénom")))
         Dim membership = kind = TypeDocument.FormulaireAdhesion
         If membership Then _partyLabel.Text = "Nom"
+        For Each field In _extra.Values
+            field.Visible = membership
+        Next
+        For Each label In _extraLabels
+            label.Visible = membership
+        Next
         _firstNameLabel.Visible = membership
         _firstName.Visible = membership
         _addressLabel.Visible = membership
@@ -229,22 +283,34 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         _amount.Visible = financial
     End Sub
 
-    Private Sub ValidateFields(sender As Object, e As EventArgs)
+    Private Function BuildProposal() As DocumentArchiveProposal
         Dim emitted As Boolean? = Nothing
         If _direction.SelectedIndex >= 0 Then emitted = _direction.SelectedIndex = 0
+        Dim kind = SelectedKind
+        If kind = TypeDocument.Cheque AndAlso Not emitted.HasValue Then
+            Throw New ArgumentException("Renseignez l’émetteur pour déterminer le sens du chèque.")
+        End If
+        If kind = TypeDocument.Aucun Then Throw New ArgumentException("Sélectionnez le type de document.")
+        If kind = TypeDocument.Facture OrElse kind = TypeDocument.Cheque Then
+            Return SqlTestDocumentEntry.Prepare(_source, _hash, _root, kind = TypeDocument.Cheque,
+                _number.Text, _party.Text, _date.Text, _amount.Text, emitted, _archiveOnDrive, _issuer.Text)
+        Else
+            Dim identity As New JObject()
+            If kind = TypeDocument.FormulaireAdhesion Then
+                If _party.Text.Trim().Length > 50 OrElse _firstName.Text.Trim().Length > 50 OrElse _address.Text.Trim().Length > 100 Then Throw New ArgumentException("Limites de la fiche tiers : 50 caractères pour le nom et le prénom, 100 pour la rue.")
+                If String.IsNullOrWhiteSpace(_firstName.Text) Then Throw New ArgumentException("Renseignez le prénom pour identifier le tiers.")
+                For Each pair In _extra
+                    identity(pair.Key) = pair.Value.Text.Trim()
+                Next
+            End If
+            Return DocumentArchiveProposal.PrepareAdministrativeTest(_source, _hash, _root, kind,
+                _party.Text, _date.Text, _number.Text, _amount.Text, _firstName.Text, _address.Text, _archiveOnDrive, identity)
+        End If
+    End Function
+
+    Private Sub ValidateFields(sender As Object, e As EventArgs)
         Try
-            Dim kind = SelectedKind
-            If kind = TypeDocument.Cheque AndAlso Not emitted.HasValue Then
-                Throw New ArgumentException("Renseignez l’émetteur pour déterminer le sens du chèque.")
-            End If
-            If kind = TypeDocument.Aucun Then Throw New ArgumentException("Sélectionnez le type de document.")
-            If kind = TypeDocument.Facture OrElse kind = TypeDocument.Cheque Then
-                _proposal = SqlTestDocumentEntry.Prepare(_source, _hash, _root, kind = TypeDocument.Cheque,
-                    _number.Text, _party.Text, _date.Text, _amount.Text, emitted, _archiveOnDrive, _issuer.Text)
-            Else
-                _proposal = DocumentArchiveProposal.PrepareAdministrativeTest(_source, _hash, _root, kind,
-                    _party.Text, _date.Text, _number.Text, _amount.Text, _firstName.Text, _address.Text, _archiveOnDrive)
-            End If
+            _proposal = BuildProposal()
             DialogResult = DialogResult.OK
         Catch ex As Exception When TypeOf ex Is ArgumentException OrElse TypeOf ex Is IO.IOException
             MessageBox.Show(Me, ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning)
