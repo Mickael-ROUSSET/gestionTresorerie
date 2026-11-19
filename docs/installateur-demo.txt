@@ -20,6 +20,11 @@ Lancer gestionTresorerie - Demonstration depuis le menu Démarrer.
 Consulter LIRE_AVANT_DEMARRER.md pour le parcours de démonstration et les boutons TEST.
 Le mode démonstration est imposé dans le binaire.
 
+Analyse ChatGPT en TEST
+Depuis le menu Analyse, ouvrez des documents locaux. La sélection déclenche leur transmission à ChatGPT pour analyse (première page pour un PDF).
+Le moteur Codex est inclus. À la première utilisation, connectez votre compte ChatGPT dans le navigateur. Une connexion Internet et du quota sur votre forfait sont nécessaires.
+Une sélection multiple est analysée avant la vérification des fiches. Vérifiez les champs proposés. La copie et l’écriture SQL TEST nécessitent votre validation.
+
 Désinstallation
 Utiliser Applications installées dans Windows ou Desinstaller la demonstration dans le menu Démarrer.
 Les sessions sous LocalAppData/gestionTresorerie/TEST-hors-ligne sont conservées.

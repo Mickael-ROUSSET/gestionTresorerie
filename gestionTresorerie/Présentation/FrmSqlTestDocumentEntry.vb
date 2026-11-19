@@ -103,17 +103,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     End Sub
 
     Private Sub CopyChatGptPrompt(sender As Object, e As EventArgs)
-        Dim prompt = String.Join(vbLf, {
-            "Analyse le document joint. Réponds uniquement avec un objet JSON.",
-            "Structure : {""type_document"":""..."",""donnees_extraites"":{""identite"":{},""transaction"":{}}}.",
-            "Choisis un type ci-dessous. Utilise seulement les champs du type choisi. Laisse null si illisible. N’invente rien.",
-            "Cheque : identite = emetteur_numero_cheque, emetteur_du_cheque, beneficiaire_nom. transaction = date_emission, montant_numerique.",
-            "Pour un chèque, l’émetteur est le titulaire du compte, distinct de la banque. Ignore la date préimprimée du chéquier.",
-            "Facture : identite = fournisseur_nom. transaction = numero_facture, date_facture, montant_ttc.",
-            "FormulaireAdhesion : identite = nom, prenom, adresse. transaction = date_document.",
-            "QuestionnaireMedical : identite = nom_complet. transaction = date_document. Ne transcris aucune réponse médicale.",
-            "Recu : identite = nom_complet. transaction = reference, date_document, montant_numerique.",
-            "Dates au format AAAA-MM-JJ. Montants en euros sous forme de nombres. Numéros et références sous forme de texte, avec leurs zéros initiaux."})
+        Dim prompt = ChatGptDocumentReader.Prompt
         Try
             Clipboard.SetText(prompt)
             MessageBox.Show(Me, "Colle la consigne dans ChatGPT avec le document, puis copie le JSON obtenu.", Text)
@@ -146,24 +136,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
                 Throw New ArgumentException("Copiez d’abord le résultat JSON de ChatGPT.")
             End If
 
-            Dim result = JObject.Parse(clipboardText, New JsonLoadSettings With {
-                .DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error})
-            Dim kind = result("type_document")
-            Dim data = TryCast(result("donnees_extraites"), JObject)
-            If kind Is Nothing OrElse kind.Type <> JTokenType.String OrElse
-                Not Array.Exists(DocumentKinds, Function(value) value.ToString() = kind.ToString()) OrElse
-                data Is Nothing Then
-                Throw New ArgumentException("Le JSON doit contenir un type de document reconnu et les données extraites.")
-            End If
-            For Each section In {"identite", "transaction"}
-                Dim fields = TryCast(data(section), JObject)
-                If fields Is Nothing OrElse fields.Properties().Any(
-                    Function(field) field.Value.Type <> JTokenType.String AndAlso
-                        field.Value.Type <> JTokenType.Integer AndAlso field.Value.Type <> JTokenType.Float AndAlso
-                        field.Value.Type <> JTokenType.Null) Then
-                    Throw New ArgumentException("Les champs identité et transaction doivent contenir des valeurs simples.")
-                End If
-            Next
+            Dim result = ChatGptDocumentReader.ParseResult(clipboardText)
             If MessageBox.Show(Me, "Remplacer les champs actuels par les données copiées depuis ChatGPT ?",
                                Text, MessageBoxButtons.YesNo, MessageBoxIcon.Question,
                                MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then Return

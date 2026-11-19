@@ -67,11 +67,20 @@ if ($LASTEXITCODE -ne 0 -or $languages -cnotcontains 'fra') {
     throw 'Le moteur OCR préparé ne charge pas la langue française.'
 }
 
+$codex = Join-Path $root 'artifacts/codex'
+New-Item -ItemType Directory -Path $codex | Out-Null
+$codexExe = Join-Path $codex 'codex.exe'
+Invoke-WebRequest 'https://github.com/openai/codex/releases/download/rust-v0.169.0/codex-x86_64-pc-windows-msvc.exe' -OutFile $codexExe
+if ((Get-FileHash $codexExe).Hash -ine 'ce1945eb440b5481ed1233ebaf32b7056ee7e4e452fa62ffe1cbfb26103cdee0') { throw 'Empreinte de Codex inattendue.' }
+Invoke-WebRequest 'https://raw.githubusercontent.com/openai/codex/rust-v0.169.0/LICENSE' -OutFile (Join-Path $codex 'LICENSE.txt')
+& $codexExe --version
+if ($LASTEXITCODE -ne 0) { throw 'Démarrage du moteur ChatGPT impossible.' }
+
 $output = Join-Path $root 'artifacts/installer'
 if (Test-Path -LiteralPath $output) { throw 'Dossier installateur déjà présent. Utiliser un espace propre.' }
 New-Item -ItemType Directory -Path $output | Out-Null
 Write-Output "Compilateur Inno Setup : $((Get-Item -LiteralPath $compiler).VersionInfo.FileVersion)"
-& $compiler "/DPayloadDir=$payload" "/DBuildSha=$sha" "/DShortSha=$short" "/DOutputDir=$output" "/DSourceRoot=$root" "/DOcrDir=$ocr" (Join-Path $root 'installer/demo.iss')
+& $compiler "/DPayloadDir=$payload" "/DBuildSha=$sha" "/DShortSha=$short" "/DOutputDir=$output" "/DSourceRoot=$root" "/DOcrDir=$ocr" "/DCodexDir=$codex" (Join-Path $root 'installer/demo.iss')
 if ($LASTEXITCODE -ne 0) { throw "Compilation Inno Setup échouée : $LASTEXITCODE" }
 $installer = Join-Path $output "gestionTresorerie-demo-setup-$short.exe"
 if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) { throw 'Installateur compilé absent.' }
