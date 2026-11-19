@@ -32,8 +32,9 @@ Public Class SqlDocumentTestStoreTests
             proposal.Confirm(AddressOf store.Save)
             Dim cheque = SqlTestDocumentEntry.Prepare(source, DocumentArchiveProposal.HashSource(source), root,
                 True, "000042", "Association exemple", "03/04/2026", "52,90", chequeEmis:=False)
-            cheque.Confirm(AddressOf store.Save)
-            cheque.Confirm(AddressOf store.Save)
+            Dim chequeId = store.SaveVerified(cheque, Function(delta) ThrowUnexpectedReview())
+            Assert.IsTrue(chequeId.HasValue)
+            Assert.AreEqual(chequeId, store.SaveVerified(cheque, Function(delta) ThrowUnexpectedReview()))
             Assert.IsTrue(File.Exists(cheque.Destination))
             Assert.IsTrue(File.Exists(proposal.Destination))
             Assert.IsTrue(File.Exists(source))
@@ -46,6 +47,7 @@ Public Class SqlDocumentTestStoreTests
                 Dim cheques = documents.Rows.Cast(Of DataRow)().
                     Where(Function(row) CStr(row("cheminDoc")) = cheque.Destination).ToArray()
                 Assert.HasCount(1, cheques)
+                Assert.AreEqual(chequeId.Value, CInt(cheques(0)("idDoc")))
                 Assert.AreEqual("Cheque", CStr(cheques(0)("categorieDoc")))
                 Assert.AreEqual("Reçus", CStr(cheques(0)("sousCategorieDoc")))
                 StringAssert.Contains(CStr(cheques(0)("metaDonnees")), "000042")

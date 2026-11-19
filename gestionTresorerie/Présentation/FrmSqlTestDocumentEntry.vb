@@ -286,26 +286,26 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     Private Function BuildProposal() As DocumentArchiveProposal
         Dim emitted As Boolean? = Nothing
         If _direction.SelectedIndex >= 0 Then emitted = _direction.SelectedIndex = 0
-            Dim kind = SelectedKind
-            If kind = TypeDocument.Cheque AndAlso Not emitted.HasValue Then
-                Throw New ArgumentException("Renseignez l’émetteur pour déterminer le sens du chèque.")
+        Dim kind = SelectedKind
+        If kind = TypeDocument.Cheque AndAlso Not emitted.HasValue Then
+            Throw New ArgumentException("Renseignez l’émetteur pour déterminer le sens du chèque.")
+        End If
+        If kind = TypeDocument.Aucun Then Throw New ArgumentException("Sélectionnez le type de document.")
+        If kind = TypeDocument.Facture OrElse kind = TypeDocument.Cheque Then
+            Return SqlTestDocumentEntry.Prepare(_source, _hash, _root, kind = TypeDocument.Cheque,
+                _number.Text, _party.Text, _date.Text, _amount.Text, emitted, _archiveOnDrive, _issuer.Text)
+        Else
+            Dim identity As New JObject()
+            If kind = TypeDocument.FormulaireAdhesion Then
+                If _party.Text.Trim().Length > 50 OrElse _firstName.Text.Trim().Length > 50 OrElse _address.Text.Trim().Length > 100 Then Throw New ArgumentException("Limites de la fiche tiers : 50 caractères pour le nom et le prénom, 100 pour la rue.")
+                If String.IsNullOrWhiteSpace(_firstName.Text) Then Throw New ArgumentException("Renseignez le prénom pour identifier le tiers.")
+                For Each pair In _extra
+                    identity(pair.Key) = pair.Value.Text.Trim()
+                Next
             End If
-            If kind = TypeDocument.Aucun Then Throw New ArgumentException("Sélectionnez le type de document.")
-            If kind = TypeDocument.Facture OrElse kind = TypeDocument.Cheque Then
-                Return SqlTestDocumentEntry.Prepare(_source, _hash, _root, kind = TypeDocument.Cheque,
-                    _number.Text, _party.Text, _date.Text, _amount.Text, emitted, _archiveOnDrive, _issuer.Text)
-            Else
-                Dim identity As New JObject()
-                If kind = TypeDocument.FormulaireAdhesion Then
-                    If _party.Text.Trim().Length > 50 OrElse _firstName.Text.Trim().Length > 50 OrElse _address.Text.Trim().Length > 100 Then Throw New ArgumentException("Limites de la fiche tiers : 50 caractères pour le nom et le prénom, 100 pour la rue.")
-                    If String.IsNullOrWhiteSpace(_firstName.Text) Then Throw New ArgumentException("Renseignez le prénom pour identifier le tiers.")
-                    For Each pair In _extra
-                        identity(pair.Key) = pair.Value.Text.Trim()
-                    Next
-                End If
-                Return DocumentArchiveProposal.PrepareAdministrativeTest(_source, _hash, _root, kind,
-                    _party.Text, _date.Text, _number.Text, _amount.Text, _firstName.Text, _address.Text, _archiveOnDrive, identity)
-            End If
+            Return DocumentArchiveProposal.PrepareAdministrativeTest(_source, _hash, _root, kind,
+                _party.Text, _date.Text, _number.Text, _amount.Text, _firstName.Text, _address.Text, _archiveOnDrive, identity)
+        End If
     End Function
 
     Private Sub ValidateFields(sender As Object, e As EventArgs)
