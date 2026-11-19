@@ -84,8 +84,22 @@ Public Class SqlDocumentTestStoreTests
             End Function)
             Assert.IsFalse(cancelled.HasValue)
             Assert.IsFalse(File.Exists(second.Destination))
+            Dim keptId = store.SaveVerified(second, Function(delta)
+                StringAssert.Contains(delta, "Ville A → Ville B")
+                Return False
+            End Function)
+            Assert.IsTrue(keptId.HasValue)
+            Assert.IsTrue(File.Exists(second.Destination))
+            Using conn As New SqlConnection("Server=(LocalDB)\MSSQLLocalDB;Database=bddAgumaaaTest;Integrated Security=True")
+                conn.Open()
+                Using cmd As New SqlCommand("SELECT c.Ville FROM dbo.Tiers t JOIN dbo.Coordonnees c ON c.IdTiers=t.Id WHERE t.nom=@nom", conn)
+                    cmd.Parameters.AddWithValue("@nom", name)
+                    Assert.AreEqual("Ville A", CStr(cmd.ExecuteScalar()), "Refuser les modifications doit conserver la fiche existante.")
+                End Using
+            End Using
             Dim id = store.SaveVerified(second, Function(delta) True)
             Assert.IsTrue(id.HasValue)
+            Assert.AreEqual(keptId.Value, id.Value, "Reclasser le même fichier ne doit pas créer un doublon.")
             Using conn As New SqlConnection("Server=(LocalDB)\MSSQLLocalDB;Database=bddAgumaaaTest;Integrated Security=True")
                 conn.Open()
                 Using cmd As New SqlCommand("SELECT c.Ville,c.Telephone FROM dbo.Tiers t JOIN dbo.Coordonnees c ON c.IdTiers=t.Id JOIN dbo.Documents d ON t.Id=TRY_CONVERT(int,JSON_VALUE(d.metaDonnees,'$.idTiers')) WHERE d.idDoc=@id AND t.nom=@nom", conn)
