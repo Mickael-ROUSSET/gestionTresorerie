@@ -27,8 +27,15 @@ function Read-TestDocumentSnapshot([string]$Snapshot, [string]$Workspace) {
     $seenNames = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     $projection = @(
         foreach ($entry in $entries) {
-            if ($null -eq $entry -or @($entry.PSObject.Properties.Name | Where-Object { $_ -cnotin @('name','hash','type_document') }).Count -gt 0 -or
-                @($entry.PSObject.Properties.Name).Count -ne 3 -or
+            # Compare property names as a set; do not depend on PowerShell's
+            # scalar/array unrolling of PSObject.Properties.Name.
+            if ($null -eq $entry -or $entry -isnot [pscustomobject]) { throw 'snapshot-unexpected-fields' }
+            $fieldNames = @($entry.PSObject.Properties | ForEach-Object { $_.Name })
+            $requiredNames = @('name','hash','type_document')
+            $unknownNames = @($fieldNames | Where-Object { $_ -cnotin $requiredNames })
+            $missingNames = @($requiredNames | Where-Object { $_ -cnotin $fieldNames })
+            if ($unknownNames.Count -gt 0 -or $missingNames.Count -gt 0 -or
+                $fieldNames.Count -ne 3 -or
                 $null -eq $entry.name -or $null -eq $entry.hash -or $null -eq $entry.type_document) {
                 throw 'snapshot-unexpected-fields'
             }
@@ -130,6 +137,21 @@ if ($SelfTest) {
         $rejected = $false
         try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-unexpected-fields') { $rejected = $true } else { throw } }
         if (-not $rejected) { throw 'adapter-null-type-not-rejected' }
+        # Explicitly verify that an extra metadata key and a non-object entry
+        # are rejected, while the normal three-key object remains accepted.
+        $payload.staged = @(@{name='fiction.pdf';hash=$hash;type_document='Facture';unexpected='fiction'})
+        ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+        $rejected = $false
+        try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-unexpected-fields') { $rejected = $true } else { throw } }
+        if (-not $rejected) { throw 'adapter-extra-property-not-rejected' }
+        $payload.staged = @(@('fiction.pdf',$hash,'Facture'))
+        ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+        $rejected = $false
+        try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-unexpected-fields') { $rejected = $true } else { throw } }
+        if (-not $rejected) { throw 'adapter-array-entry-not-rejected' }
+        $payload.staged = @(@{name='fiction.pdf';hash=$hash;type_document='Facture'})
+        ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+        if (@(Read-TestDocumentSnapshot $snapshot $root).Count -ne 1) { throw 'adapter-three-fields-rejected' }
         # Reject non-string metadata rather than silently coercing JSON numbers or booleans.
         $payload.staged = @(@{name=123;hash=$hash;type_document='Facture'})
         ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
