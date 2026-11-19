@@ -34,7 +34,9 @@ function Read-TestDocumentSnapshot([string]$Snapshot, [string]$Workspace) {
             $hash = [string]$entry.hash
             $kind = [string]$entry.type_document
             if ([string]::IsNullOrWhiteSpace($name) -or $name -ne [IO.Path]::GetFileName($name) -or
-                $name -in @('.','..') -or $name.Contains([char]92) -or $name.Contains([char]47)) { throw 'snapshot-invalid-name' }
+                $name -in @('.','..') -or $name.Contains([char]92) -or $name.Contains([char]47) -or
+                $name -match '[. ]$' -or $name -match '[\x00-\x1F<>:"|?*]' -or
+                $name -match '^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)') { throw 'snapshot-invalid-name' }
             if ($hash -cnotmatch '^[A-Fa-f0-9]{64}$' -or $kind -cnotin $allowed) { throw 'snapshot-invalid-entry' }
             if ($seen.ContainsKey($hash)) { throw 'snapshot-duplicate-hash' }
             if (-not $seenNames.Add($name)) { throw 'snapshot-duplicate-name' }
@@ -136,6 +138,14 @@ if ($SelfTest) {
         $rejected = $false
         try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-invalid-field-type') { $rejected = $true } else { throw } }
         if (-not $rejected) { throw 'adapter-boolean-type-not-rejected' }
+        # Reject Windows filename aliases and reserved device names before file access.
+        foreach ($unsafeName in @('fiction.pdf.', 'fiction.pdf ', 'CON.pdf', 'LPT1.txt', 'bad?.pdf')) {
+            $payload.staged = @(@{name=$unsafeName;hash=$hash;type_document='Facture'})
+            ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+            $rejected = $false
+            try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-invalid-name') { $rejected = $true } else { throw } }
+            if (-not $rejected) { throw ('adapter-windows-alias-not-rejected: ' + $unsafeName) }
+        }
         # A zero-document replay must produce a valid empty projection.
         $payload.staged_count = 0
         $payload.staged = @()
