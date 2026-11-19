@@ -137,6 +137,21 @@ if ($SelfTest) {
         $rejected = $false
         try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-unexpected-fields') { $rejected = $true } else { throw } }
         if (-not $rejected) { throw 'adapter-null-type-not-rejected' }
+        # Explicitly verify that an extra metadata key and a non-object entry
+        # are rejected, while the normal three-key object remains accepted.
+        $payload.staged = @(@{name='fiction.pdf';hash=$hash;type_document='Facture';unexpected='fiction'})
+        ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+        $rejected = $false
+        try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-unexpected-fields') { $rejected = $true } else { throw } }
+        if (-not $rejected) { throw 'adapter-extra-property-not-rejected' }
+        $payload.staged = @(@('fiction.pdf',$hash,'Facture'))
+        ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+        $rejected = $false
+        try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-unexpected-fields') { $rejected = $true } else { throw } }
+        if (-not $rejected) { throw 'adapter-array-entry-not-rejected' }
+        $payload.staged = @(@{name='fiction.pdf';hash=$hash;type_document='Facture'})
+        ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+        if (@(Read-TestDocumentSnapshot $snapshot $root).Count -ne 1) { throw 'adapter-three-fields-rejected' }
         # Reject non-string metadata rather than silently coercing JSON numbers or booleans.
         $payload.staged = @(@{name=123;hash=$hash;type_document='Facture'})
         ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
