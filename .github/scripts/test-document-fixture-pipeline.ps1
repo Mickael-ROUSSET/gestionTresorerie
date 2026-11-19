@@ -158,6 +158,18 @@ if ($SelfTest) {
             if ($_.Exception.Message -match 'output-must-be-test-state-json') { $blocked = $true } else { throw }
         }
         if (-not $blocked -or (Test-Path -LiteralPath (Join-Path $root 'outside.json'))) { throw 'snapshot-escaped-test-state' }
+        # A case variant of journal.json must never overwrite the resume checkpoint on Windows.
+        $journalPath = Join-Path (Join-Path $allTypesWorkspace 'state') 'journal.json'
+        $journalHashBefore = (Get-FileHash -LiteralPath $journalPath -Algorithm SHA256).Hash
+        $journalAliasRejected = $false
+        try {
+            [void](& $PSCommandPath -ManifestPath $allTypesManifest -WorkspacePath $allTypesWorkspace -OutputPath (Join-Path (Join-Path $allTypesWorkspace 'state') 'JOURNAL.json'))
+        } catch {
+            if ($_.Exception.Message -match 'output-must-be-test-state-json') { $journalAliasRejected = $true } else { throw }
+        }
+        if (-not $journalAliasRejected -or (Get-FileHash -LiteralPath $journalPath -Algorithm SHA256).Hash -cne $journalHashBefore) {
+            throw 'snapshot-journal-alias-not-rejected'
+        }
         # A rejected CLI output path must not trigger even the simulated Gmail import.
         $freshWorkspace = Join-Path $root 'preflight-workspace'
         $preflightRejected = $false
@@ -181,7 +193,7 @@ if ($SelfTest) {
         $destination = [IO.Path]::GetFullPath($OutputPath)
         if (-not ([IO.Path]::GetDirectoryName($destination)).Equals($stateDirectory, [StringComparison]::OrdinalIgnoreCase) -or
             [IO.Path]::GetExtension($destination) -cne '.json' -or
-            [IO.Path]::GetFileName($destination) -ceq 'journal.json') { throw 'output-must-be-test-state-json' }
+            [IO.Path]::GetFileName($destination).Equals('journal.json', [StringComparison]::OrdinalIgnoreCase)) { throw 'output-must-be-test-state-json' }
     }
     $result = Invoke-FixturePipeline $ManifestPath $WorkspacePath
     $json = ConvertTo-Json -InputObject $result -Depth 12
