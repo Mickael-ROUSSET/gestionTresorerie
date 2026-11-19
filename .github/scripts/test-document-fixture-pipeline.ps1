@@ -179,6 +179,7 @@ if ($SelfTest) {
             if ($_.Exception.Message -match 'output-must-be-test-state-json') { $preflightRejected = $true } else { throw }
         }
         if (-not $preflightRejected -or (Test-Path -LiteralPath $freshWorkspace)) { throw 'snapshot-preflight-had-side-effects' }
+        & (Join-Path $PSScriptRoot 'test-document-snapshot-adapter.ps1') -SelfTest
         Write-Output 'PASS: synthetic intake -> typed validation -> review -> SHA256 resume'
     } finally {
         if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force }
