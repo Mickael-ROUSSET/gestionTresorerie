@@ -23,7 +23,7 @@ function Read-TestDocumentSnapshot([string]$Snapshot, [string]$Workspace) {
     $entries = $data.staged
     # JSON counts must be integral numbers, not strings or rounded fractional values.
     if ($data.staged_count -isnot [ValueType] -or $data.staged_count -is [bool]) { throw 'snapshot-invalid-count' }
-    if ([decimal]$data.staged_count -lt 0 -or [decimal]$data.staged_count -ne [decimal]$data.staged.Count) { throw 'snapshot-count-mismatch' }
+    if ([decimal]$data.staged_count -lt 0 -or [decimal]$data.staged_count -ne [decimal]($data.staged.Count)) { throw ('snapshot-count-mismatch: declared=' + $data.staged_count + '; actual=' + $data.staged.Count) }
     $allowed = @('Cheque','Facture','FormulaireAdhesion','QuestionnaireMedical','Recu')
     $seen = @{}
     $seenNames = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
