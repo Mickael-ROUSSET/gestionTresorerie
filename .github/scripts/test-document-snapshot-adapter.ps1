@@ -29,6 +29,7 @@ function Read-TestDocumentSnapshot([string]$Snapshot, [string]$Workspace) {
                 $null -eq $entry.name -or $null -eq $entry.hash -or $null -eq $entry.type_document) {
                 throw 'snapshot-unexpected-fields'
             }
+            if ($entry.name -isnot [string] -or $entry.hash -isnot [string] -or $entry.type_document -isnot [string]) { throw 'snapshot-invalid-field-type' }
             $name = [string]$entry.name
             $hash = [string]$entry.hash
             $kind = [string]$entry.type_document
@@ -124,6 +125,17 @@ if ($SelfTest) {
         $rejected = $false
         try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-unexpected-fields') { $rejected = $true } else { throw } }
         if (-not $rejected) { throw 'adapter-null-type-not-rejected' }
+        # Reject non-string metadata rather than silently coercing JSON numbers or booleans.
+        $payload.staged = @(@{name=123;hash=$hash;type_document='Facture'})
+        ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+        $rejected = $false
+        try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-invalid-field-type') { $rejected = $true } else { throw } }
+        if (-not $rejected) { throw 'adapter-numeric-name-not-rejected' }
+        $payload.staged = @(@{name='fiction.pdf';hash=$hash;type_document=$true})
+        ConvertTo-Json -InputObject $payload -Depth 5 | Set-Content -LiteralPath $snapshot -Encoding utf8
+        $rejected = $false
+        try { [void](Read-TestDocumentSnapshot $snapshot $root) } catch { if ($_.Exception.Message -eq 'snapshot-invalid-field-type') { $rejected = $true } else { throw } }
+        if (-not $rejected) { throw 'adapter-boolean-type-not-rejected' }
         # A zero-document replay must produce a valid empty projection.
         $payload.staged_count = 0
         $payload.staged = @()
