@@ -14,6 +14,9 @@ Public Class ConnexionDB
     Private Shared _instanceBddAgumaaa As ConnexionDB
 
     Public Shared Function GetInstance(sBase As String) As ConnexionDB
+#If DEMO_BUILD Then
+        Throw New InvalidOperationException("Accès SQL interdit en DÉMONSTRATION HORS LIGNE.")
+#Else
         If String.IsNullOrWhiteSpace(sBase) Then
             Throw New ArgumentException("Le nom logique de base est obligatoire.", NameOf(sBase))
         End If
@@ -33,15 +36,32 @@ Public Class ConnexionDB
             Case Else
                 Throw New ArgumentException($"Base inconnue : {sBase}", NameOf(sBase))
         End Select
+#End If
     End Function
 
     Public Function GetConnexion(sBase As String) As SqlConnection
+#If DEMO_BUILD Then
+        Throw New InvalidOperationException("Accès SQL interdit en DÉMONSTRATION HORS LIGNE.")
+#Else
         If String.IsNullOrWhiteSpace(sBase) Then
             Throw New ArgumentException("Le nom logique de base est obligatoire.", NameOf(sBase))
         End If
 
         Try
-            VerifierStockageAccessible()
+            If EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST Then
+                TestEnvironmentIsolation.ValidateConnectionString(LectureProprietes.connexionString(sBase))
+                If _connexionBddAgumaaa IsNot Nothing Then
+                    TestEnvironmentIsolation.ValidateConnectionString(_connexionBddAgumaaa.ConnectionString)
+                End If
+                Dim testDirectory = TestEnvironmentIsolation.GetInstallationDirectory(
+                    CStr(LectureProprietes.GetVariable("repInstallationProd")),
+                    CStr(LectureProprietes.GetVariable("repInstallationTest")))
+                If Not Directory.Exists(testDirectory) Then
+                    Throw New InvalidOperationException("Le dossier TEST doit être préparé avant la connexion.")
+                End If
+            Else
+                VerifierStockageAccessible()
+            End If
 
             Select Case sBase
                 Case Constantes.DataBases.Agumaaa
@@ -78,6 +98,7 @@ Public Class ConnexionDB
             Logger.ERR($"Erreur inattendue ConnexionDB.GetConnexion('{sBase}') : {ex.Message}")
             Throw
         End Try
+#End If
     End Function
 
     Private Shared Sub VerifierStockageAccessible()
@@ -93,15 +114,22 @@ Public Class ConnexionDB
     End Sub
 
     Private Function CreeConnexion(connexionString As String) As SqlConnection
+#If DEMO_BUILD Then
+        Throw New InvalidOperationException("Accès SQL interdit en DÉMONSTRATION HORS LIGNE.")
+#Else
         If String.IsNullOrWhiteSpace(connexionString) Then
             Throw New ArgumentException("La chaîne de connexion ne peut pas être vide.", NameOf(connexionString))
         End If
 
+        If EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST Then
+            TestEnvironmentIsolation.ValidateConnectionString(connexionString)
+        End If
         Dim cn As New SqlConnection(connexionString)
         cn.Open()
 
         Logger.INFO("Connexion SQL ouverte.")
         Return cn
+#End If
     End Function
 
     Public Sub FermerConnexion(sBase As String)

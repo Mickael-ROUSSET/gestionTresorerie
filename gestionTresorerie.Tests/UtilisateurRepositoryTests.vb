@@ -1,4 +1,4 @@
-﻿Imports Microsoft.VisualStudio.TestTools.UnitTesting
+Imports Microsoft.VisualStudio.TestTools.UnitTesting
 Imports System.Data.SqlClient
 Imports System.Linq
 
@@ -18,10 +18,10 @@ Public Class UtilisateurRepositoryTests
         Dim p = fake.LastParameters.ToList()
 
         Assert.AreEqual(2, p.Count)
-        Assert.AreEqual("@Id", p(0).ParameterName)
+        Assert.AreEqual("@idUtilisateur", p(0).ParameterName)
         Assert.AreEqual(12, p(0).Value)
 
-        Assert.AreEqual("@pwd", p(1).ParameterName)
+        Assert.AreEqual("@motDePasse", p(1).ParameterName)
         Assert.AreEqual("HASH_TEST", p(1).Value)
     End Sub
 
@@ -66,7 +66,8 @@ Public Class UtilisateurRepositoryTests
         Assert.AreEqual(7, p(0).Value)
 
         Assert.AreEqual("@actif", p(1).ParameterName)
-        Assert.IsTrue(p(3).Value)
+        Assert.HasCount(2, p)
+        Assert.IsFalse(CBool(p(1).Value))
     End Sub
 
 End Class
