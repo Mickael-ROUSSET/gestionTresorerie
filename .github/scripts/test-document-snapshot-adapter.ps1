@@ -38,7 +38,7 @@ function Read-TestDocumentSnapshot([string]$Snapshot, [string]$Workspace) {
             [pscustomobject]@{ name=$name; hash=$hash; type_document=$kind }
         }
     )
-    return ,$projection
+    return $projection
 }
 
 if ($SelfTest) {
