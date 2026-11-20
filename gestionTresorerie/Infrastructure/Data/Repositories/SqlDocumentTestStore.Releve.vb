@@ -25,10 +25,10 @@ Partial Public NotInheritable Class SqlDocumentTestStore
             End Using
             ' Pour un règlement groupé, repérer les paires de factures ou les paires de chèques.
             ' Ne jamais sommer une facture avec le chèque susceptible de la régler.
-            t.Columns.Add("groupe",GetType(Boolean))
+            t.Columns.Add("partenaire",GetType(Integer))
             Dim eligible=t.AsEnumerable().Where(Function(row)
                 If row.IsNull("montant") Then Return False
-                Dim kind=CStr(row("categorieDoc"))
+                Dim kind=Convert.ToString(row("categorieDoc"))
                 If kind <> "Facture" AndAlso kind <> "Cheque" Then Return False
                 If kind="Cheque" AndAlso ((m.Sens AndAlso Convert.ToString(row("sousCategorieDoc"))="Emis") OrElse
                     (Not m.Sens AndAlso Convert.ToString(row("sousCategorieDoc"))="Reçus")) Then Return False
@@ -38,7 +38,8 @@ Partial Public NotInheritable Class SqlDocumentTestStore
                 Dim reste=Math.Abs(m.Montant)-g.Key.Item2
                 If eligible.Contains((g.Key.Item1,reste)) AndAlso (reste<>g.Key.Item2 OrElse g.Count()>1) Then
                     For Each row In g
-                        row("groupe")=True
+                        Dim partenaire=eligible((g.Key.Item1,reste)).First(Function(autre) CInt(autre("idDoc"))<>CInt(row("idDoc")))
+                        row("partenaire")=partenaire("idDoc")
                     Next
                 End If
             Next
