@@ -35,8 +35,12 @@ Public Class SqlDocumentTestStoreTests
             Dim eventLabel = "Événement fictif " & Guid.NewGuid().ToString("N")
             Assert.AreEqual(eventLabel, SqlDocumentTestStore.CreerEvenement(eventLabel))
             Assert.AreEqual(eventLabel, SqlDocumentTestStore.CreerEvenement(" " & eventLabel & " "))
-            Using choices = SqlDocumentTestStore.ClassificationChoices()
-                Assert.IsTrue(choices.Rows.Cast(Of DataRow)().Any(Function(row) CStr(row("libelle")) = eventLabel))
+            Using cn As New SqlConnection("Server=(LocalDB)\MSSQLLocalDB;Database=bddAgumaaaTest;Integrated Security=True")
+                cn.Open()
+                Using cmd As New SqlCommand("SELECT COUNT(*) FROM dbo.Evenements WHERE libelle=@nom", cn)
+                    cmd.Parameters.Add("@nom", SqlDbType.NVarChar, 50).Value = eventLabel
+                    Assert.AreEqual(1, CInt(cmd.ExecuteScalar()))
+                End Using
             End Using
             Assert.ThrowsExactly(Of ArgumentException)(Function() SqlDocumentTestStore.CreerEvenement(New String("a"c, 51)))
             cheque.NatureComptable = "Fournitures"
