@@ -39,6 +39,8 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     Private ReadOnly _destination As New TextBox With {.ReadOnly = True, .Multiline = True, .Dock = DockStyle.Fill, .ScrollBars = ScrollBars.Vertical}
     Private ReadOnly _nature As New ComboBox With {.Dock = DockStyle.Fill, .MaxLength = 100}
     Private ReadOnly _eventName As New ComboBox With {.Dock = DockStyle.Fill, .MaxLength = 100}
+    Private ReadOnly _attach As New Button With {.AutoSize = True, .Text = "Rattacher à un mouvement…"}
+    Private _movement As Integer?
     Private _ready As Boolean
 
     Public Sub New(source As String, hash As String, root As String, suggested As JObject, note As String,
@@ -108,7 +110,10 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         Dim validate As New Button With {.Text = "Enregistrer et archiver", .AutoSize = True}
         Dim importAnalysis As New Button With {.Text = "Importer une analyse ChatGPT", .AutoSize = True}
         AddHandler importAnalysis.Click, AddressOf ImportChatGptAnalysis
-        buttons.Controls.AddRange(New Control() {cancel, validate, importAnalysis})
+        buttons.Controls.AddRange(New Control() {cancel, validate, _attach, importAnalysis})
+        AddHandler _attach.Click, AddressOf PickMovement
+        AddHandler _date.TextChanged, Sub() ClearMovement()
+        AddHandler _amount.TextChanged, Sub() ClearMovement()
         table.Controls.Add(buttons, 0, 20)
         table.SetColumnSpan(buttons, 2)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 39))
@@ -313,6 +318,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         _amountLabel.Text = If(receipt, "Montant EUR (facultatif)", "Montant en EUR")
         _amountLabel.Visible = financial
         _amount.Visible = financial
+        _attach.Visible = financial
     End Sub
 
     Private Function BuildProposal() As DocumentArchiveProposal
@@ -341,9 +347,44 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         End If
     End Function
 
+    Private Sub ClearMovement()
+        _movement = Nothing
+        _attach.Text = "Rattacher à un mouvement…"
+    End Sub
+
+    Private Sub PickMovement(sender As Object, e As EventArgs)
+        Try
+            Dim proposal = BuildProposal()
+            Dim amount As Decimal
+            If Not Decimal.TryParse(_amount.Text.Replace(" ", "").Replace(","c, "."c), Globalization.NumberStyles.Number, Globalization.CultureInfo.InvariantCulture, amount) Then Throw New ArgumentException("Renseignez le montant avant le rapprochement.")
+            Using choices = SqlDocumentTestStore.RelatedMovements(proposal.Document.DateDoc, amount)
+                If choices.Rows.Count = 0 Then
+                    MessageBox.Show(Me, "Aucun mouvement de ce montant à moins de 91 jours. La pièce peut être classée en attente.")
+                    Return
+                End If
+                Using dialog As New Form With {.Text = "Choisir le mouvement du justificatif", .Width = 680, .Height = 320, .StartPosition = FormStartPosition.CenterParent},
+                    list As New ListBox With {.Dock = DockStyle.Fill, .DisplayMember = "description", .ValueMember = "Id", .DataSource = choices},
+                    confirm As New Button With {.Dock = DockStyle.Bottom, .Text = "Rattacher le mouvement sélectionné", .DialogResult = DialogResult.OK},
+                    remove As New Button With {.Dock = DockStyle.Bottom, .Text = "Laisser la pièce en attente", .DialogResult = DialogResult.No}
+                    dialog.Controls.AddRange(New Control() {list, confirm, remove})
+                    Select Case dialog.ShowDialog(Me)
+                        Case DialogResult.OK
+                            _movement = CInt(list.SelectedValue)
+                            _attach.Text = "Mouvement n° " & _movement.Value
+                        Case DialogResult.No
+                            ClearMovement()
+                    End Select
+                End Using
+            End Using
+        Catch ex As Exception
+            MessageBox.Show(Me, ex.Message, "Rapprochement impossible")
+        End Try
+    End Sub
+
     Private Sub ValidateFields(sender As Object, e As EventArgs)
         Try
             _proposal = BuildProposal()
+            _proposal.MouvementChoisi = _movement
             _proposal.NatureComptable = _nature.Text.Trim()
             _proposal.EvenementComptable = _eventName.Text.Trim()
             DialogResult = DialogResult.OK
