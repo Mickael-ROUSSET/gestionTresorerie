@@ -168,7 +168,9 @@ Friend NotInheritable Class FrmDocumentFilePreview
         Try
             For Each item In items
                 If _stopBatchRequested Then Exit For
-                _batchReview.Text = $"Vérification TEST {completed + 1}/{items.Length}…"
+                _files.SelectedItem = item
+                _batchReview.Text = $"Vérification TEST {completed + 1}/{items.Length} : {item.Name}"
+                Await Task.Yield() ' Laisser WinForms afficher la pièce courante avant la fiche modale.
                 Try
                     Dim savedId = Await ReviewSqlTestDocument(item.FullName)
                     If savedId.HasValue Then
