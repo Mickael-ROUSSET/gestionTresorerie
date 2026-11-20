@@ -22,6 +22,7 @@ Public Class FrmPrincipale
         .Name = "EspaceTestLocalToolStripMenuItem",
         .Text = "Espace TEST local (fichiers fictifs)"}
 
+    Private ReadOnly _bank As New ToolStripMenuItem With {.Name="ReleveCsvTestToolStripMenuItem",.Text="Analyser un relevé bancaire CSV en TEST…"}
     Private ReadOnly _annual As New ToolStripMenuItem With {.Name = "CompteRenduAnnuelTestToolStripMenuItem", .Text = "Générer le compte rendu financier TEST…"}
     Private ReadOnly _menuFolder As New ToolStripMenuItem With {.Name = "AnalyserDossierTestToolStripMenuItem", .Text = "Analyser un dossier de scans en TEST…"}
     Private ReadOnly _menuLocalDocuments As New ToolStripMenuItem With {
@@ -55,6 +56,8 @@ Public Class FrmPrincipale
         InitializeComponent()
         AddHandler _menuLocalDocuments.Click, AddressOf OpenLocalDocuments
         AnalyseToolStripMenuItem.DropDownItems.Add(_menuLocalDocuments)
+        AddHandler _bank.Click, Sub() FrmRapprochementReleve.Ouvrir(Me)
+        AnalyseToolStripMenuItem.DropDownItems.Add(_bank)
         AddHandler _annual.Click, Sub() AnnualTestReport.Export(Me)
         AnalyseToolStripMenuItem.DropDownItems.Add(_annual)
         AddHandler _menuFolder.Click, AddressOf OpenScanFolder
@@ -331,7 +334,7 @@ Public Class FrmPrincipale
         For Each action As ToolStripItem In AnalyseToolStripMenuItem.DropDownItems
             action.Enabled = Object.ReferenceEquals(action, _menuTestWorkspace) OrElse
                              Object.ReferenceEquals(action, _menuSqlTest) OrElse
-                             Object.ReferenceEquals(action, _menuLocalDocuments) OrElse Object.ReferenceEquals(action, _menuFolder) OrElse Object.ReferenceEquals(action, _annual) OrElse
+                             Object.ReferenceEquals(action, _menuLocalDocuments) OrElse Object.ReferenceEquals(action, _menuFolder) OrElse Object.ReferenceEquals(action, _annual) OrElse Object.ReferenceEquals(action, _bank) OrElse
                              Object.ReferenceEquals(action, _menuDemoDocuments) OrElse
                              Object.ReferenceEquals(action, _menuRevueDocumentsAnalyses) OrElse
                              Object.ReferenceEquals(action, _menuEffacerDocumentsFictifs)

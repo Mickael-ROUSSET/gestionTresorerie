@@ -25,7 +25,7 @@ Partial Public NotInheritable Class SqlDocumentTestStore
     End Function
 
     Friend Shared Function RelatedMovements(onDate As Date, amount As Decimal) As DataTable
-        Using connection = OpenTest(), cmd As New SqlCommand("SELECT Id,CONCAT(CONVERT(char(10),dateMvt,103),' · ',CASE sens WHEN 1 THEN N'Recette' ELSE N'Dépense' END,' ',montant,N' € · ',COALESCE(note,reference,''),' · n° ',Id) AS description FROM dbo.Mouvements WHERE ABS(montant)=@montant AND ABS(DATEDIFF(day,dateMvt,@date))<=90 ORDER BY ABS(DATEDIFF(day,dateMvt,@date)),Id;", connection)
+        Using connection = OpenTest(), cmd As New SqlCommand("SELECT Id,sens,CONCAT(CONVERT(char(10),dateMvt,103),' · ',CASE sens WHEN 1 THEN N'Recette' ELSE N'Dépense' END,' ',montant,N' € · ',COALESCE(note,reference,''),' · n° ',Id) AS description FROM dbo.Mouvements WHERE ABS(montant)=@montant AND ABS(DATEDIFF(day,dateMvt,@date))<=90 ORDER BY ABS(DATEDIFF(day,dateMvt,@date)),Id;", connection)
             cmd.Parameters.AddWithValue("@montant", Math.Abs(amount))
             cmd.Parameters.Add("@date", SqlDbType.Date).Value = onDate.Date
             Using reader = cmd.ExecuteReader()

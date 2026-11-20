@@ -42,6 +42,8 @@ Friend NotInheritable Class LocalDbSchema
                 command.ExecuteNonQuery()
                 command.CommandText = "IF OBJECT_ID('dbo.ClassementDocumentTest','U') IS NULL CREATE TABLE dbo.ClassementDocumentTest(idDoc int NOT NULL PRIMARY KEY,nature nvarchar(100) NULL,evenement nvarchar(100) NULL);"
                 command.ExecuteNonQuery()
+                command.CommandText = "IF OBJECT_ID('dbo.ReleveJustificatifsTest','U') IS NULL CREATE TABLE dbo.ReleveJustificatifsTest(empreinte char(64) NOT NULL,operation int NOT NULL,idDoc int NOT NULL, dateOperation date NOT NULL, montantSigne decimal(19,2) NOT NULL,libelle nvarchar(max) NOT NULL, PRIMARY KEY(empreinte,operation,idDoc));"
+                command.ExecuteNonQuery()
             End If
         End Using
     End Sub
