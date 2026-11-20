@@ -22,7 +22,7 @@ Public Class FrmPrincipale
         .Name = "EspaceTestLocalToolStripMenuItem",
         .Text = "Espace TEST local (fichiers fictifs)"}
 
-    Private ReadOnly _menuFolder As New ToolStripMenuItem With {.Text = "Analyser un dossier de scans en TEST…"}
+    Private ReadOnly _menuFolder As New ToolStripMenuItem With {.Name = "AnalyserDossierTestToolStripMenuItem", .Text = "Analyser un dossier de scans en TEST…"}
     Private ReadOnly _menuLocalDocuments As New ToolStripMenuItem With {
         .Name = "ExaminerDocumentsDisqueToolStripMenuItem",
         .Text = "Examiner des PDF et des scans sur disque…"}
