@@ -76,54 +76,53 @@ Public Module LitRelevé
         Return ParserLignes(lignesList)
 
     End Function
-    Private Function EstFormatCsvStructure(lignes As IEnumerable(Of String)) As Boolean
-        Return lignes.Any(Function(l)
-                              Return l IsNot Nothing AndAlso
-                                 l.Trim().StartsWith("Date;Libellé;Débit euros;Crédit euros",
-                                                     StringComparison.OrdinalIgnoreCase)
-                          End Function)
+    Private Function ColonneEntete(value As String) As String
+        Dim simple = Regex.Replace(value.Normalize(NormalizationForm.FormD), "\p{M}", "").Trim().ToLowerInvariant()
+        Select Case simple
+            Case "date", "date operation", "date d'opération", "date d'operation", "date de l'operation"
+                Return "date"
+            Case "libelle", "libelle operation", "libelle de l'operation", "libelle de l’operation"
+                Return "libelle"
+        End Select
+        If Regex.IsMatch(simple, "^debit(?:$|[ (€])") Then Return "debit"
+        If Regex.IsMatch(simple, "^credit(?:$|[ (€])") Then Return "credit"
+        Return ""
     End Function
+
+    Private Function Entete(ligne As String) As List(Of String)
+        Dim colonnes = SplitCsvPointVirgule(If(ligne, "")).Select(AddressOf ColonneEntete).ToList()
+        If {"date", "libelle", "debit", "credit"}.All(Function(key) colonnes.Where(Function(c) c = key).Count() = 1) Then Return colonnes
+        Return Nothing
+    End Function
+
+    Private Function EstFormatCsvStructure(lignes As IEnumerable(Of String)) As Boolean
+        Return lignes.Any(Function(l) Entete(l) IsNot Nothing)
+    End Function
+
     Private Function ParserCsvStructure(lignes As IEnumerable(Of String)) As List(Of LigneReleve)
         Dim resultat As New List(Of LigneReleve)
-        Dim commencer As Boolean = False
-
-        Dim enregistrements As List(Of String) = RegrouperEnregistrementsCsv(lignes)
-
-        For Each ligneBrute As String In enregistrements
-            Dim ligne As String = If(ligneBrute, String.Empty).Trim()
-
-            If String.IsNullOrWhiteSpace(ligne) Then Continue For
-
-            If ligne.StartsWith("Date;Libellé;Débit euros;Crédit euros", StringComparison.OrdinalIgnoreCase) Then
-                commencer = True
+        Dim entetes As List(Of String) = Nothing
+        For Each brut In RegrouperEnregistrementsCsv(lignes.SkipWhile(Function(l) Entete(l) Is Nothing))
+            Dim nouvelle = Entete(brut)
+            If nouvelle IsNot Nothing Then
+                entetes = nouvelle
                 Continue For
             End If
-
-            If Not commencer Then Continue For
-            If Not EstDebutMouvement(ligne) Then Continue For
-
-            Dim colonnes As List(Of String) = SplitCsvPointVirgule(ligne)
-
-            If colonnes.Count < 4 Then Continue For
-
-            Dim item As New LigneReleve With {
-            .DateOperation = DateTime.ParseExact(colonnes(0).Trim(), "dd/MM/yyyy", CultureFr),
-            .Libelle = NettoyerLibelle(colonnes(1))
-        }
-
-            If Not String.IsNullOrWhiteSpace(colonnes(2)) Then
-                item.MontantDebit = ExtraireMontant(colonnes(2))
+            Dim c = SplitCsvPointVirgule(brut)
+            If c.All(Function(v) String.IsNullOrWhiteSpace(v)) Then Continue For
+            Dim i = entetes.IndexOf("date"), d As Date
+            If c.Count <= i OrElse Not Date.TryParseExact(c(i), {"dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd"}, CultureFr, DateTimeStyles.None, d) Then
+                If Regex.IsMatch(brut.TrimStart(), "^(Total|Solde)(?:s?\b)", RegexOptions.IgnoreCase) Then Continue For
+                Throw New FormatException($"Date non reconnue à l’opération {resultat.Count + 1}.")
             End If
-
-            If Not String.IsNullOrWhiteSpace(colonnes(3)) Then
-                item.MontantCredit = ExtraireMontant(colonnes(3))
-            End If
-
-            If item.MontantDebit.HasValue OrElse item.MontantCredit.HasValue Then
-                resultat.Add(item)
-            End If
+            Dim derniere = {"debit","credit","libelle"}.Max(Function(k) entetes.IndexOf(k))
+            If c.Count <= derniere Then Throw New FormatException($"Colonnes manquantes à l’opération {resultat.Count + 1}.")
+            Dim item As New LigneReleve With {.DateOperation=d, .Libelle=NettoyerLibelle(c(entetes.IndexOf("libelle")))}
+            Dim debit = c(entetes.IndexOf("debit")), credit = c(entetes.IndexOf("credit"))
+            If String.IsNullOrWhiteSpace(debit) = String.IsNullOrWhiteSpace(credit) Then Throw New FormatException($"Débit ou crédit ambigu à l’opération {resultat.Count + 1}.")
+            If debit.Length > 0 Then item.MontantDebit = ExtraireMontant(debit) Else item.MontantCredit = ExtraireMontant(credit)
+            resultat.Add(item)
         Next
-
         Return resultat
     End Function
     Private Function SplitCsvPointVirgule(ligne As String) As List(Of String)
@@ -135,7 +134,12 @@ Public Module LitRelevé
             Dim c As Char = ligne(i)
 
             If c = """"c Then
-                dansGuillemets = Not dansGuillemets
+                If dansGuillemets AndAlso i+1 < ligne.Length AndAlso ligne(i+1) = """"c Then
+                    courant.Append(c)
+                    i += 1
+                Else
+                    dansGuillemets = Not dansGuillemets
+                End If
             ElseIf c = ";"c AndAlso Not dansGuillemets Then
                 resultat.Add(courant.ToString().Trim())
                 courant.Clear()
@@ -164,7 +168,8 @@ Public Module LitRelevé
         If EstFormatCsvStructure(lignesList) Then
             Return ParserCsvStructure(lignesList)
         End If
-        For Each ligneBrute As String In lignesSource
+        If lignesList.Any(Function(l) Regex.IsMatch(If(l, ""), "^\s*""?\d{1,2}/\d{1,2}/\d{4}""?;")) Then Throw New FormatException("Colonnes CSV non reconnues. Date, libellé, débit et crédit sont requis.")
+        For Each ligneBrute As String In lignesList
             Dim ligne As String = If(ligneBrute, String.Empty).Trim()
 
             If String.IsNullOrWhiteSpace(ligne) Then
@@ -378,6 +383,7 @@ Public Module LitRelevé
             End If
         Next
 
+        If dansGuillemets Then Throw New FormatException("Guillemet non refermé dans le relevé.")
         If buffer.Length > 0 Then
             result.Add(buffer.ToString())
         End If
@@ -386,6 +392,7 @@ Public Module LitRelevé
     End Function
     Private Function LireFichierAvecEncodageAuto(fichier As String) As List(Of String)
 
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)
         Dim encodages = {
             Encoding.UTF8,
             Encoding.GetEncoding(1252) ' ANSI

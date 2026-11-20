@@ -38,6 +38,15 @@ Public Class SqlDocumentTestStoreTests
             Dim chequeId = store.SaveVerified(cheque, Function(delta) ThrowUnexpectedReview())
             Assert.IsTrue(chequeId.HasValue)
             Assert.AreEqual(chequeId, store.SaveVerified(cheque, Function(delta) ThrowUnexpectedReview()))
+            Dim bank As New LigneReleve With {.DateOperation=New Date(2026,4,3),.Libelle="Virement fictif",.MontantCredit=52.90D}
+            Dim statement=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Guid.NewGuid().ToByteArray()))
+            Dim invoiceId=store.SaveVerified(proposal, Function(delta) ThrowUnexpectedReview()).Value
+            For attempt=1 To 2
+                SqlDocumentTestStore.RattacherJustificatifs(statement,0,bank,{invoiceId,chequeId.Value})
+            Next
+            Using docs=SqlDocumentTestStore.JustificatifsReleve(statement,0,bank)
+                Assert.AreEqual(2,docs.Select("lie=1").Length)
+            End Using
             Dim medical = DocumentArchiveProposal.PrepareAdministrativeTest(source, DocumentArchiveProposal.HashSource(source), root,
                 Global.gestionTresorerie.Agumaaa.TypeDocument.QuestionnaireMedical, "Personne fictive", "01/10/2026", "", "",
                 identity:=New Newtonsoft.Json.Linq.JObject From {{"date_naissance", "12/09/1980"}})

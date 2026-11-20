@@ -187,4 +187,19 @@ Public Class LitReleveTests
         Assert.AreEqual(1, result.Count)
         Assert.AreEqual(1000D, result(0).MontantCredit)
     End Sub
+    <TestMethod>
+    Public Sub ParserFichier_CreditAgricole1252EnteteDecaleeColonnesInversees()
+        Dim tmp = IO.Path.GetTempFileName()
+        Try
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance)
+            IO.File.WriteAllText(tmp, "Compte fictif" & vbCrLf & "Date;Crédit (€);Libellé;Débit (€);" & vbCrLf &
+                "20/11/2026;;""MATÉRIEL; atelier"";1 234,56;", System.Text.Encoding.GetEncoding(1252))
+            Dim ligne = LitRelevé.ParserFichier(tmp).Single()
+            Assert.AreEqual("MATÉRIEL; atelier", ligne.Libelle)
+            Assert.AreEqual(1234.56D, ligne.MontantDebit.Value)
+            Assert.IsFalse(ligne.MontantCredit.HasValue)
+        Finally
+            IO.File.Delete(tmp)
+        End Try
+    End Sub
 End Class
