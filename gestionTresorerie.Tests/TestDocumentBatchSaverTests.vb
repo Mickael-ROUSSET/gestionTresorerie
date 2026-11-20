@@ -98,4 +98,35 @@ Public Class TestDocumentBatchSaverTests
             Directory.Delete(root, recursive:=True)
         End Try
     End Sub
+    <TestMethod>
+    Public Sub ErreurSqlFictiveNInterromptPasLeLotEtPermetLaReprise()
+        Dim root = Directory.CreateTempSubdirectory().FullName
+        Try
+            Dim source = Path.Combine(root, "piece-fictive.png")
+            File.WriteAllBytes(source, {CByte(1), CByte(9)})
+            Dim proposal = DocumentArchiveProposal.PrepareAdministrativeTest(
+                source, DocumentArchiveProposal.HashSource(source), root,
+                Global.gestionTresorerie.Agumaaa.TypeDocument.Recu,
+                "Personne fictive", "05/11/2026", "TEST-SQL", "8,20", archiveOnDrive:=True)
+            Dim calls As Integer = 0
+            Dim result = TestDocumentBatchSaver.Run({proposal, proposal, proposal},
+                Function(item)
+                    calls += 1
+                    If calls = 1 Then Throw New FakeDbException()
+                    Return CType(91, Integer?)
+                End Function)
+            Assert.AreEqual(2, calls)
+            Assert.AreEqual(1, result.Rejected)
+            Assert.AreEqual(1, result.Saved)
+            Assert.AreEqual(1, result.Duplicates)
+            CollectionAssert.AreEqual(New Integer() {91}, result.SavedDocumentIds.ToArray())
+        Finally
+            Directory.Delete(root, recursive:=True)
+        End Try
+    End Sub
+
+    Private NotInheritable Class FakeDbException
+        Inherits System.Data.Common.DbException
+    End Class
+
 End Class

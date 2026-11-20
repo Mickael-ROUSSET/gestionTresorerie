@@ -1,6 +1,7 @@
 Option Strict On
 
 Imports System.IO
+Imports System.Data.Common
 
 ' Orchestrateur commun : aucune dépendance Gmail, SQL ou interface.
 ' Le même parcours est utilisable avec un moteur simulé et des documents fictifs.
@@ -36,7 +37,8 @@ Public NotInheritable Class TestDocumentBatchSaver
                     ' Annulation de la revue d'un tiers : à reprendre ultérieurement.
                     result.Pending += 1
                 End If
-            Catch ex As Exception When TypeOf ex Is IOException OrElse
+            Catch ex As Exception When TypeOf ex Is DbException OrElse
+                                       TypeOf ex Is IOException OrElse
                                        TypeOf ex Is UnauthorizedAccessException OrElse
                                        TypeOf ex Is ArgumentException OrElse
                                        TypeOf ex Is InvalidOperationException
