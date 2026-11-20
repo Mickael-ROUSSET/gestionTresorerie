@@ -9,7 +9,8 @@ Imports System.Threading
 Public NotInheritable Class TestDocumentBatchSaver
     Public Shared Function Run(proposals As IEnumerable(Of DocumentArchiveProposal),
                                save As Func(Of DocumentArchiveProposal, Integer?),
-                               Optional cancellationToken As CancellationToken = Nothing) As TestDocumentBatchResult
+                               Optional cancellationToken As CancellationToken = Nothing,
+                               Optional onDocumentSaved As Action(Of Integer) = Nothing) As TestDocumentBatchResult
         If proposals Is Nothing Then Throw New ArgumentNullException(NameOf(proposals))
         If save Is Nothing Then Throw New ArgumentNullException(NameOf(save))
         Dim result As New TestDocumentBatchResult()
@@ -36,6 +37,8 @@ Public NotInheritable Class TestDocumentBatchSaver
                     seen.Add(proposal.Destination)
                     result.Saved += 1
                     result.SavedDocumentIds.Add(id.Value)
+                    ' Notification uniquement après persistance confirmée ; aucun chemin ni identité transmis.
+                    If onDocumentSaved IsNot Nothing Then onDocumentSaved(id.Value)
                 Else
                     ' Annulation de la revue d'un tiers : à reprendre ultérieurement.
                     result.Pending += 1
