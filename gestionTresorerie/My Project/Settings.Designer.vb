@@ -638,7 +638,7 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE [dbo].[Documents] SET dateDoc = @dateDoc, contenuDoc = @contenuDoc, chemin"& _ 
+         Global.System.Configuration.DefaultSettingValueAttribute("UPDATE [dbo].[Documents] SET dateModif = GETDATE(), dateDoc = @dateDoc, contenuDoc = @contenuDoc, chemin"& _ 
             "Doc = @cheminDoc, categorieDoc = @categorieDoc, sousCategorieDoc = @sousCategori"& _ 
             "eDoc, idMvtDoc=@idMvtDoc, metaDonnees=@metaDonnees WHERE idDoc = @idDoc;")>  _
         Public ReadOnly Property updDocs() As String
@@ -649,8 +649,8 @@ Namespace My
         
         <Global.System.Configuration.ApplicationScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO [dbo].[Documents] (dateDoc, cheminDoc, categorieDoc, sousCategorieDoc"& _ 
-            ", idMvtDoc, metaDonnees) VALUES (@dateDoc, @cheminDoc, @categorieDoc, @sousCateg"& _ 
+         Global.System.Configuration.DefaultSettingValueAttribute("INSERT INTO [dbo].[Documents] (dateModif, dateDoc, cheminDoc, categorieDoc, sousCategorieDoc"& _ 
+            ", idMvtDoc, metaDonnees) VALUES (GETDATE(), @dateDoc, @cheminDoc, @categorieDoc, @sousCateg"& _ 
             "orieDoc, @idMvtDoc, @metaDonnees);")>  _
         Public ReadOnly Property insertDocAgumaaa() As String
             Get
