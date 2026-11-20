@@ -100,7 +100,23 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             End Try
         End If
         AddField(table, 17, New Label With {.Text = "Nature comptable proposée"}, _nature)
-        AddField(table, 18, New Label With {.Text = "Événement ou activité"}, _eventName)
+        Dim eventEditor As New TableLayoutPanel With {.Dock = DockStyle.Fill, .AutoSize = True, .ColumnCount = 2}
+        eventEditor.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
+        eventEditor.ColumnStyles.Add(New ColumnStyle(SizeType.AutoSize))
+        eventEditor.Controls.Add(_eventName, 0, 0)
+        Dim createEvent As New Button With {.AutoSize = True, .Text = "Créer un événement…", .Visible = archiveOnDrive}
+        eventEditor.Controls.Add(createEvent, 1, 0)
+        AddHandler createEvent.Click, Sub()
+            Dim libelle = SaisieEvenement.Demander(Me, _eventName.Text, Function(nom)
+                Dim store As New SqlDocumentTestStore()
+                store.Initialize()
+                Return SqlDocumentTestStore.CreerEvenement(nom)
+            End Function)
+            If libelle Is Nothing Then Return
+            If Not _eventName.Items.Contains(libelle) Then _eventName.Items.Add(libelle)
+            _eventName.SelectedItem = libelle
+        End Sub
+        AddField(table, 18, New Label With {.Text = "Événement ou activité"}, eventEditor)
         table.Controls.Add(New Label With {.Text = "Destination de la copie", .AutoSize = True}, 0, 19)
         table.Controls.Add(_destination, 1, 19)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 54))

@@ -61,6 +61,7 @@ Partial Class frmSaisie
         txtTypeMvt = New TextBox()
         txtEvenement = New TextBox()
         btnSelEvenement = New Button()
+        btnAjouterEvenement = New Button()
         Document = New Label()
         txtDocument = New TextBox()
         grpSens.SuspendLayout()
@@ -386,12 +387,15 @@ Partial Class frmSaisie
         ' 
         txtEvenement.Location = New Point(125, 460)
         txtEvenement.Name = "txtEvenement"
-        txtEvenement.Size = New Size(372, 23)
+        txtEvenement.Size = New Size(265, 23)
         txtEvenement.TabIndex = 61
         ' 
         ' btnSelEvenement
         ' 
-        btnSelEvenement.Location = New Point(508, 460)
+        btnSelEvenement.Location = New Point(396, 460)
+        btnAjouterEvenement.SetBounds(440, 460, 106, 23)
+        btnAjouterEvenement.Text = "Créer…"
+        btnAjouterEvenement.AccessibleName = "Créer un événement"
         btnSelEvenement.Name = "btnSelEvenement"
         btnSelEvenement.Size = New Size(38, 23)
         btnSelEvenement.TabIndex = 8
@@ -422,6 +426,7 @@ Partial Class frmSaisie
         ClientSize = New Size(672, 606)
         Controls.Add(txtDocument)
         Controls.Add(Document)
+        Controls.Add(btnAjouterEvenement)
         Controls.Add(btnSelEvenement)
         Controls.Add(txtEvenement)
         Controls.Add(txtTypeMvt)
@@ -504,6 +509,7 @@ Partial Class frmSaisie
     Friend WithEvents btnSelTypeMvt As Button
     Friend WithEvents txtTypeMvt As TextBox
     Friend WithEvents txtEvenement As TextBox
+    Friend WithEvents btnAjouterEvenement As Button
     Friend WithEvents btnSelEvenement As Button
     Friend WithEvents Document As Label
     Friend WithEvents txtDocument As TextBox
