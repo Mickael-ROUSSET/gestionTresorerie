@@ -11,7 +11,7 @@ Partial Public NotInheritable Class SqlDocumentTestStore
             " scores AS (SELECT d.*,CASE WHEN r.idDoc IS NULL THEN 0 ELSE 1 END AS lie," &
             " CASE WHEN LEN(ref)>=3 AND CHARINDEX(ref,@libelle)>0 THEN 1 ELSE 0 END AS refOk," &
             " CASE WHEN ABS(montant)=@montant AND (categorieDoc<>N'Cheque' OR sousCategorieDoc IS NULL OR (@credit=1 AND sousCategorieDoc<>N'Emis') OR (@credit=0 AND sousCategorieDoc<>N'Reçus')) THEN 1 ELSE 0 END AS montantOk FROM candidats d LEFT JOIN dbo.ReleveJustificatifsTest r ON r.idDoc=d.idDoc AND r.empreinte=@hash AND r.operation=@ligne) " &
-            "SELECT idDoc,dateDoc,categorieDoc,cheminDoc,montant,lie,refOk,montantOk FROM scores WHERE lie=1 OR refOk=1 OR ABS(DATEDIFF(day,dateDoc,@date))<=90 ORDER BY lie DESC,refOk DESC,montantOk DESC,ABS(DATEDIFF(day,dateDoc,@date)),idDoc;"
+            "SELECT idDoc,dateDoc,categorieDoc,cheminDoc,montant,lie,refOk,montantOk,sousCategorieDoc FROM scores WHERE lie=1 OR refOk=1 OR ABS(DATEDIFF(day,dateDoc,@date))<=90 ORDER BY lie DESC,refOk DESC,montantOk DESC,ABS(DATEDIFF(day,dateDoc,@date)),idDoc;"
         Using cn = OpenTest(), cmd As New SqlCommand(sql,cn)
             cmd.Parameters.AddWithValue("@hash",hash)
             cmd.Parameters.AddWithValue("@ligne",index)
@@ -23,6 +23,25 @@ Partial Public NotInheritable Class SqlDocumentTestStore
             Using reader = cmd.ExecuteReader()
                 t.Load(reader)
             End Using
+            ' Pour un règlement groupé, repérer les paires de factures ou les paires de chèques.
+            ' Ne jamais sommer une facture avec le chèque susceptible de la régler.
+            t.Columns.Add("groupe",GetType(Boolean))
+            Dim eligible=t.AsEnumerable().Where(Function(row)
+                If row.IsNull("montant") Then Return False
+                Dim kind=CStr(row("categorieDoc"))
+                If kind <> "Facture" AndAlso kind <> "Cheque" Then Return False
+                If kind="Cheque" AndAlso ((m.Sens AndAlso Convert.ToString(row("sousCategorieDoc"))="Emis") OrElse
+                    (Not m.Sens AndAlso Convert.ToString(row("sousCategorieDoc"))="Reçus")) Then Return False
+                Return CDec(row("montant"))>0D AndAlso CDec(row("montant"))<Math.Abs(m.Montant)
+            End Function).ToLookup(Function(row) (CStr(row("categorieDoc")),CDec(row("montant"))))
+            For Each g In eligible
+                Dim reste=Math.Abs(m.Montant)-g.Key.Item2
+                If eligible.Contains((g.Key.Item1,reste)) AndAlso (reste<>g.Key.Item2 OrElse g.Count()>1) Then
+                    For Each row In g
+                        row("groupe")=True
+                    Next
+                End If
+            Next
             Return t
         End Using
     End Function

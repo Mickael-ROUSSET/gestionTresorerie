@@ -70,7 +70,7 @@ Friend NotInheritable Class FrmRapprochementReleve
                 pieces.DisplayMember="affichage"
                 docs.Columns.Add("affichage",GetType(String))
                 For Each row As DataRow In docs.Rows
-                    Dim motif=If(CInt(row("lie"))=1,"Déjà rattaché",If(CInt(row("refOk"))=1,"Référence concordante",If(CInt(row("montantOk"))=1,"Même montant","Date proche")))
+                    Dim motif=If(CInt(row("lie"))=1,"Déjà rattaché",If(CInt(row("refOk"))=1,"Référence concordante",If(CInt(row("montantOk"))=1,"Même montant",If(Not row.IsNull("groupe") AndAlso CBool(row("groupe")),"Montant complémentaire (paire possible)","Date proche"))))
                     row("affichage")=$"{motif} · {row("dateDoc"):dd/MM/yyyy} · {row("categorieDoc")} · {row("montant")} · {Path.GetFileName(CStr(row("cheminDoc")))}"
                     pieces.Items.Add(row.Table.DefaultView(row.Table.Rows.IndexOf(row)),CInt(row("lie"))=1)
                 Next
