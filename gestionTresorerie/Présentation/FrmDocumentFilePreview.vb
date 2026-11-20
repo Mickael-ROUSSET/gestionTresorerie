@@ -162,6 +162,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
         _analyse.Enabled = False
         _batchReview.Enabled = False
         Dim completed As Integer = 0
+        Dim failures As Integer = 0
         Try
             For Each item In items
                 If _stopBatchRequested Then Exit For
@@ -169,6 +170,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
                 Try
                     Await ReviewSqlTestDocument(item.FullName)
                 Catch ex As Exception
+                    failures += 1
                     MessageBox.Show(Me, "Le document n'a pas pu être classé. Vérifiez la copie et la fiche SQL TEST avant de réessayer." &
                                     vbCrLf & ex.Message, "Classement TEST interrompu pour cette pièce",
                                     MessageBoxButtons.OK, MessageBoxIcon.Warning)
@@ -184,6 +186,13 @@ Friend NotInheritable Class FrmDocumentFilePreview
             _analyse.Enabled = True
             _pending = False
         End Try
+        Dim stopped = _stopBatchRequested AndAlso completed < items.Length
+        Dim summary = $"{completed} document(s) examiné(s) sur {items.Length}." & vbCrLf &
+            $"{failures} erreur(s) de traitement." & vbCrLf &
+            If(stopped, "Arrêt demandé : les documents restants n'ont pas été traités.",
+               "Parcours terminé. Les validations refusées ou annulées ne sont pas enregistrées.")
+        MessageBox.Show(Me, summary, "Bilan de vérification SQL TEST", MessageBoxButtons.OK,
+                        If(failures > 0, MessageBoxIcon.Warning, MessageBoxIcon.Information))
     End Sub
 
     Private Async Sub AnalyseSelection(sender As Object, e As EventArgs)
