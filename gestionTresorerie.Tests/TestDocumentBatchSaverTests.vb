@@ -153,6 +153,25 @@ Public Class TestDocumentBatchSaverTests
         End Try
     End Sub
 
+    <TestMethod>
+    Public Sub AnnulationSqlTestAvantInitialisationNeTouchePasLaBase()
+        Using cts As New System.Threading.CancellationTokenSource()
+            cts.Cancel()
+            Dim approvals As Integer = 0
+            Assert.ThrowsException(Of OperationCanceledException)(
+                Sub()
+                    SqlTestDocumentBatchRunner.Run(
+                        Array.Empty(Of DocumentArchiveProposal)(),
+                        Function(message)
+                            approvals += 1
+                            Return CType(True, Boolean?)
+                        End Function,
+                        cancellationToken:=cts.Token)
+                End Sub)
+            Assert.AreEqual(0, approvals)
+        End Using
+    End Sub
+
     Private NotInheritable Class FakeDbException
         Inherits System.Data.Common.DbException
     End Class
