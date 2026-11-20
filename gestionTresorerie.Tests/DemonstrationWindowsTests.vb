@@ -188,7 +188,7 @@ Public Class DemonstrationWindowsTests
                       Assert.IsFalse(effacer.Enabled)
                       demo.PerformClick()
                       Assert.AreEqual(2, fenetre.NombreOuvertures)
-                      Assert.AreEqual(2, fenetre.NombrePropositions)
+                      Assert.AreEqual(3, fenetre.NombrePropositions)
                       Assert.AreEqual(3, fenetre.NombreRejets)
                       Assert.IsFalse(fenetre.IsHandleCreated)
                   End Using
@@ -226,7 +226,7 @@ Public Class DemonstrationWindowsTests
                       demo.PerformClick()
                       Assert.AreEqual("En attente de revue humaine",
                                       fenetre.StatutPremiereProposition)
-                      Assert.AreEqual(2, fenetre.NombrePropositions)
+                      Assert.AreEqual(3, fenetre.NombrePropositions)
                       Assert.AreEqual(3, fenetre.NombreRejets)
                   End Using
               End Sub)
@@ -261,7 +261,7 @@ Public Class DemonstrationWindowsTests
                       ' Le menu de démonstration reste utilisable après l'échec.
                       demo.PerformClick()
                       Assert.AreEqual(2, fenetre.NombreOuvertures)
-                      Assert.AreEqual(2, fenetre.NombrePropositions)
+                      Assert.AreEqual(3, fenetre.NombrePropositions)
                       Assert.AreEqual(3, fenetre.NombreRejets)
                   End Using
               End Sub)
@@ -299,7 +299,7 @@ Public Class DemonstrationWindowsTests
 
                       demo.PerformClick()
                       Assert.AreEqual(2, fenetre.NombreOuvertures)
-                      Assert.AreEqual(2, fenetre.NombrePropositions)
+                      Assert.AreEqual(3, fenetre.NombrePropositions)
                       Assert.AreEqual(3, fenetre.NombreRejets)
                   End Using
               End Sub)
@@ -339,7 +339,7 @@ Public Class DemonstrationWindowsTests
                           "DemoDocumentsFictifsToolStripMenuItem", True)(0), ToolStripMenuItem)
                       demo.PerformClick()
                       Assert.AreEqual(1, fenetre.NombreOuvertures)
-                      Assert.AreEqual(2, fenetre.NombrePropositions)
+                      Assert.AreEqual(3, fenetre.NombrePropositions)
                       Assert.AreEqual(3, fenetre.NombreRejets)
                       fenetre.Close()
                       Assert.IsTrue(fenetre.IsDisposed)
