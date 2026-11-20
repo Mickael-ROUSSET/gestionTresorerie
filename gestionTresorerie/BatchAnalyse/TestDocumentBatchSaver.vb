@@ -38,7 +38,15 @@ Public NotInheritable Class TestDocumentBatchSaver
                     result.Saved += 1
                     result.SavedDocumentIds.Add(id.Value)
                     ' Notification uniquement après persistance confirmée ; aucun chemin ni identité transmis.
-                    If onDocumentSaved IsNot Nothing Then onDocumentSaved(id.Value)
+                    If onDocumentSaved IsNot Nothing Then
+                        Try
+                            onDocumentSaved(id.Value)
+                        Catch ex As Exception When Not TypeOf ex Is OperationCanceledException
+                            ' La persistance est déjà confirmée : un échec d'affichage
+                            ' ne doit ni marquer la pièce rejetée ni provoquer une seconde écriture.
+                            result.NotificationFailures += 1
+                        End Try
+                    End If
                 Else
                     ' Annulation de la revue d'un tiers : à reprendre ultérieurement.
                     result.Pending += 1
@@ -63,4 +71,5 @@ Public NotInheritable Class TestDocumentBatchResult
     Public Property Pending As Integer
     Public Property Duplicates As Integer
     Public Property Rejected As Integer
+    Public Property NotificationFailures As Integer
 End Class
