@@ -21,6 +21,8 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private ReadOnly _analyse As New Button With {
         .Text = "Analyser le document…", .AutoSize = True, .Anchor = AnchorStyles.Left}
     Private ReadOnly _batchReview As New Button With {.Text = "Vérifier tous les documents TEST…", .AutoSize = True}
+    Private ReadOnly _stopBatch As New Button With {.Text = "Arrêter après cette pièce", .AutoSize = True, .Visible = False}
+    Private _stopBatchRequested As Boolean
     Private ReadOnly _pageNumber As New NumericUpDown With {.Minimum = 1, .Width = 72, .Visible = False}
     Private ReadOnly _pageCount As New Label With {.AutoSize = True, .Visible = False, .Margin = New Padding(3, 7, 3, 0)}
     Private ReadOnly _pathTip As New ToolTip()
@@ -67,11 +69,16 @@ Friend NotInheritable Class FrmDocumentFilePreview
         columns.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
         columns.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         Dim commands As New FlowLayoutPanel With {.Dock = DockStyle.Fill, .AutoSize = True}
-        commands.Controls.AddRange(New Control() {_analyse, _batchReview, _pageNumber, _pageCount})
+        commands.Controls.AddRange(New Control() {_analyse, _batchReview, _stopBatch, _pageNumber, _pageCount})
         columns.Controls.Add(commands, 0, 2)
         columns.SetColumnSpan(commands, 2)
         AddHandler _analyse.Click, AddressOf AnalyseSelection
         AddHandler _batchReview.Click, AddressOf ReviewAllSqlTestDocuments
+        AddHandler _stopBatch.Click, Sub()
+                                         _stopBatchRequested = True
+                                         _stopBatch.Enabled = False
+                                         _stopBatch.Text = "Arrêt demandé…"
+                                     End Sub
         _batchReview.Visible = _sqlTest IsNot Nothing AndAlso Not _sqlExample
         AddHandler _pageNumber.ValueChanged, Sub() LoadPdfPage()
 
@@ -147,12 +154,17 @@ Friend NotInheritable Class FrmDocumentFilePreview
         Dim items = _files.Items.OfType(Of FileInfo)().ToArray()
         If items.Length = 0 Then Return
         _pending = True
+        _stopBatchRequested = False
+        _stopBatch.Text = "Arrêter après cette pièce"
+        _stopBatch.Enabled = True
+        _stopBatch.Visible = True
         _files.Enabled = False
         _analyse.Enabled = False
         _batchReview.Enabled = False
         Dim completed As Integer = 0
         Try
             For Each item In items
+                If _stopBatchRequested Then Exit For
                 _batchReview.Text = $"Vérification TEST {completed + 1}/{items.Length}…"
                 Try
                     Await ReviewSqlTestDocument(item.FullName)
@@ -164,6 +176,8 @@ Friend NotInheritable Class FrmDocumentFilePreview
                 completed += 1
             Next
         Finally
+            _stopBatch.Visible = False
+            _stopBatch.Enabled = False
             _batchReview.Text = "Vérifier tous les documents TEST…"
             _batchReview.Enabled = True
             _files.Enabled = True
