@@ -172,6 +172,36 @@ Public Class TestDocumentBatchSaverTests
         End Using
     End Sub
 
+    <TestMethod>
+    Public Sub NotificationSeulementPourLesEnregistrementsConfirmes()
+        Dim root = Directory.CreateTempSubdirectory().FullName
+        Try
+            Dim source = Path.Combine(root, "notification-fictive.png")
+            File.WriteAllBytes(source, {CByte(2), CByte(8)})
+            Dim proposal = DocumentArchiveProposal.PrepareAdministrativeTest(
+                source, DocumentArchiveProposal.HashSource(source), root,
+                Global.gestionTresorerie.Agumaaa.TypeDocument.Recu,
+                "Personne fictive", "07/11/2026", "TEST-NOTIF", "2,00", archiveOnDrive:=True)
+            Dim ids As New List(Of Integer)()
+            Dim calls As Integer = 0
+            Dim result = TestDocumentBatchSaver.Run({proposal, proposal, proposal},
+                Function(item)
+                    calls += 1
+                    If calls = 1 Then Return CType(Nothing, Integer?)
+                    Return CType(73, Integer?)
+                End Function,
+                onDocumentSaved:=Sub(id) ids.Add(id))
+            Assert.AreEqual(2, calls)
+            Assert.AreEqual(1, result.Pending)
+            Assert.AreEqual(1, result.Saved)
+            Assert.AreEqual(1, result.Duplicates)
+            CollectionAssert.AreEqual(New Integer() {73}, ids.ToArray())
+            CollectionAssert.AreEqual(result.SavedDocumentIds.ToArray(), ids.ToArray())
+        Finally
+            Directory.Delete(root, recursive:=True)
+        End Try
+    End Sub
+
     Private NotInheritable Class FakeDbException
         Inherits System.Data.Common.DbException
     End Class
