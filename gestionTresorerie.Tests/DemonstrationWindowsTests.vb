@@ -165,7 +165,7 @@ Public Class DemonstrationWindowsTests
     End Sub
 
     <TestMethod>
-    Public Sub Demo_ChargeFactureChequeEtTroisRejets_PuisReinitialiseSansFichier()
+    Public Sub Demo_ChargeDeuxMessagesDistinctsFactureChequeEtTroisRejets_PuisReinitialiseSansFichier()
         EnSta(Sub()
                   Using fenetre As New PrincipaleFictive()
                       fenetre.ChargerSansAfficher()
@@ -179,7 +179,7 @@ Public Class DemonstrationWindowsTests
                       Assert.IsFalse(effacer.Enabled)
                       demo.PerformClick()
                       Assert.AreEqual(1, fenetre.NombreOuvertures)
-                      Assert.AreEqual(2, fenetre.NombrePropositions)
+                      Assert.AreEqual(3, fenetre.NombrePropositions)
                       Assert.AreEqual(3, fenetre.NombreRejets)
                       Assert.IsTrue(revue.Enabled)
                       Assert.IsTrue(effacer.Enabled)
