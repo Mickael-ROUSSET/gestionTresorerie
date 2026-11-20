@@ -202,6 +202,34 @@ Public Class TestDocumentBatchSaverTests
         End Try
     End Sub
 
+    <TestMethod>
+    Public Sub ErreurDeNotificationNeDeclenchePasUneSecondeEcriture()
+        Dim root = Directory.CreateTempSubdirectory().FullName
+        Try
+            Dim source = Path.Combine(root, "notification-erreur.png")
+            File.WriteAllBytes(source, {CByte(3), CByte(8)})
+            Dim proposal = DocumentArchiveProposal.PrepareAdministrativeTest(
+                source, DocumentArchiveProposal.HashSource(source), root,
+                Global.gestionTresorerie.Agumaaa.TypeDocument.Recu,
+                "Personne fictive", "08/11/2026", "TEST-NOTIF-ERR", "4,00", archiveOnDrive:=True)
+            Dim calls As Integer = 0
+            Dim result = TestDocumentBatchSaver.Run({proposal, proposal},
+                Function(item)
+                    calls += 1
+                    Return CType(104, Integer?)
+                End Function,
+                onDocumentSaved:=Sub(id) Throw New IOException("Affichage fictif indisponible"))
+            Assert.AreEqual(1, calls, "Le callback ne doit pas provoquer une seconde sauvegarde")
+            Assert.AreEqual(1, result.Saved)
+            Assert.AreEqual(1, result.Duplicates)
+            Assert.AreEqual(0, result.Rejected)
+            Assert.AreEqual(1, result.NotificationFailures)
+            CollectionAssert.AreEqual(New Integer() {104}, result.SavedDocumentIds.ToArray())
+        Finally
+            Directory.Delete(root, recursive:=True)
+        End Try
+    End Sub
+
     Private NotInheritable Class FakeDbException
         Inherits System.Data.Common.DbException
     End Class
