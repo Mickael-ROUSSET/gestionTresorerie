@@ -17,13 +17,14 @@ Public NotInheritable Class TestDocumentBatchSaver
                 Continue For
             End If
             ' Un doublon dans le lot ne doit pas déclencher deux écritures SQL.
-            If Not seen.Add(proposal.Destination) Then
+            If seen.Contains(proposal.Destination) Then
                 result.Duplicates += 1
                 Continue For
             End If
             Try
                 Dim id = save(proposal)
                 If id.HasValue AndAlso id.Value > 0 Then
+                    seen.Add(proposal.Destination)
                     result.Saved += 1
                 Else
                     ' Annulation de la revue d'un tiers : à reprendre ultérieurement.
