@@ -56,6 +56,7 @@ Public Class SqlDocumentTestStoreTests
                     Dim line = annual.Rows.Cast(Of DataRow)().Single(Function(x) CStr(x("evenement")) = eventLabel)
                     Assert.AreEqual("Fournitures", CStr(line("nature")))
                     Assert.AreEqual(1, CInt(line("nombre")))
+                    Assert.AreEqual(cheque.MouvementChoisi.Value.ToString(), CStr(line("idsMouvements")))
                     Assert.AreEqual(52.90D, CDec(line("depenses")))
                     Assert.AreEqual(0D, CDec(line("recettes")))
                 End Using
