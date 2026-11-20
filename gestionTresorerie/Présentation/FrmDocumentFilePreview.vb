@@ -163,12 +163,19 @@ Friend NotInheritable Class FrmDocumentFilePreview
         _batchReview.Enabled = False
         Dim completed As Integer = 0
         Dim failures As Integer = 0
+        Dim saved As Integer = 0
+        Dim skipped As Integer = 0
         Try
             For Each item In items
                 If _stopBatchRequested Then Exit For
                 _batchReview.Text = $"Vérification TEST {completed + 1}/{items.Length}…"
                 Try
-                    Await ReviewSqlTestDocument(item.FullName)
+                    Dim savedId = Await ReviewSqlTestDocument(item.FullName)
+                    If savedId.HasValue Then
+                        saved += 1
+                    Else
+                        skipped += 1
+                    End If
                 Catch ex As Exception
                     failures += 1
                     MessageBox.Show(Me, "Le document n'a pas pu être classé. Vérifiez la copie et la fiche SQL TEST avant de réessayer." &
@@ -188,7 +195,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
         End Try
         Dim stopped = _stopBatchRequested AndAlso completed < items.Length
         Dim summary = $"{completed} document(s) examiné(s) sur {items.Length}." & vbCrLf &
-            $"{failures} erreur(s) de traitement." & vbCrLf &
+            $"{saved} document(s) enregistré(s), {skipped} validation(s) annulée(s) ou refusée(s), {failures} erreur(s)." & vbCrLf &
             If(stopped, "Arrêt demandé : les documents restants n'ont pas été traités.",
                "Parcours terminé. Les validations refusées ou annulées ne sont pas enregistrées.")
         MessageBox.Show(Me, summary, "Bilan de vérification SQL TEST", MessageBoxButtons.OK,
@@ -273,7 +280,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
         End Try
     End Sub
 
-    Private Async Function ReviewSqlTestDocument(source As String) As Task
+    Private Async Function ReviewSqlTestDocument(source As String) As Task(Of Integer?)
         Dim hash As String
         Dim suggested As Newtonsoft.Json.Linq.JObject = Nothing
         Dim note = "Vérifiez les champs lus par ChatGPT avant le classement."
@@ -295,7 +302,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
 
         Dim archiveRoot = If(_sqlExample, _testWorkspace.GetDocumentTestDirectory(), DriveArchiveRoot)
         Using editor As New FrmSqlTestDocumentEntry(source, hash, archiveRoot, suggested, note, archiveOnDrive:=Not _sqlExample)
-            If editor.ShowDialog(Me) <> DialogResult.OK Then Return
+            If editor.ShowDialog(Me) <> DialogResult.OK Then Return Nothing
             Dim proposal = editor.Proposal
             ValidateTestDestination(proposal.Destination)
             Dim approve As Func(Of String, Boolean?) =
@@ -313,9 +320,10 @@ Friend NotInheritable Class FrmDocumentFilePreview
                 Return _sqlTest.SaveVerified(proposal, approve)
             End Function)
             If id.HasValue Then
-                MessageBox.Show(Me, "Document n° " & id.Value & " enregistré dans bddAgumaaaTest.dbo.Documents." &
+                MessageBox.Show(Me, "Document n°  & id.Value & " enregistré dans bddAgumaaaTest.dbo.Documents." &
                     vbCrLf & vbCrLf & "Copie vérifiée :" & vbCrLf & proposal.Destination, "Classement terminé")
             End If
+            Return id
         End Using
     End Function
 
