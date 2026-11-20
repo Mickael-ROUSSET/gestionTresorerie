@@ -28,6 +28,7 @@ Public Class TestDocumentBatchSaverTests
                     Return CType(42, Integer?)
                 End Function)
             Assert.AreEqual(1, result.Saved)
+            CollectionAssert.AreEqual(New Integer() {42}, result.SavedDocumentIds.ToArray())
             Assert.AreEqual(1, result.Duplicates)
             Assert.AreEqual(2, result.Rejected)
             Assert.AreEqual(2, calls)
@@ -48,8 +49,10 @@ Public Class TestDocumentBatchSaverTests
                 "Fictif", "03/11/2026", "", "", "Alice", archiveOnDrive:=True)
             Dim first = TestDocumentBatchSaver.Run({proposal}, Function(item) CType(Nothing, Integer?))
             Assert.AreEqual(1, first.Pending)
+            Assert.AreEqual(0, first.SavedDocumentIds.Count)
             Dim resumed = TestDocumentBatchSaver.Run({proposal}, Function(item) CType(7, Integer?))
             Assert.AreEqual(1, resumed.Saved)
+            CollectionAssert.AreEqual(New Integer() {7}, resumed.SavedDocumentIds.ToArray())
             Assert.AreEqual(0, resumed.Pending)
         Finally
             Directory.Delete(root, recursive:=True)
@@ -76,6 +79,7 @@ Public Class TestDocumentBatchSaverTests
             Assert.AreEqual(2, calls)
             Assert.AreEqual(1, afterCancellation.Pending)
             Assert.AreEqual(1, afterCancellation.Saved)
+            CollectionAssert.AreEqual(New Integer() {81}, afterCancellation.SavedDocumentIds.ToArray())
             Assert.AreEqual(1, afterCancellation.Duplicates)
 
             calls = 0
@@ -88,6 +92,7 @@ Public Class TestDocumentBatchSaverTests
             Assert.AreEqual(2, calls)
             Assert.AreEqual(1, afterFailure.Rejected)
             Assert.AreEqual(1, afterFailure.Saved)
+            CollectionAssert.AreEqual(New Integer() {82}, afterFailure.SavedDocumentIds.ToArray())
             Assert.AreEqual(1, afterFailure.Duplicates)
         Finally
             Directory.Delete(root, recursive:=True)
