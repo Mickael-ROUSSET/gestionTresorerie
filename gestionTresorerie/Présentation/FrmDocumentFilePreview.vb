@@ -320,7 +320,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
                 Return _sqlTest.SaveVerified(proposal, approve)
             End Function)
             If id.HasValue Then
-                MessageBox.Show(Me, "Document n°  & id.Value & " enregistré dans bddAgumaaaTest.dbo.Documents." &
+                MessageBox.Show(Me, $"Document n° {id.Value} enregistré dans bddAgumaaaTest.dbo.Documents." &
                     vbCrLf & vbCrLf & "Copie vérifiée :" & vbCrLf & proposal.Destination, "Classement terminé")
             End If
             Return id
