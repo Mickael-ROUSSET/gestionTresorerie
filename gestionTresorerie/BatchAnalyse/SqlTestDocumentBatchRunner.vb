@@ -8,12 +8,13 @@ Public NotInheritable Class SqlTestDocumentBatchRunner
     Public Shared Function Run(proposals As IEnumerable(Of DocumentArchiveProposal),
                                approve As Func(Of String, Boolean?),
                                Optional store As SqlDocumentTestStore = Nothing,
-                               Optional cancellationToken As CancellationToken = Nothing) As TestDocumentBatchResult
+                               Optional cancellationToken As CancellationToken = Nothing,
+                               Optional onDocumentSaved As Action(Of Integer) = Nothing) As TestDocumentBatchResult
         If proposals Is Nothing Then Throw New ArgumentNullException(NameOf(proposals))
         If approve Is Nothing Then Throw New ArgumentNullException(NameOf(approve))
         cancellationToken.ThrowIfCancellationRequested()
         If store Is Nothing Then store = New SqlDocumentTestStore()
         store.Initialize()
-        Return TestDocumentBatchSaver.Run(proposals, Function(proposal) store.SaveVerified(proposal, approve), cancellationToken)
+        Return TestDocumentBatchSaver.Run(proposals, Function(proposal) store.SaveVerified(proposal, approve), cancellationToken, onDocumentSaved)
     End Function
 End Class
