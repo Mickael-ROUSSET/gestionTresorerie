@@ -44,9 +44,13 @@ Public Class SqlDocumentTestStoreTests
             Dim medicalId = store.SaveVerified(medical, Function(delta) ThrowUnexpectedReview())
             Using conn As New SqlConnection("Server=(LocalDB)\MSSQLLocalDB;Database=bddAgumaaaTest;Integrated Security=True")
                 conn.Open()
-                Using movement As New SqlCommand("INSERT dbo.Mouvements(categorie,montant,sens,tiers,dateMvt,dateCreation,etat,modifiable,idDoc) VALUES(0,52.90,0,0,'20260403','20260403',0,1,@doc)", conn)
-                    movement.Parameters.AddWithValue("@doc", chequeId.Value)
-                    movement.ExecuteNonQuery()
+                Using movement As New SqlCommand("INSERT dbo.Mouvements(categorie,montant,sens,tiers,dateMvt,dateCreation,etat,modifiable) OUTPUT inserted.Id VALUES(0,52.90,0,0,'20260403','20260403',0,1)", conn)
+                    cheque.MouvementChoisi = CInt(movement.ExecuteScalar())
+                    Assert.AreEqual(chequeId, store.SaveVerified(cheque, Function(delta) ThrowUnexpectedReview()))
+                    proposal.MouvementChoisi = cheque.MouvementChoisi
+                    proposal.NatureComptable = cheque.NatureComptable
+                    proposal.EvenementComptable = eventLabel
+                    Assert.IsTrue(store.SaveVerified(proposal, Function(delta) ThrowUnexpectedReview()).HasValue)
                 End Using
                 Using annual = SqlDocumentTestStore.AnnualTestSummary(New Date(2026, 4, 3), New Date(2026, 4, 3))
                     Dim line = annual.Rows.Cast(Of DataRow)().Single(Function(x) CStr(x("evenement")) = eventLabel)
