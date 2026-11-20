@@ -88,11 +88,15 @@ Friend NotInheritable Class FrmRapprochementReleve
         End Try
     End Sub
 
+    Friend Shared Function PeutRattacher(nombreJustificatifs As Integer, mouvementSelectionne As Boolean) As Boolean
+        Return nombreJustificatifs > 0 OrElse mouvementSelectionne
+    End Function
+
     Private Sub Enregistrer()
         Try
             Dim index=operations.SelectedIndex
             If index < 0 OrElse index >= lignes.Count Then Return
-            If pieces.CheckedItems.Count = 0 AndAlso Not TypeOf mouvements.SelectedItem Is DataRowView Then
+            If Not PeutRattacher(pieces.CheckedItems.Count, TypeOf mouvements.SelectedItem Is DataRowView) Then
                 MessageBox.Show(Me,"Sélectionnez au moins un justificatif ou un mouvement existant avant de valider.","Rattachement TEST")
                 Return
             End If
