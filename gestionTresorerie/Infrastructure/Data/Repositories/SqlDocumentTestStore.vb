@@ -47,6 +47,8 @@ Partial Public NotInheritable Class SqlDocumentTestStore
     End Sub
 
     Public Shared Function CreerEvenement(nom As String) As String
+        Dim store As New SqlDocumentTestStore()
+        store.Initialize()
         Using connection = OpenTest()
             Return Evenement.EnregistrerLibelle(connection, nom)
         End Using

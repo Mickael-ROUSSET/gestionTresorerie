@@ -25,3 +25,5 @@ Les tests de résolution et de persistance utilisent des valeurs simulées. Le t
 L’installateur gestionTresorerie-demo-setup installe une version compilée en DEMO_BUILD. Cette édition permet de tester le classement et la création d’événements dans bddAgumaaaTest. L’accès à la production nécessite la version complète (configuration Release), lancée sans --demo. Depuis son espace TEST, ouvrir Analyse > Changer d’environnement au prochain démarrage…, saisir PROD et redémarrer. Vérifier l’environnement dans la barre d’état avant la saisie. Le changement ne copie aucune donnée de TEST vers PROD.
 
 En saisie de mouvement, le bouton Créer… à côté du sélecteur d’événement enregistre le libellé et le sélectionne dans la fiche en cours. Dans la fiche de classement SQL TEST, utiliser Créer un événement… à côté d’Événement ou activité. L’événement est enregistré dès la confirmation de son libellé. Le mouvement ou le document conserve sa propre étape de validation.
+
+Pour ajouter un événement TEST sans ouvrir de pièce, choisir Analyse > Espace TEST SQL > Créer un événement….

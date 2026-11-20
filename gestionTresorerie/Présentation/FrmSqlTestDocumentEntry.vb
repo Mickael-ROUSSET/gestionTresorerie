@@ -107,11 +107,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         Dim createEvent As New Button With {.AutoSize = True, .Text = "Créer un événement…", .Visible = archiveOnDrive}
         eventEditor.Controls.Add(createEvent, 1, 0)
         AddHandler createEvent.Click, Sub()
-            Dim libelle = SaisieEvenement.Demander(Me, _eventName.Text, Function(nom)
-                Dim store As New SqlDocumentTestStore()
-                store.Initialize()
-                Return SqlDocumentTestStore.CreerEvenement(nom)
-            End Function)
+            Dim libelle = SaisieEvenement.Demander(Me, _eventName.Text, AddressOf SqlDocumentTestStore.CreerEvenement)
             If libelle Is Nothing Then Return
             If Not _eventName.Items.Contains(libelle) Then _eventName.Items.Add(libelle)
             _eventName.SelectedItem = libelle
