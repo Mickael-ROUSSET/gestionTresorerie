@@ -33,6 +33,16 @@ Public Class SqlDocumentTestStoreTests
             Dim cheque = SqlTestDocumentEntry.Prepare(source, DocumentArchiveProposal.HashSource(source), root,
                 True, "000042", "Association exemple", "03/04/2026", "52,90", chequeEmis:=False)
             Dim eventLabel = "Événement fictif " & Guid.NewGuid().ToString("N")
+            Assert.AreEqual(eventLabel, SqlDocumentTestStore.CreerEvenement(eventLabel))
+            Assert.AreEqual(eventLabel, SqlDocumentTestStore.CreerEvenement(" " & eventLabel & " "))
+            Using cn As New SqlConnection("Server=(LocalDB)\MSSQLLocalDB;Database=bddAgumaaaTest;Integrated Security=True")
+                cn.Open()
+                Using cmd As New SqlCommand("SELECT COUNT(*) FROM dbo.Evenements WHERE libelle=@nom", cn)
+                    cmd.Parameters.Add("@nom", SqlDbType.NVarChar, 50).Value = eventLabel
+                    Assert.AreEqual(1, CInt(cmd.ExecuteScalar()))
+                End Using
+            End Using
+            Assert.ThrowsExactly(Of ArgumentException)(Function() SqlDocumentTestStore.CreerEvenement(New String("a"c, 51)))
             cheque.NatureComptable = "Fournitures"
             cheque.EvenementComptable = eventLabel
             Dim chequeId = store.SaveVerified(cheque, Function(delta) ThrowUnexpectedReview())

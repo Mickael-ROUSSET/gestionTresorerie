@@ -398,13 +398,28 @@ Public Class FrmSaisie
         txtSousCategorie.Text = _sousCategorieSelectionnee.Libelle
     End Sub
     Private Sub btnSelEvenement_Click(sender As Object, e As EventArgs) Handles btnSelEvenement.Click
-        _evenementSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of Evenement)(
+        Dim choisi = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of Evenement)(
             nomRequete:="reqEvenement",
             titreFenetre:="Sélection de l'événement",
             txtDestination:=txtEvenement,
-            champLibelle:="Evénement"  ' ou autre propriété si besoin
+            champLibelle:=NameOf(Evenement.libelle)
         )
-        txtEvenement.Text = _evenementSelectionne.libelle
+        If choisi Is Nothing Then Return
+        _evenementSelectionne = choisi
+        txtEvenement.Text = choisi.libelle
+    End Sub
+
+    Private Sub CreerEvenement(sender As Object, e As EventArgs) Handles btnAjouterEvenement.Click
+        Dim libelle = SaisieEvenement.Demander(Me, txtEvenement.Text, Function(nom)
+            Dim factory = RepositoryFactory.CreateConnectionFactory(Constantes.DataBases.Agumaaa)
+            Using connection = factory.CreateConnection()
+                connection.Open()
+                Return Evenement.EnregistrerLibelle(connection, nom)
+            End Using
+        End Function)
+        If libelle Is Nothing Then Return
+        _evenementSelectionne = New Evenement With {.libelle = libelle}
+        txtEvenement.Text = libelle
     End Sub
     Private Sub btnSelTypeMvt_Click(sender As Object, e As EventArgs) Handles btnSelTypeMvt.Click
         _typeMvtSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of TypeMvt)(
