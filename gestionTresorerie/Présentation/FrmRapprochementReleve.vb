@@ -62,6 +62,7 @@ Friend NotInheritable Class FrmRapprochementReleve
     Private Sub Afficher()
         pieces.Items.Clear()
         mouvements.Items.Clear()
+        If operations.SelectedIndex < 0 OrElse operations.SelectedIndex >= lignes.Count Then Return
         mouvements.Items.Add("Rattacher à la ligne du relevé uniquement")
         mouvements.SelectedIndex=0
         Try
@@ -90,6 +91,11 @@ Friend NotInheritable Class FrmRapprochementReleve
     Private Sub Enregistrer()
         Try
             Dim index=operations.SelectedIndex
+            If index < 0 OrElse index >= lignes.Count Then Return
+            If pieces.CheckedItems.Count = 0 AndAlso Not TypeOf mouvements.SelectedItem Is DataRowView Then
+                MessageBox.Show(Me,"Sélectionnez au moins un justificatif ou un mouvement existant avant de valider.","Rattachement TEST")
+                Return
+            End If
             Dim ids=pieces.CheckedItems.Cast(Of DataRowView)().Select(Function(v) CInt(v("idDoc"))).ToArray()
             Dim chosen=TryCast(mouvements.SelectedItem,DataRowView)
             Dim id As Integer?=Nothing
