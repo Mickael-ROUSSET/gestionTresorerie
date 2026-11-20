@@ -2,17 +2,20 @@ Option Strict On
 
 Imports System.IO
 Imports System.Data.Common
+Imports System.Threading
 
 ' Orchestrateur commun : aucune dépendance Gmail, SQL ou interface.
 ' Le même parcours est utilisable avec un moteur simulé et des documents fictifs.
 Public NotInheritable Class TestDocumentBatchSaver
     Public Shared Function Run(proposals As IEnumerable(Of DocumentArchiveProposal),
-                               save As Func(Of DocumentArchiveProposal, Integer?)) As TestDocumentBatchResult
+                               save As Func(Of DocumentArchiveProposal, Integer?),
+                               Optional cancellationToken As CancellationToken = Nothing) As TestDocumentBatchResult
         If proposals Is Nothing Then Throw New ArgumentNullException(NameOf(proposals))
         If save Is Nothing Then Throw New ArgumentNullException(NameOf(save))
         Dim result As New TestDocumentBatchResult()
         Dim seen As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
         For Each proposal In proposals
+            cancellationToken.ThrowIfCancellationRequested()
             If proposal Is Nothing Then
                 result.Rejected += 1
                 Continue For

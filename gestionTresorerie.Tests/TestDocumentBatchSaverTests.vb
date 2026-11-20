@@ -125,6 +125,34 @@ Public Class TestDocumentBatchSaverTests
         End Try
     End Sub
 
+    <TestMethod>
+    Public Sub AnnulationDuLotArreteAvantLeDocumentSuivant()
+        Dim root = Directory.CreateTempSubdirectory().FullName
+        Try
+            Dim source = Path.Combine(root, "lot-annule.png")
+            File.WriteAllBytes(source, {CByte(2), CByte(4)})
+            Dim proposal = DocumentArchiveProposal.PrepareAdministrativeTest(
+                source, DocumentArchiveProposal.HashSource(source), root,
+                Global.gestionTresorerie.Agumaaa.TypeDocument.Recu,
+                "Personne fictive", "06/11/2026", "TEST-STOP", "3,00", archiveOnDrive:=True)
+            Using cts As New System.Threading.CancellationTokenSource()
+                Dim calls As Integer = 0
+                Assert.ThrowsException(Of OperationCanceledException)(
+                    Sub()
+                        TestDocumentBatchSaver.Run({proposal, proposal},
+                            Function(item)
+                                calls += 1
+                                cts.Cancel()
+                                Return CType(55, Integer?)
+                            End Function, cts.Token)
+                    End Sub)
+                Assert.AreEqual(1, calls, "Aucun second enregistrement après annulation")
+            End Using
+        Finally
+            Directory.Delete(root, recursive:=True)
+        End Try
+    End Sub
+
     Private NotInheritable Class FakeDbException
         Inherits System.Data.Common.DbException
     End Class
