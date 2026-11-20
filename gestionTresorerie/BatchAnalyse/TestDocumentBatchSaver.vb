@@ -16,6 +16,11 @@ Public NotInheritable Class TestDocumentBatchSaver
                 result.Rejected += 1
                 Continue For
             End If
+            ' Une destination absente ne doit ni interrompre le lot ni déclencher une écriture.
+            If String.IsNullOrWhiteSpace(proposal.Destination) Then
+                result.Rejected += 1
+                Continue For
+            End If
             ' Un doublon dans le lot ne doit pas déclencher deux écritures SQL.
             If seen.Contains(proposal.Destination) Then
                 result.Duplicates += 1
@@ -26,6 +31,7 @@ Public NotInheritable Class TestDocumentBatchSaver
                 If id.HasValue AndAlso id.Value > 0 Then
                     seen.Add(proposal.Destination)
                     result.Saved += 1
+                    result.SavedDocumentIds.Add(id.Value)
                 Else
                     ' Annulation de la revue d'un tiers : à reprendre ultérieurement.
                     result.Pending += 1
@@ -43,6 +49,8 @@ Public NotInheritable Class TestDocumentBatchSaver
 End Class
 
 Public NotInheritable Class TestDocumentBatchResult
+    ' Identifiants SQL confirmés, dans l'ordre des enregistrements réussis.
+    Public ReadOnly Property SavedDocumentIds As New List(Of Integer)()
     Public Property Saved As Integer
     Public Property Pending As Integer
     Public Property Duplicates As Integer
