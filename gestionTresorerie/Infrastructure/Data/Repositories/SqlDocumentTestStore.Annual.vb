@@ -12,7 +12,7 @@ Partial Public NotInheritable Class SqlDocumentTestStore
             "FROM dbo.Mouvements m LEFT JOIN dbo.Categorie c ON c.Id=m.categorie LEFT JOIN dbo.SousCategorie sc ON sc.Id=m.sousCategorie AND sc.idCategorie=m.categorie " &
             "OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT NULLIF(dc.nature,''))=1 THEN MIN(NULLIF(dc.nature,'')) END nature, CASE WHEN COUNT(DISTINCT NULLIF(dc.evenement,''))=1 THEN MIN(NULLIF(dc.evenement,'')) END evenement FROM dbo.Documents d JOIN dbo.ClassementDocumentTest dc ON dc.idDoc=d.idDoc WHERE d.idMvtDoc=m.Id) links " &
             "LEFT JOIN dbo.ClassementDocumentTest k ON k.idDoc=m.idDoc WHERE m.dateMvt BETWEEN @debut AND @fin) " &
-            "SELECT evenement,nature,COUNT(*) AS nombre,SUM(CASE WHEN sens=1 THEN montant ELSE 0 END) AS recettes,SUM(CASE WHEN sens=0 THEN montant ELSE 0 END) AS depenses FROM lignes GROUP BY evenement,nature ORDER BY evenement,nature;"
+            "SELECT evenement,nature,COUNT(*) AS nombre,STRING_AGG(CONVERT(varchar(max),Id),', ') WITHIN GROUP (ORDER BY Id) AS idsMouvements,SUM(CASE WHEN sens=1 THEN montant ELSE 0 END) AS recettes,SUM(CASE WHEN sens=0 THEN montant ELSE 0 END) AS depenses FROM lignes GROUP BY evenement,nature ORDER BY evenement,nature;"
         Using connection = OpenTest(), cmd As New SqlCommand(sql, connection)
             cmd.Parameters.Add("@debut", SqlDbType.Date).Value = firstDay.Date
             cmd.Parameters.Add("@fin", SqlDbType.Date).Value = lastDay.Date
