@@ -20,6 +20,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private ReadOnly _initializeSqlTestOnSave As Boolean
     Private ReadOnly _analyse As New Button With {
         .Text = "Analyser le document…", .AutoSize = True, .Anchor = AnchorStyles.Left}
+    Private ReadOnly _batchReview As New Button With {.Text = "Vérifier tous les documents TEST…", .AutoSize = True}
     Private ReadOnly _pageNumber As New NumericUpDown With {.Minimum = 1, .Width = 72, .Visible = False}
     Private ReadOnly _pageCount As New Label With {.AutoSize = True, .Visible = False, .Margin = New Padding(3, 7, 3, 0)}
     Private ReadOnly _pathTip As New ToolTip()
@@ -66,10 +67,12 @@ Friend NotInheritable Class FrmDocumentFilePreview
         columns.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
         columns.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         Dim commands As New FlowLayoutPanel With {.Dock = DockStyle.Fill, .AutoSize = True}
-        commands.Controls.AddRange(New Control() {_analyse, _pageNumber, _pageCount})
+        commands.Controls.AddRange(New Control() {_analyse, _batchReview, _pageNumber, _pageCount})
         columns.Controls.Add(commands, 0, 2)
         columns.SetColumnSpan(commands, 2)
         AddHandler _analyse.Click, AddressOf AnalyseSelection
+        AddHandler _batchReview.Click, AddressOf ReviewAllSqlTestDocuments
+        _batchReview.Visible = _sqlTest IsNot Nothing AndAlso Not _sqlExample
         AddHandler _pageNumber.ValueChanged, Sub() LoadPdfPage()
 
         _files.Items.AddRange(paths.Select(Function(path) New FileInfo(path)).Cast(Of Object)().ToArray())
@@ -135,6 +138,38 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private Sub StartAutomaticAnalysis()
         If _sqlTest Is Nothing OrElse _sqlExample OrElse Not _analyse.Enabled Then Return
         BeginInvoke(New Action(Sub() AnalyseSelection(Me, EventArgs.Empty)))
+    End Sub
+
+    ' Parcours visible des documents fictifs : chaque proposition reste soumise à la revue humaine.
+    ' Réutilise exactement le classement SQL TEST individuel (aucune écriture PROD).
+    Private Async Sub ReviewAllSqlTestDocuments(sender As Object, e As EventArgs)
+        If _sqlTest Is Nothing OrElse _sqlExample OrElse _pending Then Return
+        Dim items = _files.Items.OfType(Of FileInfo)().ToArray()
+        If items.Length = 0 Then Return
+        _pending = True
+        _files.Enabled = False
+        _analyse.Enabled = False
+        _batchReview.Enabled = False
+        Dim completed As Integer = 0
+        Try
+            For Each item In items
+                _batchReview.Text = $"Vérification TEST {completed + 1}/{items.Length}…"
+                Try
+                    Await ReviewSqlTestDocument(item.FullName)
+                Catch ex As Exception
+                    MessageBox.Show(Me, "Le document n'a pas pu être classé. Vérifiez la copie et la fiche SQL TEST avant de réessayer." &
+                                    vbCrLf & ex.Message, "Classement TEST interrompu pour cette pièce",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                End Try
+                completed += 1
+            Next
+        Finally
+            _batchReview.Text = "Vérifier tous les documents TEST…"
+            _batchReview.Enabled = True
+            _files.Enabled = True
+            _analyse.Enabled = True
+            _pending = False
+        End Try
     End Sub
 
     Private Async Sub AnalyseSelection(sender As Object, e As EventArgs)
