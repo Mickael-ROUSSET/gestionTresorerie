@@ -40,6 +40,8 @@ Friend NotInheritable Class LocalDbSchema
                 command.CommandText = "IF COL_LENGTH('dbo.Tiers','nomUsage') IS NULL ALTER TABLE dbo.Tiers ADD nomUsage nvarchar(50) NULL;" &
                                       "IF COL_LENGTH('dbo.Tiers','genre') IS NULL ALTER TABLE dbo.Tiers ADD genre nvarchar(30) NULL;"
                 command.ExecuteNonQuery()
+                command.CommandText = "IF OBJECT_ID('dbo.ClassementDocumentTest','U') IS NULL CREATE TABLE dbo.ClassementDocumentTest(idDoc int NOT NULL PRIMARY KEY,nature nvarchar(100) NULL,evenement nvarchar(100) NULL);"
+                command.ExecuteNonQuery()
             End If
         End Using
     End Sub

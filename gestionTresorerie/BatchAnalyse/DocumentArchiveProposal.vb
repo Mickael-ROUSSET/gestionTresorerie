@@ -27,6 +27,10 @@ Public NotInheritable Class DocumentArchiveProposal
         End Get
     End Property
 
+    Public Property MouvementChoisi As Integer?
+    Public Property NatureComptable As String
+    Public Property EvenementComptable As String
+
     Public ReadOnly Property Summary As String
 
     Public ReadOnly Property Destination As String

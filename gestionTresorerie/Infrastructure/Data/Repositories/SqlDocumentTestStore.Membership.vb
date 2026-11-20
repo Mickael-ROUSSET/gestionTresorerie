@@ -111,6 +111,21 @@ Partial Public NotInheritable Class SqlDocumentTestStore
                         If docId <= 0 Then Throw New InvalidOperationException("Écriture du document non confirmée.")
                     End Using
                 End Sub)
+                If proposal.MouvementChoisi.HasValue Then
+                    Using cmd As New SqlCommand("IF NOT EXISTS(SELECT 1 FROM dbo.Mouvements WHERE Id=@mvt) THROW 51030,N'Mouvement introuvable.',1; UPDATE dbo.Documents SET idMvtDoc=@mvt,dateModif=GETDATE() WHERE idDoc=@doc AND (idMvtDoc IS NULL OR idMvtDoc=0 OR idMvtDoc=@mvt); IF @@ROWCOUNT<>1 THROW 51031,N'Ce document est déjà rattaché à un autre mouvement.',1;", connection, tx)
+                        cmd.Parameters.AddWithValue("@mvt", proposal.MouvementChoisi.Value)
+                        cmd.Parameters.AddWithValue("@doc", docId)
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End If
+                If Not String.IsNullOrWhiteSpace(proposal.NatureComptable) OrElse Not String.IsNullOrWhiteSpace(proposal.EvenementComptable) Then
+                    Using cmd As New SqlCommand("UPDATE dbo.ClassementDocumentTest SET nature=@nature,evenement=@event WHERE idDoc=@doc; IF @@ROWCOUNT=0 INSERT dbo.ClassementDocumentTest(idDoc,nature,evenement) VALUES(@doc,@nature,@event);", connection, tx)
+                        cmd.Parameters.AddWithValue("@doc", docId)
+                        cmd.Parameters.AddWithValue("@nature", If(proposal.NatureComptable, ""))
+                        cmd.Parameters.AddWithValue("@event", If(proposal.EvenementComptable, ""))
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End If
                 tx.Commit()
                 Return docId
             End Using
