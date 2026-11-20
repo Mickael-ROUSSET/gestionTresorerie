@@ -143,7 +143,9 @@ Friend NotInheritable Class FrmDocumentFilePreview
     End Sub
 
     Private Sub StartAutomaticAnalysis()
-        If _sqlTest Is Nothing OrElse _sqlExample OrElse Not _analyse.Enabled Then Return
+        ' Avec plusieurs fichiers, ne pas ouvrir spontanément la fiche du premier :
+        ' l'utilisateur choisit la vérification individuelle ou le parcours en lot.
+        If _sqlTest Is Nothing OrElse _sqlExample OrElse Not _analyse.Enabled OrElse _files.Items.Count <> 1 Then Return
         BeginInvoke(New Action(Sub() AnalyseSelection(Me, EventArgs.Empty)))
     End Sub
 
