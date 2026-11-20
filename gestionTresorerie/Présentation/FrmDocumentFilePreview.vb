@@ -436,7 +436,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
         _text.Visible = True
         _text.Text = ""
         Dim filePath = TryCast(_files.SelectedItem, FileInfo)?.FullName
-        _analyse.Enabled = filePath IsNot Nothing AndAlso
+        _analyse.Enabled = Not _pending AndAlso filePath IsNot Nothing AndAlso
             (IsPdf(filePath) OrElse _testWorkspace IsNot Nothing OrElse RealArchiveEnabled())
         _pathTip.SetToolTip(_files, If(filePath, ""))
         If filePath Is Nothing Then Return
@@ -462,7 +462,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
         Catch ex As Exception
             _text.Text = "Impossible de lire ce fichier. Vérifiez qu’il est accessible et dans un format pris en charge."
         End Try
-        If Visible Then StartAutomaticAnalysis()
+        If Visible AndAlso Not _pending Then StartAutomaticAnalysis()
     End Sub
 
     Private Sub LoadPdfPage()
