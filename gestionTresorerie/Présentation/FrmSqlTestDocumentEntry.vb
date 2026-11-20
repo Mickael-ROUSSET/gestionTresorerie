@@ -37,6 +37,8 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     Private ReadOnly _birthLabel As New Label With {.Text = "Date de naissance"}
     Private ReadOnly _extraLabels As New List(Of Label)
     Private ReadOnly _destination As New TextBox With {.ReadOnly = True, .Multiline = True, .Dock = DockStyle.Fill, .ScrollBars = ScrollBars.Vertical}
+    Private ReadOnly _nature As New ComboBox With {.Dock = DockStyle.Fill, .MaxLength = 100}
+    Private ReadOnly _eventName As New ComboBox With {.Dock = DockStyle.Fill, .MaxLength = 100}
     Private _ready As Boolean
 
     Public Sub New(source As String, hash As String, root As String, suggested As JObject, note As String,
@@ -81,8 +83,24 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         AddIdentityField(table, 14, "telephone", "Téléphone", 30)
         AddIdentityField(table, 15, "genre", "Genre", 30)
         AddField(table, 16, _birthLabel, _birth)
-        table.Controls.Add(New Label With {.Text = "Destination de la copie", .AutoSize = True}, 0, 17)
-        table.Controls.Add(_destination, 1, 17)
+        _nature.Items.AddRange(New Object() {"Achat de matériel", "Fournitures", "Prestation", "Cotisation", "Subvention", "Don"})
+        If archiveOnDrive Then
+            Try
+                Using choices = SqlDocumentTestStore.ClassificationChoices()
+                    For Each row As Data.DataRow In choices.Rows
+                        Dim label = Convert.ToString(row("libelle")).Trim()
+                        Dim target = If(CStr(row("famille")) = "nature", _nature, _eventName)
+                        If label.Length > 0 AndAlso label.Length <= 100 AndAlso Not target.Items.Contains(label) Then target.Items.Add(label)
+                    Next
+                End Using
+            Catch ex As Data.SqlClient.SqlException
+                ' La première analyse reste possible avant la création du catalogue TEST.
+            End Try
+        End If
+        AddField(table, 17, New Label With {.Text = "Nature comptable proposée"}, _nature)
+        AddField(table, 18, New Label With {.Text = "Événement ou activité"}, _eventName)
+        table.Controls.Add(New Label With {.Text = "Destination de la copie", .AutoSize = True}, 0, 19)
+        table.Controls.Add(_destination, 1, 19)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 54))
 
         Dim buttons As New FlowLayoutPanel With {.Dock = DockStyle.Fill, .FlowDirection = FlowDirection.RightToLeft}
@@ -91,12 +109,12 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         Dim importAnalysis As New Button With {.Text = "Importer une analyse ChatGPT", .AutoSize = True}
         AddHandler importAnalysis.Click, AddressOf ImportChatGptAnalysis
         buttons.Controls.AddRange(New Control() {cancel, validate, importAnalysis})
-        table.Controls.Add(buttons, 0, 18)
+        table.Controls.Add(buttons, 0, 20)
         table.SetColumnSpan(buttons, 2)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 39))
         Dim prompt As New Button With {.Text = "Copier la consigne ChatGPT", .AutoSize = True, .Anchor = AnchorStyles.Left}
         AddHandler prompt.Click, AddressOf CopyChatGptPrompt
-        table.Controls.Add(prompt, 0, 19)
+        table.Controls.Add(prompt, 0, 21)
         table.SetColumnSpan(prompt, 2)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 35))
         Controls.Add(table)
@@ -109,6 +127,8 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         FillFields(suggested)
         AddHandler _kind.SelectedIndexChanged,
             Sub()
+                _nature.Text = ""
+                _eventName.Text = ""
                 _number.Clear()
                 _party.Clear()
                 _issuer.Clear()
@@ -208,6 +228,10 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         Dim detectedType = suggested?("type_document")?.ToString()
         _kind.SelectedIndex = Array.FindIndex(DocumentKinds, Function(kind) kind.ToString() = detectedType)
         UpdateKind(Nothing, EventArgs.Empty)
+        Dim classification = TryCast(suggested?("classement_comptable"), JObject)
+        _nature.Text = If(classification?("nature")?.Type = JTokenType.String, classification("nature").ToString(), "")
+        _eventName.Text = If(classification?("evenement")?.Type = JTokenType.String, classification("evenement").ToString(), "")
+        If detectedType = "QuestionnaireMedical" Then _nature.Text = ""
         Dim fields = suggested?("donnees_extraites")
         Dim identity = fields?("identite")
         Dim transaction = fields?("transaction")
@@ -320,6 +344,8 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     Private Sub ValidateFields(sender As Object, e As EventArgs)
         Try
             _proposal = BuildProposal()
+            _proposal.NatureComptable = _nature.Text.Trim()
+            _proposal.EvenementComptable = _eventName.Text.Trim()
             DialogResult = DialogResult.OK
         Catch ex As Exception When TypeOf ex Is ArgumentException OrElse TypeOf ex Is IO.IOException
             MessageBox.Show(Me, ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning)

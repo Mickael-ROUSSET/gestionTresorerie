@@ -32,6 +32,9 @@ Public Class SqlDocumentTestStoreTests
             proposal.Confirm(AddressOf store.Save)
             Dim cheque = SqlTestDocumentEntry.Prepare(source, DocumentArchiveProposal.HashSource(source), root,
                 True, "000042", "Association exemple", "03/04/2026", "52,90", chequeEmis:=False)
+            Dim eventLabel = "Événement fictif " & Guid.NewGuid().ToString("N")
+            cheque.NatureComptable = "Fournitures"
+            cheque.EvenementComptable = eventLabel
             Dim chequeId = store.SaveVerified(cheque, Function(delta) ThrowUnexpectedReview())
             Assert.IsTrue(chequeId.HasValue)
             Assert.AreEqual(chequeId, store.SaveVerified(cheque, Function(delta) ThrowUnexpectedReview()))
@@ -41,6 +44,17 @@ Public Class SqlDocumentTestStoreTests
             Dim medicalId = store.SaveVerified(medical, Function(delta) ThrowUnexpectedReview())
             Using conn As New SqlConnection("Server=(LocalDB)\MSSQLLocalDB;Database=bddAgumaaaTest;Integrated Security=True")
                 conn.Open()
+                Using movement As New SqlCommand("INSERT dbo.Mouvements(categorie,montant,sens,tiers,dateMvt,dateCreation,etat,modifiable,idDoc) VALUES(0,52.90,0,0,'20260403','20260403',0,1,@doc)", conn)
+                    movement.Parameters.AddWithValue("@doc", chequeId.Value)
+                    movement.ExecuteNonQuery()
+                End Using
+                Using annual = SqlDocumentTestStore.AnnualTestSummary(New Date(2026, 4, 3), New Date(2026, 4, 3))
+                    Dim line = annual.Rows.Cast(Of DataRow)().Single(Function(x) CStr(x("evenement")) = eventLabel)
+                    Assert.AreEqual("Fournitures", CStr(line("nature")))
+                    Assert.AreEqual(1, CInt(line("nombre")))
+                    Assert.AreEqual(52.90D, CDec(line("depenses")))
+                    Assert.AreEqual(0D, CDec(line("recettes")))
+                End Using
                 Using cmd As New SqlCommand("SELECT JSON_VALUE(metaDonnees,'$.date_naissance') FROM dbo.Documents WHERE idDoc=@id AND CAST(dateModif AS date)=CAST(GETDATE() AS date) AND dateDoc='20261001'", conn)
                     cmd.Parameters.AddWithValue("@id", medicalId.Value)
                     Assert.AreEqual("1980-09-12", CStr(cmd.ExecuteScalar()))

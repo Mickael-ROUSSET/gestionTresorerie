@@ -111,6 +111,14 @@ Partial Public NotInheritable Class SqlDocumentTestStore
                         If docId <= 0 Then Throw New InvalidOperationException("Écriture du document non confirmée.")
                     End Using
                 End Sub)
+                If Not String.IsNullOrWhiteSpace(proposal.NatureComptable) OrElse Not String.IsNullOrWhiteSpace(proposal.EvenementComptable) Then
+                    Using cmd As New SqlCommand("UPDATE dbo.ClassementDocumentTest SET nature=@nature,evenement=@event WHERE idDoc=@doc; IF @@ROWCOUNT=0 INSERT dbo.ClassementDocumentTest(idDoc,nature,evenement) VALUES(@doc,@nature,@event);", connection, tx)
+                        cmd.Parameters.AddWithValue("@doc", docId)
+                        cmd.Parameters.AddWithValue("@nature", If(proposal.NatureComptable, ""))
+                        cmd.Parameters.AddWithValue("@event", If(proposal.EvenementComptable, ""))
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End If
                 tx.Commit()
                 Return docId
             End Using
