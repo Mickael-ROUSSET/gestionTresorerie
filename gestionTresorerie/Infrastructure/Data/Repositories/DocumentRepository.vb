@@ -25,8 +25,8 @@ Public Class DocumentRepository
 
     ' Le verrou de plage protège la vérification et l’insertion dans une seule instruction.
     Friend Const ArchiveInsertSql As String =
-            "INSERT INTO [dbo].[Documents] (dateDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees) " &
-            "SELECT @dateDoc, @cheminDoc, @categorieDoc, @sousCategorieDoc, @idMvtDoc, @metaDonnees " &
+            "INSERT INTO [dbo].[Documents] (dateModif, dateDoc, cheminDoc, categorieDoc, sousCategorieDoc, idMvtDoc, metaDonnees) " &
+            "SELECT GETDATE(), @dateDoc, @cheminDoc, @categorieDoc, @sousCategorieDoc, @idMvtDoc, @metaDonnees " &
             "WHERE NOT EXISTS (SELECT 1 FROM [dbo].[Documents] WITH (UPDLOCK, HOLDLOCK) WHERE cheminDoc = @cheminDoc);"
     Public Sub InsererArchiveSiAbsente(doc As DocumentAgumaaa)
         _executor.ExecuteNonQuery(ArchiveInsertSql, InsertionParameters(doc))

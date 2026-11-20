@@ -170,6 +170,16 @@ Public NotInheritable Class DocumentArchiveProposal
                 summary &= vbCrLf & "Adresse : " & address
             End If
         End If
+        If kind = TypeDocument.QuestionnaireMedical Then
+            Dim raw = identity?("date_naissance")?.ToString().Trim()
+            If Not String.IsNullOrEmpty(raw) Then
+                Dim birth As Date
+                If Not Date.TryParseExact(raw, {"yyyy-MM-dd", "dd/MM/yyyy"}, CultureInfo.InvariantCulture, DateTimeStyles.None, birth) OrElse birth > Today Then
+                    Throw New ArgumentException("Vérifiez la date de naissance (JJ/MM/AAAA).")
+                End If
+                fields("date_naissance") = birth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+            End If
+        End If
         If kind = TypeDocument.Recu Then
             reference = reference.Trim()
             If reference.Length > 60 Then Throw New ArgumentException("Le numéro du reçu dépasse 60 caractères.")

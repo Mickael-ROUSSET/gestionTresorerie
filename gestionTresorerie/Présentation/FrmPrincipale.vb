@@ -22,6 +22,7 @@ Public Class FrmPrincipale
         .Name = "EspaceTestLocalToolStripMenuItem",
         .Text = "Espace TEST local (fichiers fictifs)"}
 
+    Private ReadOnly _menuFolder As New ToolStripMenuItem With {.Name = "AnalyserDossierTestToolStripMenuItem", .Text = "Analyser un dossier de scans en TEST…"}
     Private ReadOnly _menuLocalDocuments As New ToolStripMenuItem With {
         .Name = "ExaminerDocumentsDisqueToolStripMenuItem",
         .Text = "Examiner des PDF et des scans sur disque…"}
@@ -53,6 +54,8 @@ Public Class FrmPrincipale
         InitializeComponent()
         AddHandler _menuLocalDocuments.Click, AddressOf OpenLocalDocuments
         AnalyseToolStripMenuItem.DropDownItems.Add(_menuLocalDocuments)
+        AddHandler _menuFolder.Click, AddressOf OpenScanFolder
+        AnalyseToolStripMenuItem.DropDownItems.Add(_menuFolder)
         AddHandler _menuTestWorkspace.Click, AddressOf OpenTestWorkspace
         AnalyseToolStripMenuItem.DropDownItems.Add(_menuTestWorkspace)
         AddHandler _menuSqlTest.Click, AddressOf OpenSqlTestWorkspace
@@ -189,6 +192,25 @@ Public Class FrmPrincipale
         End Try
     End Sub
 
+    Private Sub OpenScanFolder(sender As Object, e As EventArgs)
+        Using picker As New FolderBrowserDialog With {.Description = "Choisir le dossier dont les PDF et images seront analysés avec ChatGPT en TEST (sans les sous-dossiers).", .UseDescriptionForTitle = True, .ShowNewFolderButton = False}
+            If picker.ShowDialog(Me) <> DialogResult.OK Then Return
+            Try
+                Dim paths = IO.Directory.EnumerateFiles(picker.SelectedPath).Where(AddressOf DocumentFilePreview.Supports).
+                    OrderBy(Function(value) value, StringComparer.OrdinalIgnoreCase).ToArray()
+                If paths.Length = 0 Then
+                    MessageBox.Show(Me, "Ce dossier ne contient aucun PDF ni scan pris en charge.")
+                    Return
+                End If
+                Using window As New FrmDocumentFilePreview(paths, CreateSqlTestWorkspace(), New SqlDocumentTestStore(), initializeSqlTestOnSave:=True)
+                    window.ShowDialog(Me)
+                End Using
+            Catch ex As Exception When TypeOf ex Is IO.IOException OrElse TypeOf ex Is UnauthorizedAccessException
+                MessageBox.Show(Me, ex.Message, "Lecture du dossier TEST")
+            End Try
+        End Using
+    End Sub
+
     Private Sub OpenLocalDocuments(sender As Object, e As EventArgs)
         If Not _modeDemonstration AndAlso Not _isolatedSqlTest AndAlso
            EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.PROD Then
@@ -306,7 +328,7 @@ Public Class FrmPrincipale
         For Each action As ToolStripItem In AnalyseToolStripMenuItem.DropDownItems
             action.Enabled = Object.ReferenceEquals(action, _menuTestWorkspace) OrElse
                              Object.ReferenceEquals(action, _menuSqlTest) OrElse
-                             Object.ReferenceEquals(action, _menuLocalDocuments) OrElse
+                             Object.ReferenceEquals(action, _menuLocalDocuments) OrElse Object.ReferenceEquals(action, _menuFolder) OrElse
                              Object.ReferenceEquals(action, _menuDemoDocuments) OrElse
                              Object.ReferenceEquals(action, _menuRevueDocumentsAnalyses) OrElse
                              Object.ReferenceEquals(action, _menuEffacerDocumentsFictifs)

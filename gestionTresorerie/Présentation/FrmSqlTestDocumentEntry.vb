@@ -33,6 +33,8 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     Private ReadOnly _root As String
 
     Private ReadOnly _extra As New Dictionary(Of String, TextBox)
+    Private ReadOnly _birth As New TextBox With {.Dock = DockStyle.Fill, .PlaceholderText = "JJ/MM/AAAA"}
+    Private ReadOnly _birthLabel As New Label With {.Text = "Date de naissance"}
     Private ReadOnly _extraLabels As New List(Of Label)
     Private ReadOnly _destination As New TextBox With {.ReadOnly = True, .Multiline = True, .Dock = DockStyle.Fill, .ScrollBars = ScrollBars.Vertical}
     Private _ready As Boolean
@@ -78,8 +80,9 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         AddIdentityField(table, 13, "mail", "E-mail", 150)
         AddIdentityField(table, 14, "telephone", "Téléphone", 30)
         AddIdentityField(table, 15, "genre", "Genre", 30)
-        table.Controls.Add(New Label With {.Text = "Destination de la copie", .AutoSize = True}, 0, 16)
-        table.Controls.Add(_destination, 1, 16)
+        AddField(table, 16, _birthLabel, _birth)
+        table.Controls.Add(New Label With {.Text = "Destination de la copie", .AutoSize = True}, 0, 17)
+        table.Controls.Add(_destination, 1, 17)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 54))
 
         Dim buttons As New FlowLayoutPanel With {.Dock = DockStyle.Fill, .FlowDirection = FlowDirection.RightToLeft}
@@ -88,12 +91,12 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         Dim importAnalysis As New Button With {.Text = "Importer une analyse ChatGPT", .AutoSize = True}
         AddHandler importAnalysis.Click, AddressOf ImportChatGptAnalysis
         buttons.Controls.AddRange(New Control() {cancel, validate, importAnalysis})
-        table.Controls.Add(buttons, 0, 17)
+        table.Controls.Add(buttons, 0, 18)
         table.SetColumnSpan(buttons, 2)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 39))
         Dim prompt As New Button With {.Text = "Copier la consigne ChatGPT", .AutoSize = True, .Anchor = AnchorStyles.Left}
         AddHandler prompt.Click, AddressOf CopyChatGptPrompt
-        table.Controls.Add(prompt, 0, 18)
+        table.Controls.Add(prompt, 0, 19)
         table.SetColumnSpan(prompt, 2)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 35))
         Controls.Add(table)
@@ -109,7 +112,8 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
                 _number.Clear()
                 _party.Clear()
                 _issuer.Clear()
-                _firstName.Clear()
+                _birth.Clear()
+        _firstName.Clear()
                 _address.Clear()
                 For Each field In _extra.Values
                     field.Clear()
@@ -195,6 +199,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         _number.Clear()
         _party.Clear()
         _issuer.Clear()
+        _birth.Clear()
         _firstName.Clear()
         _address.Clear()
         _date.Clear()
@@ -219,6 +224,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             _amount.Text = If(transaction?("montant_ttc")?.ToString(), "")
         Else
             _party.Text = If(identity?("nom")?.ToString(), If(identity?("nom_complet")?.ToString(), ""))
+            If detectedType = "QuestionnaireMedical" Then _birth.Text = If(identity?("date_naissance")?.ToString(), "")
             _firstName.Text = If(identity?("prenom")?.ToString(), "")
             _address.Text = If(identity?("adresse")?.ToString(), "")
             For Each pair In _extra
@@ -259,6 +265,8 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         Dim financial = cheque OrElse receipt OrElse kind = TypeDocument.Facture
         _partyLabel.Text = If(cheque, "Bénéficiaire", If(kind = TypeDocument.Facture, "Fournisseur",
             If(receipt, "Nom ou organisme", "Nom et prénom")))
+        _birth.Visible = kind = TypeDocument.QuestionnaireMedical
+        _birthLabel.Visible = _birth.Visible OrElse kind = TypeDocument.QuestionnaireMedical
         Dim membership = kind = TypeDocument.FormulaireAdhesion
         If membership Then _partyLabel.Text = "Nom"
         For Each field In _extra.Values
@@ -296,6 +304,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
                 _number.Text, _party.Text, _date.Text, _amount.Text, emitted, _archiveOnDrive, _issuer.Text)
         Else
             Dim identity As New JObject()
+            If kind = TypeDocument.QuestionnaireMedical Then identity("date_naissance") = _birth.Text.Trim()
             If kind = TypeDocument.FormulaireAdhesion Then
                 If _party.Text.Trim().Length > 50 OrElse _firstName.Text.Trim().Length > 50 OrElse _address.Text.Trim().Length > 100 Then Throw New ArgumentException("Limites de la fiche tiers : 50 caractères pour le nom et le prénom, 100 pour la rue.")
                 If String.IsNullOrWhiteSpace(_firstName.Text) Then Throw New ArgumentException("Renseignez le prénom pour identifier le tiers.")

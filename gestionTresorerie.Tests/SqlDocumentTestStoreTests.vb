@@ -35,6 +35,17 @@ Public Class SqlDocumentTestStoreTests
             Dim chequeId = store.SaveVerified(cheque, Function(delta) ThrowUnexpectedReview())
             Assert.IsTrue(chequeId.HasValue)
             Assert.AreEqual(chequeId, store.SaveVerified(cheque, Function(delta) ThrowUnexpectedReview()))
+            Dim medical = DocumentArchiveProposal.PrepareAdministrativeTest(source, DocumentArchiveProposal.HashSource(source), root,
+                Global.gestionTresorerie.Agumaaa.TypeDocument.QuestionnaireMedical, "Personne fictive", "01/10/2026", "", "",
+                identity:=New Newtonsoft.Json.Linq.JObject From {{"date_naissance", "12/09/1980"}})
+            Dim medicalId = store.SaveVerified(medical, Function(delta) ThrowUnexpectedReview())
+            Using conn As New SqlConnection("Server=(LocalDB)\MSSQLLocalDB;Database=bddAgumaaaTest;Integrated Security=True")
+                conn.Open()
+                Using cmd As New SqlCommand("SELECT JSON_VALUE(metaDonnees,'$.date_naissance') FROM dbo.Documents WHERE idDoc=@id AND CAST(dateModif AS date)=CAST(GETDATE() AS date) AND dateDoc='20261001'", conn)
+                    cmd.Parameters.AddWithValue("@id", medicalId.Value)
+                    Assert.AreEqual("1980-09-12", CStr(cmd.ExecuteScalar()))
+                End Using
+            End Using
             Assert.IsTrue(File.Exists(cheque.Destination))
             Assert.IsTrue(File.Exists(proposal.Destination))
             Assert.IsTrue(File.Exists(source))

@@ -103,7 +103,8 @@ Partial Public NotInheritable Class SqlDocumentTestStore
                 Dim docId As Integer
                 proposal.Confirm(Sub(doc)
                     Using cmd As New SqlCommand(DocumentRepository.ArchiveInsertSql &
-                        If(member, " UPDATE dbo.Documents SET metaDonnees=@metaDonnees WHERE cheminDoc=@cheminDoc;", "") &
+                        If(member OrElse doc.CategorieDoc = "QuestionnaireMedical",
+                           " UPDATE dbo.Documents SET dateModif=GETDATE(), metaDonnees=@metaDonnees WHERE cheminDoc=@cheminDoc AND (metaDonnees IS NULL OR metaDonnees COLLATE Latin1_General_100_BIN2 <> @metaDonnees);", "") &
                         " SELECT idDoc FROM dbo.Documents WHERE cheminDoc=@cheminDoc;", connection, tx)
                         cmd.Parameters.AddRange(DocumentRepository.InsertionParameters(doc).ToArray())
                         docId = CInt(cmd.ExecuteScalar())
