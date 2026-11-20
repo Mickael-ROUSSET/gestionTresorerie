@@ -137,7 +137,7 @@ Public Class TestDocumentBatchSaverTests
                 "Personne fictive", "06/11/2026", "TEST-STOP", "3,00", archiveOnDrive:=True)
             Using cts As New System.Threading.CancellationTokenSource()
                 Dim calls As Integer = 0
-                Assert.ThrowsException(Of OperationCanceledException)(
+                ExpectCancellation(
                     Sub()
                         TestDocumentBatchSaver.Run({proposal, proposal},
                             Function(item)
@@ -158,7 +158,7 @@ Public Class TestDocumentBatchSaverTests
         Using cts As New System.Threading.CancellationTokenSource()
             cts.Cancel()
             Dim approvals As Integer = 0
-            Assert.ThrowsException(Of OperationCanceledException)(
+            ExpectCancellation(
                 Sub()
                     SqlTestDocumentBatchRunner.Run(
                         Array.Empty(Of DocumentArchiveProposal)(),
@@ -234,4 +234,12 @@ Public Class TestDocumentBatchSaverTests
         Inherits System.Data.Common.DbException
     End Class
 
+    Private Shared Sub ExpectCancellation(action As Action)
+        Try
+            action()
+        Catch ex As OperationCanceledException
+            Return
+        End Try
+        Assert.Fail("Une OperationCanceledException était attendue.")
+    End Sub
 End Class
