@@ -55,4 +55,42 @@ Public Class TestDocumentBatchSaverTests
             Directory.Delete(root, recursive:=True)
         End Try
     End Sub
+
+    <TestMethod>
+    Public Sub LotFictifReessaieApresAnnulationOuErreurAvantDeMarquerUnDoublon()
+        Dim root = Directory.CreateTempSubdirectory().FullName
+        Try
+            Dim source = Path.Combine(root, "reprise.png")
+            File.WriteAllBytes(source, {CByte(7), CByte(8)})
+            Dim proposal = DocumentArchiveProposal.PrepareAdministrativeTest(
+                source, DocumentArchiveProposal.HashSource(source), root,
+                Global.gestionTresorerie.Agumaaa.TypeDocument.Recu,
+                "Personne fictive", "04/11/2026", "TEST-REPRISE", "9,50", archiveOnDrive:=True)
+            Dim calls As Integer = 0
+            Dim afterCancellation = TestDocumentBatchSaver.Run({proposal, proposal, proposal},
+                Function(item)
+                    calls += 1
+                    If calls = 1 Then Return CType(Nothing, Integer?)
+                    Return CType(81, Integer?)
+                End Function)
+            Assert.AreEqual(2, calls)
+            Assert.AreEqual(1, afterCancellation.Pending)
+            Assert.AreEqual(1, afterCancellation.Saved)
+            Assert.AreEqual(1, afterCancellation.Duplicates)
+
+            calls = 0
+            Dim afterFailure = TestDocumentBatchSaver.Run({proposal, proposal, proposal},
+                Function(item)
+                    calls += 1
+                    If calls = 1 Then Throw New IOException("Echec fictif")
+                    Return CType(82, Integer?)
+                End Function)
+            Assert.AreEqual(2, calls)
+            Assert.AreEqual(1, afterFailure.Rejected)
+            Assert.AreEqual(1, afterFailure.Saved)
+            Assert.AreEqual(1, afterFailure.Duplicates)
+        Finally
+            Directory.Delete(root, recursive:=True)
+        End Try
+    End Sub
 End Class
