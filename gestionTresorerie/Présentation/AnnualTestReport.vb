@@ -36,12 +36,12 @@ Friend Module AnnualTestReport
         Dim html As New StringBuilder("<!doctype html><html lang='fr'><meta charset='utf-8'><title>Compte rendu financier AGUMAAA</title><style>body{font:16px sans-serif;max-width:960px;margin:3em auto}table{border-collapse:collapse;width:100%}td,th{padding:.5em;border-bottom:1px solid #aaa;text-align:left}td:nth-child(n+3){text-align:right}</style><h1>AGUMAAA · Compte rendu financier TEST</h1>")
         html.Append($"<p>Du {debut:dd/MM/yyyy} au {fin:dd/MM/yyyy} · Mouvements enregistrés dans bddAgumaaaTest.</p>")
         Dim receipts, expenses As Decimal
-        html.Append("<table><thead><tr><th>Événement ou activité</th><th>Nature</th><th>Mouvements</th><th>Recettes (€)</th><th>Dépenses (€)</th></tr></thead><tbody>")
+        html.Append("<table><thead><tr><th>Événement ou activité</th><th>Nature</th><th>Mouvements</th><th>Identifiants SQL TEST</th><th>Recettes (€)</th><th>Dépenses (€)</th></tr></thead><tbody>")
         For Each row As DataRow In rows.Rows
             Dim credit = CDec(row("recettes")), debit = CDec(row("depenses"))
             receipts += credit
             expenses += debit
-            html.Append("<tr><td>" & WebUtility.HtmlEncode(CStr(row("evenement"))) & "</td><td>" & WebUtility.HtmlEncode(CStr(row("nature"))) & "</td><td>" & CInt(row("nombre")).ToString() & "</td><td>" & credit.ToString("N2", fr) & "</td><td>" & debit.ToString("N2", fr) & "</td></tr>")
+            html.Append("<tr><td>" & WebUtility.HtmlEncode(CStr(row("evenement"))) & "</td><td>" & WebUtility.HtmlEncode(CStr(row("nature"))) & "</td><td>" & CInt(row("nombre")).ToString() & "</td><td>" & WebUtility.HtmlEncode(CStr(row("idsMouvements"))) & "</td><td>" & credit.ToString("N2", fr) & "</td><td>" & debit.ToString("N2", fr) & "</td></tr>")
         Next
         html.Append("</tbody></table>")
         If rows.Rows.Count = 0 Then html.Append("<p>Aucun mouvement enregistré pour cette période.</p>")
