@@ -108,6 +108,26 @@ Public Class DemonstrationWindowsTests
               End Sub)
     End Sub
 
+    <TestMethod>
+    Public Sub ImportGmailTest_IsoleChaqueCompteEtExigeUnMotDePasse()
+        Dim compte = "compte@example.invalid"
+        Dim dossier = EmailProcessor.DossierGmailTest(compte)
+        StringAssert.Contains(dossier, IO.Path.Combine("gestionTresorerie", "TEST", "Gmail"))
+        Assert.AreEqual(dossier, EmailProcessor.DossierGmailTest(compte.ToUpperInvariant()))
+        Assert.AreNotEqual(dossier, EmailProcessor.DossierGmailTest("autre@example.invalid"))
+        Assert.ThrowsExactly(Of ArgumentException)(Function() EmailProcessor.DossierGmailTest("invalide sans adresse"))
+#If Not DEMO_BUILD Then
+        Dim ancien = EnvironmentManager.CurrentEnvironment
+        Try
+            EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST
+            Assert.ThrowsExactly(Of ArgumentException)(Function() EmailProcessor.ExtraireEnTest(compte, "", Today, dossier))
+            Assert.ThrowsExactly(Of InvalidOperationException)(Function() EmailProcessor.ExtraireEnTest(compte, "", Today, IO.Path.GetTempPath()))
+        Finally
+            EnvironmentManager.CurrentEnvironment = ancien
+        End Try
+#End If
+    End Sub
+
     Private Shared Sub EnSta(action As Action)
         Dim erreur As Exception = Nothing
         Dim thread As New Thread(Sub()
