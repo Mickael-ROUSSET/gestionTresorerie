@@ -367,7 +367,7 @@ Public Class DemonstrationWindowsTests
                     formulaire.Controls.Find("grillePropositions", True)(0), DataGridView)
                 Dim rejets = DirectCast(
                     formulaire.Controls.Find("grilleRejets", True)(0), DataGridView)
-                Assert.AreEqual(2, propositions.Rows.Count)
+                Assert.AreEqual(3, propositions.Rows.Count)
                 Assert.AreEqual(3, rejets.Rows.Count)
 
                 ' Contrôler les données réellement visibles, et non seulement les compteurs :
@@ -501,7 +501,7 @@ Public Class DemonstrationWindowsTests
                       demo.PerformClick()
                       Assert.AreEqual("En attente de revue humaine",
                                       seconde.StatutPremiereProposition)
-                      Assert.AreEqual(2, seconde.NombrePropositions)
+                      Assert.AreEqual(3, seconde.NombrePropositions)
                       Assert.AreEqual(3, seconde.NombreRejets)
                       seconde.Close()
                   End Using
