@@ -265,6 +265,12 @@ Public Class FrmPrincipale
             "demo@example.invalid", 1UI, 1UI, pieces)
         Dim messages As New System.Collections.Generic.List(Of GmailDocumentSimulatedInbox.MessageFictif) From {message}
         If _modeDemonstration Then
+            ' Un second message fictif distinct exerce la revue de plusieurs messages.
+            messages.Add(New GmailDocumentSimulatedInbox.MessageFictif(
+                "demo@example.invalid", 1UI, 2UI,
+                New GmailDocumentSimulatedInbox.PieceFictive() {
+                    New GmailDocumentSimulatedInbox.PieceFictive(
+                        jsonFacture, PropositionMouvement.SensMouvement.Debit)}))
             ' Meme identite source que la premiere facture : doublon a rejeter.
             messages.Add(New GmailDocumentSimulatedInbox.MessageFictif(
                 "demo@example.invalid", 1UI, 1UI,
