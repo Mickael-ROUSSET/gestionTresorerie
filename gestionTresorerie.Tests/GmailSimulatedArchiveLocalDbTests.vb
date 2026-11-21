@@ -34,11 +34,14 @@ Public Class GmailSimulatedArchiveLocalDbTests
                 bitmap.Save(source, Imaging.ImageFormat.Png)
             End Using
 
+            Dim empreinte = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(source)))
+            Dim pieceSource As New GmailDocumentSimulatedInbox.PieceFictive(
+                InvoiceJson, PropositionMouvement.SensMouvement.Debit, source, empreinte)
+            pieceSource.VerifierSource()
             Dim messages As GmailDocumentSimulatedInbox.MessageFictif() = {
                 New GmailDocumentSimulatedInbox.MessageFictif(
                     "simulation@example.invalid", 7UI, 15UI,
-                    {New GmailDocumentSimulatedInbox.PieceFictive(
-                        InvoiceJson, PropositionMouvement.SensMouvement.Debit)})}
+                    {pieceSource})}
             Dim revue = GmailDocumentSimulatedInbox.PreparerRevue(messages)
             Assert.AreEqual(1, revue.ResultatInitial.Propositions.Count)
             Assert.AreEqual(0, revue.ResultatInitial.Rejets.Count)
@@ -48,9 +51,9 @@ Public Class GmailSimulatedArchiveLocalDbTests
             Assert.AreEqual(42.5D, pieceAnalysee.Montant)
             Assert.AreEqual(New DateTime(2026, 4, 1), pieceAnalysee.DateProposee)
             Dim culture = CultureInfo.GetCultureInfo("fr-FR")
-            Dim empreinte = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(source)))
+            pieceSource.VerifierSource()
             Dim proposition = SqlTestDocumentEntry.Prepare(
-                source, empreinte, root, False,
+                pieceSource.CheminSource, pieceSource.EmpreinteSha256, root, False,
                 pieceAnalysee.Reference, "Fournisseur fictif",
                 pieceAnalysee.DateProposee.ToString("dd/MM/yyyy", culture),
                 pieceAnalysee.Montant.ToString("0.00", culture), Nothing)
@@ -67,6 +70,7 @@ Public Class GmailSimulatedArchiveLocalDbTests
             Assert.IsFalse(File.Exists(proposition.Destination),
                            "La revue et l'initialisation SQL ne doivent pas archiver.")
 
+            pieceSource.VerifierSource()
             Dim id = store.SaveVerified(proposition,
                 Function(changements As String) CType(Nothing, Boolean?))
             Assert.IsTrue(id.HasValue, "Le classement explicite doit retourner idDoc.")
@@ -89,6 +93,25 @@ Public Class GmailSimulatedArchiveLocalDbTests
                 Assert.AreEqual("Facture", Convert.ToString(lignes(0)("categorieDoc")))
                 StringAssert.Contains(Convert.ToString(lignes(0)("metaDonnees")), "GMAIL-TEST-001")
             End Using
+        Finally
+            Directory.Delete(root, recursive:=True)
+        End Try
+    End Sub
+    <TestMethod>
+    Public Sub PieceFictive_RefuseSourceModifieeOuIdentiteIncomplet()
+        Dim root = Directory.CreateTempSubdirectory().FullName
+        Try
+            Dim source = Path.Combine(root, "piece-fictive.txt")
+            File.WriteAllText(source, "Contenu fictif initial")
+            Dim empreinte = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(source)))
+            Dim piece As New GmailDocumentSimulatedInbox.PieceFictive(
+                InvoiceJson, PropositionMouvement.SensMouvement.Debit, source, empreinte)
+            piece.VerifierSource()
+            File.WriteAllText(source, "Contenu fictif modifie")
+            Assert.ThrowsException(Of InvalidOperationException)(Sub() piece.VerifierSource())
+            Assert.ThrowsException(Of ArgumentException)(
+                Sub() New GmailDocumentSimulatedInbox.PieceFictive(
+                    InvoiceJson, PropositionMouvement.SensMouvement.Debit, source))
         Finally
             Directory.Delete(root, recursive:=True)
         End Try
