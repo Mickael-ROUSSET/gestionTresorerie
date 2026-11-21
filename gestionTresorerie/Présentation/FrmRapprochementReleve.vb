@@ -92,6 +92,13 @@ Friend NotInheritable Class FrmRapprochementReleve
         Return nombreJustificatifs > 0 OrElse mouvementSelectionne
     End Function
 
+    Friend Shared Function ConfirmationRattachement(ids As IEnumerable(Of Integer), mouvementId As Integer?) As String
+        Dim numeros = ids.Distinct().OrderBy(Function(n) n).ToArray()
+        Dim details = If(numeros.Length = 0, "Aucun justificatif", "Justificatif(s) n° " & String.Join(", ", numeros))
+        If mouvementId.HasValue Then details &= " ; mouvement n° " & mouvementId.Value.ToString()
+        Return "Rattachement enregistré dans la base TEST." & Environment.NewLine & details
+    End Function
+
     Private Sub Enregistrer()
         Try
             Dim index=operations.SelectedIndex
@@ -105,7 +112,7 @@ Friend NotInheritable Class FrmRapprochementReleve
             Dim id As Integer?=Nothing
             If chosen IsNot Nothing Then id=CInt(chosen("Id"))
             SqlDocumentTestStore.RattacherJustificatifs(hash,index,lignes(index),ids,id)
-            MessageBox.Show(Me,"Rattachement enregistré dans la base TEST.")
+            MessageBox.Show(Me,ConfirmationRattachement(ids,id),"Rattachement TEST")
             Afficher()
         Catch ex As Exception
             MessageBox.Show(Me,ex.Message,"Rattachement TEST")
