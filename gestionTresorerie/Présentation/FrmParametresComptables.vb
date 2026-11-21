@@ -36,9 +36,14 @@ Friend NotInheritable Class FrmParametresComptables
         Next
         Controls.Add(onglets)
         Controls.Add(bandeau)
-        AddHandler onglets.SelectedIndexChanged, Sub() AfficherRubrique()
         AddHandler ajouter.Click, Sub() Enregistrer()
+    End Sub
+
+    Protected Overrides Sub OnLoad(e As EventArgs)
+        MyBase.OnLoad(e)
+        onglets.SelectedIndex = 0
         AfficherRubrique()
+        AddHandler onglets.SelectedIndexChanged, Sub() AfficherRubrique()
     End Sub
 
     Private ReadOnly Property Rubrique As ParametresComptables.Rubrique
@@ -48,7 +53,9 @@ Friend NotInheritable Class FrmParametresComptables
     End Property
 
     Private Sub AfficherRubrique()
-        onglets.SelectedTab.Controls.Add(contenu)
+        Dim page = onglets.SelectedTab
+        If page Is Nothing Then Return
+        page.Controls.Add(contenu)
         Dim exercice = Rubrique = ParametresComptables.Rubrique.Exercices
         etiquette.Visible = Not exercice
         libelle.Visible = Not exercice
