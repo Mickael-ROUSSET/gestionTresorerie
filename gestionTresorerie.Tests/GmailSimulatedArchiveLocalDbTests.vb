@@ -3,6 +3,7 @@ Option Explicit On
 
 Imports System
 Imports System.Data
+Imports System.Globalization
 Imports System.Drawing
 Imports System.IO
 Imports System.Linq
@@ -42,10 +43,17 @@ Public Class GmailSimulatedArchiveLocalDbTests
             Assert.AreEqual(1, revue.ResultatInitial.Propositions.Count)
             Assert.AreEqual(0, revue.ResultatInitial.Rejets.Count)
 
+            Dim pieceAnalysee = revue.ResultatInitial.Propositions(0)
+            Assert.AreEqual("GMAIL-TEST-001", pieceAnalysee.Reference)
+            Assert.AreEqual(42.5D, pieceAnalysee.Montant)
+            Assert.AreEqual(New DateTime(2026, 4, 1), pieceAnalysee.DateProposee)
+            Dim culture = CultureInfo.GetCultureInfo("fr-FR")
             Dim empreinte = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(source)))
             Dim proposition = SqlTestDocumentEntry.Prepare(
                 source, empreinte, root, False,
-                "GMAIL-TEST-001", "Fournisseur fictif", "01/04/2026", "42,50", Nothing)
+                pieceAnalysee.Reference, "Fournisseur fictif",
+                pieceAnalysee.DateProposee.ToString("dd/MM/yyyy", culture),
+                pieceAnalysee.Montant.ToString("0.00", culture), Nothing)
             Assert.IsFalse(File.Exists(proposition.Destination),
                            "La simple extraction/revue ne doit jamais archiver.")
             Dim store As New SqlDocumentTestStore()
