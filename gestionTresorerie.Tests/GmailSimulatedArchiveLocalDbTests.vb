@@ -48,6 +48,15 @@ Public Class GmailSimulatedArchiveLocalDbTests
                            "La simple extraction/revue ne doit jamais archiver.")
             Dim store As New SqlDocumentTestStore()
             store.Initialize()
+            ' La revue Gmail seule ne doit creer ni archive ni ligne SQL TEST.
+            Using avantValidation As DataTable = store.ReadDocuments()
+                Assert.AreEqual(0, avantValidation.Rows.Cast(Of DataRow)().Count(
+                    Function(row) Convert.ToString(row("cheminDoc")) = proposition.Destination),
+                    "La proposition non validee ne doit pas etre persistée.")
+            End Using
+            Assert.IsFalse(File.Exists(proposition.Destination),
+                           "La revue et l'initialisation SQL ne doivent pas archiver.")
+
             Dim id = store.SaveVerified(proposition,
                 Function(changements As String) CType(Nothing, Boolean?))
             Assert.IsTrue(id.HasValue, "Le classement explicite doit retourner idDoc.")
