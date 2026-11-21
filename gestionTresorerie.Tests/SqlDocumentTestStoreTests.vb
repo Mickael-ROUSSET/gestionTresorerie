@@ -11,6 +11,36 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 <TestClass>
 Public Class SqlDocumentTestStoreTests
     <TestMethod, TestCategory("LocalDbIntegration")>
+    Public Sub ParametrageRelitLesTroisRubriquesEtRefuseLesDoublons()
+        If Environment.GetEnvironmentVariable("AGUMAAA_RUN_LOCALDB_INTEGRATION") <> "1" Then Assert.Inconclusive()
+        Dim store As New SqlDocumentTestStore()
+        store.Initialize()
+        Using cn As New SqlConnection("Server=(LocalDB)\MSSQLLocalDB;Database=bddAgumaaaTest;Integrated Security=True")
+            cn.Open()
+            For Each rubrique In {ParametresComptables.Rubrique.Evenements, ParametresComptables.Rubrique.TypesMouvement}
+                Dim nom = Guid.NewGuid().ToString()
+                ParametresComptables.Ajouter(cn, rubrique, nom, Nothing, Nothing, False)
+                Using liste = ParametresComptables.Lire(cn, rubrique)
+                    Assert.AreEqual(1, liste.Select("Libellé='" & nom & "'").Length)
+                End Using
+                Assert.ThrowsExactly(Of SqlException)(Sub() ParametresComptables.Ajouter(cn, rubrique, nom, Nothing, Nothing, False))
+            Next
+            Dim exercice = ParametresComptables.Rubrique.Exercices
+            Dim premiere As New Date(3000, 1, 1)
+            Using liste = ParametresComptables.Lire(cn, exercice)
+                For Each row As DataRow In liste.Rows
+                    If CDate(row("Fin")) >= premiere Then premiere = CDate(row("Fin")).AddDays(1)
+                Next
+            End Using
+            ParametresComptables.Ajouter(cn, exercice, "", premiere, premiere.AddMonths(12).AddDays(-1), True)
+            Using liste = ParametresComptables.Lire(cn, exercice)
+                Assert.IsTrue(liste.AsEnumerable().Any(Function(row) CDate(row("Début")) = premiere AndAlso CBool(row("Clos"))))
+            End Using
+            Assert.ThrowsExactly(Of SqlException)(Sub() ParametresComptables.Ajouter(cn, exercice, "", premiere, premiere, False))
+        End Using
+    End Sub
+
+    <TestMethod, TestCategory("LocalDbIntegration")>
     Public Sub CreeLeCatalogueTestEtRelitUneArchiveSansDoublon()
         If Environment.GetEnvironmentVariable("AGUMAAA_RUN_LOCALDB_INTEGRATION") <> "1" Then
             Assert.Inconclusive("Test SQL réel réservé au runner jetable.")

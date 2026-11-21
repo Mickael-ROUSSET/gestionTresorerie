@@ -13,6 +13,7 @@ Friend NotInheritable Class FrmSqlTestDocuments
     Private ReadOnly _open As New Button With {.Text = "Ouvrir un document…", .AutoSize = True}
     Private ReadOnly _example As New Button With {.Text = "Ouvrir une facture fictive", .AutoSize = True, .Enabled = False}
     Private ReadOnly _importProd As New Button With {.Text = "Initialiser TEST depuis PROD…", .AutoSize = True, .Enabled = False}
+    Private ReadOnly _createEvent As New Button With {.Text = "Créer un événement…", .AutoSize = True}
     Private ReadOnly _refresh As New Button With {.Text = "Actualiser", .AutoSize = True, .Enabled = False}
     Private ReadOnly _status As New Label With {.AutoSize = True, .Text = "Base : bddAgumaaaTest sur LocalDB."}
     Private ReadOnly _grid As New DataGridView With {
@@ -28,10 +29,14 @@ Friend NotInheritable Class FrmSqlTestDocuments
         StartPosition = FormStartPosition.CenterParent
 
         Dim bar As New FlowLayoutPanel With {.AutoSize = True, .Dock = DockStyle.Top}
-        bar.Controls.AddRange(New Control() {_init, _open, _example, _refresh, _importProd, _status})
+        bar.Controls.AddRange(New Control() {_init, _open, _example, _refresh, _createEvent, _importProd, _status})
         Controls.Add(_grid)
         Controls.Add(bar)
 
+        AddHandler _createEvent.Click, Sub()
+            Dim libelle = SaisieEvenement.Demander(Me, "", AddressOf SqlDocumentTestStore.CreerEvenement)
+            If libelle IsNot Nothing Then _status.Text = "Événement disponible dans bddAgumaaaTest : " & libelle
+        End Sub
         AddHandler _init.Click, AddressOf InitializeTest
         AddHandler _open.Click, AddressOf OpenDocument
         AddHandler _example.Click, AddressOf OpenExample
@@ -123,6 +128,7 @@ Friend NotInheritable Class FrmSqlTestDocuments
 
     Private Sub SetBusy(value As Boolean)
         _busy = value
+        _createEvent.Enabled = Not value
         _init.Enabled = Not value
         _open.Enabled = Not value
         _example.Enabled = _ready AndAlso Not value

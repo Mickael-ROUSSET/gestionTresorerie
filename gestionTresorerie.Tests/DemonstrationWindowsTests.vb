@@ -149,10 +149,10 @@ Public Class DemonstrationWindowsTests
                       StringAssert.Contains(fenetre.Text, "DÉMONSTRATION HORS LIGNE")
                       Assert.AreEqual(1, fenetre.Controls.Find("annonceDemonstration", True).Length)
                       Dim menus = fenetre.MainMenuStrip.Items.OfType(Of ToolStripMenuItem)().ToArray()
-                      Assert.AreEqual(1, menus.Count(Function(m) m.Enabled))
-                      Assert.AreEqual("AnalyseToolStripMenuItem",
-                                      menus.Single(Function(m) m.Enabled).Name)
-                      Dim analyse = menus.Single(Function(m) m.Enabled)
+                      CollectionAssert.AreEquivalent(New String() {"AnalyseToolStripMenuItem", "ParametrageComptable"},
+                          menus.Where(Function(m) m.Enabled).Select(Function(m) m.Name).ToArray())
+                      Assert.IsTrue(fenetre.Controls.Find("ouvrirParametrage", True).Single().Enabled)
+                      Dim analyse = menus.Single(Function(m) m.Name = "AnalyseToolStripMenuItem")
                       Dim actions = analyse.DropDownItems.OfType(Of ToolStripMenuItem)().
                           Where(Function(m) m.Enabled).Select(Function(m) m.Name).ToArray()
                       CollectionAssert.AreEquivalent(
@@ -367,7 +367,7 @@ Public Class DemonstrationWindowsTests
                     formulaire.Controls.Find("grillePropositions", True)(0), DataGridView)
                 Dim rejets = DirectCast(
                     formulaire.Controls.Find("grilleRejets", True)(0), DataGridView)
-                Assert.AreEqual(2, propositions.Rows.Count)
+                Assert.AreEqual(3, propositions.Rows.Count)
                 Assert.AreEqual(3, rejets.Rows.Count)
 
                 ' Contrôler les données réellement visibles, et non seulement les compteurs :
@@ -378,7 +378,7 @@ Public Class DemonstrationWindowsTests
                 Assert.AreEqual(18.75D, CDec(propositions.Rows(1).Cells("Montant").Value))
                 Assert.AreEqual(2, CInt(rejets.Rows(0).Cells("IndexEntree").Value))
                 Assert.AreEqual(3, CInt(rejets.Rows(1).Cells("IndexEntree").Value))
-                Assert.AreEqual(4, CInt(rejets.Rows(2).Cells("IndexEntree").Value))
+                Assert.AreEqual(5, CInt(rejets.Rows(2).Cells("IndexEntree").Value))
                 Assert.AreEqual("Extraction JSON invalide ou non prise en charge.",
                                 CStr(rejets.Rows(0).Cells("Motif").Value))
                 Assert.AreEqual("Extraction JSON invalide ou non prise en charge.",
@@ -501,7 +501,7 @@ Public Class DemonstrationWindowsTests
                       demo.PerformClick()
                       Assert.AreEqual("En attente de revue humaine",
                                       seconde.StatutPremiereProposition)
-                      Assert.AreEqual(2, seconde.NombrePropositions)
+                      Assert.AreEqual(3, seconde.NombrePropositions)
                       Assert.AreEqual(3, seconde.NombreRejets)
                       seconde.Close()
                   End Using

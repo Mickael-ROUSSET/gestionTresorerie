@@ -22,6 +22,7 @@ Public Class FrmPrincipale
         .Name = "EspaceTestLocalToolStripMenuItem",
         .Text = "Espace TEST local (fichiers fictifs)"}
 
+    Private ReadOnly _settings As New ToolStripMenuItem With {.Name = "ParametrageComptable", .Text = "Paramétrage comptable"}
     Private ReadOnly _bank As New ToolStripMenuItem With {.Name="ReleveCsvTestToolStripMenuItem",.Text="Analyser un relevé bancaire CSV en TEST…"}
     Private ReadOnly _annual As New ToolStripMenuItem With {.Name = "CompteRenduAnnuelTestToolStripMenuItem", .Text = "Générer le compte rendu financier TEST…"}
     Private ReadOnly _menuFolder As New ToolStripMenuItem With {.Name = "AnalyserDossierTestToolStripMenuItem", .Text = "Analyser un dossier de scans en TEST…"}
@@ -54,6 +55,8 @@ Public Class FrmPrincipale
             My.Application.SaveMySettingsOnExit = False
         End If
         InitializeComponent()
+        MenuStrip1.Items.Insert(0, _settings)
+        AddHandler _settings.Click, AddressOf OuvrirParametrage
         AddHandler _menuLocalDocuments.Click, AddressOf OpenLocalDocuments
         AnalyseToolStripMenuItem.DropDownItems.Add(_menuLocalDocuments)
         AddHandler _bank.Click, Sub() FrmRapprochementReleve.Ouvrir(Me)
@@ -330,12 +333,25 @@ Public Class FrmPrincipale
     ''' Démarrage hors ligne : ne charge ni paramètres, ni secrets, ni SQL.
     ''' Tous les menus de production sont inaccessibles dans cette session.
     ''' </summary>
+    Private Sub OuvrirParametrage(sender As Object, e As EventArgs)
+        Try
+            Dim test = _modeDemonstration OrElse _isolatedSqlTest
+            Using connexion = ParametresComptables.Ouvrir(test)
+                Using fenetre As New FrmParametresComptables(connexion, If(test, "TEST", "PROD"))
+                    fenetre.ShowDialog(Me)
+                End Using
+            End Using
+        Catch ex As Exception
+            MessageBox.Show(Me, ex.Message, "Paramétrage comptable", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+        End Try
+    End Sub
+
     Private Sub InitialiserModeDemonstration()
         Text = "gestionTresorerie — DÉMONSTRATION HORS LIGNE"
         StatusLabelEnv.Items.Clear()
         StatusLabelEnv.Items.Add(New ToolStripStatusLabel("DÉMONSTRATION — documents fictifs, mémoire uniquement"))
         For Each menu As ToolStripItem In MenuStrip1.Items
-            menu.Enabled = Object.ReferenceEquals(menu, AnalyseToolStripMenuItem)
+            menu.Enabled = Object.ReferenceEquals(menu, AnalyseToolStripMenuItem) OrElse Object.ReferenceEquals(menu, _settings)
         Next
         For Each action As ToolStripItem In AnalyseToolStripMenuItem.DropDownItems
             action.Enabled = Object.ReferenceEquals(action, _menuTestWorkspace) OrElse
@@ -351,6 +367,11 @@ Public Class FrmPrincipale
         dgvPrincipale.Enabled = False
         dgvPrincipale.Visible = False
         pgBar.Visible = False
+        Dim ouvrir As New Button With {.Name = "ouvrirParametrage", .Text = "Paramétrage comptable…", .AutoSize = True,
+            .Location = New System.Drawing.Point(25, 40)}
+        Controls.Add(ouvrir)
+        ouvrir.BringToFront()
+        AddHandler ouvrir.Click, AddressOf OuvrirParametrage
         Controls.Add(New Label With {
             .Name = "annonceDemonstration",
             .Text = "DÉMONSTRATION — espace documentaire hors ligne ou SQL TEST sur demande." & Environment.NewLine &
