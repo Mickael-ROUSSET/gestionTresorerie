@@ -22,7 +22,7 @@ Public NotInheritable Class GmailDocumentSimulatedInbox
                 Throw New ArgumentException("Le chemin source et son empreinte doivent être fournis ensemble.")
             End If
             If empreinteSha256 IsNot Nothing AndAlso
-               (empreinteSha256.Length <> 64 OrElse Not System.Text.RegularExpressions.Regex.IsMatch(empreinteSha256, "\\A[0-9a-fA-F]{64}\\z")) Then
+               (empreinteSha256.Length <> 64 OrElse Not System.Text.RegularExpressions.Regex.IsMatch(empreinteSha256, "\A[0-9a-fA-F]{64}\z")) Then
                 Throw New ArgumentException("Empreinte SHA-256 invalide.", NameOf(empreinteSha256))
             End If
             Me.JsonExtraction = jsonExtraction
