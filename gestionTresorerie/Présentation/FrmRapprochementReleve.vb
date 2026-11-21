@@ -4,7 +4,7 @@ Imports System.IO
 Imports System.Security.Cryptography
 Imports System.Windows.Forms
 
-Friend NotInheritable Class FrmRapprochementReleve
+Public NotInheritable Class FrmRapprochementReleve
     Inherits Form
     Private ReadOnly operations As New ListBox With {.Dock=DockStyle.Fill}
     Private ReadOnly pieces As New CheckedListBox With {.Dock=DockStyle.Fill,.CheckOnClick=True,.HorizontalScrollbar=True}
@@ -88,11 +88,11 @@ Friend NotInheritable Class FrmRapprochementReleve
         End Try
     End Sub
 
-    Friend Shared Function PeutRattacher(nombreJustificatifs As Integer, mouvementSelectionne As Boolean) As Boolean
+    Public Shared Function PeutRattacher(nombreJustificatifs As Integer, mouvementSelectionne As Boolean) As Boolean
         Return nombreJustificatifs > 0 OrElse mouvementSelectionne
     End Function
 
-    Friend Shared Function ConfirmationRattachement(ids As IEnumerable(Of Integer), mouvementId As Integer?) As String
+    Public Shared Function ConfirmationRattachement(ids As IEnumerable(Of Integer), mouvementId As Integer?) As String
         Dim numeros = ids.Distinct().OrderBy(Function(n) n).ToArray()
         Dim details = If(numeros.Length = 0, "Aucun justificatif", "Justificatif(s) n° " & String.Join(", ", numeros))
         If mouvementId.HasValue Then details &= " ; mouvement n° " & mouvementId.Value.ToString()
