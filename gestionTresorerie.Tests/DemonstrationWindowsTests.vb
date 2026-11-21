@@ -83,6 +83,31 @@ Public Class DemonstrationWindowsTests
         End Sub
     End Class
 
+    <TestMethod, TestCategory("LocalDbIntegration")>
+    Public Sub ParametrageTest_OuvreLaFenetreEtChargeChaqueOnglet()
+        If Environment.GetEnvironmentVariable("AGUMAAA_RUN_LOCALDB_INTEGRATION") <> "1" Then Assert.Inconclusive()
+        EnSta(Sub()
+                  Using cn = ParametresComptables.Ouvrir(True)
+                      For ouverture = 1 To 2
+                          Using fenetre As New FrmParametresComptables(cn, "TEST")
+                              fenetre.Show()
+                              Dim onglets = fenetre.Controls.OfType(Of TabControl)().Single()
+                              Assert.AreEqual(0, onglets.SelectedIndex)
+                              For Each index In {0, 1, 2, 0}
+                                  onglets.SelectedIndex = index
+                                  Dim panneau = onglets.SelectedTab.Controls.OfType(Of Panel)().Single()
+                                  Dim grille = panneau.Controls.OfType(Of DataGridView)().Single()
+                                  Dim donnees = TryCast(grille.DataSource, System.Data.DataTable)
+                                  Assert.IsNotNull(donnees)
+                                  Assert.IsTrue(donnees.Columns.Contains(If(index = 1, "Clos", "Libellé")))
+                              Next
+                              fenetre.Close()
+                          End Using
+                      Next
+                  End Using
+              End Sub)
+    End Sub
+
     Private Shared Sub EnSta(action As Action)
         Dim erreur As Exception = Nothing
         Dim thread As New Thread(Sub()
