@@ -6,6 +6,7 @@ Imports System.Data
 Imports System.Drawing
 Imports System.IO
 Imports System.Linq
+Imports System.Security.Cryptography
 Imports gestionTresorerie
 Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
@@ -41,9 +42,10 @@ Public Class GmailSimulatedArchiveLocalDbTests
             Assert.AreEqual(1, revue.ResultatInitial.Propositions.Count)
             Assert.AreEqual(0, revue.ResultatInitial.Rejets.Count)
 
-            Dim proposition = DocumentArchiveProposal.PrepareTest(
-                source, DocumentArchiveProposal.HashSource(source),
-                InvoiceJson, root, Nothing)
+            Dim empreinte = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(source)))
+            Dim proposition = SqlTestDocumentEntry.Prepare(
+                source, empreinte, root, False,
+                "GMAIL-TEST-001", "Fournisseur fictif", "01/04/2026", "42,50", Nothing)
             Assert.IsFalse(File.Exists(proposition.Destination),
                            "La simple extraction/revue ne doit jamais archiver.")
             Dim store As New SqlDocumentTestStore()
@@ -68,9 +70,13 @@ Public Class GmailSimulatedArchiveLocalDbTests
                 "Le rejeu ne doit pas creer de doublon.")
 
             Using documents As DataTable = store.ReadDocuments()
-                Dim lignes = documents.Rows.Cast(Of DataRow)().
-                    Where(Function(row) Convert.ToString(row("cheminDoc")) = proposition.Destination).ToArray()
-                Assert.HasCount(1, lignes)
+                Dim lignes As New List(Of DataRow)()
+                For Each row As DataRow In documents.Rows
+                    If String.Equals(Convert.ToString(row("cheminDoc")), proposition.Destination, StringComparison.OrdinalIgnoreCase) Then
+                        lignes.Add(row)
+                    End If
+                Next
+                Assert.AreEqual(1, lignes.Count)
                 Assert.AreEqual(id.Value, Convert.ToInt32(lignes(0)("idDoc")))
                 Assert.AreEqual("Facture", Convert.ToString(lignes(0)("categorieDoc")))
                 StringAssert.Contains(Convert.ToString(lignes(0)("metaDonnees")), "GMAIL-TEST-001")
