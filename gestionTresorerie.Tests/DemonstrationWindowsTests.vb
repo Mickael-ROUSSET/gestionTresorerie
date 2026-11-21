@@ -378,7 +378,7 @@ Public Class DemonstrationWindowsTests
                 Assert.AreEqual(18.75D, CDec(propositions.Rows(1).Cells("Montant").Value))
                 Assert.AreEqual(2, CInt(rejets.Rows(0).Cells("IndexEntree").Value))
                 Assert.AreEqual(3, CInt(rejets.Rows(1).Cells("IndexEntree").Value))
-                Assert.AreEqual(4, CInt(rejets.Rows(2).Cells("IndexEntree").Value))
+                Assert.AreEqual(5, CInt(rejets.Rows(2).Cells("IndexEntree").Value))
                 Assert.AreEqual("Extraction JSON invalide ou non prise en charge.",
                                 CStr(rejets.Rows(0).Cells("Motif").Value))
                 Assert.AreEqual("Extraction JSON invalide ou non prise en charge.",
