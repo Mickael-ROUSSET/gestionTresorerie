@@ -85,6 +85,10 @@ Friend NotInheritable Class FrmParametresComptables
         Try
             Dim premiere As Date? = If(debut.Checked, CType(debut.Value.Date, Date?), Nothing)
             Dim derniere As Date? = If(fin.Checked, CType(fin.Value.Date, Date?), Nothing)
+            If premiere.HasValue AndAlso derniere.HasValue AndAlso derniere.Value < premiere.Value Then
+                statut.Text = "La date de fin doit être postérieure ou égale à la date de début."
+                Return
+            End If
             ParametresComptables.Ajouter(connexion, Rubrique, libelle.Text, premiere, derniere, clos.Checked)
             statut.Text = "Enregistrement effectué dans " & connexion.Database & "."
             libelle.Clear()

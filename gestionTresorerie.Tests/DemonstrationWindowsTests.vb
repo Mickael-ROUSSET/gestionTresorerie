@@ -100,6 +100,17 @@ Public Class DemonstrationWindowsTests
                                   Dim donnees = TryCast(grille.DataSource, System.Data.DataTable)
                                   Assert.IsNotNull(donnees)
                                   Assert.IsTrue(donnees.Columns.Contains(If(index = 1, "Clos", "Libellé")))
+                                  If index = 1 Then
+                                      Dim dates = panneau.Controls.OfType(Of FlowLayoutPanel)().Single().Controls.OfType(Of DateTimePicker)().ToArray()
+                                      Assert.AreEqual(2, dates.Length)
+                                      dates(0).Value = New Date(2026, 12, 31)
+                                      dates(1).Value = New Date(2026, 1, 1)
+                                      Dim avant = donnees.Rows.Count
+                                      panneau.Controls.OfType(Of FlowLayoutPanel)().Single().Controls.OfType(Of Button)().Single().PerformClick()
+                                      Dim message = panneau.Controls.OfType(Of Label)().Single().Text
+                                      StringAssert.Contains(message, "date de fin")
+                                      Assert.AreEqual(avant, DirectCast(grille.DataSource, System.Data.DataTable).Rows.Count)
+                                  End If
                               Next
                               fenetre.Close()
                           End Using
