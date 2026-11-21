@@ -43,51 +43,88 @@ Public Class EmailProcessor
 #End If
     End Function
 
-    Private Shared Sub ProcessAttachmentsCore(initialImportCutoff As DateTime?, requestStartDate As Func(Of DateTime?),
-                                              savedFiles As List(Of String))
-        ' Création du dossier s'il n'existe pas
-        LogFile = Path.Combine(LectureProprietes.GetVariable("repRacineAgumaaa"),
-            LectureProprietes.GetVariable("repRacineDocuments"),
-            "traitement_emails.log")
-        _sRepDoc = LectureProprietes.GetVariable("repRacineAgumaaa") &
-            LectureProprietes.GetVariable("repRacineDocuments") &
-            LectureProprietes.GetVariable("repFichiersDocumentsATrier")
-        ' Création du dossier s'il n'existe pas
-        If Not Directory.Exists(_sRepDoc) Then Directory.CreateDirectory(_sRepDoc)
+    Friend Shared Function DossierGmailTest(account As String) As String
+        Dim address As Net.Mail.MailAddress = Nothing
+        If Not Net.Mail.MailAddress.TryCreate(account, address) OrElse address.Address <> account Then Throw New ArgumentException("Adresse Gmail invalide.")
+        Dim id = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(account.ToLowerInvariant())))
+        Return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "gestionTresorerie", "TEST", "Gmail", id.Substring(0, 16))
+    End Function
 
+    Friend Shared Function ExtraireEnTest(account As String, password As String, since As Date, destination As String) As IReadOnlyList(Of String)
+#If DEMO_BUILD Then
+        Throw New InvalidOperationException("Cette fonction nécessite l’édition complète.")
+#Else
+        If EnvironmentManager.CurrentEnvironment <> EnvironmentManager.EnvironnementType.TEST OrElse destination <> DossierGmailTest(account) Then Throw New InvalidOperationException("Espace Gmail TEST attendu.")
+        If String.IsNullOrWhiteSpace(password) Then Throw New ArgumentException("Renseignez le mot de passe d’application Google.")
+        Dim fichiers As New List(Of String)
+        Directory.CreateDirectory(destination)
+        SyncLock ImportLock
+            Using verrou As New FileStream(Path.Combine(destination, "import.lock"), FileMode.OpenOrCreate, FileAccess.Write, FileShare.None)
+                ProcessAttachmentsCore(since, Nothing, fichiers, destination, account, password)
+            End Using
+        End SyncLock
+        Return fichiers.AsReadOnly()
+#End If
+    End Function
+
+    Private Shared Sub ProcessAttachmentsCore(initialImportCutoff As DateTime?, requestStartDate As Func(Of DateTime?),
+                                              savedFiles As List(Of String), Optional testFolder As String = Nothing,
+                                              Optional accountTest As String = Nothing, Optional passwordTest As String = Nothing)
+        If testFolder Is Nothing Then
+            ' Création du dossier s'il n'existe pas
+            LogFile = Path.Combine(LectureProprietes.GetVariable("repRacineAgumaaa"),
+                LectureProprietes.GetVariable("repRacineDocuments"),
+                "traitement_emails.log")
+            _sRepDoc = LectureProprietes.GetVariable("repRacineAgumaaa") &
+                LectureProprietes.GetVariable("repRacineDocuments") &
+                LectureProprietes.GetVariable("repFichiersDocumentsATrier")
+            ' Création du dossier s'il n'existe pas
+            If Not Directory.Exists(_sRepDoc) Then Directory.CreateDirectory(_sRepDoc)
+        Else
+            _sRepDoc = testFolder
+            LogFile = Path.Combine(testFolder, "traitement_emails.log")
+        End If
         PrepareDirectory(_sRepDoc)
         ResetSession()
         Dim journalPath = Path.Combine(_sRepDoc, "gmail_import_journal.txt")
         Dim journal As GmailImportJournal = Nothing
         Dim hasJournalEntries As Boolean
         If Not TryInitializeJournal(journalPath, journal, hasJournalEntries, _rapport) Then
-            SaveFinalReport()
+            SaveFinalReport(testFolder IsNot Nothing)
+            If testFolder IsNot Nothing Then Throw New IOException("Journal Gmail illisible dans " & testFolder)
             Return
         End If
         ' Memoriser la date de demarrage : elle doit rester appliquee apres la premiere session.
         Dim cutoffPath = Path.Combine(_sRepDoc, "gmail_import_cutoff.txt")
         Dim effectiveCutoff As DateTime?
-        If Not TryResolveInitialImportCutoff(cutoffPath, initialImportCutoff, effectiveCutoff, _rapport) Then
-            SaveFinalReport()
+        If testFolder IsNot Nothing Then
+            effectiveCutoff = initialImportCutoff
+        ElseIf Not TryResolveInitialImportCutoff(cutoffPath, initialImportCutoff, effectiveCutoff, _rapport) Then
+            SaveFinalReport(testFolder IsNot Nothing)
             Return
         End If
         If Not IsImportAllowed(hasJournalEntries, effectiveCutoff) AndAlso requestStartDate IsNot Nothing Then
             Dim requested = requestStartDate()
             If requested.HasValue AndAlso
                 Not TryResolveInitialImportCutoff(cutoffPath, requested, effectiveCutoff, _rapport) Then
-                SaveFinalReport()
+                SaveFinalReport(testFolder IsNot Nothing)
                 Return
             End If
         End If
         If Not IsImportAllowed(hasJournalEntries, effectiveCutoff) Then
             _rapport.AppendLine("[ERREUR] Import Gmail initial bloque : journal vide. Fournir explicitement initialImportCutoff (date de debut incluse) a ProcessAttachments pour autoriser l'import initial.")
-            SaveFinalReport()
+            SaveFinalReport(testFolder IsNot Nothing)
             Return
         End If
 
         Using client As New ImapClient()
             Try
-                ConnectAndAuthenticate(client)
+                If testFolder Is Nothing Then
+                    ConnectAndAuthenticate(client)
+                Else
+                    client.Connect("imap.gmail.com", 993, True)
+                    client.Authenticate(accountTest, passwordTest)
+                End If
                 Dim inbox = client.Inbox
                 inbox.Open(FolderAccess.ReadOnly)
 
@@ -95,7 +132,7 @@ Public Class EmailProcessor
                 Dim query = SearchQuery.All
                 If effectiveCutoff.HasValue Then query = SearchQuery.DeliveredAfter(effectiveCutoff.Value.Date)
                 Dim uids = inbox.Search(query)
-                Dim account = LectureProprietes.GetVariable("SmtpUsername")
+                Dim account As String = If(accountTest, CStr(LectureProprietes.GetVariable("SmtpUsername")))
                 Dim validity As UInteger = inbox.UidValidity
                 For Each uid In uids
                     Dim key = GmailImportJournal.MakeKey(account, validity, uid.Id)
@@ -108,8 +145,9 @@ Public Class EmailProcessor
                 client.Disconnect(True)
             Catch ex As Exception
                 LogAndReportError(ex.Message)
+                If testFolder IsNot Nothing Then Throw
             Finally
-                SaveFinalReport()
+                SaveFinalReport(testFolder IsNot Nothing)
             End Try
         End Using
     End Sub
@@ -401,13 +439,17 @@ Public Class EmailProcessor
         If Not Directory.Exists(path) Then Directory.CreateDirectory(path)
     End Sub
 
-    Private Shared Sub SaveFinalReport()
+    Private Shared Sub SaveFinalReport(Optional isolated As Boolean = False)
         _rapport.AppendLine("------------------------------------------------")
         _rapport.AppendLine($"- Emails analysés : {_statsMailsLus}")
         _rapport.AppendLine($"- Emails avec PJ  : {_statsMailsAvecPJ}")
         _rapport.AppendLine($"- PJ enregistrées : {_statsTotalPJ}")
         _rapport.AppendLine("================================================")
-        WriteFinalReport(_sRepDoc, _rapport.ToString(), AddressOf Logger.INFO)
+        If isolated Then
+            File.WriteAllText(Path.Combine(_sRepDoc, "Dernier_Rapport_Agumaaa.txt"), _rapport.ToString())
+        Else
+            WriteFinalReport(_sRepDoc, _rapport.ToString(), AddressOf Logger.INFO)
+        End If
     End Sub
 
     Private Shared Sub WriteFinalReport(reportDirectory As String, report As String, logReport As Action(Of String))

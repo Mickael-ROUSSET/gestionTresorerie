@@ -390,6 +390,13 @@ Public Class FrmPrincipale
         End If
         Try
             EnvironmentManager.LoadEnvironment()
+            If Environment.GetCommandLineArgs().Contains("--comptabilite") AndAlso
+                String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(EnvironmentManager.EnvironmentVariableName, EnvironmentVariableTarget.User)) Then
+                EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST
+            End If
+            Dim switchEnvironment As New ToolStripMenuItem("Changer d’environnement au prochain démarrage…")
+            AddHandler switchEnvironment.Click, AddressOf EnvironnementToolStripMenuItem_Click
+            AnalyseToolStripMenuItem.DropDownItems.Add(switchEnvironment)
             If EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST Then
                 _isolatedSqlTest = True
                 InitialiserModeDemonstration()
@@ -398,11 +405,13 @@ Public Class FrmPrincipale
                 StatusLabelEnv.Items.Add(New ToolStripStatusLabel("TEST SQL — bddAgumaaaTest"))
                 DirectCast(Controls.Find("annonceDemonstration", True)(0), Label).Text =
                     "TEST SQL — Analyse > Espace TEST SQL pour initialiser la base et traiter des documents."
-                Dim switchEnvironment As New ToolStripMenuItem("Changer d’environnement au prochain démarrage…")
-                AddHandler switchEnvironment.Click, AddressOf EnvironnementToolStripMenuItem_Click
-                AnalyseToolStripMenuItem.DropDownItems.Add(switchEnvironment)
+                switchEnvironment.Enabled = True
+                Dim gmail As New ToolStripMenuItem("Extraire les pièces jointes Gmail…") With {.Name = "ExtraireGmailTest"}
+                AddHandler gmail.Click, AddressOf ExtraireGmailTest
+                AnalyseToolStripMenuItem.DropDownItems.Add(gmail)
                 Return
             End If
+            Text = "gestionTresorerie — " & EnvironmentManager.GetEnvironmentLabel()
             Logger.INFO("Environnement actif : " & EnvironmentManager.GetEnvironmentLabel())
             StatusLabelEnv.Text = "Environnement : " & EnvironmentManager.GetEnvironmentLabel
 
@@ -778,6 +787,44 @@ Public Class FrmPrincipale
             formulaire.ShowDialog(Me)
         End Using
     End Sub
+    Private Async Sub ExtraireGmailTest(sender As Object, e As EventArgs)
+        If Not _isolatedSqlTest OrElse _modeDemonstration Then Return
+        Using dialogue As New Form With {.Text = "Extraire les pièces jointes Gmail — TEST", .ClientSize = New Drawing.Size(520, 185),
+            .StartPosition = FormStartPosition.CenterParent, .FormBorderStyle = FormBorderStyle.FixedDialog}
+            Dim compte As New TextBox With {.Left = 205, .Top = 12, .Width = 300, .Text = "agumaaa43@gmail.com"}
+            Dim secret As New TextBox With {.Left = 205, .Top = 47, .Width = 300, .UseSystemPasswordChar = True}
+            Dim dateDebut As New DateTimePicker With {.Left = 205, .Top = 82, .Width = 160, .MaxDate = Today, .Format = DateTimePickerFormat.Short}
+            Dim lancer As New Button With {.Text = "Extraire", .Left = 405, .Top = 140, .DialogResult = DialogResult.OK}
+            dialogue.Controls.AddRange(New Control() {New Label With {.Text = "Compte Gmail", .Left = 10, .Top = 15, .AutoSize = True}, compte,
+                New Label With {.Text = "Mot de passe d’application", .Left = 10, .Top = 50, .AutoSize = True}, secret,
+                New Label With {.Text = "Messages reçus depuis le", .Left = 10, .Top = 85, .AutoSize = True}, dateDebut, lancer})
+            dialogue.AcceptButton = lancer
+            If dialogue.ShowDialog(Me) <> DialogResult.OK Then Return
+            Dim account = compte.Text.Trim(), password = secret.Text.Replace(" ", ""), since = dateDebut.Value.Date
+            secret.Clear()
+            Dim action = DirectCast(sender, ToolStripMenuItem)
+            action.Enabled = False
+            Try
+                Dim destination As String = EmailProcessor.DossierGmailTest(account)
+                Dim fichiers = Await Task.Run(Function() EmailProcessor.ExtraireEnTest(account, password, since, destination))
+                If IsDisposed Then Return
+                MessageBox.Show(Me, fichiers.Count & " nouvelle(s) pièce(s) enregistrée(s) dans " & destination &
+                    Environment.NewLine & "Détail : Dernier_Rapport_Agumaaa.txt", "Extraction Gmail — TEST")
+                Dim documents = fichiers.Where(AddressOf DocumentFilePreview.Supports).ToArray()
+                If documents.Length > 0 Then
+                    Using revue As New FrmDocumentFilePreview(documents, CreateSqlTestWorkspace(), New SqlDocumentTestStore(), initializeSqlTestOnSave:=True)
+                        revue.ShowDialog(Me)
+                    End Using
+                End If
+            Catch ex As Exception
+                If Not IsDisposed Then MessageBox.Show(Me, ex.Message, "Extraction Gmail — TEST", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Finally
+                password = Nothing
+                If Not IsDisposed Then action.Enabled = True
+            End Try
+        End Using
+    End Sub
+
     Private Function DemanderDateInitialeGmail() As DateTime?
         Using dialogue As New Form With {
             .Text = "Premier téléchargement Gmail", .ClientSize = New Drawing.Size(420, 125),
