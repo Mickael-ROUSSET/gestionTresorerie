@@ -44,8 +44,8 @@ Public Class EmailProcessor
     End Function
 
     Friend Shared Function DossierGmailTest(account As String) As String
-        Dim address As Net.Mail.MailAddress = Nothing
-        If Not Net.Mail.MailAddress.TryCreate(account, address) OrElse address.Address <> account Then Throw New ArgumentException("Adresse Gmail invalide.")
+        Dim address As Global.System.Net.Mail.MailAddress = Nothing
+        If Not Global.System.Net.Mail.MailAddress.TryCreate(account, address) OrElse address.Address <> account Then Throw New ArgumentException("Adresse Gmail invalide.")
         Dim id = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(account.ToLowerInvariant())))
         Return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "gestionTresorerie", "TEST", "Gmail", id.Substring(0, 16))
     End Function
