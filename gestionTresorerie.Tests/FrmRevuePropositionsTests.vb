@@ -56,6 +56,7 @@ Public Class FrmRevuePropositionsTests
                              New PropositionDocumentService.Entree(Nothing, "absent", PropositionMouvement.SensMouvement.Debit),
                              Nothing}))
                          Using formulaire As New FrmRevuePropositions(revue)
+                             Assert.AreEqual("Revue du lot — 2 proposition(s), 2 rejet(s) — sans enregistrement", formulaire.Text)
                              Dim propositions = Grille(formulaire, "grillePropositions")
                              Dim rejets = Grille(formulaire, "grilleRejets")
                              Assert.AreEqual(2, propositions.Rows.Count)
