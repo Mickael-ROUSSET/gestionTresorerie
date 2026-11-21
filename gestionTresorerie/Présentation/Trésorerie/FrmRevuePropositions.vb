@@ -38,7 +38,7 @@ Public NotInheritable Class FrmRevuePropositions
     Public Sub New(revue As PropositionRevue)
         If revue Is Nothing Then Throw New ArgumentNullException(NameOf(revue))
 
-        Text = "Revue des propositions — lecture seule"
+        Text = $"Revue du lot — {revue.Lignes.Count} proposition(s), {revue.Rejets.Count} rejet(s) — sans enregistrement"
         AccessibleName = Text
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(1100, 650)
