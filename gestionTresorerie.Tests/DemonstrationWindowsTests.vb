@@ -149,10 +149,10 @@ Public Class DemonstrationWindowsTests
                       StringAssert.Contains(fenetre.Text, "DÉMONSTRATION HORS LIGNE")
                       Assert.AreEqual(1, fenetre.Controls.Find("annonceDemonstration", True).Length)
                       Dim menus = fenetre.MainMenuStrip.Items.OfType(Of ToolStripMenuItem)().ToArray()
-                      Assert.AreEqual(1, menus.Count(Function(m) m.Enabled))
-                      Assert.AreEqual("AnalyseToolStripMenuItem",
-                                      menus.Single(Function(m) m.Enabled).Name)
-                      Dim analyse = menus.Single(Function(m) m.Enabled)
+                      CollectionAssert.AreEquivalent(New String() {"AnalyseToolStripMenuItem", "ParametrageComptable"},
+                          menus.Where(Function(m) m.Enabled).Select(Function(m) m.Name).ToArray())
+                      Assert.IsTrue(fenetre.Controls.Find("ouvrirParametrage", True).Single().Enabled)
+                      Dim analyse = menus.Single(Function(m) m.Name = "AnalyseToolStripMenuItem")
                       Dim actions = analyse.DropDownItems.OfType(Of ToolStripMenuItem)().
                           Where(Function(m) m.Enabled).Select(Function(m) m.Name).ToArray()
                       CollectionAssert.AreEquivalent(

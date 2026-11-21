@@ -46,6 +46,14 @@ Partial Public NotInheritable Class SqlDocumentTestStore
         End Using
     End Sub
 
+    Public Shared Function CreerEvenement(nom As String) As String
+        Dim store As New SqlDocumentTestStore()
+        store.Initialize()
+        Using connection = OpenTest()
+            Return Evenement.EnregistrerLibelle(connection, nom)
+        End Using
+    End Function
+
     Public Sub Save(doc As DocumentAgumaaa)
         Using connection = OpenTest(), command = connection.CreateCommand()
             command.CommandText = GuardSql & MigrationGuardSql & DocumentRepository.ArchiveInsertSql
@@ -65,7 +73,7 @@ Partial Public NotInheritable Class SqlDocumentTestStore
         End Using
     End Function
 
-    Private Shared Function OpenTest() As SqlConnection
+    Friend Shared Function OpenTest() As SqlConnection
         Dim value = LocalDbCatalogs.ConnectionString(DatabaseName)
         TestEnvironmentIsolation.ValidateConnectionString(value)
         Dim connection As New SqlConnection(value)
