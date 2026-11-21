@@ -3,6 +3,8 @@ Option Explicit On
 
 Imports System
 Imports System.Collections.Generic
+Imports System.IO
+Imports System.Security.Cryptography
 
 ''' <summary>
 ''' Source de messages IMAP fictifs en memoire pour exercer le parcours
@@ -14,13 +16,38 @@ Public NotInheritable Class GmailDocumentSimulatedInbox
     End Sub
 
     Public NotInheritable Class PieceFictive
-        Public Sub New(jsonExtraction As String, sens As PropositionMouvement.SensMouvement)
+        Public Sub New(jsonExtraction As String, sens As PropositionMouvement.SensMouvement,
+                       Optional cheminSource As String = Nothing, Optional empreinteSha256 As String = Nothing)
+            If (String.IsNullOrWhiteSpace(cheminSource) Xor String.IsNullOrWhiteSpace(empreinteSha256)) Then
+                Throw New ArgumentException("Le chemin source et son empreinte doivent être fournis ensemble.")
+            End If
+            If empreinteSha256 IsNot Nothing AndAlso
+               (empreinteSha256.Length <> 64 OrElse Not System.Text.RegularExpressions.Regex.IsMatch(empreinteSha256, "\\A[0-9a-fA-F]{64}\\z")) Then
+                Throw New ArgumentException("Empreinte SHA-256 invalide.", NameOf(empreinteSha256))
+            End If
             Me.JsonExtraction = jsonExtraction
             Me.Sens = sens
+            Me.CheminSource = cheminSource
+            Me.EmpreinteSha256 = empreinteSha256
         End Sub
 
         Public ReadOnly Property JsonExtraction As String
         Public ReadOnly Property Sens As PropositionMouvement.SensMouvement
+        Public ReadOnly Property CheminSource As String
+        Public ReadOnly Property EmpreinteSha256 As String
+
+        ''' <summary>Refuse une pièce modifiée depuis son extraction, avant tout classement TEST.</summary>
+        Public Sub VerifierSource()
+            If String.IsNullOrWhiteSpace(CheminSource) Then
+                Throw New InvalidOperationException("Aucun fichier source lié à cette pièce fictive.")
+            End If
+            Using flux As FileStream = File.OpenRead(CheminSource)
+                Dim empreinteActuelle = Convert.ToHexString(SHA256.HashData(flux))
+                If Not String.Equals(empreinteActuelle, EmpreinteSha256, StringComparison.OrdinalIgnoreCase) Then
+                    Throw New InvalidOperationException("La pièce source a été modifiée depuis l'extraction.")
+                End If
+            End Using
+        End Sub
     End Class
 
     Public NotInheritable Class MessageFictif
