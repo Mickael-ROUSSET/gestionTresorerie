@@ -108,8 +108,8 @@ Public Class GmailSimulatedArchiveLocalDbTests
                 InvoiceJson, PropositionMouvement.SensMouvement.Debit, source, empreinte)
             piece.VerifierSource()
             File.WriteAllText(source, "Contenu fictif modifie")
-            Assert.ThrowsException(Of InvalidOperationException)(Sub() piece.VerifierSource())
-            Assert.ThrowsException(Of ArgumentException)(
+            Assert.ThrowsExactly(Of InvalidOperationException)(Sub() piece.VerifierSource())
+            Assert.ThrowsExactly(Of ArgumentException)(
                 Sub()
                     Dim pieceSansEmpreinte As New GmailDocumentSimulatedInbox.PieceFictive(
                         InvoiceJson, PropositionMouvement.SensMouvement.Debit, source)
