@@ -55,7 +55,7 @@ Public Class FrmPrincipale
             My.Application.SaveMySettingsOnExit = False
         End If
         InitializeComponent()
-        MenuStrip1.Items.Add(_settings)
+        MenuStrip1.Items.Insert(0, _settings)
         AddHandler _settings.Click, AddressOf OuvrirParametrage
         AddHandler _menuLocalDocuments.Click, AddressOf OpenLocalDocuments
         AnalyseToolStripMenuItem.DropDownItems.Add(_menuLocalDocuments)
