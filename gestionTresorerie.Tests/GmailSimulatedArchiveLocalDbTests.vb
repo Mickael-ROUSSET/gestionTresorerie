@@ -110,8 +110,10 @@ Public Class GmailSimulatedArchiveLocalDbTests
             File.WriteAllText(source, "Contenu fictif modifie")
             Assert.ThrowsException(Of InvalidOperationException)(Sub() piece.VerifierSource())
             Assert.ThrowsException(Of ArgumentException)(
-                Sub() New GmailDocumentSimulatedInbox.PieceFictive(
-                    InvoiceJson, PropositionMouvement.SensMouvement.Debit, source))
+                Sub()
+                    Dim pieceSansEmpreinte As New GmailDocumentSimulatedInbox.PieceFictive(
+                        InvoiceJson, PropositionMouvement.SensMouvement.Debit, source)
+                End Sub)
         Finally
             Directory.Delete(root, recursive:=True)
         End Try
