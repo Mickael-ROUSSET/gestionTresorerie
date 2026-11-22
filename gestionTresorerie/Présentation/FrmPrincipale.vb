@@ -775,11 +775,16 @@ Public Class FrmPrincipale
 
     Private Async Sub ExtraireGmail(sender As Object, e As EventArgs) Handles RécupDesPJReçuesParMailToolStripMenuItem.Click
         If _modeDemonstration Then Return
-        Dim test = _isolatedSqlTest
+        Dim test = _isolatedSqlTest OrElse EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST
         Using dialogue As New Form With {.Text = "Extraire les pièces jointes Gmail — " & If(test, "TEST", EnvironmentManager.GetEnvironmentLabel()), .ClientSize = New Drawing.Size(565, 235),
             .StartPosition = FormStartPosition.CenterParent, .FormBorderStyle = FormBorderStyle.FixedDialog}
-            Dim compte As New TextBox With {.Left = 205, .Top = 12, .Width = 335, .ReadOnly = Not test, .Text = If(test, "agumaaa43@gmail.com", CStr(LectureProprietes.GetVariable("SmtpUsername")))}
+            Dim compte As New TextBox With {.Left = 205, .Top = 12, .Width = 335, .ReadOnly = Not test, .Text = If(test, SecretGmail.DernierCompte("agumaaa43@gmail.com"), CStr(LectureProprietes.GetVariable("SmtpUsername")))}
             Dim secret As New TextBox With {.Left = 205, .Top = 47, .Width = 335, .UseSystemPasswordChar = True, .PlaceholderText = "Vide pour réutiliser le mot de passe enregistré"}
+            Dim actualiserSecret As Action = Sub()
+                secret.PlaceholderText = If(SecretGmail.EstMemorise(compte.Text), "Déjà mémorisé — laissez vide pour le réutiliser", "Saisissez le mot de passe d’application Gmail")
+            End Sub
+            actualiserSecret()
+            AddHandler compte.TextChanged, Sub() actualiserSecret()
             Dim dateDebut As New DateTimePicker With {.Left = 205, .Top = 82, .Width = 160, .MaxDate = Today, .Format = DateTimePickerFormat.Short}
             Dim filtre As New TextBox With {.Left = 205, .Top = 117, .Width = 335, .Text = EmailProcessor.ExpediteurPhotocopieur}
             Dim aide As New Label With {.Text = "Effacez l’expéditeur pour inclure toutes les adresses.", .Left = 205, .Top = 145, .AutoSize = True}

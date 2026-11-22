@@ -10,6 +10,7 @@ Friend NotInheritable Class FrmSecretMessagerie
     Private ReadOnly limite As New Timer With {.Interval = 15000}
 
     Friend Sub New()
+        compte.Text = SecretGmail.DernierCompte(compte.Text)
         Text = "Secrets de messagerie"
         StartPosition = FormStartPosition.CenterParent
         FormBorderStyle = FormBorderStyle.FixedDialog

@@ -145,7 +145,7 @@ Public Class EmailProcessor
                 client.Connect("imap.gmail.com", 993, True)
                 client.Authenticate(account, password)
                 Try
-                    If Not String.Equals(SecretGmail.Lire(account), password, StringComparison.Ordinal) Then SecretGmail.Enregistrer(account, password)
+                    SecretGmail.Enregistrer(account, password)
                     If Not String.Equals(SecretGmail.Lire(account), password, StringComparison.Ordinal) Then Throw New IO.IOException()
                 Catch ex As Exception
                     Throw New InvalidOperationException("Connexion Gmail réussie, mais le mot de passe n’a pas pu être mémorisé dans votre profil Windows.", ex)

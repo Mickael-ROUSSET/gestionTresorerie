@@ -9,6 +9,18 @@ Friend Module SecretGmail
         Return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(compte.Trim().ToLowerInvariant())))
     End Function
 
+    Friend Function DernierCompte(defaut As String) As String
+        Using key = Registry.CurrentUser.OpenSubKey(Chemin)
+            Return If(TryCast(key?.GetValue("DernierCompte"), String), defaut)
+        End Using
+    End Function
+
+    Friend Function EstMemorise(compte As String) As Boolean
+        Using key = Registry.CurrentUser.OpenSubKey(Chemin)
+            Return TypeOf key?.GetValue(Cle(compte)) Is Byte()
+        End Using
+    End Function
+
     Friend Function Lire(compte As String) As String
         Using key = Registry.CurrentUser.OpenSubKey(Chemin)
             Dim chiffre = TryCast(key?.GetValue(Cle(compte)), Byte())
@@ -28,6 +40,8 @@ Friend Module SecretGmail
             Dim chiffre = ProtectedData.Protect(clair, Nothing, DataProtectionScope.CurrentUser)
             Using key = Registry.CurrentUser.CreateSubKey(Chemin)
                 key.SetValue(Cle(compte), chiffre, RegistryValueKind.Binary)
+                key.SetValue("DernierCompte", compte.Trim(), RegistryValueKind.String)
+                key.Flush()
             End Using
         Finally
             CryptographicOperations.ZeroMemory(clair)

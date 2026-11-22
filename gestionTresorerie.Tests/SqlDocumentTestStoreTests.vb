@@ -104,7 +104,7 @@ Public Class SqlDocumentTestStoreTests
                     verification.Parameters.AddWithValue("@cat", classe.IdCategorie.Value)
                     Assert.AreEqual(1, CInt(verification.ExecuteScalar()))
                 End Using
-                Assert.ThrowsException(Of SqlException)(Sub() ParametresComptables.SupprimerNature(conn, False, classe.IdCategorie.Value))
+                Assert.ThrowsExactly(Of SqlException)(Sub() ParametresComptables.SupprimerNature(conn, False, classe.IdCategorie.Value))
                 Using movement As New SqlCommand("INSERT dbo.Mouvements(categorie,montant,sens,tiers,dateMvt,dateCreation,etat,modifiable) OUTPUT inserted.Id VALUES(0,52.90,0,0,'20260403','20260403',0,1)", conn)
                     cheque.MouvementChoisi = CInt(movement.ExecuteScalar())
                     Assert.AreEqual(chequeId, store.SaveVerified(cheque, Function(delta) ThrowUnexpectedReview()))
