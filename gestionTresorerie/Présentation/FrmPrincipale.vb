@@ -792,6 +792,12 @@ Public Class FrmPrincipale
     End Sub
     ' Parcours TEST hors ligne : aucun compte Gmail, secret ni client IMAP.
     ' La sélection reste en lecture seule jusqu'à la validation explicite dans la revue SQL.
+    Friend Shared Function ListerPiecesFictivesTest(dossier As String) As String()
+        If String.IsNullOrWhiteSpace(dossier) Then Throw New ArgumentException("Dossier TEST absent.", NameOf(dossier))
+        Return System.IO.Directory.EnumerateFiles(dossier, "*", System.IO.SearchOption.TopDirectoryOnly).
+            Where(AddressOf DocumentFilePreview.Supports).OrderBy(Function(p) p, StringComparer.OrdinalIgnoreCase).ToArray()
+    End Function
+
     Private Sub RevoirPiecesFictivesTest(sender As Object, e As EventArgs)
         If Not _isolatedSqlTest OrElse _modeDemonstration OrElse
             EnvironmentManager.CurrentEnvironment <> EnvironmentManager.EnvironnementType.TEST Then Return
@@ -801,8 +807,7 @@ Public Class FrmPrincipale
             .ShowNewFolderButton = False}
             If picker.ShowDialog(Me) <> DialogResult.OK Then Return
             Try
-                Dim fichiers = System.IO.Directory.EnumerateFiles(picker.SelectedPath).
-                    Where(AddressOf DocumentFilePreview.Supports).ToArray()
+                Dim fichiers = ListerPiecesFictivesTest(picker.SelectedPath)
                 If fichiers.Length = 0 Then
                     MessageBox.Show(Me, "Aucun PDF ou scan compatible dans ce dossier.",
                                     "Revue fictive — TEST", MessageBoxButtons.OK, MessageBoxIcon.Information)
