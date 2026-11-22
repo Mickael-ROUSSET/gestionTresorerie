@@ -54,6 +54,23 @@ Public Class GmailSimulatedInboxTests
         End Try
     End Sub
 
+    <TestMethod>
+    Public Sub SortieDansLeDossierSource_RefuseeSansModifierLesMessages()
+        Dim root = Path.Combine(Path.GetTempPath(), "gmail-eml-isolation-" & Guid.NewGuid().ToString("N"))
+        Directory.CreateDirectory(root)
+        Try
+            Dim source = Path.Combine(root, "source.eml")
+            CreerMessage(source, "fictif@example.invalid", New DateTime(2026, 11, 20), "piece.pdf")
+            Dim before = File.ReadAllBytes(source)
+            Assert.ThrowsException(Of ArgumentException)(
+                Sub() GmailSimulatedInbox.Extract(root, Path.Combine(root, "extraction"), Date.MinValue))
+            CollectionAssert.AreEqual(before, File.ReadAllBytes(source))
+            Assert.IsFalse(Directory.Exists(Path.Combine(root, "extraction")))
+        Finally
+            If Directory.Exists(root) Then Directory.Delete(root, True)
+        End Try
+    End Sub
+
     Private Shared Sub CreerMessage(path As String, sender As String, sent As DateTime, filename As String)
         Using message As New MimeMessage()
             message.From.Add(New MailboxAddress("Fictif", sender))
