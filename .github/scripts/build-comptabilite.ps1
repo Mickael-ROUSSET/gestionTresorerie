@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path "$PSScriptRoot/../..").Path
 $exe = @(Get-ChildItem "$root/gestionTresorerie/bin" -Recurse -Filter gestionTresorerie.exe |
-    Where-Object { $_.FullName -match '[\\/]Release[\\/]net8\.0-windows[\\/]gestionTresorerie\.exe$' })
+    Where-Object { $_.FullName -match '[\\/]Release[\\/]net8\.0-windows10\.0\.19041\.0[\\/]gestionTresorerie\.exe$' })
 if ($exe.Count -ne 1) { throw 'Binaire Release absent ou ambigu.' }
 $source = $exe[0].DirectoryName
 $stage = New-Item -Type Directory "$root/artifacts/payload-comptabilite"
