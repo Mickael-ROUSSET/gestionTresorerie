@@ -71,6 +71,34 @@ Public Class GmailSimulatedInboxTests
         End Try
     End Sub
 
+    <TestMethod>
+    Public Sub PieceImpossibleAStocker_PoursuitLeLotEtSignaleLeMessage()
+        Dim root = Directory.CreateTempSubdirectory("gmail-eml-stockage-").FullName
+        Try
+            Dim inbox = Path.Combine(root, "entree")
+            Dim output = Path.Combine(root, "sortie")
+            Directory.CreateDirectory(inbox)
+            Directory.CreateDirectory(output)
+            ' Un répertoire portant le nom du fichier empêche File.Move sans écraser quoi que ce soit.
+            Directory.CreateDirectory(Path.Combine(output, "bloque.pdf"))
+            CreerMessage(Path.Combine(inbox, "a-bloque.eml"), "fictif@example.invalid",
+                         New DateTime(2026, 11, 20), "bloque.pdf")
+            CreerMessage(Path.Combine(inbox, "b-valide.eml"), "fictif@example.invalid",
+                         New DateTime(2026, 11, 20), "valide.pdf")
+            Dim rejected As New List(Of String)()
+            Dim files = GmailSimulatedInbox.Extract(inbox, output, Date.MinValue,
+                                                    rejectedMessages:=rejected)
+            Assert.AreEqual(1, files.Count, "La seconde pièce doit être conservée.")
+            Assert.AreEqual("valide.pdf", Path.GetFileName(files(0)))
+            CollectionAssert.AreEqual(New String() {"a-bloque.eml"}, rejected)
+            Assert.IsTrue(Directory.Exists(Path.Combine(output, "bloque.pdf")))
+            Assert.AreEqual(0, Directory.GetFiles(output, "*.tmp").Length)
+            Assert.AreEqual(2, Directory.GetFiles(inbox, "*.eml").Length)
+        Finally
+            If Directory.Exists(root) Then Directory.Delete(root, True)
+        End Try
+    End Sub
+
     Private Shared Sub CreerMessage(path As String, sender As String, sent As DateTime, filename As String)
         Using message As New MimeMessage()
             message.From.Add(New MailboxAddress("Fictif", sender))

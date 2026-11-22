@@ -61,6 +61,15 @@ Friend NotInheritable Class GmailSimulatedInbox
                         If New FileInfo(temporary).Length = 0 Then Continue For
                         Dim stored = AttachmentStorage.StoreTemporaryFile(temporary, Path.Combine(targetRoot, safeName))
                         If stored IsNot Nothing Then saved.Add(stored)
+                    Catch ex As Exception When TypeOf ex Is IOException OrElse
+                                               TypeOf ex Is UnauthorizedAccessException OrElse
+                                               TypeOf ex Is FormatException OrElse
+                                               TypeOf ex Is MimeKit.ParseException
+                        ' Une pièce jointe illisible ne doit pas empêcher le traitement des suivantes.
+                        If rejectedMessages IsNot Nothing AndAlso
+                           Not rejectedMessages.Contains(Path.GetFileName(emlPath)) Then
+                            rejectedMessages.Add(Path.GetFileName(emlPath))
+                        End If
                     Finally
                         If File.Exists(temporary) Then File.Delete(temporary)
                     End Try
