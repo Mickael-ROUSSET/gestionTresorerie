@@ -79,6 +79,33 @@ Public Class RevuePiecesFictivesHorsLigneTests
     End Sub
 
     <TestMethod>
+    Public Sub RevueLot_AfficheLaPositionEtLaMetAJourApresNavigation()
+        Dim erreur As Exception = Nothing
+        Dim thread As New System.Threading.Thread(
+            Sub()
+                Try
+                    Using fenetre As New FrmDocumentFilePreview(New String() {"fictif-a.txt", "fictif-b.txt"})
+                        Dim position = fenetre.Controls.Find("PositionPieceTest", True).
+                            OfType(Of System.Windows.Forms.Label)().Single()
+                        Dim suivant = fenetre.Controls.Find("PieceSuivanteTest", True).
+                            OfType(Of System.Windows.Forms.Button)().Single()
+                        Assert.AreEqual("Pièce 1/2", position.Text)
+                        suivant.PerformClick()
+                        Assert.AreEqual("Pièce 2/2", position.Text)
+                        suivant.PerformClick()
+                        Assert.AreEqual("Pièce 1/2", position.Text)
+                    End Using
+                Catch ex As Exception
+                    erreur = ex
+                End Try
+            End Sub)
+        thread.SetApartmentState(System.Threading.ApartmentState.STA)
+        thread.Start()
+        Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(15)), "La navigation ne doit pas bloquer.")
+        If erreur IsNot Nothing Then Throw erreur
+    End Sub
+
+    <TestMethod>
     Public Sub SelectionHorsLigne_RefuseUnDossierAbsent()
         Assert.ThrowsExactly(Of ArgumentException)(Function() FrmPrincipale.ListerPiecesFictivesTest(""))
     End Sub

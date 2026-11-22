@@ -21,6 +21,7 @@ Public NotInheritable Class FrmDocumentFilePreview
     Private ReadOnly _analyse As New Button With {
         .Text = "Analyser le document…", .AutoSize = True, .Anchor = AnchorStyles.Left}
     Private ReadOnly _nextDocument As New Button With {.Name = "PieceSuivanteTest", .Text = "Pièce suivante", .AutoSize = True}
+    Private ReadOnly _position As New Label With {.Name = "PositionPieceTest", .AutoSize = True, .Margin = New Padding(8, 7, 3, 0)}
     Private ReadOnly _pageNumber As New NumericUpDown With {.Minimum = 1, .Width = 72, .Visible = False}
     Private ReadOnly _pageCount As New Label With {.AutoSize = True, .Visible = False, .Margin = New Padding(3, 7, 3, 0)}
     Private ReadOnly _pathTip As New ToolTip()
@@ -67,7 +68,7 @@ Public NotInheritable Class FrmDocumentFilePreview
         columns.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
         columns.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         Dim commands As New FlowLayoutPanel With {.Dock = DockStyle.Fill, .AutoSize = True}
-        commands.Controls.AddRange(New Control() {_analyse, _nextDocument, _pageNumber, _pageCount})
+        commands.Controls.AddRange(New Control() {_analyse, _nextDocument, _position, _pageNumber, _pageCount})
         columns.Controls.Add(commands, 0, 2)
         columns.SetColumnSpan(commands, 2)
         AddHandler _analyse.Click, AddressOf AnalyseSelection
@@ -81,6 +82,7 @@ Public NotInheritable Class FrmDocumentFilePreview
         AddHandler _files.SelectedIndexChanged, AddressOf LoadSelection
         If _files.Items.Count > 0 Then _files.SelectedIndex = 0
         _nextDocument.Enabled = _files.Items.Count > 1
+        UpdateDocumentPosition()
     End Sub
 
     Public Shared Sub OpenFiles(owner As IWin32Window, Optional testWorkspace As OfflineTestWorkspace = Nothing,
@@ -366,7 +368,14 @@ Public NotInheritable Class FrmDocumentFilePreview
         If _pending Then e.Cancel = True
     End Sub
 
+    Private Sub UpdateDocumentPosition()
+        Dim total = _files.Items.Count
+        Dim selected = If(_files.SelectedIndex < 0, 0, _files.SelectedIndex + 1)
+        _position.Text = $"Pièce {selected}/{total}"
+    End Sub
+
     Private Sub LoadSelection(sender As Object, e As EventArgs)
+        UpdateDocumentPosition()
         ClearImage()
         _pdfSource = Nothing
         _pageNumber.Visible = False
