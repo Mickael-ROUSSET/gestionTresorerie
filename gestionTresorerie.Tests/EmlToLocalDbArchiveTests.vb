@@ -16,6 +16,71 @@ Imports MimeKit
 ''' </summary>
 <TestClass>
 Public Class EmlToLocalDbArchiveTests
+    ''' <summary>
+    ''' Construit un PDF 1.4 minimal avec offsets xref exacts pour tester la prévisualisation.
+    ''' Aucune donnée comptable réelle ni dépendance externe.
+    ''' </summary>
+    Private Shared Function BuildValidFictitiousPdf() As Byte()
+        Dim objects As String() = {
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 200] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+            "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+            "<< /Length 48 >>" & vbLf & "stream" & vbLf &
+                "BT /F1 14 Tf 25 100 Td (DOCUMENT TEST) Tj ET" & vbLf &
+                "endstream"
+        }
+        ' La longueur du flux est calculée, jamais codée en dur.
+        Dim contentStream = "BT /F1 14 Tf 25 100 Td (DOCUMENT TEST) Tj ET" & vbLf
+        objects(4) = "<< /Length " & Encoding.ASCII.GetByteCount(contentStream).ToString(Globalization.CultureInfo.InvariantCulture) &
+                     " >>" & vbLf & "stream" & vbLf & contentStream & "endstream"
+        Using output As New MemoryStream()
+            Dim writeAscii As Action(Of String) =
+                Sub(value As String)
+                    Dim bytes = Encoding.ASCII.GetBytes(value)
+                    output.Write(bytes, 0, bytes.Length)
+                End Sub
+            writeAscii("%PDF-1.4" & vbLf)
+            Dim offsets As New List(Of Long) From {0}
+            For i = 0 To objects.Length - 1
+                offsets.Add(output.Position)
+                writeAscii((i + 1).ToString(Globalization.CultureInfo.InvariantCulture) &
+                           " 0 obj" & vbLf & objects(i) & vbLf & "endobj" & vbLf)
+            Next
+            Dim xrefPosition = output.Position
+            writeAscii("xref" & vbLf & "0 " & offsets.Count.ToString(Globalization.CultureInfo.InvariantCulture) &
+                       vbLf & "0000000000 65535 f " & vbLf)
+            For i = 1 To offsets.Count - 1
+                writeAscii(offsets(i).ToString("D10", Globalization.CultureInfo.InvariantCulture) &
+                           " 00000 n " & vbLf)
+            Next
+            writeAscii("trailer" & vbLf & "<< /Size " &
+                       offsets.Count.ToString(Globalization.CultureInfo.InvariantCulture) &
+                       " /Root 1 0 R >>" & vbLf & "startxref" & vbLf &
+                       xrefPosition.ToString(Globalization.CultureInfo.InvariantCulture) &
+                       vbLf & "%%EOF" & vbLf)
+            Return output.ToArray()
+        End Using
+    End Function
+
+    <TestMethod>
+    Public Sub PdfFictif_ContientUnXrefEtUneFinValides()
+        Dim pdf = BuildValidFictitiousPdf()
+        Dim content = Encoding.ASCII.GetString(pdf)
+        StringAssert.StartsWith(content, "%PDF-1.4")
+        StringAssert.Contains(content, "DOCUMENT TEST")
+        Dim marker = "startxref" & vbLf
+        Dim markerAt = content.LastIndexOf(marker, StringComparison.Ordinal)
+        Assert.IsTrue(markerAt > 0)
+        Dim start = markerAt + marker.Length
+        Dim finish = content.IndexOf(vbLf, start, StringComparison.Ordinal)
+        Dim offset = Integer.Parse(content.Substring(start, finish - start),
+                                   Globalization.CultureInfo.InvariantCulture)
+        Assert.IsTrue(offset > 0 AndAlso offset < pdf.Length)
+        StringAssert.StartsWith(content.Substring(offset), "xref" & vbLf)
+        Assert.IsTrue(content.TrimEnd().EndsWith("%%EOF", StringComparison.Ordinal))
+    End Sub
+
     <TestMethod, TestCategory("LocalDbIntegration")>
     Public Sub EmlFictif_ExtractionPuisValidationExplicite_CreeUneSeuleLigneEtArchive()
         If Environment.GetEnvironmentVariable("AGUMAAA_RUN_LOCALDB_INTEGRATION") <> "1" Then
@@ -35,7 +100,7 @@ Public Class EmlToLocalDbArchiveTests
                 message.Date = New DateTimeOffset(2026, 11, 20, 10, 0, 0, TimeSpan.Zero)
                 message.Subject = "Facture fictive"
                 Dim builder As New BodyBuilder With {.TextBody = "TEST sans Gmail"}
-                builder.Attachments.Add("facture-test.pdf", Encoding.UTF8.GetBytes("%PDF-1.4" & vbLf & "FICTIF"),
+                builder.Attachments.Add("facture-test.pdf", BuildValidFictitiousPdf(),
                                         ContentType.Parse("application/pdf"))
                 message.Body = builder.ToMessageBody()
                 Using stream = File.Create(eml)
