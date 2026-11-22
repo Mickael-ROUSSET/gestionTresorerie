@@ -795,7 +795,8 @@ Public Class FrmPrincipale
     Friend Shared Function ListerPiecesFictivesTest(dossier As String) As String()
         If String.IsNullOrWhiteSpace(dossier) Then Throw New ArgumentException("Dossier TEST absent.", NameOf(dossier))
         Return System.IO.Directory.EnumerateFiles(dossier, "*", System.IO.SearchOption.TopDirectoryOnly).
-            Where(AddressOf DocumentFilePreview.Supports).OrderBy(Function(p) p, StringComparer.OrdinalIgnoreCase).ToArray()
+            Where(Function(p) DocumentFilePreview.Supports(p) AndAlso New System.IO.FileInfo(p).Length > 0).
+            OrderBy(Function(p) p, StringComparer.OrdinalIgnoreCase).ToArray()
     End Function
 
     Private Sub RevoirPiecesFictivesTest(sender As Object, e As EventArgs)
