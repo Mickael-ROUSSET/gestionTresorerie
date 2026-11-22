@@ -52,6 +52,7 @@ Friend NotInheritable Class FrmParametresComptables
         Controls.Add(secrets)
 #End If
         Controls.Add(onglets)
+        AjouterOngletNatures()
         onglets.SendToBack()
         Controls.Add(bandeau)
         AddHandler ajouter.Click, Sub() Enregistrer()
@@ -72,7 +73,7 @@ Friend NotInheritable Class FrmParametresComptables
 
     Private Sub AfficherRubrique()
         Dim page = onglets.SelectedTab
-        If page Is Nothing Then Return
+        If page Is Nothing OrElse onglets.SelectedIndex = 3 Then Return
         idEdition = Nothing
         ajouter.Text = "Ajouter"
         page.Controls.Add(contenu)
@@ -116,6 +117,42 @@ Friend NotInheritable Class FrmParametresComptables
         fin.Checked = Not IsDBNull(ligne("Fin"))
         ajouter.Text = "Enregistrer les modifications"
         statut.Text = "Modification de la ligne n° " & idEdition.Value
+    End Sub
+
+    Private Sub AjouterOngletNatures()
+        Dim page As New TabPage("Catégories et sous-catégories")
+        onglets.TabPages.Add(page)
+        Dim liste As New DataGridView With {.Dock = DockStyle.Fill, .ReadOnly = True, .AllowUserToAddRows = False,
+            .SelectionMode = DataGridViewSelectionMode.FullRowSelect, .MultiSelect = False, .AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill}
+        Dim actions As New FlowLayoutPanel With {.Dock = DockStyle.Bottom, .AutoSize = True}
+        For Each enfant In {False, True}
+            Dim sous = enfant
+            Dim bouton As New Button With {.Text = If(sous, "Supprimer la sous-catégorie", "Supprimer la catégorie"), .AutoSize = True}
+            AddHandler bouton.Click, Sub()
+                Dim ligne = TryCast(liste.CurrentRow?.DataBoundItem, Data.DataRowView)
+                If ligne Is Nothing OrElse IsDBNull(ligne(If(sous, "sousCat", "cat"))) Then Return
+                Dim nom = CStr(ligne(If(sous, "sousCategorie", "categorie")))
+                If MessageBox.Show(Me, "Supprimer « " & nom & " » dans " & connexion.Database & " ?", bouton.Text,
+                                   MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then Return
+                Try
+                    ParametresComptables.SupprimerNature(connexion, sous, CInt(ligne(If(sous, "sousCat", "cat"))))
+                    liste.DataSource = ParametresComptables.LireNatures(connexion)
+                Catch ex As Exception
+                    MessageBox.Show(Me, ex.Message, bouton.Text)
+                End Try
+            End Sub
+            actions.Controls.Add(bouton)
+        Next
+        page.Controls.Add(liste)
+        page.Controls.Add(actions)
+        AddHandler onglets.SelectedIndexChanged, Sub()
+            If onglets.SelectedTab IsNot page Then Return
+            Try
+                liste.DataSource = ParametresComptables.LireNatures(connexion)
+            Catch ex As Exception
+                MessageBox.Show(Me, ex.Message, "Lecture des catégories")
+            End Try
+        End Sub
     End Sub
 
     Private Sub Enregistrer()

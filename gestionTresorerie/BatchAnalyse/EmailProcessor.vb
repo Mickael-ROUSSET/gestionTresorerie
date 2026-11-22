@@ -144,7 +144,12 @@ Public Class EmailProcessor
                 If String.IsNullOrWhiteSpace(password) Then Throw New ArgumentException("Renseignez le mot de passe d’application Gmail.")
                 client.Connect("imap.gmail.com", 993, True)
                 client.Authenticate(account, password)
-                If Not String.IsNullOrWhiteSpace(passwordTest) Then SecretGmail.Enregistrer(account, passwordTest)
+                Try
+                    If Not String.Equals(SecretGmail.Lire(account), password, StringComparison.Ordinal) Then SecretGmail.Enregistrer(account, password)
+                    If Not String.Equals(SecretGmail.Lire(account), password, StringComparison.Ordinal) Then Throw New IO.IOException()
+                Catch ex As Exception
+                    Throw New InvalidOperationException("Connexion Gmail réussie, mais le mot de passe n’a pas pu être mémorisé dans votre profil Windows.", ex)
+                End Try
                 Dim inbox = client.Inbox
                 inbox.Open(FolderAccess.ReadOnly)
 
@@ -175,7 +180,7 @@ Public Class EmailProcessor
                 Throw New InvalidOperationException(RefusGmail)
             Catch ex As Exception
                 LogAndReportError(ex.Message)
-                If testFolder IsNot Nothing Then Throw
+                If testFolder IsNot Nothing OrElse savedFiles IsNot Nothing Then Throw
             Finally
                 SaveFinalReport(testFolder IsNot Nothing)
             End Try

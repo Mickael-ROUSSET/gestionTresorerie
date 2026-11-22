@@ -8,6 +8,11 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 <TestClass>
 Public Class DocumentArchiveProposalTests
     <TestMethod>
+    Public Sub NomCheque_UtiliseActiviteNumeroEtTiers()
+        Assert.AreEqual("CHQ_Gym_0012345_Anne_Exemple.pdf", DocumentArchiveProposal.NomCheque("24 0012345 D", "Revenus de la gymnastique", "Anne Exemple", ".pdf"))
+    End Sub
+
+    <TestMethod>
     Public Sub PropositionFacture_CopieEtReferenceSeulementApresConfirmation()
         Dim root = Directory.CreateTempSubdirectory().FullName
         Try
