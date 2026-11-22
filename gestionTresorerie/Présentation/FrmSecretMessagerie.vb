@@ -5,7 +5,7 @@ Imports Global.Windows.Security.Credentials.UI
 Friend NotInheritable Class FrmSecretMessagerie
     Inherits Form
     Private ReadOnly compte As New TextBox With {.Width = 345, .Text = "agumaaa43@gmail.com"}
-    Private ReadOnly consulter As New Button With {.Text = "Afficher avec Windows Hello…", .AutoSize = True}
+    Private ReadOnly consulter As New Button With {.Text = "Afficher après vérification…", .AutoSize = True}
     Private ReadOnly valeur As New Label With {.AutoSize = True}
     Private ReadOnly limite As New Timer With {.Interval = 15000}
 
@@ -39,22 +39,31 @@ Friend NotInheritable Class FrmSecretMessagerie
         consulter.Enabled = False
         compte.Enabled = False
         Try
-            Dim resultat = Await UserConsentVerifierInterop.RequestVerificationForWindowAsync(Handle,
-                "Afficher le mot de passe d’application Gmail pour " & adresse).AsTask()
+            Dim verifie As Boolean
+            If OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000) AndAlso
+                Await UserConsentVerifier.CheckAvailabilityAsync().AsTask() = UserConsentVerifierAvailability.Available Then
+                Dim resultat = Await UserConsentVerifierInterop.RequestVerificationForWindowAsync(Handle,
+                    "Afficher le mot de passe d’application Gmail pour " & adresse).AsTask()
+                verifie = resultat = UserConsentVerificationResult.Verified
+            Else
+                verifie = VerificationSession.Confirmer(Handle)
+            End If
             If IsDisposed OrElse Disposing Then Return
-            If resultat <> UserConsentVerificationResult.Verified Then
-                valeur.Text = "Identité non vérifiée. Vérifiez votre configuration Windows Hello."
+            If Not verifie Then
+                valeur.Text = "Identité Windows non vérifiée."
                 Return
             End If
             Dim secret = SecretGmail.Lire(adresse)
             If String.IsNullOrEmpty(secret) Then
                 valeur.Text = "Aucun mot de passe mémorisé pour ce compte."
-            ElseIf Form.ActiveForm Is Me Then
+            ElseIf ContainsFocus OrElse Form.ActiveForm Is Me Then
                 valeur.Text = secret
                 limite.Start()
+            Else
+                valeur.Text = "Revenez dans cette fenêtre puis cliquez sur Afficher."
             End If
         Catch ex As Exception
-            If Not IsDisposed Then valeur.Text = "Consultation indisponible. Vérifiez Windows Hello sur ce PC."
+            If Not IsDisposed Then valeur.Text = "Consultation indisponible. Vérifiez les options de connexion Windows."
         Finally
             If Not IsDisposed Then
                 consulter.Enabled = True
