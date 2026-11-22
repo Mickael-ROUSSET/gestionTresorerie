@@ -407,7 +407,7 @@ Public Class FrmPrincipale
                     "TEST SQL — Analyse > Espace TEST SQL pour initialiser la base et traiter des documents."
                 switchEnvironment.Enabled = True
                 Dim gmail As New ToolStripMenuItem("Extraire les pièces jointes Gmail…") With {.Name = "ExtraireGmailTest"}
-                AddHandler gmail.Click, AddressOf ExtraireGmailTest
+                AddHandler gmail.Click, AddressOf ExtraireGmail
                 AnalyseToolStripMenuItem.DropDownItems.Add(gmail)
                 Return
             End If
@@ -773,31 +773,21 @@ Public Class FrmPrincipale
 
     End Sub
 
-    Private Sub RécupDesPJReçuesParMailToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RécupDesPJReçuesParMailToolStripMenuItem.Click
-        If _modeDemonstration OrElse EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST Then Return
-
-        Dim fichiers = EmailProcessor.DownloadAttachments(requestStartDate:=AddressOf DemanderDateInitialeGmail).
-            Where(AddressOf DocumentFilePreview.Supports).ToArray()
-        If fichiers.Length = 0 Then
-            MessageBox.Show(Me, "Aucun nouveau PDF ou scan à examiner. Consultez le rapport d'import Gmail pour le détail.",
-                            "Téléchargement Gmail", MessageBoxButtons.OK, MessageBoxIcon.Information)
-            Return
-        End If
-        Using formulaire As New FrmDocumentFilePreview(fichiers)
-            formulaire.ShowDialog(Me)
-        End Using
-    End Sub
-    Private Async Sub ExtraireGmailTest(sender As Object, e As EventArgs)
-        If Not _isolatedSqlTest OrElse _modeDemonstration Then Return
-        Using dialogue As New Form With {.Text = "Extraire les pièces jointes Gmail — TEST", .ClientSize = New Drawing.Size(520, 185),
+    Private Async Sub ExtraireGmail(sender As Object, e As EventArgs) Handles RécupDesPJReçuesParMailToolStripMenuItem.Click
+        If _modeDemonstration Then Return
+        Dim test = _isolatedSqlTest
+        Using dialogue As New Form With {.Text = "Extraire les pièces jointes Gmail — " & If(test, "TEST", EnvironmentManager.GetEnvironmentLabel()), .ClientSize = New Drawing.Size(565, 235),
             .StartPosition = FormStartPosition.CenterParent, .FormBorderStyle = FormBorderStyle.FixedDialog}
-            Dim compte As New TextBox With {.Left = 205, .Top = 12, .Width = 300, .Text = "agumaaa43@gmail.com"}
-            Dim secret As New TextBox With {.Left = 205, .Top = 47, .Width = 300, .UseSystemPasswordChar = True}
+            Dim compte As New TextBox With {.Left = 205, .Top = 12, .Width = 335, .ReadOnly = Not test, .Text = If(test, "agumaaa43@gmail.com", CStr(LectureProprietes.GetVariable("SmtpUsername")))}
+            Dim secret As New TextBox With {.Left = 205, .Top = 47, .Width = 335, .UseSystemPasswordChar = True, .PlaceholderText = "Vide pour réutiliser le mot de passe enregistré"}
             Dim dateDebut As New DateTimePicker With {.Left = 205, .Top = 82, .Width = 160, .MaxDate = Today, .Format = DateTimePickerFormat.Short}
-            Dim lancer As New Button With {.Text = "Extraire", .Left = 405, .Top = 140, .DialogResult = DialogResult.OK}
+            Dim filtre As New TextBox With {.Left = 205, .Top = 117, .Width = 335, .Text = EmailProcessor.ExpediteurPhotocopieur}
+            Dim aide As New Label With {.Text = "Effacez l’expéditeur pour inclure toutes les adresses.", .Left = 205, .Top = 145, .AutoSize = True}
+            Dim lancer As New Button With {.Text = "Extraire", .Left = 450, .Top = 187, .DialogResult = DialogResult.OK}
             dialogue.Controls.AddRange(New Control() {New Label With {.Text = "Compte Gmail", .Left = 10, .Top = 15, .AutoSize = True}, compte,
                 New Label With {.Text = "Mot de passe d’application", .Left = 10, .Top = 50, .AutoSize = True}, secret,
-                New Label With {.Text = "Messages reçus depuis le", .Left = 10, .Top = 85, .AutoSize = True}, dateDebut, lancer})
+                New Label With {.Text = "Messages reçus depuis le", .Left = 10, .Top = 85, .AutoSize = True}, dateDebut,
+                New Label With {.Text = "Expéditeur", .Left = 10, .Top = 120, .AutoSize = True}, filtre, aide, lancer})
             dialogue.AcceptButton = lancer
             If dialogue.ShowDialog(Me) <> DialogResult.OK Then Return
             Dim account = compte.Text.Trim(), password = secret.Text.Replace(" ", ""), since = dateDebut.Value.Date
@@ -805,19 +795,23 @@ Public Class FrmPrincipale
             Dim action = DirectCast(sender, ToolStripMenuItem)
             action.Enabled = False
             Try
-                Dim destination As String = EmailProcessor.DossierGmailTest(account)
-                Dim fichiers = Await Task.Run(Function() EmailProcessor.ExtraireEnTest(account, password, since, destination))
+                Dim expediteur = EmailProcessor.NormaliserExpediteur(filtre.Text)
+                Dim destination = If(test, EmailProcessor.DossierGmailTest(account), "")
+                Dim fichiers = Await Task.Run(Function()
+                    If test Then Return EmailProcessor.ExtraireEnTest(account, password, since, destination, expediteur)
+                    Return EmailProcessor.DownloadAttachments(initialImportCutoff:=since, expediteur:=expediteur, nouveauSecret:=password)
+                End Function)
                 If IsDisposed Then Return
-                MessageBox.Show(Me, fichiers.Count & " nouvelle(s) pièce(s) enregistrée(s) dans " & destination &
-                    Environment.NewLine & "Détail : Dernier_Rapport_Agumaaa.txt", "Extraction Gmail — TEST")
+                MessageBox.Show(Me, fichiers.Count & " nouvelle(s) pièce(s) enregistrée(s)" & If(test, " dans " & destination, "") &
+                    Environment.NewLine & "Détail : Dernier_Rapport_Agumaaa.txt", "Extraction Gmail")
                 Dim documents = fichiers.Where(AddressOf DocumentFilePreview.Supports).ToArray()
                 If documents.Length > 0 Then
-                    Using revue As New FrmDocumentFilePreview(documents, CreateSqlTestWorkspace(), New SqlDocumentTestStore(), initializeSqlTestOnSave:=True)
+                    Using revue = If(test, New FrmDocumentFilePreview(documents, CreateSqlTestWorkspace(), New SqlDocumentTestStore(), initializeSqlTestOnSave:=True), New FrmDocumentFilePreview(documents))
                         revue.ShowDialog(Me)
                     End Using
                 End If
             Catch ex As Exception
-                If Not IsDisposed Then MessageBox.Show(Me, ex.Message, "Extraction Gmail — TEST", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                If Not IsDisposed Then MessageBox.Show(Me, ex.Message, "Extraction Gmail", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Finally
                 password = Nothing
                 If Not IsDisposed Then action.Enabled = True
