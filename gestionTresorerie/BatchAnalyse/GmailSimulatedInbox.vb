@@ -24,9 +24,9 @@ Friend NotInheritable Class GmailSimulatedInbox
         sender = EmailProcessor.NormaliserExpediteur(sender)
         Directory.CreateDirectory(targetRoot)
         Dim saved As New List(Of String)
-        For Each path In Directory.EnumerateFiles(sourceRoot, "*.eml", SearchOption.TopDirectoryOnly).OrderBy(Function(p) p, StringComparer.OrdinalIgnoreCase)
-            If (File.GetAttributes(path) And FileAttributes.ReparsePoint) <> 0 Then Continue For
-            Using message = MimeMessage.Load(path)
+        For Each emlPath In Directory.EnumerateFiles(sourceRoot, "*.eml", SearchOption.TopDirectoryOnly).OrderBy(Function(p) p, StringComparer.OrdinalIgnoreCase)
+            If (File.GetAttributes(emlPath) And FileAttributes.ReparsePoint) <> 0 Then Continue For
+            Using message = MimeMessage.Load(emlPath)
                 If message.Date.Date < since.Date OrElse Not EmailProcessor.ExpediteurAccepte(message, sender) Then Continue For
                 For Each part In message.Attachments.OfType(Of MimePart)()
                     Dim rawName = If(part.FileName, "")
