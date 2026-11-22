@@ -19,6 +19,15 @@ Public Class RevuePiecesFictivesHorsLigneTests
             File.WriteAllText(Path.Combine(racine, "notes.txt"), "texte fictif")
             File.WriteAllBytes(Path.Combine(racine, "scan-vide.pdf"), Array.Empty(Of Byte)())
             File.WriteAllText(Path.Combine(enfant, "autre.pdf"), "PDF fictif")
+            Dim lien = Path.Combine(racine, "lien-externe.pdf")
+            Dim cible = Path.Combine(enfant, "autre.pdf")
+            Try
+                File.CreateSymbolicLink(lien, cible)
+            Catch ex As UnauthorizedAccessException
+                Assert.Inconclusive("Création de liens symboliques non autorisée sur cet agent Windows.")
+            Catch ex As IOException
+                Assert.Inconclusive("Création de liens symboliques indisponible sur cet agent Windows.")
+            End Try
             Dim fichiers = FrmPrincipale.ListerPiecesFictivesTest(racine)
             Assert.AreEqual(1, fichiers.Length)
             Assert.AreEqual("facture.pdf", Path.GetFileName(fichiers(0)))
