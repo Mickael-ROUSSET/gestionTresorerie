@@ -26,7 +26,13 @@ Friend NotInheritable Class GmailSimulatedInbox
         Directory.CreateDirectory(targetRoot)
         Dim saved As New List(Of String)
         For Each emlPath In Directory.EnumerateFiles(sourceRoot, "*.eml", SearchOption.TopDirectoryOnly).OrderBy(Function(p) p, StringComparer.OrdinalIgnoreCase)
-            If (File.GetAttributes(emlPath) And FileAttributes.ReparsePoint) <> 0 Then Continue For
+            ' Un fichier disparu ou inaccessible pendant l'énumération ne doit pas interrompre le lot.
+            Try
+                If (File.GetAttributes(emlPath) And FileAttributes.ReparsePoint) <> 0 Then Continue For
+            Catch ex As Exception When TypeOf ex Is IOException OrElse TypeOf ex Is UnauthorizedAccessException
+                If rejectedMessages IsNot Nothing Then rejectedMessages.Add(Path.GetFileName(emlPath))
+                Continue For
+            End Try
             Dim message As MimeMessage = Nothing
             Try
                 message = MimeMessage.Load(emlPath)
