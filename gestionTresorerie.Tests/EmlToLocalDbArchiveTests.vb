@@ -81,6 +81,44 @@ Public Class EmlToLocalDbArchiveTests
         Assert.IsTrue(content.TrimEnd().EndsWith("%%EOF", StringComparison.Ordinal))
     End Sub
 
+    <TestMethod>
+    Public Sub EmlFictif_ExtraitUnPdfValideSansArchiveNiBaseSql()
+        Dim root = Directory.CreateTempSubdirectory("eml-extraction-test-").FullName
+        Try
+            Dim inbox = Path.Combine(root, "inbox")
+            Dim extracted = Path.Combine(root, "extracted")
+            Dim archive = Path.Combine(root, "archive-test")
+            Directory.CreateDirectory(inbox)
+            Dim eml = Path.Combine(inbox, "facture-fictive.eml")
+            Dim pdf = BuildValidFictitiousPdf()
+            Using message As New MimeMessage()
+                message.From.Add(New MailboxAddress("Simulation", "simulation@example.invalid"))
+                message.To.Add(New MailboxAddress("TEST", "test@example.invalid"))
+                message.Date = New DateTimeOffset(2026, 11, 20, 10, 0, 0, TimeSpan.Zero)
+                message.Subject = "Document fictif"
+                Dim builder As New BodyBuilder With {.TextBody = "Simulation hors ligne"}
+                builder.Attachments.Add("facture-test.pdf", pdf, ContentType.Parse("application/pdf"))
+                message.Body = builder.ToMessageBody()
+                Using stream = File.Create(eml)
+                    message.WriteTo(stream)
+                End Using
+            End Using
+            Dim original = File.ReadAllBytes(eml)
+            Dim files = GmailSimulatedInbox.Extract(inbox, extracted, New DateTime(2026, 11, 1),
+                                                    "simulation@example.invalid")
+            Assert.AreEqual(1, files.Count)
+            CollectionAssert.AreEqual(pdf, File.ReadAllBytes(files(0)))
+            Dim json = "{""type_document"":""Facture"",""donnees_extraites"":{""identite"":{""fournisseur_nom"":""Fictif""},""transaction"":{""montant_ttc"":""42.50"",""date_facture"":""2026-11-20"",""numero_facture"":""TEST-001""}}}"
+            Dim proposition = DocumentArchiveProposal.PrepareTest(
+                files(0), DocumentArchiveProposal.HashSource(files(0)), json, archive, Nothing)
+            Assert.IsFalse(File.Exists(proposition.Destination), "L'extraction ne doit pas archiver.")
+            Assert.IsFalse(Directory.Exists(archive), "Aucun répertoire d'archive avant validation.")
+            CollectionAssert.AreEqual(original, File.ReadAllBytes(eml), "Le message source doit rester intact.")
+        Finally
+            If Directory.Exists(root) Then Directory.Delete(root, True)
+        End Try
+    End Sub
+
     <TestMethod, TestCategory("LocalDbIntegration")>
     Public Sub EmlFictif_ExtractionPuisValidationExplicite_CreeUneSeuleLigneEtArchive()
         ' La variable d'activation ne garantit pas l'isolation : SqlDocumentTestStore
