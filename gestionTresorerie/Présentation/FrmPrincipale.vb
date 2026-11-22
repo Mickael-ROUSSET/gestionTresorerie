@@ -26,6 +26,7 @@ Public Class FrmPrincipale
     Private ReadOnly _bank As New ToolStripMenuItem With {.Name="ReleveCsvTestToolStripMenuItem",.Text="Analyser un relevé bancaire CSV en TEST…"}
     Private ReadOnly _annual As New ToolStripMenuItem With {.Name = "CompteRenduAnnuelTestToolStripMenuItem", .Text = "Générer le compte rendu financier TEST…"}
     Private ReadOnly _menuFolder As New ToolStripMenuItem With {.Name = "AnalyserDossierTestToolStripMenuItem", .Text = "Analyser un dossier de scans en TEST…"}
+    Private ReadOnly _menuEmlTest As New ToolStripMenuItem With {.Name = "ImporterEmlFictifsTestToolStripMenuItem", .Text = "Importer une boîte EML fictive en TEST…"}
     Private ReadOnly _menuLocalDocuments As New ToolStripMenuItem With {
         .Name = "ExaminerDocumentsDisqueToolStripMenuItem",
         .Text = "Examiner des PDF et des scans sur disque…"}
@@ -65,6 +66,8 @@ Public Class FrmPrincipale
         AnalyseToolStripMenuItem.DropDownItems.Add(_annual)
         AddHandler _menuFolder.Click, AddressOf OpenScanFolder
         AnalyseToolStripMenuItem.DropDownItems.Add(_menuFolder)
+        AddHandler _menuEmlTest.Click, AddressOf OpenSimulatedEmlFolder
+        AnalyseToolStripMenuItem.DropDownItems.Add(_menuEmlTest)
         AddHandler _menuTestWorkspace.Click, AddressOf OpenTestWorkspace
         AnalyseToolStripMenuItem.DropDownItems.Add(_menuTestWorkspace)
         AddHandler _menuSqlTest.Click, AddressOf OpenSqlTestWorkspace
@@ -199,6 +202,44 @@ Public Class FrmPrincipale
             MessageBox.Show("Ouverture de TEST impossible : " & ex.Message,
                             "Espace TEST", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
+    End Sub
+
+    ''' <summary>
+    ''' Point d'entrée visible pour la boîte EML locale fictive (#278).
+    ''' Aucun IMAP ni accès à PROD : les pièces sont extraites sous TEST-SQL,
+    ''' puis présentées dans le même parcours de revue que les scans.
+    ''' </summary>
+    Private Sub OpenSimulatedEmlFolder(sender As Object, e As EventArgs)
+        If Not (_modeDemonstration OrElse _isolatedSqlTest OrElse
+                EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST) Then
+            MessageBox.Show(Me, "L'import EML fictif est réservé à TEST.", "Protection PROD",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+        Using picker As New FolderBrowserDialog With {
+            .Description = "Choisir uniquement un dossier de messages .eml fictifs (aucun accès Gmail).",
+            .UseDescriptionForTitle = True, .ShowNewFolderButton = False}
+            If picker.ShowDialog(Me) <> DialogResult.OK Then Return
+            Try
+                Dim workspace = CreateSqlTestWorkspace()
+                Dim destination = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "gestionTresorerie", "TEST-SQL", "EML-fictifs")
+                Dim paths = GmailSimulatedInbox.Extract(picker.SelectedPath, destination, Date.MinValue)
+                If paths.Count = 0 Then
+                    MessageBox.Show(Me, "Aucune nouvelle pièce PDF/image fictive à examiner.",
+                                    "Import EML TEST", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                    Return
+                End If
+                Using window As New FrmDocumentFilePreview(paths.ToArray(), workspace,
+                                                           New SqlDocumentTestStore(), initializeSqlTestOnSave:=True)
+                    window.ShowDialog(Me)
+                End Using
+            Catch ex As Exception
+                MessageBox.Show(Me, "Import EML TEST impossible : " & ex.Message,
+                                "Import EML TEST", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End Using
     End Sub
 
     Private Sub OpenScanFolder(sender As Object, e As EventArgs)
@@ -356,7 +397,7 @@ Public Class FrmPrincipale
         For Each action As ToolStripItem In AnalyseToolStripMenuItem.DropDownItems
             action.Enabled = Object.ReferenceEquals(action, _menuTestWorkspace) OrElse
                              Object.ReferenceEquals(action, _menuSqlTest) OrElse
-                             Object.ReferenceEquals(action, _menuLocalDocuments) OrElse Object.ReferenceEquals(action, _menuFolder) OrElse Object.ReferenceEquals(action, _annual) OrElse Object.ReferenceEquals(action, _bank) OrElse
+                             Object.ReferenceEquals(action, _menuLocalDocuments) OrElse Object.ReferenceEquals(action, _menuFolder) OrElse Object.ReferenceEquals(action, _menuEmlTest) OrElse Object.ReferenceEquals(action, _annual) OrElse Object.ReferenceEquals(action, _bank) OrElse
                              Object.ReferenceEquals(action, _menuDemoDocuments) OrElse
                              Object.ReferenceEquals(action, _menuRevueDocumentsAnalyses) OrElse
                              Object.ReferenceEquals(action, _menuEffacerDocumentsFictifs)
