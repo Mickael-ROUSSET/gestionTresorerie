@@ -7,6 +7,23 @@ Imports MailKit.Search
 Imports MimeKit
 
 Public Class EmailProcessor
+    Friend Const ExpediteurPhotocopieur As String = "045432.aura@copieur-connect.com"
+    Friend Const RefusGmail As String = "Gmail a refusé le mot de passe d’application. Il peut avoir été modifié ou révoqué. Relancez l’extraction et saisissez le nouveau mot de passe d’application pour le remplacer."
+
+    Friend Shared Function NormaliserExpediteur(valeur As String) As String
+        valeur = If(valeur, "").Trim()
+        If valeur = "" Then Return ""
+        Dim adresse As Global.System.Net.Mail.MailAddress = Nothing
+        If Not Global.System.Net.Mail.MailAddress.TryCreate(valeur, adresse) OrElse adresse.Address <> valeur Then
+            Throw New ArgumentException("Saisissez une adresse d’expéditeur complète ou laissez le champ vide.")
+        End If
+        Return valeur
+    End Function
+
+    Friend Shared Function ExpediteurAccepte(message As MimeMessage, filtre As String) As Boolean
+        Return filtre = "" OrElse message.From.Mailboxes.Any(Function(a) String.Equals(a.Address, filtre, StringComparison.OrdinalIgnoreCase))
+    End Function
+
     ' Configuration
     'Private Shared ReadOnly EmailAddress As String = "agumaaa43@gmail.com"
     'Private Shared ReadOnly AppPassword As String = "votre_mot_de_passe_application" ' 16 caractères
@@ -28,7 +45,8 @@ Public Class EmailProcessor
     End Sub
 
     Public Shared Function DownloadAttachments(Optional initialImportCutoff As DateTime? = Nothing,
-                                               Optional requestStartDate As Func(Of DateTime?) = Nothing) As IReadOnlyList(Of String)
+                                               Optional requestStartDate As Func(Of DateTime?) = Nothing,
+                                               Optional expediteur As String = ExpediteurPhotocopieur, Optional nouveauSecret As String = Nothing) As IReadOnlyList(Of String)
 #If DEMO_BUILD Then
         Return Array.Empty(Of String)()
 #Else
@@ -37,7 +55,7 @@ Public Class EmailProcessor
         End If
         Dim savedFiles As New List(Of String)
         SyncLock ImportLock
-            ProcessAttachmentsCore(initialImportCutoff, requestStartDate, savedFiles)
+            ProcessAttachmentsCore(initialImportCutoff, requestStartDate, savedFiles, expediteur:=NormaliserExpediteur(expediteur), passwordTest:=nouveauSecret)
         End SyncLock
         Return savedFiles.AsReadOnly()
 #End If
@@ -50,17 +68,17 @@ Public Class EmailProcessor
         Return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "gestionTresorerie", "TEST", "Gmail", id.Substring(0, 16))
     End Function
 
-    Friend Shared Function ExtraireEnTest(account As String, password As String, since As Date, destination As String) As IReadOnlyList(Of String)
+    Friend Shared Function ExtraireEnTest(account As String, password As String, since As Date, destination As String, Optional expediteur As String = ExpediteurPhotocopieur) As IReadOnlyList(Of String)
 #If DEMO_BUILD Then
         Throw New InvalidOperationException("Cette fonction nécessite l’édition complète.")
 #Else
         If EnvironmentManager.CurrentEnvironment <> EnvironmentManager.EnvironnementType.TEST OrElse destination <> DossierGmailTest(account) Then Throw New InvalidOperationException("Espace Gmail TEST attendu.")
-        If String.IsNullOrWhiteSpace(password) Then Throw New ArgumentException("Renseignez le mot de passe d’application Google.")
+        If String.IsNullOrWhiteSpace(password) AndAlso String.IsNullOrWhiteSpace(SecretGmail.Lire(account)) Then Throw New ArgumentException("Renseignez le mot de passe d’application Google.")
         Dim fichiers As New List(Of String)
         Directory.CreateDirectory(destination)
         SyncLock ImportLock
             Using verrou As New FileStream(Path.Combine(destination, "import.lock"), FileMode.OpenOrCreate, FileAccess.Write, FileShare.None)
-                ProcessAttachmentsCore(since, Nothing, fichiers, destination, account, password)
+                ProcessAttachmentsCore(since, Nothing, fichiers, destination, account, password, NormaliserExpediteur(expediteur))
             End Using
         End SyncLock
         Return fichiers.AsReadOnly()
@@ -69,7 +87,7 @@ Public Class EmailProcessor
 
     Private Shared Sub ProcessAttachmentsCore(initialImportCutoff As DateTime?, requestStartDate As Func(Of DateTime?),
                                               savedFiles As List(Of String), Optional testFolder As String = Nothing,
-                                              Optional accountTest As String = Nothing, Optional passwordTest As String = Nothing)
+                                              Optional accountTest As String = Nothing, Optional passwordTest As String = Nothing, Optional expediteur As String = ExpediteurPhotocopieur)
         If testFolder Is Nothing Then
             ' Création du dossier s'il n'existe pas
             LogFile = Path.Combine(LectureProprietes.GetVariable("repRacineAgumaaa"),
@@ -119,30 +137,42 @@ Public Class EmailProcessor
 
         Using client As New ImapClient()
             Try
-                If testFolder Is Nothing Then
-                    ConnectAndAuthenticate(client)
-                Else
-                    client.Connect("imap.gmail.com", 993, True)
-                    client.Authenticate(accountTest, passwordTest)
-                End If
+                Dim account As String = If(accountTest, CStr(LectureProprietes.GetVariable("SmtpUsername")))
+                Dim password = passwordTest
+                If String.IsNullOrWhiteSpace(password) Then password = SecretGmail.Lire(account)
+                If String.IsNullOrWhiteSpace(password) AndAlso testFolder Is Nothing Then password = GlobalSettings.GmailPassword
+                If String.IsNullOrWhiteSpace(password) Then Throw New ArgumentException("Renseignez le mot de passe d’application Gmail.")
+                client.Connect("imap.gmail.com", 993, True)
+                client.Authenticate(account, password)
+                If Not String.IsNullOrWhiteSpace(passwordTest) Then SecretGmail.Enregistrer(account, passwordTest)
                 Dim inbox = client.Inbox
                 inbox.Open(FolderAccess.ReadOnly)
 
                 ' Parcourir egalement les emails deja lus : le journal determine le travail restant.
                 Dim query = SearchQuery.All
                 If effectiveCutoff.HasValue Then query = SearchQuery.DeliveredAfter(effectiveCutoff.Value.Date)
+                If expediteur <> "" Then query = query.And(SearchQuery.FromContains(expediteur))
                 Dim uids = inbox.Search(query)
-                Dim account As String = If(accountTest, CStr(LectureProprietes.GetVariable("SmtpUsername")))
                 Dim validity As UInteger = inbox.UidValidity
                 For Each uid In uids
                     Dim key = GmailImportJournal.MakeKey(account, validity, uid.Id)
                     If journal.IsProcessed(key) Then Continue For
                     _statsMailsLus += 1
-                    TryProcessMessage(uid, Sub() ProcessSingleEmail(inbox, uid, savedFiles),
-                                      Sub() journal.MarkProcessed(key), AddressOf LogAndReportError)
+                    Dim accepte = False
+                    Dim courant = uid
+                    TryProcessMessage(courant, Sub()
+                        Dim message = inbox.GetMessage(courant)
+                        accepte = ExpediteurAccepte(message, expediteur)
+                        If accepte Then ProcessSingleEmail(message, savedFiles)
+                    End Sub, Sub()
+                        If accepte Then journal.MarkProcessed(key)
+                    End Sub, AddressOf LogAndReportError)
                 Next
 
                 client.Disconnect(True)
+            Catch ex As MailKit.Security.AuthenticationException
+                LogAndReportError(RefusGmail)
+                Throw New InvalidOperationException(RefusGmail)
             Catch ex As Exception
                 LogAndReportError(ex.Message)
                 If testFolder IsNot Nothing Then Throw
@@ -176,14 +206,7 @@ Public Class EmailProcessor
         Return True
     End Function
 
-    Private Shared Sub ConnectAndAuthenticate(ByRef client As ImapClient)
-        client.Connect("imap.gmail.com", 993, True)
-        'client.Authenticate(LectureProprietes.GetVariable("SmtpUsername"), LectureProprietes.GetVariable("SmtpPassword"))
-        client.Authenticate(LectureProprietes.GetVariable("SmtpUsername"), GlobalSettings.GmailPassword)
-    End Sub
-
-    Private Shared Sub ProcessSingleEmail(inbox As IMailFolder, uid As UniqueId, savedFiles As List(Of String))
-        Dim message = inbox.GetMessage(uid)
+    Private Shared Sub ProcessSingleEmail(message As MimeMessage, savedFiles As List(Of String))
         Dim hasAttachments As Boolean = False
         Dim dateMail As DateTime = message.Date.DateTime
 
