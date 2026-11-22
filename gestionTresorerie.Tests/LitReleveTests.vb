@@ -202,4 +202,16 @@ Public Class LitReleveTests
             IO.File.Delete(tmp)
         End Try
     End Sub
+    <TestMethod>
+    Public Sub DeuxComptesAvecIntercalaireEtColonnesReordonnees()
+        Dim lignes = {"Date;Libellé;Débit euros;Crédit euros;", "01/02/2025;A;8,70;;",
+            "", "Association fictive", "", "Livret fictif", "Solde au 01/02/2025", "Liste des opérations du compte entre le 01/01/2025 et le 01/02/2025;", "",
+            "Date;Libellé;Crédit euros;Débit euros;", "02/02/2025;B;4,22;;"}
+        Dim operations = LitRelevé.ParserLignes(lignes)
+        Assert.AreEqual(2, operations.Count)
+        Assert.AreEqual(8.70D, operations(0).MontantDebit.Value)
+        Assert.AreEqual(4.22D, operations(1).MontantCredit.Value)
+        lignes(2) = "date invalide;Opération;2,00;;"
+        Assert.ThrowsExactly(Of FormatException)(Sub() LitRelevé.ParserLignes(lignes))
+    End Sub
 End Class
