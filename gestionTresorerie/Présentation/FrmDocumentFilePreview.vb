@@ -4,7 +4,7 @@ Imports System.Drawing
 Imports System.IO
 Imports System.Windows.Forms
 
-Friend NotInheritable Class FrmDocumentFilePreview
+Public NotInheritable Class FrmDocumentFilePreview
     Inherits Form
 
     Private Const DriveArchiveRoot As String = "G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables"
