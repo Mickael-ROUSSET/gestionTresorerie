@@ -205,8 +205,9 @@ Public Class FrmPrincipale
         Using picker As New FolderBrowserDialog With {.Description = "Choisir le dossier dont les PDF et images seront analysés avec ChatGPT en TEST (sans les sous-dossiers).", .UseDescriptionForTitle = True, .ShowNewFolderButton = False}
             If picker.ShowDialog(Me) <> DialogResult.OK Then Return
             Try
-                Dim paths = IO.Directory.EnumerateFiles(picker.SelectedPath).Where(AddressOf DocumentFilePreview.Supports).
-                    OrderBy(Function(value) value, StringComparer.OrdinalIgnoreCase).ToArray()
+                ' Réutiliser les contrôles TEST (extensions, fichiers vides et liens symboliques)
+                ' pour éviter un parcours de sélection moins sûr que la revue hors ligne.
+                Dim paths = ListerPiecesFictivesTest(picker.SelectedPath)
                 If paths.Length = 0 Then
                     MessageBox.Show(Me, "Ce dossier ne contient aucun PDF ni scan pris en charge.")
                     Return

@@ -42,6 +42,22 @@ Public Class RevuePiecesFictivesHorsLigneTests
     End Sub
 
     <TestMethod>
+    Public Sub SelectionPartagee_TrieLesDocumentsEtExclutLesImagesVides()
+        Dim racine = Path.Combine(Path.GetTempPath(), "gestionTresorerie-selection-" & Guid.NewGuid().ToString("N"))
+        Try
+            Directory.CreateDirectory(racine)
+            File.WriteAllText(Path.Combine(racine, "z.pdf"), "PDF fictif")
+            File.WriteAllText(Path.Combine(racine, "a.pdf"), "PDF fictif")
+            File.WriteAllBytes(Path.Combine(racine, "vide.png"), Array.Empty(Of Byte)())
+            Dim fichiers = FrmPrincipale.ListerPiecesFictivesTest(racine)
+            CollectionAssert.AreEqual(New String() {"a.pdf", "z.pdf"},
+                                      fichiers.Select(Function(p) Path.GetFileName(p)).ToArray())
+        Finally
+            If Directory.Exists(racine) Then Directory.Delete(racine, recursive:=True)
+        End Try
+    End Sub
+
+    <TestMethod>
     Public Sub SelectionHorsLigne_RefuseUnDossierAbsent()
         Assert.ThrowsExactly(Of ArgumentException)(Function() FrmPrincipale.ListerPiecesFictivesTest(""))
     End Sub
