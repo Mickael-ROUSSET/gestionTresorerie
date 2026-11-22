@@ -11,7 +11,8 @@ Friend NotInheritable Class GmailSimulatedInbox
     End Sub
 
     Friend Shared Function Extract(emlFolder As String, destination As String, since As Date,
-                                   Optional sender As String = "") As IReadOnlyList(Of String)
+                                   Optional sender As String = "",
+                                   Optional rejectedMessages As IList(Of String) = Nothing) As IReadOnlyList(Of String)
         If Not Directory.Exists(emlFolder) Then Throw New DirectoryNotFoundException("Dossier EML fictif introuvable.")
         If String.IsNullOrWhiteSpace(destination) Then Throw New ArgumentException("Destination TEST obligatoire.", NameOf(destination))
         Dim sourceRoot = Path.GetFullPath(emlFolder)
@@ -26,7 +27,17 @@ Friend NotInheritable Class GmailSimulatedInbox
         Dim saved As New List(Of String)
         For Each emlPath In Directory.EnumerateFiles(sourceRoot, "*.eml", SearchOption.TopDirectoryOnly).OrderBy(Function(p) p, StringComparer.OrdinalIgnoreCase)
             If (File.GetAttributes(emlPath) And FileAttributes.ReparsePoint) <> 0 Then Continue For
-            Using message = MimeMessage.Load(emlPath)
+            Dim message As MimeMessage = Nothing
+            Try
+                message = MimeMessage.Load(emlPath)
+            Catch ex As Exception When TypeOf ex Is IOException OrElse
+                                       TypeOf ex Is UnauthorizedAccessException OrElse
+                                       TypeOf ex Is FormatException OrElse
+                                       TypeOf ex Is MimeKit.ParseException
+                If rejectedMessages IsNot Nothing Then rejectedMessages.Add(Path.GetFileName(emlPath))
+                Continue For
+            End Try
+            Using message
                 If message.Date.Date < since.Date OrElse Not EmailProcessor.ExpediteurAccepte(message, sender) Then Continue For
                 For Each part In message.Attachments.OfType(Of MimePart)()
                     Dim rawName = If(part.FileName, "")
