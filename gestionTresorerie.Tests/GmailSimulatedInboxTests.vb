@@ -29,6 +29,31 @@ Public Class GmailSimulatedInboxTests
         End Try
     End Sub
 
+    <TestMethod>
+    Public Sub MessageEmlInaccessible_NeBloquePasLesAutresPieces()
+        Dim root = Path.Combine(Path.GetTempPath(), "gmail-eml-verrou-" & Guid.NewGuid().ToString("N"))
+        Dim inbox = Path.Combine(root, "entree")
+        Dim output = Path.Combine(root, "sortie")
+        Directory.CreateDirectory(inbox)
+        Try
+            Dim lockedPath = Path.Combine(inbox, "a-verrouille.eml")
+            File.WriteAllText(lockedPath, "Message fictif inaccessible")
+            CreerMessage(Path.Combine(inbox, "b-valide.eml"), "fictif@example.invalid",
+                         New DateTime(2026, 11, 20), "valide.pdf")
+            Dim rejected As New List(Of String)()
+            Using locked As New FileStream(lockedPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None)
+                Dim files = GmailSimulatedInbox.Extract(inbox, output, Date.MinValue,
+                                                        rejectedMessages:=rejected)
+                Assert.AreEqual(1, files.Count)
+                Assert.AreEqual("valide.pdf", Path.GetFileName(files(0)))
+                CollectionAssert.AreEqual(New String() {"a-verrouille.eml"}, rejected)
+            End Using
+            Assert.IsTrue(File.Exists(lockedPath), "Le message source doit rester intact.")
+        Finally
+            If Directory.Exists(root) Then Directory.Delete(root, True)
+        End Try
+    End Sub
+
     Private Shared Sub CreerMessage(path As String, sender As String, sent As DateTime, filename As String)
         Using message As New MimeMessage()
             message.From.Add(New MailboxAddress("Fictif", sender))

@@ -225,7 +225,14 @@ Public Class FrmPrincipale
                 Dim destination = System.IO.Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                     "gestionTresorerie", "TEST-SQL", "EML-fictifs")
-                Dim paths = GmailSimulatedInbox.Extract(picker.SelectedPath, destination, Date.MinValue)
+                Dim rejected As New List(Of String)()
+                Dim paths = GmailSimulatedInbox.Extract(picker.SelectedPath, destination, Date.MinValue,
+                                                       rejectedMessages:=rejected)
+                If rejected.Count > 0 Then
+                    MessageBox.Show(Me, rejected.Count.ToString() & " message(s) EML illisible(s) ignoré(s) :" &
+                                    Environment.NewLine & String.Join(Environment.NewLine, rejected.Take(10)),
+                                    "Import EML TEST — avertissement", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                End If
                 If paths.Count = 0 Then
                     MessageBox.Show(Me, "Aucune nouvelle pièce PDF/image fictive à examiner.",
                                     "Import EML TEST", MessageBoxButtons.OK, MessageBoxIcon.Information)
