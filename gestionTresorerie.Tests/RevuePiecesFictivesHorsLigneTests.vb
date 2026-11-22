@@ -58,6 +58,27 @@ Public Class RevuePiecesFictivesHorsLigneTests
     End Sub
 
     <TestMethod>
+    Public Sub RevueLot_BoutonPieceSuivanteDesactiveSansDocument()
+        Dim erreur As Exception = Nothing
+        Dim thread As New System.Threading.Thread(
+            Sub()
+                Try
+                    Using fenetre As New FrmDocumentFilePreview(Array.Empty(Of String)())
+                        Dim bouton = fenetre.Controls.Find("PieceSuivanteTest", True).
+                            OfType(Of System.Windows.Forms.Button)().Single()
+                        Assert.IsFalse(bouton.Enabled)
+                    End Using
+                Catch ex As Exception
+                    erreur = ex
+                End Try
+            End Sub)
+        thread.SetApartmentState(System.Threading.ApartmentState.STA)
+        thread.Start()
+        Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(15)), "La construction de la revue ne doit pas bloquer.")
+        If erreur IsNot Nothing Then Throw erreur
+    End Sub
+
+    <TestMethod>
     Public Sub SelectionHorsLigne_RefuseUnDossierAbsent()
         Assert.ThrowsExactly(Of ArgumentException)(Function() FrmPrincipale.ListerPiecesFictivesTest(""))
     End Sub
