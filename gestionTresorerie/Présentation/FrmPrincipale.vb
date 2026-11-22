@@ -210,8 +210,8 @@ Public Class FrmPrincipale
     ''' puis présentées dans le même parcours de revue que les scans.
     ''' </summary>
     Private Sub OpenSimulatedEmlFolder(sender As Object, e As EventArgs)
-        If Not (_modeDemonstration OrElse _isolatedSqlTest OrElse
-                EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST) Then
+        If Not IsTestDocumentImportAllowed(_modeDemonstration, _isolatedSqlTest,
+                                           EnvironmentManager.CurrentEnvironment) Then
             MessageBox.Show(Me, "L'import EML fictif est réservé à TEST.", "Protection PROD",
                             MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
@@ -242,7 +242,22 @@ Public Class FrmPrincipale
         End Using
     End Sub
 
+    ' Les imports de dossiers de scans et de messages EML partagent le meme garde-fou.
+    ' Un libelle TEST dans le menu ne suffit pas a proteger la production.
+    Public Shared Function IsTestDocumentImportAllowed(modeDemonstration As Boolean,
+                                                        isolatedSqlTest As Boolean,
+                                                        activeEnvironment As EnvironmentManager.EnvironnementType) As Boolean
+        Return modeDemonstration OrElse isolatedSqlTest OrElse
+               activeEnvironment = EnvironmentManager.EnvironnementType.TEST
+    End Function
+
     Private Sub OpenScanFolder(sender As Object, e As EventArgs)
+        If Not IsTestDocumentImportAllowed(_modeDemonstration, _isolatedSqlTest,
+                                           EnvironmentManager.CurrentEnvironment) Then
+            MessageBox.Show(Me, "L'analyse de dossiers de scans en TEST est interdite depuis PROD.",
+                            "Protection PROD", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
         Using picker As New FolderBrowserDialog With {.Description = "Choisir le dossier dont les PDF et images seront analysés avec ChatGPT en TEST (sans les sous-dossiers).", .UseDescriptionForTitle = True, .ShowNewFolderButton = False}
             If picker.ShowDialog(Me) <> DialogResult.OK Then Return
             Try
