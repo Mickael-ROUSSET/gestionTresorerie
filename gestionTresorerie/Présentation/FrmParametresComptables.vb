@@ -34,7 +34,17 @@ Friend NotInheritable Class FrmParametresComptables
         For Each titre In {"Événements", "Exercices", "Types de mouvements"}
             onglets.TabPages.Add(titre)
         Next
+#If Not DEMO_BUILD Then
+        Dim secrets As New Button With {.Name = "secretsMessagerie", .Text = "Secrets de messagerie…", .AutoSize = True, .Dock = DockStyle.Bottom}
+        AddHandler secrets.Click, Sub()
+            Using dlg As New FrmSecretMessagerie()
+                dlg.ShowDialog(Me)
+            End Using
+        End Sub
+        Controls.Add(secrets)
+#End If
         Controls.Add(onglets)
+        onglets.SendToBack()
         Controls.Add(bandeau)
         AddHandler ajouter.Click, Sub() Enregistrer()
     End Sub

@@ -4,7 +4,7 @@ $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $bin = Join-Path $root 'gestionTresorerie/bin'
 $exe = Get-ChildItem -Path $bin -Filter 'gestionTresorerie.exe' -File -Recurse |
-    Where-Object { $_.FullName -match '[\\/]Demo[\\/]net8\.0-windows[\\/]gestionTresorerie\.exe$' } |
+    Where-Object { $_.FullName -match '[\\/]Demo[\\/]net8\.0-windows10\.0\.19041\.0[\\/]gestionTresorerie\.exe$' } |
     Select-Object -First 1
 if ($null -eq $exe) { throw "Exécutable de démonstration absent sous : $bin" }
 $source = Split-Path -Path $exe.FullName -Parent
