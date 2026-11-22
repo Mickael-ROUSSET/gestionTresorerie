@@ -400,7 +400,8 @@ Public NotInheritable Class FrmDocumentFilePreview
         Catch ex As Exception
             _text.Text = "Impossible de lire ce fichier. Vérifiez qu’il est accessible et dans un format pris en charge."
         End Try
-        If Visible Then StartAutomaticAnalysis()
+        ' Changer de pièce ne doit jamais ouvrir automatiquement la validation SQL.
+        ' L'analyse initiale est déclenchée uniquement par OnShown.
     End Sub
 
     Private Sub LoadPdfPage()
