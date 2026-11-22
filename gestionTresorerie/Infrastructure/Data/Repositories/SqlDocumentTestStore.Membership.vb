@@ -119,8 +119,10 @@ Partial Public NotInheritable Class SqlDocumentTestStore
                     End Using
                 End If
                 If Not String.IsNullOrWhiteSpace(proposal.NatureComptable) OrElse Not String.IsNullOrWhiteSpace(proposal.EvenementComptable) Then
-                    Using cmd As New SqlCommand("UPDATE dbo.ClassementDocumentTest SET nature=@nature,evenement=@event WHERE idDoc=@doc; IF @@ROWCOUNT=0 INSERT dbo.ClassementDocumentTest(idDoc,nature,evenement) VALUES(@doc,@nature,@event);", connection, tx)
+                    Using cmd As New SqlCommand("UPDATE dbo.ClassementDocumentTest SET nature=@nature,evenement=@event,idCategorie=@cat,idSousCategorie=@sous WHERE idDoc=@doc; IF @@ROWCOUNT=0 INSERT dbo.ClassementDocumentTest(idDoc,nature,evenement,idCategorie,idSousCategorie) VALUES(@doc,@nature,@event,@cat,@sous);", connection, tx)
                         cmd.Parameters.AddWithValue("@doc", docId)
+                        cmd.Parameters.Add("@cat", SqlDbType.Int).Value = If(proposal.IdCategorie.HasValue, CObj(proposal.IdCategorie.GetValueOrDefault()), DBNull.Value)
+                        cmd.Parameters.Add("@sous", SqlDbType.Int).Value = If(proposal.IdSousCategorie.HasValue, CObj(proposal.IdSousCategorie.GetValueOrDefault()), DBNull.Value)
                         cmd.Parameters.AddWithValue("@nature", If(proposal.NatureComptable, ""))
                         cmd.Parameters.AddWithValue("@event", If(proposal.EvenementComptable, ""))
                         cmd.ExecuteNonQuery()

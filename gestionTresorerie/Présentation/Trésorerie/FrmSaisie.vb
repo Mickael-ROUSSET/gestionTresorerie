@@ -334,69 +334,65 @@ Public Class FrmSaisie
         txtTiers.Text = _tiersSelectionne.Nom & " " & _tiersSelectionne.Prenom
     End Sub
     Private Sub txtTiers_TextChanged(sender As Object, e As EventArgs) Handles txtTiers.TextChanged
+        EffacerNature()
+        If _tiersSelectionne Is Nothing OrElse _tiersSelectionne.CategorieDefaut <= 0 Then Return
         Try
-            If _tiersSelectionne Is Nothing Then
-                Logger.INFO("Aucun tiers sélectionné, impossible de charger la catégorie.")
-                txtCategorie.Clear()
-                txtSousCategorie.Clear()
-                Exit Sub
-            End If
-
-            Dim idCategorieDefaut As Integer = _tiersSelectionne.CategorieDefaut
-            If idCategorieDefaut <= 0 Then
-                Logger.INFO($"Le tiers '{_tiersSelectionne.Nom}' n’a pas de catégorie par défaut.")
-                txtCategorie.Clear()
-                txtSousCategorie.Clear()
-                Exit Sub
-            End If
-
-            Dim parametres As New Dictionary(Of String, Object) From {
-            {"@idCategorie", idCategorieDefaut}
-        }
-
-            Dim dt As DataTable =
-            SqlCommandBuilder.ExecuteDataTable(
-                Constantes.DataBases.Agumaaa,
-                "selIdLibCat",
-                parametres)
-
-            If dt.Rows.Count = 0 Then
-                Logger.WARN("Aucune catégorie trouvée.")
-                Exit Sub
-            End If
-
-            For Each row As DataRow In dt.Rows
-                _categorieSelectionne =
-                New Categorie(Convert.ToInt32(row(0)), row(1).ToString())
-
-                _sousCategorieSelectionnee =
-                New SousCategorie(Convert.ToInt32(row(0)), row(1).ToString())
-
-                txtCategorie.Text = $"{_categorieSelectionne.Id} - {_categorieSelectionne.Libelle}"
-                txtSousCategorie.Text = $"{_sousCategorieSelectionnee.Id} - {_sousCategorieSelectionnee.Libelle}"
-            Next
-
+            Using choix = ChargerNatures()
+                Dim lignes = choix.Select("debit=" & If(rbCredit.Checked, "0", "1") & " AND cat=" & _tiersSelectionne.CategorieDefaut)
+                If lignes.Length = 0 Then Return
+                _categorieSelectionne = New Categorie(CInt(lignes(0)("cat")), CStr(lignes(0)("categorie")))
+                txtCategorie.Text = _categorieSelectionne.Libelle
+            End Using
         Catch ex As Exception
-            Logger.ERR($"Erreur lors du chargement de la catégorie du tiers '{txtTiers.Text}' : {ex.Message}")
+            MessageBox.Show(Me, ex.Message, "Catégorie du tiers")
         End Try
     End Sub
 
-    Private Sub btnSelCat_Click(sender As Object, e As EventArgs) Handles btnSelCat.Click
-        _categorieSelectionne = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of Categorie)(
-        nomRequete:="selIdLibCat",
-        titreFenetre:="Sélection de la catégorie",
-        txtDestination:=txtCategorie
-    )
-        txtCategorie.Text = _categorieSelectionne.Libelle
+    Private Function ChargerNatures() As DataTable
+        Using cn = RepositoryFactory.CreateConnectionFactory(Constantes.DataBases.Agumaaa).CreateConnection()
+            cn.Open()
+            Return ParametresComptables.LireNatures(cn)
+        End Using
+    End Function
+
+    Private Sub EffacerNature() Handles rbCredit.CheckedChanged
+        _categorieSelectionne = Nothing
+        _sousCategorieSelectionnee = Nothing
+        txtCategorie?.Clear()
+        txtSousCategorie?.Clear()
     End Sub
-    Private Sub btnSelSousCategorie_Click(sender As Object, e As EventArgs) Handles btnSelSousCategorie.Click
-        _sousCategorieSelectionnee = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of SousCategorie)(
-        nomRequete:="sqlSelSousCategoriesTout",
-        titreFenetre:="Sélection de la sous-catégorie",
-        txtDestination:=txtSousCategorie
-    )
-        txtSousCategorie.Text = _sousCategorieSelectionnee.Libelle
+
+    Private Sub ChoisirNature(sender As Object, e As EventArgs) Handles btnSelCat.Click, btnSelSousCategorie.Click
+        Dim sousCategorie = sender Is btnSelSousCategorie
+        If sousCategorie AndAlso _categorieSelectionne Is Nothing Then
+            MessageBox.Show(Me, "Choisissez d’abord la catégorie.")
+            Return
+        End If
+        Try
+            Using table = ChargerNatures()
+                Dim vue As New DataView(table) With {.RowFilter = "debit=" & If(rbCredit.Checked, "0", "1")}
+                If sousCategorie Then vue.RowFilter &= " AND cat=" & _categorieSelectionne.Id & " AND sousCat IS NOT NULL"
+                Dim id = If(sousCategorie, "sousCat", "cat"), nom = If(sousCategorie, "sousCategorie", "categorie")
+                Using choix = vue.ToTable(True, id, nom), dialogue As New Form With {.Text = If(sousCategorie, "Sous-catégorie", "Catégorie"), .StartPosition = FormStartPosition.CenterParent},
+                    liste As New ListBox With {.Dock = DockStyle.Fill, .DisplayMember = nom, .ValueMember = id, .DataSource = choix},
+                    ok As New Button With {.Text = "Choisir", .Dock = DockStyle.Bottom, .DialogResult = DialogResult.OK}
+                    dialogue.Controls.AddRange(New Control() {liste, ok})
+                    If dialogue.ShowDialog(Me) <> DialogResult.OK OrElse liste.SelectedIndex < 0 Then Return
+                    If sousCategorie Then
+                        _sousCategorieSelectionnee = New SousCategorie(CInt(liste.SelectedValue), liste.Text)
+                        txtSousCategorie.Text = liste.Text
+                    Else
+                        EffacerNature()
+                        _categorieSelectionne = New Categorie(CInt(liste.SelectedValue), liste.Text)
+                        txtCategorie.Text = liste.Text
+                    End If
+                End Using
+            End Using
+        Catch ex As Exception
+            MessageBox.Show(Me, ex.Message, "Choix de la nature comptable")
+        End Try
     End Sub
+
     Private Sub btnSelEvenement_Click(sender As Object, e As EventArgs) Handles btnSelEvenement.Click
         Dim choisi = AppelFrmSelectionUtils.OuvrirSelectionGenerique(Of Evenement)(
             nomRequete:="reqEvenement",

@@ -37,7 +37,10 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     Private ReadOnly _birthLabel As New Label With {.Text = "Date de naissance"}
     Private ReadOnly _extraLabels As New List(Of Label)
     Private ReadOnly _destination As New TextBox With {.ReadOnly = True, .Multiline = True, .Dock = DockStyle.Fill, .ScrollBars = ScrollBars.Vertical}
-    Private ReadOnly _nature As New ComboBox With {.Dock = DockStyle.Fill, .MaxLength = 100}
+    Private ReadOnly catalogue As New Data.DataTable()
+    Private ReadOnly _nature As New ComboBox With {.Dock = DockStyle.Fill, .DropDownStyle = ComboBoxStyle.DropDownList}
+    Private ReadOnly _sousNature As New ComboBox With {.Dock = DockStyle.Fill, .DropDownStyle = ComboBoxStyle.DropDownList}
+    Private debitMouvement As Boolean?
     Private ReadOnly _eventName As New ComboBox With {.Dock = DockStyle.Fill, .MaxLength = 100}
     Private ReadOnly _attach As New Button With {.AutoSize = True, .Text = "Rattacher à un mouvement…"}
     Private _movement As Integer?
@@ -85,13 +88,16 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         AddIdentityField(table, 14, "telephone", "Téléphone", 30)
         AddIdentityField(table, 15, "genre", "Genre", 30)
         AddField(table, 16, _birthLabel, _birth)
-        _nature.Items.AddRange(New Object() {"Achat de matériel", "Fournitures", "Prestation", "Cotisation", "Subvention", "Don"})
         If archiveOnDrive Then
             Try
+                Using cn = SqlDocumentTestStore.OpenTest(), natures = ParametresComptables.LireNatures(cn)
+                    catalogue.Merge(natures)
+                End Using
                 Using choices = SqlDocumentTestStore.ClassificationChoices()
                     For Each row As Data.DataRow In choices.Rows
                         Dim label = Convert.ToString(row("libelle")).Trim()
-                        Dim target = If(CStr(row("famille")) = "nature", _nature, _eventName)
+                        If CStr(row("famille")) <> "evenement" Then Continue For
+                        Dim target = _eventName
                         If label.Length > 0 AndAlso label.Length <= 100 AndAlso Not target.Items.Contains(label) Then target.Items.Add(label)
                     Next
                 End Using
@@ -99,7 +105,11 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
                 ' La première analyse reste possible avant la création du catalogue TEST.
             End Try
         End If
-        AddField(table, 17, New Label With {.Text = "Nature comptable proposée"}, _nature)
+        AddField(table, 17, New Label With {.Text = "Catégorie"}, _nature)
+        AddField(table, 18, New Label With {.Text = "Sous-catégorie"}, _sousNature)
+        AddHandler _nature.SelectedIndexChanged, Sub() ChargerSousCategories()
+        AddHandler _direction.SelectedIndexChanged, Sub() ChargerCategories()
+        ChargerCategories()
         Dim eventEditor As New TableLayoutPanel With {.Dock = DockStyle.Fill, .AutoSize = True, .ColumnCount = 2}
         eventEditor.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
         eventEditor.ColumnStyles.Add(New ColumnStyle(SizeType.AutoSize))
@@ -112,9 +122,9 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             If Not _eventName.Items.Contains(libelle) Then _eventName.Items.Add(libelle)
             _eventName.SelectedItem = libelle
         End Sub
-        AddField(table, 18, New Label With {.Text = "Événement ou activité"}, eventEditor)
-        table.Controls.Add(New Label With {.Text = "Destination de la copie", .AutoSize = True}, 0, 19)
-        table.Controls.Add(_destination, 1, 19)
+        AddField(table, 19, New Label With {.Text = "Événement ou activité"}, eventEditor)
+        table.Controls.Add(New Label With {.Text = "Destination de la copie", .AutoSize = True}, 0, 20)
+        table.Controls.Add(_destination, 1, 20)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 54))
 
         Dim buttons As New FlowLayoutPanel With {.Dock = DockStyle.Fill, .FlowDirection = FlowDirection.RightToLeft}
@@ -126,14 +136,17 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         AddHandler _attach.Click, AddressOf PickMovement
         AddHandler _date.TextChanged, Sub() ClearMovement()
         AddHandler _amount.TextChanged, Sub() ClearMovement()
-        table.Controls.Add(buttons, 0, 20)
+        table.Controls.Add(buttons, 0, 21)
         table.SetColumnSpan(buttons, 2)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 39))
         Dim prompt As New Button With {.Text = "Copier la consigne ChatGPT", .AutoSize = True, .Anchor = AnchorStyles.Left}
         AddHandler prompt.Click, AddressOf CopyChatGptPrompt
-        table.Controls.Add(prompt, 0, 21)
+        table.Controls.Add(prompt, 0, 22)
         table.SetColumnSpan(prompt, 2)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 35))
+        Dim renommer As New Button With {.Text = "Renommer le fichier source…", .AutoSize = True, .Visible = archiveOnDrive}
+        table.Controls.Add(renommer, 1, 23)
+        AddHandler renommer.Click, AddressOf RenommerSource
         Controls.Add(table)
         CancelButton = cancel
         AcceptButton = validate
@@ -167,12 +180,68 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         RefreshDestination()
     End Sub
 
+    Private Sub ChargerCategories()
+        If Not catalogue.Columns.Contains("cat") Then Return
+        Dim debit As Boolean? = debitMouvement
+        If SelectedKind = TypeDocument.Cheque Then
+            debit = If(_direction.SelectedIndex < 0, CType(Nothing, Boolean?), _direction.SelectedIndex = 0)
+        End If
+        Dim vue As New Data.DataView(catalogue)
+        If debit.HasValue Then
+            vue.RowFilter = "debit=" & If(debit.Value, "1", "0")
+        ElseIf SelectedKind = TypeDocument.Cheque Then
+            vue.RowFilter = "1=0"
+        End If
+        _nature.DisplayMember = "categorie"
+        _nature.ValueMember = "cat"
+        _nature.DataSource = vue.ToTable(True, "cat", "categorie")
+        _nature.SelectedIndex = -1
+        ChargerSousCategories()
+    End Sub
+
+    Private Sub ChargerSousCategories()
+        _sousNature.DataSource = Nothing
+        Dim selected = TryCast(_nature.SelectedItem, Data.DataRowView)
+        If selected Is Nothing Then Return
+        Dim vue As New Data.DataView(catalogue) With {.RowFilter = "cat=" & CInt(selected("cat")) & " AND sousCat IS NOT NULL"}
+        _sousNature.DisplayMember = "sousCategorie"
+        _sousNature.ValueMember = "sousCat"
+        _sousNature.DataSource = vue.ToTable(True, "sousCat", "sousCategorie")
+        _sousNature.SelectedIndex = -1
+    End Sub
+
     Private Sub AddIdentityField(table As TableLayoutPanel, row As Integer, key As String, caption As String, capacity As Integer)
         Dim field As New TextBox With {.Dock = DockStyle.Fill, .MaxLength = capacity}
         Dim label As New Label With {.Text = caption}
         _extra.Add(key, field)
         _extraLabels.Add(label)
         AddField(table, row, label, field)
+    End Sub
+
+    Friend Property RenamedPath As String
+
+    Private Sub RenommerSource(sender As Object, args As EventArgs)
+        Try
+            Dim dossier = IO.Path.GetDirectoryName(IO.Path.GetFullPath(_source))
+            If IO.Path.GetFullPath(_source).StartsWith(IO.Path.TrimEndingDirectorySeparator(IO.Path.GetFullPath(_root)) & IO.Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) Then
+                Throw New ArgumentException("Le document se trouve déjà dans le dossier d’archives.")
+            End If
+            Dim nom = IO.Path.GetFileName(BuildProposal(dossier).Destination)
+            Dim cible = IO.Path.Combine(dossier, nom)
+            If String.Equals(cible, _source, StringComparison.OrdinalIgnoreCase) Then
+                MessageBox.Show(Me, "Le fichier porte déjà le nom proposé.")
+                Return
+            End If
+            If MessageBox.Show(Me, IO.Path.GetFileName(_source) & vbCrLf & "→ " & nom & vbCrLf & "Renommer dans le dossier actuel ?", "Renommer le fichier", MessageBoxButtons.YesNo, MessageBoxIcon.Question) <> DialogResult.Yes Then Return
+            Using verrou = IO.File.Open(_source, IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.Read Or IO.FileShare.Delete)
+                If DocumentArchiveProposal.HashSource(_source) <> _hash Then Throw New IO.IOException("Le fichier a changé depuis son analyse.")
+                IO.File.Move(_source, cible, overwrite:=False)
+            End Using
+            RenamedPath = cible
+            DialogResult = DialogResult.Retry
+        Catch ex As Exception
+            MessageBox.Show(Me, ex.Message, "Renommage impossible")
+        End Try
     End Sub
 
     Private Sub RefreshDestination()
@@ -246,7 +315,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         _kind.SelectedIndex = Array.FindIndex(DocumentKinds, Function(kind) kind.ToString() = detectedType)
         UpdateKind(Nothing, EventArgs.Empty)
         Dim classification = TryCast(suggested?("classement_comptable"), JObject)
-        _nature.Text = If(classification?("nature")?.Type = JTokenType.String, classification("nature").ToString(), "")
+        Dim suggestionNature = If(classification?("nature")?.Type = JTokenType.String, classification("nature").ToString(), "")
         _eventName.Text = If(classification?("evenement")?.Type = JTokenType.String, classification("evenement").ToString(), "")
         If detectedType = "QuestionnaireMedical" Then _nature.Text = ""
         Dim fields = suggested?("donnees_extraites")
@@ -276,6 +345,17 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             _amount.Text = If(transaction?("montant_numerique")?.ToString(), "")
         End If
         If String.IsNullOrWhiteSpace(_date.Text) Then _date.Text = Today.ToString("dd/MM/yyyy")
+        If suggestionNature <> "" AndAlso SelectedKind <> TypeDocument.QuestionnaireMedical Then
+            _nature.SelectedIndex = _nature.FindStringExact(suggestionNature)
+            If _nature.SelectedIndex < 0 Then
+                Dim candidats = catalogue.AsEnumerable().Where(Function(row) String.Equals(Convert.ToString(row("sousCategorie")), suggestionNature, StringComparison.CurrentCultureIgnoreCase) AndAlso
+                    _nature.Items.Cast(Of Data.DataRowView)().Any(Function(cat) CInt(cat("cat")) = CInt(row("cat")))).Take(2).ToArray()
+                If candidats.Length = 1 Then
+                    _nature.SelectedValue = candidats(0)("cat")
+                    _sousNature.SelectedValue = candidats(0)("sousCat")
+                End If
+            End If
+        End If
     End Sub
 
     Public ReadOnly Property Proposal As DocumentArchiveProposal
@@ -331,9 +411,11 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         _amountLabel.Visible = financial
         _amount.Visible = financial
         _attach.Visible = financial
+        ChargerCategories()
     End Sub
 
-    Private Function BuildProposal() As DocumentArchiveProposal
+    Private Function BuildProposal(Optional racine As String = Nothing) As DocumentArchiveProposal
+        racine = If(racine, _root)
         Dim emitted As Boolean? = Nothing
         If _direction.SelectedIndex >= 0 Then emitted = _direction.SelectedIndex = 0
         Dim kind = SelectedKind
@@ -342,7 +424,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         End If
         If kind = TypeDocument.Aucun Then Throw New ArgumentException("Sélectionnez le type de document.")
         If kind = TypeDocument.Facture OrElse kind = TypeDocument.Cheque Then
-            Return SqlTestDocumentEntry.Prepare(_source, _hash, _root, kind = TypeDocument.Cheque,
+            Return SqlTestDocumentEntry.Prepare(_source, _hash, racine, kind = TypeDocument.Cheque,
                 _number.Text, _party.Text, _date.Text, _amount.Text, emitted, _archiveOnDrive, _issuer.Text)
         Else
             Dim identity As New JObject()
@@ -354,13 +436,17 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
                     identity(pair.Key) = pair.Value.Text.Trim()
                 Next
             End If
-            Return DocumentArchiveProposal.PrepareAdministrativeTest(_source, _hash, _root, kind,
+            Return DocumentArchiveProposal.PrepareAdministrativeTest(_source, _hash, racine, kind,
                 _party.Text, _date.Text, _number.Text, _amount.Text, _firstName.Text, _address.Text, _archiveOnDrive, identity)
         End If
     End Function
 
     Private Sub ClearMovement()
         _movement = Nothing
+        If debitMouvement.HasValue Then
+            debitMouvement = Nothing
+            ChargerCategories()
+        End If
         _attach.Text = "Rattacher à un mouvement…"
     End Sub
 
@@ -382,6 +468,8 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
                     Select Case dialog.ShowDialog(Me)
                         Case DialogResult.OK
                             _movement = CInt(list.SelectedValue)
+                            debitMouvement = Not CBool(DirectCast(list.SelectedItem, Data.DataRowView)("sens"))
+                            ChargerCategories()
                             _attach.Text = "Mouvement n° " & _movement.Value
                         Case DialogResult.No
                             ClearMovement()
@@ -397,7 +485,9 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         Try
             _proposal = BuildProposal()
             _proposal.MouvementChoisi = _movement
-            _proposal.NatureComptable = _nature.Text.Trim()
+            _proposal.NatureComptable = If(_sousNature.SelectedIndex >= 0, _sousNature.Text, _nature.Text)
+            If _nature.SelectedIndex >= 0 Then _proposal.IdCategorie = CInt(_nature.SelectedValue)
+            If _sousNature.SelectedIndex >= 0 Then _proposal.IdSousCategorie = CInt(_sousNature.SelectedValue)
             _proposal.EvenementComptable = _eventName.Text.Trim()
             DialogResult = DialogResult.OK
         Catch ex As Exception When TypeOf ex Is ArgumentException OrElse TypeOf ex Is IO.IOException

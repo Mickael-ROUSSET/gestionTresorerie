@@ -21,7 +21,14 @@ Public Class SqlDocumentTestStoreTests
                 Dim nom = Guid.NewGuid().ToString()
                 ParametresComptables.Ajouter(cn, rubrique, nom, Nothing, Nothing, False)
                 Using liste = ParametresComptables.Lire(cn, rubrique)
-                    Assert.AreEqual(1, liste.Select("Libellé='" & nom & "'").Length)
+                    Dim lignes = liste.Select("Libellé='" & nom & "'")
+                    Assert.AreEqual(1, lignes.Length)
+                    Dim id = CInt(lignes(0)("Id"))
+                    ParametresComptables.Ajouter(cn, rubrique, nom & " bis", Today, Nothing, False, id)
+                    Using modifie = ParametresComptables.Lire(cn, rubrique)
+                        Assert.AreEqual(nom & " bis", CStr(modifie.Select("Id=" & id)(0)("Libellé")))
+                    End Using
+                    ParametresComptables.Ajouter(cn, rubrique, nom, Nothing, Nothing, False, id)
                 End Using
                 Assert.ThrowsExactly(Of SqlException)(Sub() ParametresComptables.Ajouter(cn, rubrique, nom, Nothing, Nothing, False))
             Next
