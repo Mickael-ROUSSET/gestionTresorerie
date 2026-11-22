@@ -17,10 +17,12 @@ Public Class RevuePiecesFictivesHorsLigneTests
             Dim enfant = Directory.CreateDirectory(Path.Combine(racine, "sous-dossier")).FullName
             File.WriteAllText(Path.Combine(racine, "facture.pdf"), "PDF fictif")
             File.WriteAllText(Path.Combine(racine, "notes.txt"), "texte fictif")
+            File.WriteAllBytes(Path.Combine(racine, "scan-vide.pdf"), Array.Empty(Of Byte)())
             File.WriteAllText(Path.Combine(enfant, "autre.pdf"), "PDF fictif")
             Dim fichiers = FrmPrincipale.ListerPiecesFictivesTest(racine)
             Assert.AreEqual(1, fichiers.Length)
             Assert.AreEqual("facture.pdf", Path.GetFileName(fichiers(0)))
+            Assert.IsFalse(fichiers.Any(Function(p) Path.GetFileName(p) = "scan-vide.pdf"))
             Assert.IsTrue(File.Exists(Path.Combine(enfant, "autre.pdf")))
         Finally
             If Directory.Exists(racine) Then Directory.Delete(racine, recursive:=True)
