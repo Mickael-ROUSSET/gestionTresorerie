@@ -4,7 +4,7 @@ Imports System.Drawing
 Imports System.IO
 Imports System.Windows.Forms
 
-Friend NotInheritable Class FrmDocumentFilePreview
+Public NotInheritable Class FrmDocumentFilePreview
     Inherits Form
 
     Private Const DriveArchiveRoot As String = "G:\Mon Drive\AGUMAAA\Gestion\Trésorerie\Comptabilité\Eléments comptables"
@@ -20,6 +20,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private ReadOnly _initializeSqlTestOnSave As Boolean
     Private ReadOnly _analyse As New Button With {
         .Text = "Analyser le document…", .AutoSize = True, .Anchor = AnchorStyles.Left}
+    Private ReadOnly _nextDocument As New Button With {.Name = "PieceSuivanteTest", .Text = "Pièce suivante", .AutoSize = True}
     Private ReadOnly _pageNumber As New NumericUpDown With {.Minimum = 1, .Width = 72, .Visible = False}
     Private ReadOnly _pageCount As New Label With {.AutoSize = True, .Visible = False, .Margin = New Padding(3, 7, 3, 0)}
     Private ReadOnly _pathTip As New ToolTip()
@@ -66,15 +67,20 @@ Friend NotInheritable Class FrmDocumentFilePreview
         columns.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
         columns.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         Dim commands As New FlowLayoutPanel With {.Dock = DockStyle.Fill, .AutoSize = True}
-        commands.Controls.AddRange(New Control() {_analyse, _pageNumber, _pageCount})
+        commands.Controls.AddRange(New Control() {_analyse, _nextDocument, _pageNumber, _pageCount})
         columns.Controls.Add(commands, 0, 2)
         columns.SetColumnSpan(commands, 2)
         AddHandler _analyse.Click, AddressOf AnalyseSelection
+        AddHandler _nextDocument.Click, Sub()
+                                            If _pending OrElse _files.Items.Count < 2 Then Return
+                                            _files.SelectedIndex = (_files.SelectedIndex + 1) Mod _files.Items.Count
+                                        End Sub
         AddHandler _pageNumber.ValueChanged, Sub() LoadPdfPage()
 
         _files.Items.AddRange(paths.Select(Function(path) New FileInfo(path)).Cast(Of Object)().ToArray())
         AddHandler _files.SelectedIndexChanged, AddressOf LoadSelection
         If _files.Items.Count > 0 Then _files.SelectedIndex = 0
+        _nextDocument.Enabled = _files.Items.Count > 1
     End Sub
 
     Public Shared Sub OpenFiles(owner As IWin32Window, Optional testWorkspace As OfflineTestWorkspace = Nothing,
