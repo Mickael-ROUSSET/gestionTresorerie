@@ -99,6 +99,41 @@ Public Class GmailSimulatedInboxTests
         End Try
     End Sub
 
+    <TestMethod>
+    Public Sub DeuxPiecesDansUnMessage_PremiereBloquee_SecondeExtraite()
+        Dim root = Directory.CreateTempSubdirectory("gmail-eml-multipieces-").FullName
+        Try
+            Dim inbox = Path.Combine(root, "entree")
+            Dim output = Path.Combine(root, "sortie")
+            Directory.CreateDirectory(inbox)
+            Directory.CreateDirectory(output)
+            Directory.CreateDirectory(Path.Combine(output, "bloque.pdf"))
+            Dim source = Path.Combine(inbox, "multi.eml")
+            Using message As New MimeMessage()
+                message.From.Add(New MailboxAddress("Fictif", "fictif@example.invalid"))
+                message.To.Add(New MailboxAddress("TEST", "test@example.invalid"))
+                message.Date = New DateTimeOffset(New DateTime(2026, 11, 20), TimeSpan.Zero)
+                Dim builder As New BodyBuilder With {.TextBody = "Deux pièces fictives"}
+                builder.Attachments.Add("bloque.pdf", Encoding.UTF8.GetBytes("PDF fictif bloqué"), ContentType.Parse("application/pdf"))
+                builder.Attachments.Add("valide.pdf", Encoding.UTF8.GetBytes("PDF fictif valide"), ContentType.Parse("application/pdf"))
+                message.Body = builder.ToMessageBody()
+                Using stream = File.Create(source)
+                    message.WriteTo(stream)
+                End Using
+            End Using
+            Dim before = File.ReadAllBytes(source)
+            Dim rejected As New List(Of String)()
+            Dim files = GmailSimulatedInbox.Extract(inbox, output, Date.MinValue, rejectedMessages:=rejected)
+            Assert.AreEqual(1, files.Count)
+            Assert.AreEqual("valide.pdf", Path.GetFileName(files(0)))
+            CollectionAssert.AreEqual(New String() {"multi.eml"}, rejected)
+            CollectionAssert.AreEqual(before, File.ReadAllBytes(source))
+            Assert.AreEqual(0, Directory.GetFiles(output, "*.tmp").Length)
+        Finally
+            If Directory.Exists(root) Then Directory.Delete(root, True)
+        End Try
+    End Sub
+
     Private Shared Sub CreerMessage(path As String, sender As String, sent As DateTime, filename As String)
         Using message As New MimeMessage()
             message.From.Add(New MailboxAddress("Fictif", sender))
