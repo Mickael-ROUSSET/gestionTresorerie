@@ -1,6 +1,6 @@
 Option Strict On
 Imports System.Windows.Forms
-Imports Global.Windows.Security.Credentials.UI
+Imports Windows.Security.Credentials.UI
 
 Friend NotInheritable Class FrmSecretMessagerie
     Inherits Form
