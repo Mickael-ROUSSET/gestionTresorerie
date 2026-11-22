@@ -44,6 +44,15 @@ Public Module ParametresComptables
         End Select
     End Function
 
+    Friend Function LireNatures(cn As SqlConnection) As DataTable
+        Const sql = "SELECT c.Id AS cat,c.libelle AS categorie,c.debit,s.Id AS sousCat,s.libelle AS sousCategorie FROM dbo.Categorie c LEFT JOIN dbo.SousCategorie s ON s.idCategorie=c.Id ORDER BY c.libelle,c.Id,s.libelle,s.Id"
+        Using cmd As New SqlCommand(sql, cn), reader = cmd.ExecuteReader()
+            Dim result As New DataTable()
+            result.Load(reader)
+            Return result
+        End Using
+    End Function
+
     Public Function Lire(cn As SqlConnection, type As Rubrique) As DataTable
         Dim champs = If(type = Rubrique.Exercices, "dateDebut AS Début,dateFin AS Fin,clos AS Clos",
                         "libelle AS Libellé,dateDebut AS Début,dateFin AS Fin")
@@ -57,7 +66,7 @@ Public Module ParametresComptables
         End Using
     End Function
 
-    Public Sub Ajouter(cn As SqlConnection, type As Rubrique, nom As String, debut As Date?, fin As Date?, clos As Boolean)
+    Public Sub Ajouter(cn As SqlConnection, type As Rubrique, nom As String, debut As Date?, fin As Date?, clos As Boolean, Optional id As Integer? = Nothing)
         Dim table = TableSql(type)
         nom = If(nom, "").Trim()
         If type = Rubrique.Exercices Then
@@ -71,12 +80,14 @@ Public Module ParametresComptables
         Using tx = cn.BeginTransaction(), cmd = cn.CreateCommand()
             cmd.Transaction = tx
             If type = Rubrique.Exercices Then
-                cmd.CommandText = "IF EXISTS(SELECT 1 FROM dbo.Exercices WITH(TABLOCKX,HOLDLOCK) WHERE dateDebut<=@fin AND dateFin>=@debut) THROW 51210,N'Cette période recouvre un exercice existant.',1; INSERT dbo.Exercices(dateDebut,dateFin,clos) VALUES(@debut,@fin,@clos);"
+                cmd.CommandText = "IF EXISTS(SELECT 1 FROM dbo.Exercices WITH(TABLOCKX,HOLDLOCK) WHERE (@id IS NULL OR Id<>@id) AND dateDebut<=@fin AND dateFin>=@debut) THROW 51210,N'Cette période recouvre un exercice existant.',1; IF @id IS NULL INSERT dbo.Exercices(dateDebut,dateFin,clos) VALUES(@debut,@fin,@clos); ELSE UPDATE dbo.Exercices SET dateDebut=@debut,dateFin=@fin,clos=@clos WHERE Id=@id;"
                 cmd.Parameters.Add("@clos", SqlDbType.Bit).Value = clos
             Else
-                cmd.CommandText = "IF EXISTS(SELECT 1 FROM " & table & " WITH(TABLOCKX,HOLDLOCK) WHERE libelle=@nom) THROW 51211,N'Ce libellé existe déjà.',1; INSERT " & table & "(libelle,dateDebut,dateFin) VALUES(@nom,@debut,@fin);"
+                cmd.CommandText = "IF EXISTS(SELECT 1 FROM " & table & " WITH(TABLOCKX,HOLDLOCK) WHERE (@id IS NULL OR Id<>@id) AND libelle=@nom) THROW 51211,N'Ce libellé existe déjà.',1; IF @id IS NULL INSERT " & table & "(libelle,dateDebut,dateFin) VALUES(@nom,@debut,@fin); ELSE UPDATE " & table & " SET libelle=@nom,dateDebut=@debut,dateFin=@fin WHERE Id=@id;"
                 cmd.Parameters.Add("@nom", SqlDbType.NVarChar, 50).Value = nom
             End If
+            cmd.CommandText &= " IF @@ROWCOUNT<>1 THROW 51212,N'La ligne a disparu. Actualisez la liste.',1;"
+            cmd.Parameters.Add("@id", SqlDbType.Int).Value = If(id.HasValue, CObj(id.GetValueOrDefault()), DBNull.Value)
             cmd.Parameters.Add("@debut", SqlDbType.Date).Value = If(debut.HasValue, CObj(debut.GetValueOrDefault().Date), DBNull.Value)
             cmd.Parameters.Add("@fin", SqlDbType.Date).Value = If(fin.HasValue, CObj(fin.GetValueOrDefault().Date), DBNull.Value)
             cmd.ExecuteNonQuery()

@@ -28,6 +28,8 @@ Public NotInheritable Class DocumentArchiveProposal
     End Property
 
     Public Property MouvementChoisi As Integer?
+    Public Property IdCategorie As Integer?
+    Public Property IdSousCategorie As Integer?
     Public Property NatureComptable As String
     Public Property EvenementComptable As String
 

@@ -72,6 +72,11 @@ Friend NotInheritable Class FrmDocumentFilePreview
         AddHandler _analyse.Click, AddressOf AnalyseSelection
         AddHandler _pageNumber.ValueChanged, Sub() LoadPdfPage()
 
+        If _sqlTest IsNot Nothing AndAlso Not _sqlExample Then
+            _files.DrawMode = DrawMode.OwnerDrawFixed
+            AddHandler _files.DrawItem, AddressOf DessinerDocument
+            documents.Text = "Documents — vert : analyse disponible"
+        End If
         _files.Items.AddRange(paths.Select(Function(path) New FileInfo(path)).Cast(Of Object)().ToArray())
         AddHandler _files.SelectedIndexChanged, AddressOf LoadSelection
         If _files.Items.Count > 0 Then _files.SelectedIndex = 0
@@ -106,30 +111,53 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Protected Overrides Async Sub OnShown(e As EventArgs)
         MyBase.OnShown(e)
         If _sqlTest Is Nothing OrElse _sqlExample Then Return
-        _pending = True
-        _files.Enabled = False
-        _analyse.Enabled = False
-        Try
-            Dim index = 0
-            For Each item As FileInfo In _files.Items.OfType(Of FileInfo)()
-                index += 1
-                _analyse.Text = $"Analyse ChatGPT {index}/{_files.Items.Count}…"
-                Try
-                    Using guard = File.Open(item.FullName, FileMode.Open, FileAccess.Read, FileShare.Read)
-                        Dim hash = DocumentArchiveProposal.HashSource(item.FullName)
-                        If Not _results.ContainsKey(hash) Then _results(hash) = Await ChatGptDocumentReader.ReadAsync(item.FullName)
-                    End Using
-                Catch ex As Exception
-                    _issues(item.FullName) = ex.Message
-                End Try
-            Next
-        Finally
-            _pending = False
-            _files.Enabled = True
-            _analyse.Enabled = True
-            _analyse.Text = "Vérifier le document…"
-        End Try
-        StartAutomaticAnalysis()
+        Dim lot = _files.Items.OfType(Of FileInfo)().ToArray()
+        _travail = True
+        RafraichirBouton()
+        For Each item In lot
+            If IsDisposed OrElse Disposing Then Return
+            Try
+                Using verrou = File.Open(item.FullName, FileMode.Open, FileAccess.Read, FileShare.Read)
+                    Dim hash = Await Task.Run(Function() DocumentArchiveProposal.HashSource(item.FullName))
+                    If IsDisposed Then Return
+                    If Not _results.ContainsKey(hash) Then
+                        Dim resultat = Await Task.Run(Function() ChatGptDocumentReader.ReadAsync(item.FullName))
+                        If IsDisposed Then Return
+                        If resultat Is Nothing Then Throw New InvalidDataException("Aucune analyse disponible.")
+                        _results(hash) = resultat
+                    End If
+                    prets.Add(item.FullName)
+                End Using
+            Catch ex As Exception
+                If IsDisposed Then Return
+                _issues(item.FullName) = ex.Message
+            End Try
+            _files.Invalidate()
+            RafraichirBouton()
+        Next
+        _travail = False
+        If Not IsDisposed AndAlso lot.Length = 1 Then StartAutomaticAnalysis()
+    End Sub
+
+    Private ReadOnly prets As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
+    Private _travail As Boolean
+
+    Private Sub RafraichirBouton()
+        If _pending Then Return
+        Dim source = TryCast(_files.SelectedItem, FileInfo)?.FullName
+        Dim disponible = source IsNot Nothing AndAlso (prets.Contains(source) OrElse _issues.ContainsKey(source))
+        _analyse.Enabled = disponible OrElse Not _travail
+        _analyse.Text = If(disponible OrElse Not _travail, "Vérifier le document…", "Analyse en cours…")
+    End Sub
+
+    Private Sub DessinerDocument(sender As Object, args As DrawItemEventArgs)
+        If args.Index < 0 OrElse args.Index >= _files.Items.Count Then Return
+        Dim fichier = DirectCast(_files.Items(args.Index), FileInfo)
+        args.DrawBackground()
+        Dim couleur = If(prets.Contains(fichier.FullName), Brushes.ForestGreen, If(_issues.ContainsKey(fichier.FullName), Brushes.DarkOrange, Brushes.LightGray))
+        args.Graphics.FillEllipse(couleur, args.Bounds.Left + 3, args.Bounds.Top + (args.Bounds.Height - 9) \ 2, 9, 9)
+        TextRenderer.DrawText(args.Graphics, fichier.Name, args.Font, New Point(args.Bounds.Left + 16, args.Bounds.Top), args.ForeColor, TextFormatFlags.NoPrefix)
+        args.DrawFocusRectangle()
     End Sub
 
     Private Sub StartAutomaticAnalysis()
@@ -212,6 +240,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
             _pageNumber.Enabled = True
             _analyse.Enabled = True
             _pending = False
+            If _sqlTest IsNot Nothing AndAlso Not _sqlExample Then RafraichirBouton()
         End Try
     End Sub
 
@@ -226,7 +255,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
                 note = "Vérifiez les champs de la facture fictive avant le classement."
             ElseIf Not _results.TryGetValue(hash, suggested) Then
                 Dim reason As String = Nothing
-                If _issues.Remove(source, reason) Then
+                If _issues.TryGetValue(source, reason) Then
                     note = "Lecture automatique impossible. " & reason
                 Else
                     suggested = Await ChatGptDocumentReader.ReadAsync(source)
@@ -237,7 +266,16 @@ Friend NotInheritable Class FrmDocumentFilePreview
 
         Dim archiveRoot = If(_sqlExample, _testWorkspace.GetDocumentTestDirectory(), DriveArchiveRoot)
         Using editor As New FrmSqlTestDocumentEntry(source, hash, archiveRoot, suggested, note, archiveOnDrive:=Not _sqlExample)
-            If editor.ShowDialog(Me) <> DialogResult.OK Then Return
+            Dim decision = editor.ShowDialog(Me)
+            If decision = DialogResult.Retry AndAlso editor.RenamedPath IsNot Nothing Then
+                Dim index = _files.SelectedIndex
+                If prets.Remove(source) Then prets.Add(editor.RenamedPath)
+                _issues.Remove(source)
+                _files.Items(index) = New FileInfo(editor.RenamedPath)
+                LoadSelection(Me, EventArgs.Empty)
+                Return
+            End If
+            If decision <> DialogResult.OK Then Return
             Dim proposal = editor.Proposal
             ValidateTestDestination(proposal.Destination)
             Dim approve As Func(Of String, Boolean?) =
@@ -394,7 +432,10 @@ Friend NotInheritable Class FrmDocumentFilePreview
         Catch ex As Exception
             _text.Text = "Impossible de lire ce fichier. Vérifiez qu’il est accessible et dans un format pris en charge."
         End Try
-        If Visible Then StartAutomaticAnalysis()
+        If _sqlTest IsNot Nothing AndAlso Not _sqlExample Then
+            RafraichirBouton()
+            If Visible AndAlso _files.Items.Count = 1 AndAlso Not _travail Then StartAutomaticAnalysis()
+        End If
     End Sub
 
     Private Sub LoadPdfPage()
