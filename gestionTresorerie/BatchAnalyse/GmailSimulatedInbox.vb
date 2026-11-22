@@ -71,7 +71,15 @@ Friend NotInheritable Class GmailSimulatedInbox
                             rejectedMessages.Add(Path.GetFileName(emlPath))
                         End If
                     Finally
-                        If File.Exists(temporary) Then File.Delete(temporary)
+                        ' Un échec de nettoyage ne doit pas masquer l'erreur de la pièce ni interrompre le lot.
+                        Try
+                            If File.Exists(temporary) Then File.Delete(temporary)
+                        Catch ex As Exception When TypeOf ex Is IOException OrElse TypeOf ex Is UnauthorizedAccessException
+                            If rejectedMessages IsNot Nothing AndAlso
+                               Not rejectedMessages.Contains(Path.GetFileName(emlPath)) Then
+                                rejectedMessages.Add(Path.GetFileName(emlPath))
+                            End If
+                        End Try
                     End Try
                 Next
             End Using
