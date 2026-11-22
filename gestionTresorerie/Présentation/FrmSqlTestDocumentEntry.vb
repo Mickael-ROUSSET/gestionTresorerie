@@ -36,6 +36,8 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     Private ReadOnly _birth As New TextBox With {.Dock = DockStyle.Fill, .PlaceholderText = "JJ/MM/AAAA"}
     Private ReadOnly _birthLabel As New Label With {.Text = "Date de naissance"}
     Private ReadOnly _extraLabels As New List(Of Label)
+    Private ReadOnly _nom As New TextBox With {.Dock = DockStyle.Fill}
+    Private nomManuel As Boolean
     Private ReadOnly _destination As New TextBox With {.ReadOnly = True, .Multiline = True, .Dock = DockStyle.Fill, .ScrollBars = ScrollBars.Vertical}
     Private ReadOnly catalogue As New Data.DataTable()
     Private ReadOnly _nature As New ComboBox With {.Dock = DockStyle.Fill, .DropDownStyle = ComboBoxStyle.DropDownList}
@@ -123,8 +125,9 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             _eventName.SelectedItem = libelle
         End Sub
         AddField(table, 19, New Label With {.Text = "Événement ou activité"}, eventEditor)
-        table.Controls.Add(New Label With {.Text = "Destination de la copie", .AutoSize = True}, 0, 20)
-        table.Controls.Add(_destination, 1, 20)
+        AddField(table, 20, New Label With {.Text = "Nom du fichier"}, _nom)
+        table.Controls.Add(New Label With {.Text = "Destination de la copie", .AutoSize = True}, 0, 21)
+        table.Controls.Add(_destination, 1, 21)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 54))
 
         Dim buttons As New FlowLayoutPanel With {.Dock = DockStyle.Fill, .FlowDirection = FlowDirection.RightToLeft}
@@ -136,16 +139,16 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         AddHandler _attach.Click, AddressOf PickMovement
         AddHandler _date.TextChanged, Sub() ClearMovement()
         AddHandler _amount.TextChanged, Sub() ClearMovement()
-        table.Controls.Add(buttons, 0, 21)
+        table.Controls.Add(buttons, 0, 22)
         table.SetColumnSpan(buttons, 2)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 39))
         Dim prompt As New Button With {.Text = "Copier la consigne ChatGPT", .AutoSize = True, .Anchor = AnchorStyles.Left}
         AddHandler prompt.Click, AddressOf CopyChatGptPrompt
-        table.Controls.Add(prompt, 0, 22)
+        table.Controls.Add(prompt, 0, 23)
         table.SetColumnSpan(prompt, 2)
         table.RowStyles.Add(New RowStyle(SizeType.Absolute, 35))
         Dim renommer As New Button With {.Text = "Renommer le fichier source…", .AutoSize = True, .Visible = archiveOnDrive}
-        table.Controls.Add(renommer, 1, 23)
+        table.Controls.Add(renommer, 1, 24)
         AddHandler renommer.Click, AddressOf RenommerSource
         Controls.Add(table)
         CancelButton = cancel
@@ -172,10 +175,17 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
                 _amount.Clear()
                 _direction.SelectedIndex = -1
             End Sub
-        For Each field In table.Controls.OfType(Of TextBox)().Where(Function(t) t IsNot _destination)
+        For Each field In table.Controls.OfType(Of TextBox)().Where(Function(t) t IsNot _destination AndAlso t IsNot _nom)
             AddHandler field.TextChanged, Sub() RefreshDestination()
         Next
         AddHandler _kind.SelectedIndexChanged, Sub() RefreshDestination()
+        AddHandler _nom.TextChanged, Sub()
+            If Not _nom.Focused Then Return
+            nomManuel = _nom.Text.Length > 0
+            RefreshDestination()
+        End Sub
+        AddHandler _sousNature.SelectedIndexChanged, Sub() RefreshDestination()
+        AddHandler _eventName.TextChanged, Sub() RefreshDestination()
         _ready = True
         RefreshDestination()
     End Sub
@@ -415,7 +425,23 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     End Sub
 
     Private Function BuildProposal(Optional racine As String = Nothing) As DocumentArchiveProposal
-        racine = If(racine, _root)
+        Dim proposition = PreparerDocument(If(racine, _root))
+        Dim nom = IO.Path.GetFileName(proposition.Destination)
+        If SelectedKind = TypeDocument.Cheque Then
+            Dim tiers = If(_direction.SelectedIndex = 0, _party.Text, _issuer.Text)
+            Dim activite = If(String.IsNullOrWhiteSpace(_eventName.Text), _sousNature.Text, _eventName.Text)
+            nom = DocumentArchiveProposal.NomCheque(_number.Text, activite, tiers, IO.Path.GetExtension(_source))
+        End If
+        If nomManuel Then
+            nom = _nom.Text
+        ElseIf _nom.Text <> nom Then
+            _nom.Text = nom
+        End If
+        proposition.ChoisirNom(nom)
+        Return proposition
+    End Function
+
+    Private Function PreparerDocument(racine As String) As DocumentArchiveProposal
         Dim emitted As Boolean? = Nothing
         If _direction.SelectedIndex >= 0 Then emitted = _direction.SelectedIndex = 0
         Dim kind = SelectedKind
@@ -483,6 +509,9 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
 
     Private Sub ValidateFields(sender As Object, e As EventArgs)
         Try
+            If _archiveOnDrive AndAlso (SelectedKind = TypeDocument.Cheque OrElse SelectedKind = TypeDocument.Facture) AndAlso Not _movement.HasValue AndAlso _nature.SelectedIndex < 0 Then
+                Throw New ArgumentException("Choisissez une catégorie pour créer le mouvement, ou rattachez un mouvement existant.")
+            End If
             _proposal = BuildProposal()
             _proposal.MouvementChoisi = _movement
             _proposal.NatureComptable = If(_sousNature.SelectedIndex >= 0, _sousNature.Text, _nature.Text)

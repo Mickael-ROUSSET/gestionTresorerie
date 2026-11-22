@@ -111,6 +111,9 @@ Partial Public NotInheritable Class SqlDocumentTestStore
                         If docId <= 0 Then Throw New InvalidOperationException("Écriture du document non confirmée.")
                     End Using
                 End Sub)
+                If Not proposal.MouvementChoisi.HasValue AndAlso proposal.IdCategorie.HasValue Then
+                    EnregistrerMouvement(connection, tx, proposal, docId)
+                End If
                 If proposal.MouvementChoisi.HasValue Then
                     Using cmd As New SqlCommand("IF NOT EXISTS(SELECT 1 FROM dbo.Mouvements WHERE Id=@mvt) THROW 51030,N'Mouvement introuvable.',1; UPDATE dbo.Documents SET idMvtDoc=@mvt,dateModif=GETDATE() WHERE idDoc=@doc AND (idMvtDoc IS NULL OR idMvtDoc=0 OR idMvtDoc=@mvt); IF @@ROWCOUNT<>1 THROW 51031,N'Ce document est déjà rattaché à un autre mouvement.',1;", connection, tx)
                         cmd.Parameters.AddWithValue("@mvt", proposal.MouvementChoisi.Value)
@@ -133,4 +136,43 @@ Partial Public NotInheritable Class SqlDocumentTestStore
             End Using
         End Using
     End Function
+    Private Shared Sub EnregistrerMouvement(cn As SqlConnection, tx As SqlTransaction, p As DocumentArchiveProposal, idDoc As Integer)
+        Dim cheque = TryCast(p.Document, Cheque)
+        Dim facture = TryCast(p.Document, Facture)
+        If cheque Is Nothing AndAlso facture Is Nothing Then Return
+        Dim credit As Boolean
+        Dim montant As Decimal
+        Dim reference, tiers As String
+        If cheque IsNot Nothing Then
+            credit = p.Document.SousCategorieDoc = "Reçus"
+            montant = cheque.montant_numerique
+            reference = DocumentArchiveProposal.NumeroCheque(cheque.numero_du_cheque)
+            tiers = If(credit, cheque.emetteur_du_cheque, cheque.destinataire)
+        Else
+            credit = facture.fournisseur_nom.Contains("AGUMAAA", StringComparison.OrdinalIgnoreCase)
+            montant = facture.montant_ttc
+            reference = facture.numero_facture
+            tiers = If(credit, facture.adherent_nom, facture.fournisseur_nom)
+        End If
+        Const sql = "DECLARE @m int=(SELECT NULLIF(idMvtDoc,0) FROM dbo.Documents WITH(UPDLOCK,HOLDLOCK) WHERE idDoc=@doc); " &
+            "IF @m IS NOT NULL RETURN; " &
+            "IF NOT EXISTS(SELECT 1 FROM dbo.Categorie WHERE Id=@cat AND debit=1-CONVERT(int,@credit)) OR (@sous IS NOT NULL AND NOT EXISTS(SELECT 1 FROM dbo.SousCategorie WHERE Id=@sous AND idCategorie=@cat)) THROW 51143,N'Classement incompatible avec le sens du mouvement.',1; " &
+            "IF EXISTS(SELECT 1 FROM dbo.Mouvements WITH(UPDLOCK,HOLDLOCK) WHERE typeMouvement=@type AND reference=@ref AND montant=@montant AND sens=@credit AND dateMvt=@date AND note=@tiers) THROW 51144,N'Un mouvement correspondant existe déjà. Rattachez-le au document.',1; " &
+            "DECLARE @t int=(SELECT CASE WHEN COUNT(*)=1 THEN MIN(Id) ELSE 0 END FROM dbo.Tiers WHERE NULLIF(@tiers,'') IN (raisonSociale,TRIM(CONCAT(prenom,' ',nom)),TRIM(CONCAT(nom,' ',prenom)))); " &
+            "INSERT dbo.Mouvements(categorie,sousCategorie,montant,sens,tiers,note,dateMvt,dateCreation,etat,modifiable,evenement,typeMouvement,reference,typeReference,idDoc) VALUES(@cat,@sous,@montant,@credit,@t,@tiers,@date,GETDATE(),0,1,@event,@type,@ref,@type,@doc); " &
+            "UPDATE dbo.Documents SET idMvtDoc=CONVERT(int,SCOPE_IDENTITY()),dateModif=GETDATE() WHERE idDoc=@doc;"
+        Using cmd As New SqlCommand(sql, cn, tx)
+            cmd.Parameters.AddWithValue("@doc", idDoc)
+            cmd.Parameters.AddWithValue("@cat", p.IdCategorie.Value)
+            cmd.Parameters.Add("@sous", SqlDbType.Int).Value = If(p.IdSousCategorie.HasValue, CObj(p.IdSousCategorie.GetValueOrDefault()), DBNull.Value)
+            cmd.Parameters.AddWithValue("@montant", Math.Abs(montant))
+            cmd.Parameters.AddWithValue("@credit", credit)
+            cmd.Parameters.AddWithValue("@tiers", If(tiers, "").Trim())
+            cmd.Parameters.AddWithValue("@date", p.Document.DateDoc)
+            cmd.Parameters.AddWithValue("@event", If(p.EvenementComptable, ""))
+            cmd.Parameters.AddWithValue("@type", If(cheque Is Nothing, "Facture", "Chèque"))
+            cmd.Parameters.AddWithValue("@ref", reference)
+            cmd.ExecuteNonQuery()
+        End Using
+    End Sub
 End Class

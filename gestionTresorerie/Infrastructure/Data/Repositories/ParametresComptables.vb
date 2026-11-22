@@ -44,6 +44,21 @@ Public Module ParametresComptables
         End Select
     End Function
 
+    Friend Sub SupprimerNature(cn As SqlConnection, sous As Boolean, id As Integer)
+        Dim colonne = If(sous, "sousCategorie", "categorie")
+        Dim table = If(sous, "SousCategorie", "Categorie")
+        Using tx = cn.BeginTransaction(IsolationLevel.Serializable)
+            Dim references = "EXISTS(SELECT 1 FROM dbo.Mouvements WHERE " & colonne & "=@id) OR EXISTS(SELECT 1 FROM dbo.Tiers WHERE " & colonne & "Defaut=@id) OR EXISTS(SELECT 1 FROM dbo.ReglesAffectationReleve WHERE id" & colonne & "=@id)"
+            If Not sous Then references &= " OR EXISTS(SELECT 1 FROM dbo.SousCategorie WHERE idCategorie=@id)"
+            If cn.Database.Equals("bddAgumaaaTest", StringComparison.OrdinalIgnoreCase) Then references &= " OR EXISTS(SELECT 1 FROM dbo.ClassementDocumentTest WHERE id" & colonne & "=@id)"
+            Using cmd As New SqlCommand("IF " & references & " THROW 51141,N'Suppression impossible : cette rubrique est utilisée ou contient des sous-catégories.',1; DELETE FROM dbo." & table & " WHERE Id=@id; IF @@ROWCOUNT<>1 THROW 51142,N'Rubrique introuvable.',1;", cn, tx)
+                cmd.Parameters.Add("@id", SqlDbType.Int).Value = id
+                cmd.ExecuteNonQuery()
+            End Using
+            tx.Commit()
+        End Using
+    End Sub
+
     Friend Function LireNatures(cn As SqlConnection) As DataTable
         Const sql = "SELECT c.Id AS cat,c.libelle AS categorie,c.debit,s.Id AS sousCat,s.libelle AS sousCategorie FROM dbo.Categorie c LEFT JOIN dbo.SousCategorie s ON s.idCategorie=c.Id ORDER BY c.libelle,c.Id,s.libelle,s.Id"
         Using cmd As New SqlCommand(sql, cn), reader = cmd.ExecuteReader()

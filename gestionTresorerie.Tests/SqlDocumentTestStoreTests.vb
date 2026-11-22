@@ -90,6 +90,21 @@ Public Class SqlDocumentTestStoreTests
             Dim medicalId = store.SaveVerified(medical, Function(delta) ThrowUnexpectedReview())
             Using conn As New SqlConnection("Server=(LocalDB)\MSSQLLocalDB;Database=bddAgumaaaTest;Integrated Security=True")
                 conn.Open()
+                Dim reference = Guid.NewGuid().ToString("N").Substring(0, 12)
+                Dim classe = SqlTestDocumentEntry.Prepare(source, DocumentArchiveProposal.HashSource(source), root, True,
+                    reference, "Association exemple", "04/04/2026", "16,50", chequeEmis:=False, issuer:="Personne fictive")
+                Using cat As New SqlCommand("INSERT dbo.Categorie(libelle,dateDebut,debit) OUTPUT inserted.Id VALUES('Classement fictif',GETDATE(),0)", conn)
+                    classe.IdCategorie = CInt(cat.ExecuteScalar())
+                End Using
+                Dim classeId = store.SaveVerified(classe, Function(delta) ThrowUnexpectedReview()).Value
+                Assert.AreEqual(classeId, store.SaveVerified(classe, Function(delta) ThrowUnexpectedReview()).Value)
+                Using verification As New SqlCommand("SELECT COUNT(*) FROM dbo.Documents d INNER JOIN dbo.Mouvements m ON d.idMvtDoc=m.Id AND m.idDoc=d.idDoc WHERE d.idDoc=@doc AND m.montant=16.50 AND m.sens=1 AND m.reference=@ref AND m.note=N'Personne fictive' AND m.categorie=@cat", conn)
+                    verification.Parameters.AddWithValue("@doc", classeId)
+                    verification.Parameters.AddWithValue("@ref", reference)
+                    verification.Parameters.AddWithValue("@cat", classe.IdCategorie.Value)
+                    Assert.AreEqual(1, CInt(verification.ExecuteScalar()))
+                End Using
+                Assert.ThrowsExactly(Of SqlException)(Sub() ParametresComptables.SupprimerNature(conn, False, classe.IdCategorie.Value))
                 Using movement As New SqlCommand("INSERT dbo.Mouvements(categorie,montant,sens,tiers,dateMvt,dateCreation,etat,modifiable) OUTPUT inserted.Id VALUES(0,52.90,0,0,'20260403','20260403',0,1)", conn)
                     cheque.MouvementChoisi = CInt(movement.ExecuteScalar())
                     Assert.AreEqual(chequeId, store.SaveVerified(cheque, Function(delta) ThrowUnexpectedReview()))

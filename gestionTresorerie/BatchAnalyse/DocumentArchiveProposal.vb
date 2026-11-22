@@ -41,6 +41,31 @@ Public NotInheritable Class DocumentArchiveProposal
         End Get
     End Property
 
+    Friend Shared Function NumeroCheque(reference As String) As String
+        Dim chiffres = Regex.Matches(If(reference, ""), "(?<!\d)\d{7}(?!\d)")
+        Return If(chiffres.Count = 1, chiffres.Cast(Of Match)().First().Value, reference.Trim())
+    End Function
+
+    Friend Shared Function NomCheque(reference As String, activite As String, tiers As String, extension As String) As String
+        Dim segments As New List(Of String) From {"CHQ"}
+        If Regex.IsMatch(If(activite, ""), "\bgym(?:nastique)?\b", RegexOptions.IgnoreCase) Then activite = "Gym"
+        For Each valeur In {activite, NumeroCheque(reference), tiers}
+            Dim segment = Regex.Replace(If(valeur, "").Trim(), "[^\p{L}\p{N}-]+", "_").Trim("_"c)
+            If segment.Length > 0 Then segments.Add(segment)
+        Next
+        Return String.Join("_", segments) & extension
+    End Function
+
+    Friend Sub ChoisirNom(nom As String)
+        If String.IsNullOrWhiteSpace(nom) OrElse nom.Length > 220 OrElse nom <> nom.Trim() OrElse
+            nom.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 OrElse nom <> Path.GetFileName(nom) OrElse
+            Regex.IsMatch(nom, "^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\.|$)", RegexOptions.IgnoreCase) OrElse
+            Not String.Equals(Path.GetExtension(nom), Path.GetExtension(_source), StringComparison.OrdinalIgnoreCase) Then
+            Throw New ArgumentException("Saisissez un nom de fichier valide avec son extension d’origine.")
+        End If
+        _document.CheminDoc = Path.Combine(Path.GetDirectoryName(Destination), nom)
+    End Sub
+
     Public Shared Function Prepare(source As String, hash As String, json As String, root As String,
                                    setting As Func(Of String, String)) As DocumentArchiveProposal
         Return PrepareCore(source, hash, json, root, setting, Nothing)
