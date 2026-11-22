@@ -102,7 +102,9 @@ Public Module LitRelevé
     Private Function ParserCsvStructure(lignes As IEnumerable(Of String)) As List(Of LigneReleve)
         Dim resultat As New List(Of LigneReleve)
         Dim entetes As List(Of String) = Nothing
-        For Each brut In RegrouperEnregistrementsCsv(lignes.SkipWhile(Function(l) Entete(l) Is Nothing))
+        Dim enregistrements = RegrouperEnregistrementsCsv(lignes.SkipWhile(Function(l) Entete(l) Is Nothing))
+        For position As Integer = 0 To enregistrements.Count - 1
+            Dim brut = enregistrements(position)
             Dim nouvelle = Entete(brut)
             If nouvelle IsNot Nothing Then
                 entetes = nouvelle
@@ -113,6 +115,11 @@ Public Module LitRelevé
             Dim i = entetes.IndexOf("date"), d As Date
             If c.Count <= i OrElse Not Date.TryParseExact(c(i), {"dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd"}, CultureFr, DateTimeStyles.None, d) Then
                 If Regex.IsMatch(brut.TrimStart(), "^(Total|Solde)(?:s?\b)", RegexOptions.IgnoreCase) Then Continue For
+                Dim suivant = EnteteCompteSuivant(enregistrements, position)
+                If suivant >= 0 Then
+                    position = suivant - 1
+                    Continue For
+                End If
                 Throw New FormatException($"Date non reconnue à l’opération {resultat.Count + 1}.")
             End If
             Dim derniere = {"debit","credit","libelle"}.Max(Function(k) entetes.IndexOf(k))
@@ -125,6 +132,22 @@ Public Module LitRelevé
         Next
         Return resultat
     End Function
+    Private Function EnteteCompteSuivant(lignes As List(Of String), debut As Integer) As Integer
+        ' Un intercalaire du Crédit Agricole contient uniquement des lignes descriptives,
+        ' puis une annonce de période et un nouvel en-tête de colonnes.
+        Dim periode As Boolean
+        For i = debut To lignes.Count - 1
+            If Entete(lignes(i)) IsNot Nothing Then Return If(periode, i, -1)
+            Dim champs = SplitCsvPointVirgule(lignes(i))
+            If champs.Skip(1).Any(Function(v) v.Length > 0) Then Return -1
+            Dim libelle = champs(0)
+            If libelle.Length = 0 Then Continue For
+            If periode OrElse Char.IsDigit(libelle(0)) Then Return -1
+            periode = libelle.StartsWith("Liste des opérations du compte entre le ", StringComparison.OrdinalIgnoreCase)
+        Next
+        Return -1
+    End Function
+
     Private Function SplitCsvPointVirgule(ligne As String) As List(Of String)
         Dim resultat As New List(Of String)
         Dim courant As New StringBuilder()

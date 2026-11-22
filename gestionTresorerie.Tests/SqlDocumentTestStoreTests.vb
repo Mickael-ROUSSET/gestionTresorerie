@@ -78,11 +78,16 @@ Public Class SqlDocumentTestStoreTests
             Dim bank As New LigneReleve With {.DateOperation=New Date(2026,4,3),.Libelle="Virement fictif",.MontantCredit=52.90D}
             Dim statement=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Guid.NewGuid().ToByteArray()))
             Dim invoiceId=store.SaveVerified(proposal, Function(delta) ThrowUnexpectedReview()).Value
+            Using candidats=SqlDocumentTestStore.JustificatifsReleve(statement,0,bank)
+                Assert.IsTrue(candidats.AsEnumerable().Any(Function(row) CInt(row("idDoc"))=chequeId.Value))
+                Assert.IsFalse(candidats.AsEnumerable().Any(Function(row) CInt(row("idDoc"))=invoiceId))
+            End Using
+            Assert.ThrowsExactly(Of SqlException)(Sub() SqlDocumentTestStore.RattacherJustificatifs(statement,0,bank,{chequeId.Value,invoiceId}))
             For attempt=1 To 2
-                SqlDocumentTestStore.RattacherJustificatifs(statement,0,bank,{invoiceId,chequeId.Value})
+                SqlDocumentTestStore.RattacherJustificatifs(statement,0,bank,{chequeId.Value})
             Next
             Using docs=SqlDocumentTestStore.JustificatifsReleve(statement,0,bank)
-                Assert.AreEqual(2,docs.Select("lie=1").Length)
+                Assert.AreEqual(1,docs.Select("lie=1").Length)
             End Using
             Dim medical = DocumentArchiveProposal.PrepareAdministrativeTest(source, DocumentArchiveProposal.HashSource(source), root,
                 Global.gestionTresorerie.Agumaaa.TypeDocument.QuestionnaireMedical, "Personne fictive", "01/10/2026", "", "",
