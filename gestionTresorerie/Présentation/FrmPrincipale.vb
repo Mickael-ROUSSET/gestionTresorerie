@@ -409,6 +409,9 @@ Public Class FrmPrincipale
                 Dim gmail As New ToolStripMenuItem("Extraire les pièces jointes Gmail…") With {.Name = "ExtraireGmailTest"}
                 AddHandler gmail.Click, AddressOf ExtraireGmailTest
                 AnalyseToolStripMenuItem.DropDownItems.Add(gmail)
+                Dim offline As New ToolStripMenuItem("Revoir des pièces fictives hors ligne…") With {.Name = "RevoirPiecesFictivesTest"}
+                AddHandler offline.Click, AddressOf RevoirPiecesFictivesTest
+                AnalyseToolStripMenuItem.DropDownItems.Add(offline)
                 Return
             End If
             Text = "gestionTresorerie — " & EnvironmentManager.GetEnvironmentLabel()
@@ -787,6 +790,35 @@ Public Class FrmPrincipale
             formulaire.ShowDialog(Me)
         End Using
     End Sub
+    ' Parcours TEST hors ligne : aucun compte Gmail, secret ni client IMAP.
+    ' La sélection reste en lecture seule jusqu'à la validation explicite dans la revue SQL.
+    Private Sub RevoirPiecesFictivesTest(sender As Object, e As EventArgs)
+        If Not _isolatedSqlTest OrElse _modeDemonstration OrElse
+            EnvironmentManager.CurrentEnvironment <> EnvironmentManager.EnvironnementType.TEST Then Return
+        Using picker As New FolderBrowserDialog With {
+            .Description = "Choisir un dossier de PDF/images fictifs pour la revue TEST (sans sous-dossiers).",
+            .UseDescriptionForTitle = True,
+            .ShowNewFolderButton = False}
+            If picker.ShowDialog(Me) <> DialogResult.OK Then Return
+            Try
+                Dim fichiers = System.IO.Directory.EnumerateFiles(picker.SelectedPath).
+                    Where(AddressOf DocumentFilePreview.Supports).ToArray()
+                If fichiers.Length = 0 Then
+                    MessageBox.Show(Me, "Aucun PDF ou scan compatible dans ce dossier.",
+                                    "Revue fictive — TEST", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                    Return
+                End If
+                Using revue As New FrmDocumentFilePreview(fichiers, CreateSqlTestWorkspace(),
+                                                           New SqlDocumentTestStore(), initializeSqlTestOnSave:=True)
+                    revue.ShowDialog(Me)
+                End Using
+            Catch ex As Exception
+                MessageBox.Show(Me, "Revue TEST impossible : " & ex.Message,
+                                "Revue fictive — TEST", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            End Try
+        End Using
+    End Sub
+
     Private Async Sub ExtraireGmailTest(sender As Object, e As EventArgs)
         If Not _isolatedSqlTest OrElse _modeDemonstration Then Return
         Using dialogue As New Form With {.Text = "Extraire les pièces jointes Gmail — TEST", .ClientSize = New Drawing.Size(520, 185),
