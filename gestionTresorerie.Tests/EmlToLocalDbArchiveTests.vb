@@ -83,9 +83,13 @@ Public Class EmlToLocalDbArchiveTests
 
     <TestMethod, TestCategory("LocalDbIntegration")>
     Public Sub EmlFictif_ExtractionPuisValidationExplicite_CreeUneSeuleLigneEtArchive()
-        If Environment.GetEnvironmentVariable("AGUMAAA_RUN_LOCALDB_INTEGRATION") <> "1" Then
-            Assert.Inconclusive("LocalDB TEST jetable requis ; recette interactive non couverte.")
-        End If
+        ' La variable d'activation ne garantit pas l'isolation : SqlDocumentTestStore
+        ' utilise encore un catalogue TEST fixe. Bloquer même si l'option vaut 1.
+        ' Réactiver uniquement après injection d'une connexion vers une base
+        ' créée spécifiquement pour ce test et supprimée en fin d'exécution.
+        Assert.Inconclusive("Intégration LocalDB désactivée : catalogue TEST fixe non isolé. " &
+                            "AGUMAAA_RUN_LOCALDB_INTEGRATION=1 ne suffit pas.")
+        Return
 
         Dim root = Directory.CreateTempSubdirectory("eml-localdb-test-").FullName
         Try
