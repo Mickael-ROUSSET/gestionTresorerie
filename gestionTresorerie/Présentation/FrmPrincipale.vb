@@ -251,6 +251,22 @@ Public Class FrmPrincipale
                activeEnvironment = EnvironmentManager.EnvironnementType.TEST
     End Function
 
+    ''' <summary>
+    ''' Selectionne uniquement les fichiers de scans TEST non vides et ordinaires.
+    ''' Aucun parcours recursif et aucun suivi des liens symboliques/reparse points.
+    ''' </summary>
+    Public Shared Function ListSafeTestScanFiles(folder As String) As String()
+        Return IO.Directory.EnumerateFiles(folder).
+            Where(Function(filePath)
+                      If Not DocumentFilePreview.Supports(filePath) Then Return False
+                      Dim info As New IO.FileInfo(filePath)
+                      Return (info.Attributes And IO.FileAttributes.ReparsePoint) = 0 AndAlso
+                             info.Length > 0
+                  End Function).
+            OrderBy(Function(filePath) filePath, StringComparer.OrdinalIgnoreCase).
+            ToArray()
+    End Function
+
     Private Sub OpenScanFolder(sender As Object, e As EventArgs)
         If Not IsTestDocumentImportAllowed(_modeDemonstration, _isolatedSqlTest,
                                            EnvironmentManager.CurrentEnvironment) Then
@@ -261,8 +277,7 @@ Public Class FrmPrincipale
         Using picker As New FolderBrowserDialog With {.Description = "Choisir le dossier dont les PDF et images seront analysés avec ChatGPT en TEST (sans les sous-dossiers).", .UseDescriptionForTitle = True, .ShowNewFolderButton = False}
             If picker.ShowDialog(Me) <> DialogResult.OK Then Return
             Try
-                Dim paths = IO.Directory.EnumerateFiles(picker.SelectedPath).Where(AddressOf DocumentFilePreview.Supports).
-                    OrderBy(Function(value) value, StringComparer.OrdinalIgnoreCase).ToArray()
+                Dim paths = ListSafeTestScanFiles(picker.SelectedPath)
                 If paths.Length = 0 Then
                     MessageBox.Show(Me, "Ce dossier ne contient aucun PDF ni scan pris en charge.")
                     Return
