@@ -729,16 +729,28 @@ Public Class FrmPrincipale
         End Try
     End Sub
 
-    Private Sub ImporterExcelToolStripMenuItem_Click(sender As Object, e As EventArgs)
+    Private Sub ImporterExcelToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ImporterExcelToolStripMenuItem.Click
+        If _modeDemonstration OrElse _isolatedSqlTest Then Return
+        If MessageBox.Show(Me,"Importer les participants du marché de Noël dans la base de production ?","Marché de Noël",MessageBoxButtons.YesNo,MessageBoxIcon.Question,MessageBoxDefaultButton.Button2)<>DialogResult.Yes Then Return
+        Try
         GenereAttestationNonParticipation.ImporterParticipantsDepuisExcel()
         MsgBox("Import terminé. CR dans les logs")
+        Catch ex As Exception
+            MessageBox.Show(Me,ex.Message,"Marché de Noël")
+        End Try
     End Sub
 
-    Private Sub GénérerAttestationsToolStripMenuItem_Click(sender As Object, e As EventArgs)
+    Private Sub GénérerAttestationsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles GénérerAttestationsToolStripMenuItem.Click
+        If _modeDemonstration OrElse _isolatedSqlTest Then Return
+        If MessageBox.Show(Me,"Générer et envoyer les attestations aux participants en production ?","Marché de Noël",MessageBoxButtons.YesNo,MessageBoxIcon.Question,MessageBoxDefaultButton.Button2)<>DialogResult.Yes Then Return
+        Try
         ' Appel direct via la classe (plus besoin de Dim mdn As New...)
         GenereAttestationNonParticipation.GenererEtEnvoyerAttestations()
 
         MsgBox("Génération terminée. CR dans les logs")
+        Catch ex As Exception
+            MessageBox.Show(Me,ex.Message,"Marché de Noël")
+        End Try
     End Sub
 
     Protected Overridable Function DemanderEnvironnement() As String
@@ -798,7 +810,7 @@ Public Class FrmPrincipale
 
     Private Async Sub BatchGénériqueToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles BatchGénériqueToolStripMenuItem.Click
         Try
-            Using dlg As New OpenFileDialog With {.Title = "Ouvrir le paramétrage du batch", .Filter = "Paramétrage (*.json)|*.json"}
+            Using dlg As New OpenFileDialog With {.Title = "Ouvrir le paramétrage du batch", .InitialDirectory=System.IO.Path.Combine(AppContext.BaseDirectory,"Batchs"), .Filter = "Paramétrage (*.json)|*.json"}
                 If dlg.ShowDialog(Me) <> DialogResult.OK Then Return
                 Dim config = BatchMailConfig.Load(dlg.FileName)
                 Dim batch As New BatchMailSender()

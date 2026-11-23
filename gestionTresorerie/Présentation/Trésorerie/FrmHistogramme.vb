@@ -17,6 +17,7 @@ Public Class FrmHistogramme
             If tables.Contains("Exercices") Then AjouterAxe(axes,"Trésorerie par exercice","CONVERT(char(10),c.dateDebut,23)"," LEFT JOIN dbo.Exercices c ON m.dateMvt BETWEEN c.dateDebut AND c.dateFin")
         End If
         If tables.Contains("Documents") Then axes.Add("Documents par type","SELECT COALESCE(categorieDoc,'Non renseigné'),COUNT_BIG(*) AS Documents FROM dbo.Documents GROUP BY categorieDoc ORDER BY 1")
+        If tables.Contains("ParticipantMdN") Then axes.Add("Marché de Noël par activité","SELECT COALESCE(NULLIF(Activite,''),'Non renseigné'),COUNT_BIG(*) AS Participants FROM dbo.ParticipantMdN GROUP BY NULLIF(Activite,'') ORDER BY 1")
         If tables.Contains("Seances") Then
             Dim totaux="SUM(NbEntreesAdultes) AS Adultes,SUM(NbEntreesEnfants) AS Enfants,SUM(NbEntreesGroupeEnfants) AS Groupes"
             axes.Add("Entrées cinéma par mois","SELECT CONVERT(char(7),DateHeureDebut,126)," & totaux & " FROM dbo.Seances GROUP BY CONVERT(char(7),DateHeureDebut,126) ORDER BY 1")
