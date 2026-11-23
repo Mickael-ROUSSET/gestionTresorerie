@@ -4,7 +4,7 @@ Imports System.Data.SqlClient
 Friend Module AdministrationBase
     Private ReadOnly ordre As String() = {"ReleveJustificatifsTest", "ClassementDocumentTest", "Documents", "Mouvements", "ParticipantMdN", "ReglesAffectationReleve", "Seances", "Coordonnees", "Tiers", "SousCategorie", "Categorie", "Evenements", "Exercices", "Tarifs", "Films", "Comptes", "Communes", "TypeDoc", "TypeMouvement", "Type"}
 
-    Private Function Cible(cs As String) As SqlConnectionStringBuilder
+    Private Function VerifierCatalogue(cs As String) As SqlConnectionStringBuilder
         Dim cible As New SqlConnectionStringBuilder(cs)
         If cible.InitialCatalog <> "bddAgumaaaTest" AndAlso cible.InitialCatalog <> "bddAgumaaa" Then Throw New ArgumentException("Catalogue AGUMAAA attendu.")
         Return cible
@@ -12,7 +12,7 @@ Friend Module AdministrationBase
 
     Friend Function TablesMetier(cs As String) As List(Of String)
         Dim tables As New List(Of String)
-        Using cn As New SqlConnection(Cible(cs).ConnectionString), cmd As New SqlCommand("SELECT name FROM sys.tables WHERE schema_id=SCHEMA_ID('dbo')", cn)
+        Using cn As New SqlConnection(VerifierCatalogue(cs).ConnectionString), cmd As New SqlCommand("SELECT name FROM sys.tables WHERE schema_id=SCHEMA_ID('dbo')", cn)
             cn.Open()
             Using lecteur = cmd.ExecuteReader()
                 While lecteur.Read()
@@ -24,7 +24,7 @@ Friend Module AdministrationBase
     End Function
 
     Friend Sub Vider(cs As String, tables As List(Of String))
-        Using cn As New SqlConnection(Cible(cs).ConnectionString)
+        Using cn As New SqlConnection(VerifierCatalogue(cs).ConnectionString)
             cn.Open()
             Using tx = cn.BeginTransaction()
                 For Each table In tables
@@ -40,7 +40,7 @@ Friend Module AdministrationBase
     End Sub
 
     Friend Sub Restaurer(cs As String, chemin As String)
-        Dim cible = AdministrationBase.Cible(cs)
+        Dim cible = AdministrationBase.VerifierCatalogue(cs)
         Dim nom = cible.InitialCatalog
         cible.InitialCatalog = "master"
         Using pool As New SqlConnection(cs)
