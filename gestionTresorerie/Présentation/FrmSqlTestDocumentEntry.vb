@@ -36,7 +36,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     Private ReadOnly _birth As New TextBox With {.Dock = DockStyle.Fill, .PlaceholderText = "JJ/MM/AAAA"}
     Private ReadOnly _birthLabel As New Label With {.Text = "Date de naissance"}
     Private ReadOnly _extraLabels As New List(Of Label)
-    Private ReadOnly _nom As New TextBox With {.Dock = DockStyle.Fill}
+    Private ReadOnly _nom As New TextBox With {.Name = "nomFichier", .Dock = DockStyle.Fill}
     Private nomManuel As Boolean
     Private ReadOnly _destination As New TextBox With {.ReadOnly = True, .Multiline = True, .Dock = DockStyle.Fill, .ScrollBars = ScrollBars.Vertical}
     Private ReadOnly catalogue As New Data.DataTable()
@@ -50,6 +50,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
 
     Public Sub New(source As String, hash As String, root As String, suggested As JObject, note As String,
                    Optional archiveOnDrive As Boolean = False)
+        BindingContext = New BindingContext()
         _source = source
         _hash = hash
         _root = root
@@ -157,6 +158,11 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         AddHandler _kind.SelectedIndexChanged, AddressOf UpdateKind
         AddHandler validate.Click, AddressOf ValidateFields
         AddHandler _issuer.TextChanged, AddressOf UpdateChequeDirection
+        AddHandler _nature.SelectionChangeCommitted, Sub() choixManuel = True
+        AddHandler _sousNature.SelectionChangeCommitted, Sub() choixManuel = True
+        For Each champ As Control In New Control() {_date, _amount, _issuer, _eventName}
+            AddHandler champ.Validated, Sub() ProposerClassement()
+        Next
         FillFields(suggested)
         AddHandler _kind.SelectedIndexChanged,
             Sub()
@@ -236,7 +242,8 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             If IO.Path.GetFullPath(_source).StartsWith(IO.Path.TrimEndingDirectorySeparator(IO.Path.GetFullPath(_root)) & IO.Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) Then
                 Throw New ArgumentException("Le document se trouve déjà dans le dossier d’archives.")
             End If
-            Dim nom = IO.Path.GetFileName(BuildProposal(dossier).Destination)
+            Dim nom = _nom.Text
+            DocumentArchiveProposal.VerifierNom(nom, _source)
             Dim cible = IO.Path.Combine(dossier, nom)
             If String.Equals(cible, _source, StringComparison.OrdinalIgnoreCase) Then
                 MessageBox.Show(Me, "Le fichier porte déjà le nom proposé.")
@@ -256,6 +263,10 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
 
     Private Sub RefreshDestination()
         If Not _ready Then Return
+        If Not nomManuel Then
+            Dim nom = NomPartiel()
+            If _nom.Text <> nom Then _nom.Text = nom
+        End If
         Try
             _destination.Text = BuildProposal().Destination
         Catch ex As Exception When TypeOf ex Is ArgumentException OrElse TypeOf ex Is IO.IOException
@@ -355,6 +366,18 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             _amount.Text = If(transaction?("montant_numerique")?.ToString(), "")
         End If
         If String.IsNullOrWhiteSpace(_date.Text) Then _date.Text = Today.ToString("dd/MM/yyyy")
+        indiceNature = suggestionNature
+        choixManuel = False
+        ProposerClassement()
+    End Sub
+
+    Private indiceNature As String = ""
+    Private choixManuel As Boolean
+
+    Private Sub ProposerClassement()
+        If choixManuel OrElse Not catalogue.Columns.Contains("cat") Then Return
+        Dim suggestionNature = indiceNature
+        _nature.SelectedIndex = -1
         If suggestionNature <> "" AndAlso SelectedKind <> TypeDocument.QuestionnaireMedical Then
             _nature.SelectedIndex = _nature.FindStringExact(suggestionNature)
             If _nature.SelectedIndex < 0 Then
@@ -365,6 +388,26 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
                     _sousNature.SelectedValue = candidats(0)("sousCat")
                 End If
             End If
+        End If
+        If _sousNature.SelectedIndex >= 0 OrElse Not catalogue.Columns.Contains("sousCat") Then Return
+        Dim ids = _nature.Items.Cast(Of Data.DataRowView)().Select(Function(cat) CInt(cat("cat"))).ToArray()
+        Dim possibles = catalogue.AsEnumerable().Where(Function(row) ids.Contains(CInt(row("cat"))))
+        If _nature.SelectedIndex >= 0 Then
+            Dim parent = CInt(_nature.SelectedValue)
+            possibles = possibles.Where(Function(row) CInt(row("cat")) = parent)
+        End If
+        Dim indices = String.Join(" ", {suggestionNature, _eventName.Text, IO.Path.GetFileNameWithoutExtension(_source)})
+        Dim choix = SuggestionsClassement.SousCategorieProbable(possibles, indices)
+        Dim montant As Decimal, jour As Date
+        If choix Is Nothing AndAlso SelectedKind = TypeDocument.Cheque AndAlso _direction.SelectedIndex = 1 AndAlso
+            Decimal.TryParse(_amount.Text.Replace(","c, "."c), Globalization.NumberStyles.AllowDecimalPoint, Globalization.CultureInfo.InvariantCulture, montant) AndAlso
+            Date.TryParseExact(_date.Text, {"yyyy-MM-dd","dd/MM/yyyy"}, Globalization.CultureInfo.InvariantCulture, Globalization.DateTimeStyles.None, jour) AndAlso
+            SuggestionsClassement.EstCotisation(montant, jour) Then
+            choix = SuggestionsClassement.SousCategorieProbable(possibles, "gym")
+        End If
+        If choix IsNot Nothing Then
+            _nature.SelectedValue = choix("cat")
+            _sousNature.SelectedValue = choix("sousCat")
         End If
     End Sub
 
@@ -423,6 +466,20 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         _attach.Visible = financial
         ChargerCategories()
     End Sub
+
+    Private Function NomPartiel() As String
+        Dim ext = IO.Path.GetExtension(_source)
+        If SelectedKind = TypeDocument.Cheque Then
+            Dim tiers = If(_direction.SelectedIndex = 0, _party.Text, _issuer.Text)
+            Dim activite = If(String.IsNullOrWhiteSpace(_eventName.Text), _sousNature.Text, _eventName.Text)
+            Dim nom = DocumentArchiveProposal.NomCheque(_number.Text, activite, tiers, ext)
+            If nom <> "CHQ" & ext Then Return nom
+        End If
+        Dim prefixe = If(SelectedKind = TypeDocument.Facture, "FAC", If(SelectedKind = TypeDocument.Cheque, "CHQ", SelectedKind.ToString()))
+        Dim details = If(SelectedKind = TypeDocument.Facture, _number.Text & "_" & _party.Text, "")
+        details = System.Text.RegularExpressions.Regex.Replace(details, "[^\p{L}\p{N}-]+", "_").Trim("_"c)
+        Return prefixe & "_" & If(details.Length > 0, details, _hash.Substring(0, 12)) & ext
+    End Function
 
     Private Function BuildProposal(Optional racine As String = Nothing) As DocumentArchiveProposal
         Dim proposition = PreparerDocument(If(racine, _root))

@@ -56,13 +56,17 @@ Public NotInheritable Class DocumentArchiveProposal
         Return String.Join("_", segments) & extension
     End Function
 
-    Friend Sub ChoisirNom(nom As String)
+    Friend Shared Sub VerifierNom(nom As String, source As String)
         If String.IsNullOrWhiteSpace(nom) OrElse nom.Length > 220 OrElse nom <> nom.Trim() OrElse
             nom.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 OrElse nom <> Path.GetFileName(nom) OrElse
             Regex.IsMatch(nom, "^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\.|$)", RegexOptions.IgnoreCase) OrElse
-            Not String.Equals(Path.GetExtension(nom), Path.GetExtension(_source), StringComparison.OrdinalIgnoreCase) Then
+            Not String.Equals(Path.GetExtension(nom), Path.GetExtension(source), StringComparison.OrdinalIgnoreCase) Then
             Throw New ArgumentException("Saisissez un nom de fichier valide avec son extension d’origine.")
         End If
+    End Sub
+
+    Friend Sub ChoisirNom(nom As String)
+        VerifierNom(nom, _source)
         _document.CheminDoc = Path.Combine(Path.GetDirectoryName(Destination), nom)
     End Sub
 
