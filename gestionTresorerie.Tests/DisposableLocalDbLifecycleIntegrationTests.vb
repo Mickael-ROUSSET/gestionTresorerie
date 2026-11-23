@@ -18,6 +18,8 @@ Public Class DisposableLocalDbLifecycleIntegrationTests
             Assert.Inconclusive("LocalDB jetable non activé sur ce runner.")
         End If
 
+        Assert.ThrowsExactly(Of ArgumentNullException)(Function() SqlDocumentTestStore.OpenDisposable(Nothing))
+
         Dim catalogName As String
         Using catalog = DisposableLocalDbTestCatalog.Create()
             catalogName = catalog.Name
@@ -25,7 +27,7 @@ Public Class DisposableLocalDbLifecycleIntegrationTests
             Dim builder As New SqlConnectionStringBuilder(catalog.ConnectionString)
             Assert.AreEqual(catalogName, builder.InitialCatalog)
 
-            Using connection As New SqlConnection(catalog.ConnectionString)
+            Using connection = SqlDocumentTestStore.OpenDisposable(catalog)
                 connection.Open()
                 Assert.AreEqual(catalogName, connection.Database)
                 Using transaction = connection.BeginTransaction()
