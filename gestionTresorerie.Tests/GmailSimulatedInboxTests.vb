@@ -62,8 +62,13 @@ Public Class GmailSimulatedInboxTests
             Dim source = Path.Combine(root, "source.eml")
             CreerMessage(source, "fictif@example.invalid", New DateTime(2026, 11, 20), "piece.pdf")
             Dim before = File.ReadAllBytes(source)
-            Assert.ThrowsException(Of ArgumentException)(
-                Sub() GmailSimulatedInbox.Extract(root, Path.Combine(root, "extraction"), Date.MinValue))
+            Dim exceptionLevee As Boolean = False
+            Try
+                GmailSimulatedInbox.Extract(root, Path.Combine(root, "extraction"), Date.MinValue)
+            Catch ex As ArgumentException
+                exceptionLevee = True
+            End Try
+            Assert.IsTrue(exceptionLevee, "Une sortie imbriquée dans le dossier source doit être refusée.")
             CollectionAssert.AreEqual(before, File.ReadAllBytes(source))
             Assert.IsFalse(Directory.Exists(Path.Combine(root, "extraction")))
         Finally
