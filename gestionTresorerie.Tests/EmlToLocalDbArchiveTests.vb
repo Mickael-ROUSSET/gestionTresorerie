@@ -88,6 +88,7 @@ Public Class EmlToLocalDbArchiveTests
             Dim inbox = Path.Combine(root, "inbox")
             Dim extracted = Path.Combine(root, "extracted")
             Dim archive = Path.Combine(root, "archive-test")
+            Directory.CreateDirectory(archive)
             Directory.CreateDirectory(inbox)
             Dim eml = Path.Combine(inbox, "facture-fictive.eml")
             Dim pdf = BuildValidFictitiousPdf()
@@ -112,7 +113,8 @@ Public Class EmlToLocalDbArchiveTests
             Dim proposition = DocumentArchiveProposal.PrepareTest(
                 files(0), DocumentArchiveProposal.HashSource(files(0)), json, archive, Nothing)
             Assert.IsFalse(File.Exists(proposition.Destination), "L'extraction ne doit pas archiver.")
-            Assert.IsFalse(Directory.Exists(archive), "Aucun répertoire d'archive avant validation.")
+            Assert.AreEqual(0, Directory.GetFiles(archive, "*", SearchOption.AllDirectories).Length,
+                            "Aucun fichier archivé avant validation.")
             CollectionAssert.AreEqual(original, File.ReadAllBytes(eml), "Le message source doit rester intact.")
         Finally
             If Directory.Exists(root) Then Directory.Delete(root, True)
