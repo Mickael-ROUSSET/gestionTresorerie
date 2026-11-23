@@ -20,7 +20,7 @@ Public Class EmlToLocalDbArchiveTests
     ''' Construit un PDF 1.4 minimal avec offsets xref exacts pour tester la prévisualisation.
     ''' Aucune donnée comptable réelle ni dépendance externe.
     ''' </summary>
-    Private Shared Function BuildValidFictitiousPdf() As Byte()
+    Private Shared Function BuildValidFictitiousPdf(Optional marker As String = "DOCUMENT TEST") As Byte()
         Dim objects As String() = {
             "<< /Type /Catalog /Pages 2 0 R >>",
             "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
@@ -31,7 +31,7 @@ Public Class EmlToLocalDbArchiveTests
                 "endstream"
         }
         ' La longueur du flux est calculée, jamais codée en dur.
-        Dim contentStream = "BT /F1 14 Tf 25 100 Td (DOCUMENT TEST) Tj ET" & vbLf
+        Dim contentStream = "BT /F1 14 Tf 25 100 Td (" & marker & ") Tj ET" & vbLf
         objects(4) = "<< /Length " & Encoding.ASCII.GetByteCount(contentStream).ToString(Globalization.CultureInfo.InvariantCulture) &
                      " >>" & vbLf & "stream" & vbLf & contentStream & "endstream"
         Using output As New MemoryStream()
@@ -143,7 +143,8 @@ Public Class EmlToLocalDbArchiveTests
                 builder.Attachments.Add("facture-a.pdf", pdf, ContentType.Parse("application/pdf"))
                 ' Les deux fichiers doivent avoir des contenus distincts : l'extracteur
                 ' dedoublonne volontairement les pieces jointes identiques.
-                Dim pdfB = pdf.Concat(New Byte() {10}).ToArray()
+                Dim pdfB = BuildValidFictitiousPdf("DOCUMENT TEST B")
+                Assert.IsFalse(pdf.SequenceEqual(pdfB), "Les deux PDF doivent être distincts.")
                 builder.Attachments.Add("facture-b.pdf", pdfB, ContentType.Parse("application/pdf"))
                 message.Body = builder.ToMessageBody()
                 Using stream = File.Create(eml)
