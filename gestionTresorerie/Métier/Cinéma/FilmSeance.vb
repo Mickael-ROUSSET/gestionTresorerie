@@ -14,11 +14,11 @@ Public Class FilmSeance
     ''' <summary>
     ''' Transfère les données d'un objet de détails vers cette instance.
     ''' </summary>
-    Public Sub RemplirDetails(details As Object)
+    Public Sub RemplirDetails(details As FilmSeance)
         If details Is Nothing Then Return
 
         Me.Synopsis = details.Synopsis
-        Me.DureeMinutes = details.DureeMinutes.ToString()
+        Me.DureeMinutes = details.DureeMinutes
         Me.Genre = details.Genre
         Me.Realisateur = details.Realisateur
         Me.Casting = details.Casting

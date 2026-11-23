@@ -61,6 +61,7 @@
     <EmbeddedResource Include="My Project\PromptGemini.txt" />
     <EmbeddedResource Include="Resources\Schema\001-initial.sql" LogicalName="gestionTresorerie.Schema.001.sql" />
     <EmbeddedResource Include="Resources\Schema\import-prod-vers-test.sql" LogicalName="gestionTresorerie.Schema.ImportProdVersTest.sql" />
+    <None Update="Resources\logoCinema.png;Resources\logoAgumaaa.png;Resources\logoCinevasion.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\ressources\BatchMailConfig.json" Link="Batchs\BatchMailConfig.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="Resources\PromptGemini.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

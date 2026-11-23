@@ -108,6 +108,10 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private ReadOnly _results As New Dictionary(Of String, Newtonsoft.Json.Linq.JObject)(StringComparer.Ordinal)
     Private ReadOnly _issues As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
 
+    Private Shared Function LireAnalyseTest(source As String, hash As String) As Task(Of Newtonsoft.Json.Linq.JObject)
+        Return CacheAnalyse.Recuperer(CacheAnalyse.Dossier("TEST","ChatGPT-v1"),hash,Function() ChatGptDocumentReader.ReadAsync(source),AddressOf ChatGptDocumentReader.ParseResult)
+    End Function
+
     Protected Overrides Async Sub OnShown(e As EventArgs)
         MyBase.OnShown(e)
         If _sqlTest Is Nothing OrElse _sqlExample Then Return
@@ -121,7 +125,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
                     Dim hash = Await Task.Run(Function() DocumentArchiveProposal.HashSource(item.FullName))
                     If IsDisposed Then Return
                     If Not _results.ContainsKey(hash) Then
-                        Dim resultat = Await Task.Run(Function() ChatGptDocumentReader.ReadAsync(item.FullName))
+                        Dim resultat = Await Task.Run(Function() LireAnalyseTest(item.FullName,hash))
                         If IsDisposed Then Return
                         If resultat Is Nothing Then Throw New InvalidDataException("Aucune analyse disponible.")
                         _results(hash) = resultat
@@ -178,8 +182,6 @@ Friend NotInheritable Class FrmDocumentFilePreview
                     MessageBox.Show(Me, "L’analyse actuelle accepte les PDF, JPEG et PNG. Convertissez le TIFF en PDF avant de l’analyser.")
                     Return
             End Select
-            If MessageBox.Show(Me, "Envoyer ce document à Gemini, l’extracteur configuré dans l’application ?", "Analyse du document",
-                               MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then Return
         End If
 
         _pending = True
@@ -208,10 +210,15 @@ Friend NotInheritable Class FrmDocumentFilePreview
                     settings = AddressOf OfflineTestWorkspace.DocumentArchiveTestSetting
                     save = TestSaveAction()
                 Else
-                    Dim key = GlobalSettings.GeminiKey
-                    If String.IsNullOrWhiteSpace(key) Then Throw New InvalidOperationException("La clé Gemini existante n’est pas configurée.")
-                    json = Await GeminiAnalyzer.AnalyserDocument(key, source, rapportDetaille:=False)
-                    If String.IsNullOrWhiteSpace(json) Then Throw New InvalidOperationException("L’extracteur n’a pas renvoyé de données exploitables.")
+                    Dim resultat=Await CacheAnalyse.Recuperer(CacheAnalyse.Dossier("PROD","Gemini-v1"),hash,
+                        Async Function()
+                            If MessageBox.Show(Me,"Envoyer ce document à Gemini pour l’analyser ?","Analyse du document",MessageBoxButtons.YesNo,MessageBoxIcon.Question,MessageBoxDefaultButton.Button2)<>DialogResult.Yes Then Throw New OperationCanceledException()
+                            Dim key=GlobalSettings.GeminiKey
+                            If String.IsNullOrWhiteSpace(key) Then Throw New InvalidOperationException("La clé Gemini existante n’est pas configurée.")
+                            Dim brut=Await GeminiAnalyzer.AnalyserDocument(key,source,rapportDetaille:=False)
+                            Return Newtonsoft.Json.Linq.JObject.Parse(brut)
+                        End Function,Function(brut) Newtonsoft.Json.Linq.JObject.Parse(brut))
+                    json=resultat.ToString()
                     root = LectureProprietes.GetVariable("repRacineAgumaaa")
                     settings = AddressOf LectureProprietes.GetVariable
                     save = AddressOf DocumentAgumaaa.EnregistrerArchive
@@ -220,6 +227,8 @@ Friend NotInheritable Class FrmDocumentFilePreview
 
             Dim proposition = DocumentArchiveProposal.Prepare(source, hash, json, root, settings)
             Await ConfirmProposal(proposition, save, fictif)
+        Catch ex As OperationCanceledException
+            Return
         Catch ex As ArgumentException
             MessageBox.Show(Me, ex.Message, "Document non reconnu ou incomplet", MessageBoxButtons.OK, MessageBoxIcon.Warning)
         Catch ex As Exception When TypeOf ex Is IOException OrElse TypeOf ex Is UnauthorizedAccessException
@@ -258,7 +267,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
                 If _issues.TryGetValue(source, reason) Then
                     note = "Lecture automatique impossible. " & reason
                 Else
-                    suggested = Await ChatGptDocumentReader.ReadAsync(source)
+                    suggested = Await LireAnalyseTest(source,hash)
                     _results(hash) = suggested
                 End If
             End If
