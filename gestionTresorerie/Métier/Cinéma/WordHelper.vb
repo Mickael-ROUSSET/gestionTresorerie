@@ -19,7 +19,7 @@ Public NotInheritable Class WordHelper
             End Using
 
             Using flux As New IO.MemoryStream(bytes), image=System.Drawing.Image.FromStream(flux)
-                Dim facteur=Math.Min(widthEmu/CDbl(image.Width),heightEmu/CDbl(image.Height))
+                Dim facteur=System.Math.Min(widthEmu/CDbl(image.Width),heightEmu/CDbl(image.Height))
                 widthEmu=CLng(image.Width*facteur)
                 heightEmu=CLng(image.Height*facteur)
             End Using
