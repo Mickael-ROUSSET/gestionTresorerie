@@ -9,10 +9,12 @@ Friend NotInheritable Class LocalDbSchema
 
     Friend Shared Sub Apply(connection As SqlConnection, transaction As SqlTransaction, production As Boolean, Optional allowDisposable As Boolean = False)
         Dim expected = If(production, "bddAgumaaa", "bddAgumaaaTest")
-        Dim isExpected = String.Equals(connection.Database, expected, StringComparison.OrdinalIgnoreCase)
-        Dim isDisposable = Not production AndAlso allowDisposable AndAlso
-            DisposableLocalDbTestCatalog.IsDisposableName(connection.Database)
-        If Not isExpected AndAlso Not isDisposable Then
+        ' Le mode jetable ne doit jamais retomber silencieusement sur une base persistante.
+        ' Un test ayant demandé l'isolation doit échouer si sa connexion pointe vers TEST.
+        Dim accepted = If(allowDisposable,
+                          Not production AndAlso DisposableLocalDbTestCatalog.IsDisposableName(connection.Database),
+                          String.Equals(connection.Database, expected, StringComparison.OrdinalIgnoreCase))
+        If Not accepted Then
             Throw New InvalidOperationException("Catalogue inattendu lors de l’initialisation du schéma.")
         End If
 
