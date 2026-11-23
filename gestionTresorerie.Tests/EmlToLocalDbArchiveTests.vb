@@ -121,6 +121,58 @@ Public Class EmlToLocalDbArchiveTests
         End Try
     End Sub
 
+    <TestMethod>
+    Public Sub EmlFictif_DeuxPiecesJointes_PrepareDeuxRevisionsSansArchivage()
+        ' Parcours de revue multiple (#278) : l'extraction ne doit jamais
+        ' valider implicitement ni modifier les fichiers source.
+        Dim root = Directory.CreateTempSubdirectory("eml-lot-test-").FullName
+        Try
+            Dim inbox = Path.Combine(root, "inbox")
+            Dim extracted = Path.Combine(root, "extracted")
+            Dim archive = Path.Combine(root, "archive-test")
+            Directory.CreateDirectory(inbox)
+            Directory.CreateDirectory(archive)
+            Dim eml = Path.Combine(inbox, "lot-fictif.eml")
+            Using message As New MimeMessage()
+                message.From.Add(New MailboxAddress("Simulation", "simulation@example.invalid"))
+                message.To.Add(New MailboxAddress("TEST", "test@example.invalid"))
+                message.Date = New DateTimeOffset(2026, 11, 20, 10, 0, 0, TimeSpan.Zero)
+                message.Subject = "Deux factures fictives"
+                Dim builder As New BodyBuilder With {.TextBody = "Lot hors ligne"}
+                Dim pdf = BuildValidFictitiousPdf()
+                builder.Attachments.Add("facture-a.pdf", pdf, ContentType.Parse("application/pdf"))
+                ' Les deux fichiers doivent avoir des contenus distincts : l'extracteur
+                ' dedoublonne volontairement les pieces jointes identiques.
+                Dim pdfB = pdf.Concat(New Byte() {10}).ToArray()
+                builder.Attachments.Add("facture-b.pdf", pdfB, ContentType.Parse("application/pdf"))
+                message.Body = builder.ToMessageBody()
+                Using stream = File.Create(eml)
+                    message.WriteTo(stream)
+                End Using
+            End Using
+            Dim source = File.ReadAllBytes(eml)
+            Dim files = GmailSimulatedInbox.Extract(inbox, extracted, New DateTime(2026, 11, 1),
+                                                    "simulation@example.invalid")
+            Assert.AreEqual(2, files.Count, "Les deux justificatifs doivent être proposés.")
+            Assert.AreEqual(2, files.Distinct(StringComparer.OrdinalIgnoreCase).Count(),
+                            "Chaque pièce jointe doit conserver un chemin distinct.")
+            For i = 0 To files.Count - 1
+                Assert.IsTrue(File.Exists(files(i)))
+                Dim reference = "LOT-FICTIF-" & (i + 1).ToString(Globalization.CultureInfo.InvariantCulture)
+                Dim json = "{""type_document"":""Facture"",""donnees_extraites"":{""identite"":{""fournisseur_nom"":""Fictif""},""transaction"":{""montant_ttc"":""42.50"",""devise"":""EUR"",""date_facture"":""2026-11-20"",""numero_facture"":""" & reference & """}}}"
+                Dim proposition = DocumentArchiveProposal.PrepareTest(
+                    files(i), DocumentArchiveProposal.HashSource(files(i)), json, archive, Nothing)
+                Assert.IsFalse(File.Exists(proposition.Destination),
+                               "Une proposition de revue ne doit pas archiver automatiquement.")
+            Next
+            Assert.AreEqual(0, Directory.GetFiles(archive, "*", SearchOption.AllDirectories).Length)
+            CollectionAssert.AreEqual(source, File.ReadAllBytes(eml),
+                                      "Le message source doit rester inchangé.")
+        Finally
+            If Directory.Exists(root) Then Directory.Delete(root, True)
+        End Try
+    End Sub
+
     <TestMethod, TestCategory("LocalDbIntegration")>
     Public Sub EmlFictif_ExtractionPuisValidationExplicite_CreeUneSeuleLigneEtArchive()
         ' La variable d'activation ne garantit pas l'isolation : SqlDocumentTestStore
