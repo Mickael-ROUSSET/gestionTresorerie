@@ -141,7 +141,10 @@ Public Class EmlToLocalDbArchiveTests
                 Dim builder As New BodyBuilder With {.TextBody = "Lot hors ligne"}
                 Dim pdf = BuildValidFictitiousPdf()
                 builder.Attachments.Add("facture-a.pdf", pdf, ContentType.Parse("application/pdf"))
-                builder.Attachments.Add("facture-b.pdf", pdf, ContentType.Parse("application/pdf"))
+                ' Les deux fichiers doivent avoir des contenus distincts : l'extracteur
+                ' dedoublonne volontairement les pieces jointes identiques.
+                Dim pdfB = pdf.Concat(New Byte() {10}).ToArray()
+                builder.Attachments.Add("facture-b.pdf", pdfB, ContentType.Parse("application/pdf"))
                 message.Body = builder.ToMessageBody()
                 Using stream = File.Create(eml)
                     message.WriteTo(stream)
