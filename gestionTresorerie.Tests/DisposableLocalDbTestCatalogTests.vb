@@ -23,8 +23,13 @@ Public Class DisposableLocalDbTestCatalogTests
         Assert.AreEqual(name, builder.InitialCatalog)
         Assert.IsTrue(DisposableLocalDbTestCatalog.IsDisposableName(builder.InitialCatalog))
         For Each forbidden In {"bddAgumaaa", "bddAgumaaaTest", "master", "gtDemoTest_"}
-            Assert.ThrowsException(Of ArgumentException)(
-                Sub() DisposableLocalDbTestCatalog.ConnectionStringForName(forbidden))
+            Dim rejected As Boolean = False
+            Try
+                DisposableLocalDbTestCatalog.ConnectionStringForName(forbidden)
+            Catch ex As ArgumentException
+                rejected = True
+            End Try
+            Assert.IsTrue(rejected, $"Le catalogue interdit '{forbidden}' doit être rejeté.")
         Next
     End Sub
 
