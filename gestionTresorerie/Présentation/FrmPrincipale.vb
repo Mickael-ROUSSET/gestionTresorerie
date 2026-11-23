@@ -568,7 +568,10 @@ Public Class FrmPrincipale
     Private Function ConnexionActive() As String
         If _modeDemonstration Then Throw New InvalidOperationException("Opération indisponible en démonstration.")
         If _isolatedSqlTest Then Return LocalDbCatalogs.ConnectionString("bddAgumaaaTest")
-        Return ConnectionStringProvider.GetConnectionString(Constantes.DataBases.Agumaaa)
+        If EnvironmentManager.CurrentEnvironment <> EnvironmentManager.EnvironnementType.PROD Then Throw New InvalidOperationException("Choisissez l’espace TEST ou PROD pour cette opération.")
+        Dim cs = ConnectionStringProvider.GetConnectionString(Constantes.DataBases.Agumaaa)
+        If Not String.Equals(New SqlConnectionStringBuilder(cs).InitialCatalog, "bddAgumaaa", StringComparison.OrdinalIgnoreCase) Then Throw New InvalidOperationException("La connexion ne cible pas bddAgumaaa.")
+        Return cs
     End Function
 
     Private Sub Administrer(operation As String)

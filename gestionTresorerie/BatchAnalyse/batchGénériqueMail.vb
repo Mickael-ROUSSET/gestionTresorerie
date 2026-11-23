@@ -67,7 +67,8 @@ Public Class BatchMailSender
             For Each dr As DataRow In dt.Rows
                 Dim mailDestinataire As String = dr(config.ColonneEmail).ToString().Trim()
                 If String.IsNullOrWhiteSpace(mailDestinataire) Then
-                    Logger.WARN("Aucun email pour : ")
+                    report.FailCount += 1
+                    report.Results.Add(New DestinataireResult With {.IsSuccess = False, .ErrorMessage = "Adresse électronique absente."})
                     Continue For
                 End If
                 Dim result As New DestinataireResult With {.Adresse = mailDestinataire}
