@@ -7,34 +7,26 @@ Public Class AppelIReseau
 
         Return New GymRepository(executor)
     End Function
-    Public Shared Async Sub TestIReseau()
-        ' Initialisation auth
+    Public Shared Async Function Executer(licences As Boolean, recus As Boolean) As Task
         IReseauApi.SetAuth()
-        'IReseauApi.SetAuth("uswXFN4VPYfYmrTmNbLY16D3fxFunwjm", "PHPSESSID=82hnsl71742fu7ck1dj2hqsjvt")
-
-        ' URL API
-        Dim url As String = "https://i-reseau.ffepgv.fr/api/internal/users-current-context?page=1&itemsPerPage=50"
-
-        'Récupère la liste des inscrits au cours de gymnastique
-        Dim users As List(Of UserContext) = Await IReseauApi.GetAllUsersAsync()
-
-        ' Affiche les résultats
-        For Each utilisateur In users
-            Logger.INFO($"{utilisateur.licenceId} - {utilisateur.FirstName} {utilisateur.LastName}")
-            Dim licences = Await GetLicencesAsync(utilisateur)
-
-            For Each item In licences
-                Logger.INFO($"Licence : {item.LicenceId}")
-
-                ' Télécharge document principal
-                Dim licencePdf = Await DownloadLicenceDocumentAsync(item, utilisateur)
-
-                ' Télécharge reçu fiscal
-                Dim recuPdf = Await DownloadRecuFiscalAsync(item, utilisateur)
+        Dim users=Await IReseauApi.GetAllUsersAsync()
+        If Not licences AndAlso Not recus Then
+            Using liste As New Form With {.Text="Inscrits à la gymnastique",.Width=700,.Height=500},
+                  grille As New DataGridView With {.Dock=DockStyle.Fill,.ReadOnly=True,.DataSource=users.Select(Function(u) New With {.Nom=u.LastName,.Prenom=u.FirstName,.Licence=u.licenceId}).ToList()}
+                liste.Controls.Add(grille)
+                liste.ShowDialog()
+            End Using
+            Return
+        End If
+        Dim nombre As Integer
+        For Each inscrit In users
+            For Each item In Await GetLicencesAsync(inscrit)
+                If licences AndAlso Not String.IsNullOrEmpty(Await DownloadLicenceDocumentAsync(item,inscrit)) Then nombre+=1
+                If recus AndAlso Not String.IsNullOrEmpty(Await DownloadRecuFiscalAsync(item,inscrit)) Then nombre+=1
             Next
         Next
-        MsgBox($"Traitement terminé. {users.Count} utilisateurs traités")
-    End Sub
+        MessageBox.Show(nombre.ToString() & " document(s) téléchargé(s).","Gymnastique")
+    End Function
 
     Public Shared Async Function DownloadLicenceDocumentAsync(item As LicenceDetail, user As UserContext) As Task(Of String)
 

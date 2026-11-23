@@ -45,6 +45,10 @@ Public Class AdministrationBatchTests
                 cmd.CommandText="CREATE TABLE dbo.Documents(id int); INSERT dbo.Documents VALUES(7);"
                 cmd.ExecuteNonQuery()
             End Using
+            Dim fichier=Path.Combine(dossier,"export.json")
+            EchangeDonnees.Exporter(cs,fichier)
+            AdministrationBase.Vider(cs,AdministrationBase.TablesMetier(cs))
+            EchangeDonnees.Importer(cs,fichier)
             Dim admin As New SqlAdminService(New AgumaaaConnectionFactory(cs))
             admin.SauvegarderBase(base,sauvegarde)
             AdministrationBase.Vider(cs,AdministrationBase.TablesMetier(cs))
