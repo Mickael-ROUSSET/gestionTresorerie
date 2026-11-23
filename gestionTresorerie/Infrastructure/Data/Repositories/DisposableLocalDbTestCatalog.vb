@@ -24,6 +24,14 @@ Friend NotInheritable Class DisposableLocalDbTestCatalog
         End Get
     End Property
 
+    Friend ReadOnly Property ConnectionString As String
+        Get
+            If Not _created Then Throw New InvalidOperationException("Le catalogue éphémère n’est pas actif.")
+            If Not IsDisposableName(_name) Then Throw New InvalidOperationException("Nom de catalogue éphémère invalide.")
+            Return LocalDbCatalogs.ConnectionString(_name)
+        End Get
+    End Property
+
     Friend Shared Function NewName() As String
         Return Prefix & Guid.NewGuid().ToString("N")
     End Function
