@@ -7,6 +7,16 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 <TestClass>
 Public Class DocumentArchiveProposalTests
+    <STATestMethod>
+    Public Sub AnalyseIncompleteProposeUnNomSansLecteurArchive()
+        Dim resultat = Newtonsoft.Json.Linq.JObject.Parse("{'type_document':'Cheque','donnees_extraites':{'identite':{'emetteur_du_cheque':'Personne Exemple'},'transaction':{}}}")
+        Using fiche As New FrmSqlTestDocumentEntry("C:\fictif\scan.pdf", New String("A"c, 64), "Z:\absent", resultat, "")
+            Dim champ = DirectCast(fiche.Controls.Find("nomFichier", True).Single(), System.Windows.Forms.TextBox)
+            Assert.AreEqual("CHQ_Personne_Exemple.pdf", champ.Text)
+            Assert.IsFalse(champ.ReadOnly)
+        End Using
+    End Sub
+
     <TestMethod>
     Public Sub TarifDuClasseurDependDeLaSaisonEtConserveLeNumeroPartiel()
         Dim racine = Directory.CreateTempSubdirectory().FullName

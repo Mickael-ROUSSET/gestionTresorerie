@@ -36,7 +36,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     Private ReadOnly _birth As New TextBox With {.Dock = DockStyle.Fill, .PlaceholderText = "JJ/MM/AAAA"}
     Private ReadOnly _birthLabel As New Label With {.Text = "Date de naissance"}
     Private ReadOnly _extraLabels As New List(Of Label)
-    Private ReadOnly _nom As New TextBox With {.Dock = DockStyle.Fill}
+    Private ReadOnly _nom As New TextBox With {.Name = "nomFichier", .Dock = DockStyle.Fill}
     Private nomManuel As Boolean
     Private ReadOnly _destination As New TextBox With {.ReadOnly = True, .Multiline = True, .Dock = DockStyle.Fill, .ScrollBars = ScrollBars.Vertical}
     Private ReadOnly catalogue As New Data.DataTable()
@@ -158,6 +158,11 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         AddHandler _kind.SelectedIndexChanged, AddressOf UpdateKind
         AddHandler validate.Click, AddressOf ValidateFields
         AddHandler _issuer.TextChanged, AddressOf UpdateChequeDirection
+        AddHandler _nature.SelectionChangeCommitted, Sub() choixManuel = True
+        AddHandler _sousNature.SelectionChangeCommitted, Sub() choixManuel = True
+        For Each champ As Control In New Control() {_date, _amount, _issuer, _eventName}
+            AddHandler champ.Validated, Sub() ProposerClassement()
+        Next
         FillFields(suggested)
         AddHandler _kind.SelectedIndexChanged,
             Sub()
@@ -361,6 +366,18 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             _amount.Text = If(transaction?("montant_numerique")?.ToString(), "")
         End If
         If String.IsNullOrWhiteSpace(_date.Text) Then _date.Text = Today.ToString("dd/MM/yyyy")
+        indiceNature = suggestionNature
+        choixManuel = False
+        ProposerClassement()
+    End Sub
+
+    Private indiceNature As String = ""
+    Private choixManuel As Boolean
+
+    Private Sub ProposerClassement()
+        If choixManuel OrElse Not catalogue.Columns.Contains("cat") Then Return
+        Dim suggestionNature = indiceNature
+        _nature.SelectedIndex = -1
         If suggestionNature <> "" AndAlso SelectedKind <> TypeDocument.QuestionnaireMedical Then
             _nature.SelectedIndex = _nature.FindStringExact(suggestionNature)
             If _nature.SelectedIndex < 0 Then
