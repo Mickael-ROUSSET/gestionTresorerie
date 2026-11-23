@@ -8,6 +8,7 @@ Public Class FilmSeance
     Public Property Synopsis As String
     Public Property DureeMinutes As Integer?
     Public Property Genre As String
+    Public Property Pays As String
     Public Property Realisateur As String
     Public Property Casting As List(Of String)
     Public Property UrlAffiche As String
@@ -20,6 +21,7 @@ Public Class FilmSeance
         Me.Synopsis = details.Synopsis
         Me.DureeMinutes = details.DureeMinutes
         Me.Genre = details.Genre
+        Me.Pays = details.Pays
         Me.Realisateur = details.Realisateur
         Me.Casting = details.Casting
         Me.UrlAffiche = details.UrlAffiche

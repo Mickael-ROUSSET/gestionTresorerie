@@ -6,7 +6,8 @@ Imports DocumentFormat.OpenXml.Wordprocessing
 Public Class ProgrammeCinemaCreator
     Private Shared ReadOnly France As New Globalization.CultureInfo("fr-FR")
     Private Shared Function ServiceTmdb() As TMDbService
-        Dim cle=LectureProprietes.GetVariable("cleApiTmdb")
+        Dim cle=Environment.GetEnvironmentVariable("TMDB_API_KEY")
+        If String.IsNullOrWhiteSpace(cle) Then cle=LectureProprietes.GetVariable("cleApiTmdb")
         Return If(String.IsNullOrWhiteSpace(cle),Nothing,New TMDbService(cle))
     End Function
 
@@ -42,7 +43,8 @@ Public Class ProgrammeCinemaCreator
 
                                           ' 2. Configuration de la page (Paysage A4)
                                           Dim sectionProps = New SectionProperties(
-                    New PageSize() With {.Width = 16838, .Height = 11906, .Orient = PageOrientationValues.Landscape}
+                    New PageSize() With {.Width = 16838, .Height = 11906, .Orient = PageOrientationValues.Landscape},
+                    New PageMargin With {.Top=540,.Bottom=540,.Left=650UI,.Right=650UI}
                 )
 
 
@@ -80,20 +82,20 @@ Public Class ProgrammeCinemaCreator
     End Function
     Private Shared Sub AjouterContenuTarifs(tc As TableCell, tarifs As String)
         ' Utilisation du helper pour un titre de section
-        WordHelper.AjouterParagrapheStyle(tc, "Tarifs : " & tarifs, "29", True, "1F4E79")
+        WordHelper.AjouterParagrapheStyle(tc, "Tarifs : " & tarifs, "34", True, "CE1414")
 
         ' Ajout d'un espace vide (1 cm)
         tc.Append(New Paragraph(New Run(New Text(""))))
 
         ' Sous-titre Séances
-        WordHelper.AjouterParagrapheStyle(tc, "Séances :", "48", True, "1F4E79")
+        WordHelper.AjouterParagrapheStyle(tc, "Séances :", "48", True, "087731")
     End Sub
     ' ... Les méthodes CreerPage1 et CreerPage2 utilisent maintenant WordHelper ...
     Private Shared Sub CreerPage1(mainPart As MainDocumentPart, body As Body, seances As List(Of FilmSeance),tarifs As String)
         ' Création d'un tableau invisible pour simuler les deux colonnes
         Dim table = New Table()
         Dim grid = New TableGrid(
-            New GridColumn() With {.Width = "5000"},
+            New GridColumn() With {.Width = "7000"},
             New GridColumn() With {.Width = "5000"}
         )
         table.Append(grid)
@@ -149,10 +151,10 @@ Public Class ProgrammeCinemaCreator
             Dim fichier=Path.Combine(AppContext.BaseDirectory,"Resources",logo & ".png")
             If File.Exists(fichier) Then WordHelper.AjouterImage(mainPart,tc,fichier,1900000,850000)
         Next
-        WordHelper.AjouterParagrapheStyle(tc,"Cinéma d’Allègre","38",True,"1F4E79")
+        WordHelper.AjouterParagrapheStyle(tc,"Cinéma d’Allègre","38",True,"087731")
 
         ' 2. Titre "Programmation"
-        WordHelper.AjouterParagrapheStyle(tc, "Programmation", "56", True, "1F4E79")
+        WordHelper.AjouterParagrapheStyle(tc, "Programmation", "56", True, "087731")
 
         ' 3. Dates de validité
         If seances.Any() Then
@@ -169,7 +171,7 @@ Public Class ProgrammeCinemaCreator
             WordHelper.AjouterParagrapheStyle(tc, dateTexte, "28", True)
 
             ' Titre du film
-            WordHelper.AjouterParagrapheStyle(tc, s.Titre, "28", True, "1F4E79")
+            WordHelper.AjouterParagrapheStyle(tc, s.Titre, "28", True, "087731")
 
             ' Petit espace entre les films
             tc.Append(New Paragraph(New Run(New Text(""))))
@@ -182,11 +184,12 @@ Public Class ProgrammeCinemaCreator
         End If
 
         ' 2. Titre (Utilise le helper de style créé précédemment)
-        WordHelper.AjouterParagrapheStyle(cell, film.Titre, "32", True, "2E74B5")
+        WordHelper.AjouterParagrapheStyle(cell, film.Titre, "32", True, "087731")
 
         ' 3. Infos techniques
         Dim infos As New List(Of String)
         If Not String.IsNullOrWhiteSpace(film.Genre) Then infos.Add(film.Genre)
+        If Not String.IsNullOrWhiteSpace(film.Pays) Then infos.Add(film.Pays)
         If film.DureeMinutes.HasValue Then infos.Add(film.DureeMinutes.Value.ToString() & " min")
         If infos.Count>0 Then WordHelper.AjouterParagrapheStyle(cell,String.Join("  •  ",infos),"21",True)
         If Not String.IsNullOrWhiteSpace(film.Realisateur) Then WordHelper.AjouterParagrapheStyle(cell,"Réalisation : " & film.Realisateur,"20")

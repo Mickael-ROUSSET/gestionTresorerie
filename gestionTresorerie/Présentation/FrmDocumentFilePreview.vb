@@ -217,7 +217,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
                             If String.IsNullOrWhiteSpace(key) Then Throw New InvalidOperationException("La clé Gemini existante n’est pas configurée.")
                             Dim brut=Await GeminiAnalyzer.AnalyserDocument(key,source,rapportDetaille:=False)
                             Return Newtonsoft.Json.Linq.JObject.Parse(brut)
-                        End Function,Function(brut) Newtonsoft.Json.Linq.JObject.Parse(brut))
+                        End Function,AddressOf CacheAnalyse.VerifierGemini)
                     json=resultat.ToString()
                     root = LectureProprietes.GetVariable("repRacineAgumaaa")
                     settings = AddressOf LectureProprietes.GetVariable

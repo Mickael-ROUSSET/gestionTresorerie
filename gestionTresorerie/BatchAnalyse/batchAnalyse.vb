@@ -20,83 +20,44 @@ Public Class BatchAnalyse
     ' <summary>
     ' Module d'exécution : Gère la boucle de traitement et les logs
     ' </summary> 
-    Public Async Function DemarrerTraitement(repertoireSource As String) As Task
+    Public Async Function DemarrerTraitement(repertoireSource As String) As Task(Of List(Of String))
+        Dim prets As New List(Of String)
         Try
             Logger.INFO("Démarrage du lot d'analyse...")
-            If Not Directory.Exists(repertoireSource) Then Exit Function
+            If Not Directory.Exists(repertoireSource) Then Return prets
 
             ' 1. Récupération de tous les fichiers (Filtre multi-extensions)
-            Dim extensions As String() = {"*.jpg", "*.jpeg", "*.pdf"}
+            Dim extensions As String() = {"*.jpg", "*.jpeg", "*.pdf","*.png"}
             Dim tousLesFichiers = extensions.SelectMany(Function(ext) Directory.GetFiles(repertoireSource, ext, SearchOption.AllDirectories))
 
             Logger.INFO($"Nb fichiers à traiter : {tousLesFichiers.Count}")
             For Each fichier In tousLesFichiers
+                Dim avant=nombreTraitementOK
                 Await TraiterFichierUnique(fichier).ConfigureAwait(False)
+                If nombreTraitementOK>avant Then prets.Add(fichier)
                 Logger.INFO($"Traitement de : {fichier}")
             Next
 
             GenererCompteRendu()
-            MsgBox("Terminé")
+            MsgBox(prets.Count & " document(s) prêt(s) pour validation, " & nombreTraitementKO & " échec(s).")
         Catch ex As Exception
             Logger.ERR($"Erreur fatale boucle principale : {ex.Message}")
         End Try
+        Return prets
     End Function
     Private Async Function TraiterFichierUnique(cheminFichier As String) As Task
         Try
-            ' 1. Appel Gemini (Identification + Extraction)
-            ' On récupère le JSON brut de l'IA
-            Dim resultatJsonBrut As String = Await GeminiAnalyzer.AnalyserDocument(GlobalSettings.GeminiKey, cheminFichier).ConfigureAwait(False)
-
-            If String.IsNullOrEmpty(resultatJsonBrut) Then
-                Logger.WARN($"Aucune réponse pour {Path.GetFileName(cheminFichier)}")
-                EnregistrerEchec(cheminFichier)
-                Return ' Return préférable à Exit Function dans une Task
-            End If
-
-            ' 2. Désérialisation pour connaître le type détecté par l'IA
-            Dim jObjRaw = JsonConvert.DeserializeObject(Of JObject)(resultatJsonBrut)
-            Dim typeDetecte As String = jObjRaw("type_document")?.ToString() ' Ex: "Cheque"
-
-            ' 3. Instanciation dynamique
-            Dim nomCompletClasse As String = "gestionTresorerie." & typeDetecte
-            Dim typeClasse As Type = Type.GetType(nomCompletClasse)
-
-            If typeClasse IsNot Nothing Then
-                ' Création de l'instance (ex: une nouvelle instance de Cheque)
-                Dim docMetier As DocumentAgumaaa = TryCast(Activator.CreateInstance(typeClasse), DocumentAgumaaa)
-
-                ' --- ÉTAPE CRUCIALE : Parsing des données structurées ---
-                ' On appelle la méthode de parsing spécifique à la classe (Cheque, Facture, etc.)
-                ' Cela va aplatir le JSON et convertir les montants (via l'Utilitaires mis à jour)
-                Dim jsonAplatit As String = ""
-
-                ' Appel dynamique de la méthode Shared "ParseJson"
-                Dim methodeParse = typeClasse.GetMethod("ParseJson", BindingFlags.Public Or BindingFlags.Static)
-                If methodeParse IsNot Nothing Then
-                    jsonAplatit = methodeParse.Invoke(Nothing, New Object() {resultatJsonBrut}).ToString()
-                End If
-
-                ' 4. Remplissage des propriétés de l'objet
-                ' On peuple l'objet avec le JSON aplati et nettoyé
-                JsonConvert.PopulateObject(jsonAplatit, docMetier)
-
-                ' On garde le JSON aplati dans metaDonnees pour le renommage futur
-                docMetier.metaDonnees = jsonAplatit
-                docMetier.DateDoc = DateTime.Now
-
-                ' 5. Traitement du fichier (Renommer utilise les metaDonnees peuplées)
-                docMetier.CheminDoc = docMetier.RenommerFichier(cheminFichier)
-
-                ' 6. Insertion SQL
-                DocumentAgumaaa.InsererDocument(docMetier)
-
-                nombreTraitementOK += 1
-                Logger.INFO($"Succès : {typeDetecte} traité et inséré pour {Path.GetFileName(cheminFichier)}")
-            Else
-                Logger.ERR($"La classe {nomCompletClasse} n'existe pas dans le projet.")
-                EnregistrerEchec(cheminFichier, "Classe introuvable")
-            End If
-
+            Using verrou=File.Open(cheminFichier,FileMode.Open,FileAccess.Read,FileShare.Read)
+                Dim empreinte=DocumentArchiveProposal.HashSource(cheminFichier)
+                Dim dossier=CacheAnalyse.Dossier(EnvironmentManager.CurrentEnvironment.ToString(),"Gemini-v1")
+                Await CacheAnalyse.Recuperer(dossier,empreinte,
+                    Async Function()
+                        Dim json=Await GeminiAnalyzer.AnalyserDocument(GlobalSettings.GeminiKey,cheminFichier,rapportDetaille:=False)
+                        If String.IsNullOrWhiteSpace(json) Then Throw New InvalidDataException("Aucune réponse.")
+                        Return CacheAnalyse.VerifierGemini(json)
+                    End Function,AddressOf CacheAnalyse.VerifierGemini)
+                nombreTraitementOK+=1
+            End Using
         Catch ex As Exception
             Logger.ERR($"Erreur fatale sur {Path.GetFileName(cheminFichier)} : {ex.Message}")
             EnregistrerEchec(cheminFichier, ex.Message)

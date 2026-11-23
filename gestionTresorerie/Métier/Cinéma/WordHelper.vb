@@ -18,6 +18,11 @@ Public NotInheritable Class WordHelper
                 imagePart.FeedData(ms)
             End Using
 
+            Using flux As New IO.MemoryStream(bytes), image=System.Drawing.Image.FromStream(flux)
+                Dim facteur=Math.Min(widthEmu/CDbl(image.Width),heightEmu/CDbl(image.Height))
+                widthEmu=CLng(image.Width*facteur)
+                heightEmu=CLng(image.Height*facteur)
+            End Using
             Dim drawing = CreerDrawing(mainPart.GetIdOfPart(imagePart), widthEmu, heightEmu, CUInt(mainPart.ImageParts.Count()))
 
             ' Paragraphe avec justification centrée

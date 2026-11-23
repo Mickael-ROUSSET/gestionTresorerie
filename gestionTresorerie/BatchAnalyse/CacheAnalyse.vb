@@ -9,6 +9,12 @@ Friend Module CacheAnalyse
         Return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"gestionTresorerie",environnement,"Analyses",moteur)
     End Function
 
+    Friend Function VerifierGemini(json As String) As JObject
+        Dim lu=JObject.Parse(json)
+        If lu("erreur") IsNot Nothing OrElse String.IsNullOrWhiteSpace(lu("type_document")?.ToString()) OrElse Not TypeOf lu("donnees_extraites") Is JObject Then Throw New ArgumentException("Réponse sans données de document.")
+        Return lu
+    End Function
+
     Friend Async Function Recuperer(dossier As String, empreinte As String, analyser As Func(Of Task(Of JObject)), verifier As Func(Of String,JObject)) As Task(Of JObject)
         If empreinte.Length<>64 OrElse Not empreinte.All(Function(c) Uri.IsHexDigit(c)) Then Throw New ArgumentException("Empreinte de document invalide.")
         Dim fichier=Path.Combine(dossier,empreinte.ToUpperInvariant() & ".bin")

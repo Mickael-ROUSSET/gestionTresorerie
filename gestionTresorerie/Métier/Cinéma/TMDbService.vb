@@ -33,6 +33,7 @@ Public Class TMDbService
 
             Dim film As New FilmSeance With {
                 .Titre = If(d("title")?.ToString(), String.Empty),
+                .Pays = String.Join(", ",If(TryCast(d("production_countries"),JArray),New JArray()).Select(Function(p) p("name")?.ToString())),
                 .Synopsis = If(d("overview")?.ToString(), String.Empty),
                 .DureeMinutes = If(d("runtime") Is Nothing OrElse d("runtime").Type = JTokenType.Null, CType(Nothing, Integer?), CInt(d("runtime"))),
                 .Genre = If(d("genres") IsNot Nothing AndAlso d("genres").Any(), d("genres")(0)("name")?.ToString(), String.Empty),
