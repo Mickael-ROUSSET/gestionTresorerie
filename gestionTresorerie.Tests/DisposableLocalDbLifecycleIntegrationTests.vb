@@ -29,6 +29,16 @@ Public Class DisposableLocalDbLifecycleIntegrationTests
                 connection.Open()
                 Assert.AreEqual(catalogName, connection.Database)
                 Using transaction = connection.BeginTransaction()
+                    For Each options In {(True, True), (False, False)}
+                        Dim rejected = False
+                        Try
+                            LocalDbSchema.Apply(connection, transaction,
+                                                production:=options.Item1, allowDisposable:=options.Item2)
+                        Catch ex As InvalidOperationException
+                            rejected = True
+                        End Try
+                        Assert.IsTrue(rejected, "Un catalogue jetable doit exiger TEST et allowDisposable=True.")
+                    Next
                     LocalDbSchema.Apply(connection, transaction, production:=False, allowDisposable:=True)
                     transaction.Commit()
                 End Using
