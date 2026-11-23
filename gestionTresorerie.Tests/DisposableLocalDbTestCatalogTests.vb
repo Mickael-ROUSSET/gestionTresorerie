@@ -1,6 +1,7 @@
 Option Strict On
 
 Imports gestionTresorerie
+Imports System.Data.SqlClient
 Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 <TestClass>
@@ -12,6 +13,19 @@ Public Class DisposableLocalDbTestCatalogTests
         Assert.IsTrue(DisposableLocalDbTestCatalog.IsDisposableName(first))
         Assert.IsTrue(DisposableLocalDbTestCatalog.IsDisposableName(second))
         Assert.AreNotEqual(first, second)
+    End Sub
+
+    <TestMethod>
+    Public Sub ConnexionJetableNePointeJamaisSurUnCataloguePersistant()
+        Dim name = DisposableLocalDbTestCatalog.NewName()
+        Dim connectionString = DisposableLocalDbTestCatalog.ConnectionStringForName(name)
+        Dim builder As New SqlConnectionStringBuilder(connectionString)
+        Assert.AreEqual(name, builder.InitialCatalog)
+        Assert.IsTrue(DisposableLocalDbTestCatalog.IsDisposableName(builder.InitialCatalog))
+        For Each forbidden In {"bddAgumaaa", "bddAgumaaaTest", "master", "gtDemoTest_"}
+            Assert.ThrowsException(Of ArgumentException)(
+                Sub() DisposableLocalDbTestCatalog.ConnectionStringForName(forbidden))
+        Next
     End Sub
 
     <TestMethod>
