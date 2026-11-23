@@ -73,6 +73,29 @@ Partial Public NotInheritable Class SqlDocumentTestStore
         End Using
     End Function
 
+    ' Entrée SQL strictement réservée aux tests utilisant un catalogue jetable créé.
+    ' Ne change pas la connexion TEST persistante de l'application.
+    Friend Shared Function OpenDisposable(catalog As DisposableLocalDbTestCatalog) As SqlConnection
+        If catalog Is Nothing Then Throw New ArgumentNullException(NameOf(catalog))
+        Dim value = catalog.ConnectionString
+        Dim builder As New SqlConnectionStringBuilder(value)
+        If Not DisposableLocalDbTestCatalog.IsDisposableName(builder.InitialCatalog) OrElse
+           Not String.Equals(builder.InitialCatalog, catalog.Name, StringComparison.Ordinal) Then
+            Throw New InvalidOperationException("Catalogue jetable inattendu.")
+        End If
+        Dim connection As New SqlConnection(value)
+        Try
+            connection.Open()
+            If Not String.Equals(connection.Database, catalog.Name, StringComparison.Ordinal) Then
+                Throw New InvalidOperationException("La connexion a changé de catalogue.")
+            End If
+            Return connection
+        Catch
+            connection.Dispose()
+            Throw
+        End Try
+    End Function
+
     Friend Shared Function OpenTest() As SqlConnection
         Dim value = LocalDbCatalogs.ConnectionString(DatabaseName)
         TestEnvironmentIsolation.ValidateConnectionString(value)
