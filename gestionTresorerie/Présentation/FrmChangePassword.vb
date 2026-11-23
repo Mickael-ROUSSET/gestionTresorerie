@@ -3,6 +3,7 @@ Imports System.Security.Cryptography
 Imports System.Text
 
 Public Class FrmChangePassword
+    Friend Property Connexion As String
 
     Private Sub FrmChangePassword_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Text = "Modifier mon mot de passe"
@@ -35,8 +36,14 @@ Public Class FrmChangePassword
             End If
 
             ' Mise à jour du mot de passe
-            Dim hash = HacherMotDePasse(txtNouveau.Text)
-            Dim nb As Integer = CreateUtilisateurRepository().ModifierMotDePasse(UtilisateurActif.Id, hash)
+            Dim hash = FrmEditUtilisateur.Encoder(txtNouveau.Text)
+            Dim nb As Integer
+            Using cn As New SqlConnection(Connexion), cmd As New SqlCommand("UPDATE dbo.Utilisateurs SET MotDePasse=@pwd WHERE Id=@id AND Actif=1",cn)
+                cn.Open()
+                cmd.Parameters.AddWithValue("@pwd",hash)
+                cmd.Parameters.AddWithValue("@id",UtilisateurActif.Id)
+                nb=cmd.ExecuteNonQuery()
+            End Using
             If nb <= 0 Then
                 MessageBox.Show("Aucun mot de passe n'a été mis à jour.",
                     "Avertissement",
@@ -59,30 +66,12 @@ Public Class FrmChangePassword
         Close()
     End Sub
 
-    Private Function HacherMotDePasse(mdp As String) As String
-        Using sha = SHA256.Create()
-            Dim bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(mdp))
-            Return BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant()
-        End Using
-    End Function
-
     Private Function VerifierAncienMotDePasse(nomUtilisateur As String, ancienMdp As String) As Boolean
-        Using cn As New SqlConnection(LectureProprietes.connexionString(Constantes.DataBases.Agumaaa))
+        Using cn As New SqlConnection(Connexion), cmd As New SqlCommand("SELECT MotDePasse FROM dbo.Utilisateurs WHERE NomUtilisateur=@nom AND Actif=1",cn)
             cn.Open()
-
-            Dim cmd As New SqlCommand("
-                SELECT COUNT(*) 
-                FROM Utilisateurs 
-                WHERE NomUtilisateur = @nom 
-                AND MotDePasse = @pwd 
-                AND Actif = 1", cn)
-
-            Dim unused1 = cmd.Parameters.AddWithValue("@nom", nomUtilisateur)
-            Dim unused = cmd.Parameters.AddWithValue("@pwd", HacherMotDePasse(ancienMdp))
-
-            Dim count As Integer = CInt(cmd.ExecuteScalar())
-            Return count > 0
+            cmd.Parameters.AddWithValue("@nom",nomUtilisateur)
+            Dim valeur = TryCast(cmd.ExecuteScalar(),String)
+            Return valeur IsNot Nothing AndAlso FrmEditUtilisateur.Verifier(ancienMdp,valeur)
         End Using
     End Function
-
 End Class

@@ -13,6 +13,9 @@ Friend Class AssistantBatchCourrier
     Private ReadOnly pieces As New TextBox With {.Dock = DockStyle.Top}
     Private ReadOnly parametres As New TextBox With {.Dock = DockStyle.Top}
     Private ReadOnly balises As New TextBox With {.Dock = DockStyle.Top}
+    Private original As New BatchMailConfig()
+    Private fichierOuvert As String
+    Private ReadOnly description, balisesSujet, balisesPJ As New TextBox With {.Dock = DockStyle.Top}
     Private ReadOnly rapport As New TextBox With {.Dock = DockStyle.Top}
     Private ReadOnly requete As New ComboBox With {.Dock = DockStyle.Top, .DropDownStyle = ComboBoxStyle.DropDownList}
     Private ReadOnly suivant As New Button With {.AutoSize = True}
@@ -33,7 +36,20 @@ Friend Class AssistantBatchCourrier
         Height = 570
         StartPosition = FormStartPosition.CenterParent
         Dim page = AjouterPage("1. Destinataires")
+        Dim ouvrir As New Button With {.Text = "Reprendre un batch existant…", .AutoSize = True}
+        page.Controls.Add(ouvrir)
+        AddHandler ouvrir.Click, Sub()
+            Using dlg As New OpenFileDialog With {.Filter = "Batch JSON|*.json", .InitialDirectory = Path.Combine(AppContext.BaseDirectory,"Batchs")}
+                If dlg.ShowDialog(Me) <> DialogResult.OK Then Return
+                Try
+                    Charger(dlg.FileName)
+                Catch ex As Exception
+                    MessageBox.Show(Me, ex.Message, "Lecture du batch")
+                End Try
+            End Using
+        End Sub
         Champ(page, "Nom du batch", nom)
+        Champ(page, "Description", description)
         Champ(page, "Requête enregistrée", requete)
         requete.Items.AddRange(Requetes().ToArray())
         requete.SelectedItem = "reqIdentiteCoordonnees"
@@ -46,8 +62,12 @@ Friend Class AssistantBatchCourrier
         Champ(page, "Modèle HTML du corps du courrier", modele)
         Parcourir(page, modele, "Modèle HTML|*.html;*.htm", False)
         Multiligne(balises)
-        Champ(page, "Personnalisation facultative du sujet, du corps et des modèles Word. Une balise par ligne, par exemple {Prenom}=Prenom", balises)
+        Multiligne(balisesSujet)
+        Champ(page, "Balises de l’objet, par exemple {Prenom}=Prenom", balisesSujet)
+        Champ(page, "Balises du corps du message", balises)
         page = AjouterPage("3. Fichiers")
+        Multiligne(balisesPJ)
+        Champ(page, "Balises des modèles Word", balisesPJ)
         Multiligne(pieces)
         Champ(page, "Pièces jointes facultatives, un chemin par ligne", pieces)
         Parcourir(page, pieces, "Tous fichiers|*.*", True)
@@ -92,6 +112,32 @@ Friend Class AssistantBatchCourrier
         End Sub
     End Sub
 
+    Friend Sub Charger(chemin As String)
+        Dim cfg = BatchMailConfig.Load(chemin)
+        If cfg Is Nothing OrElse String.IsNullOrWhiteSpace(cfg.NomRequeteSQL) Then Throw New InvalidDataException("Paramétrage de batch non reconnu.")
+        original = cfg
+        fichierOuvert = chemin
+        nom.Text = cfg.NomBatch
+        description.Text = cfg.Description
+        requete.SelectedItem = cfg.NomRequeteSQL
+        email.Text = cfg.ColonneEmail
+        sujet.Text = cfg.SujetMail
+        modele.Text = cfg.CheminTemplateCorpsEmail
+        pieces.Lines = cfg.CheminsPjRessource.ToArray()
+        parametres.Lines = cfg.ParametresRequeteSQL.Select(Function(p) p.Key & "=" & Convert.ToString(p.Value)).ToArray()
+        balises.Lines = cfg.RplctCorpsMail.Select(Function(p) p.Key & "=" & p.Value).ToArray()
+        balisesSujet.Lines = cfg.RplctSujetMail.Select(Function(p) p.Key & "=" & p.Value).ToArray()
+        balisesPJ.Lines = cfg.RplctPJ.Select(Function(p) p.Key & "=" & p.Value).ToArray()
+        rapport.Text = cfg.CheminRapportTrt
+    End Sub
+
+    Private Function ValeurParametre(cle As String, valeur As String) As Object
+        Dim avant As Object = Nothing
+        If original.ParametresRequeteSQL.TryGetValue(cle, avant) AndAlso Convert.ToString(avant) = valeur Then Return avant
+        If avant IsNot Nothing Then Return Convert.ChangeType(valeur, avant.GetType())
+        Return valeur
+    End Function
+
     Private Sub Actualiser()
         retour.Enabled = pages.SelectedIndex > 0
         suivant.Text = If(pages.SelectedIndex = 2, "Enregistrer le fichier JSON…", "Suivant")
@@ -121,11 +167,11 @@ Friend Class AssistantBatchCourrier
             For Each fichier In fichiers
                 If Not File.Exists(fichier) Then Throw New FileNotFoundException("Fichier introuvable : " & fichier)
             Next
-            Dim config As New BatchMailConfig With {.NomBatch = nom.Text.Trim(), .NomRequeteSQL = requete.Text, .ColonneEmail = email.Text.Trim(),
-                .ParametresRequeteSQL = sqlParams.ToDictionary(Function(p) p.Key, Function(p) CObj(p.Value)),
+            Dim config As New BatchMailConfig With {.NomBatch = nom.Text.Trim(), .Description = description.Text, .NomRequeteSQL = requete.Text, .ColonneEmail = email.Text.Trim(),
+                .ParametresRequeteSQL = sqlParams.ToDictionary(Function(p) p.Key, Function(p) ValeurParametre(p.Key,p.Value)),
                 .SujetMail = sujet.Text, .CheminTemplateCorpsEmail = modele.Text.Trim(), .CheminsPjRessource = fichiers,
-                .RplctSujetMail = substitutions, .RplctCorpsMail = substitutions, .RplctPJ = substitutions, .CheminRapportTrt = rapport.Text.Trim()}
-            Using dlg As New SaveFileDialog With {.Filter = "Paramétrage JSON|*.json", .FileName = "BatchCourriers.json"}
+                .RplctSujetMail = Paires(balisesSujet.Lines), .RplctCorpsMail = substitutions, .RplctPJ = Paires(balisesPJ.Lines), .CheminRapportTrt = rapport.Text.Trim()}
+            Using dlg As New SaveFileDialog With {.Filter = "Paramétrage JSON|*.json", .FileName = If(fichierOuvert Is Nothing,"BatchCourriers.json",Path.GetFileNameWithoutExtension(fichierOuvert) & "-modifie.json")}
                 If dlg.ShowDialog(Me) <> DialogResult.OK Then Return
                 File.WriteAllText(dlg.FileName, JsonConvert.SerializeObject(config, Formatting.Indented))
             End Using

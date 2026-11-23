@@ -409,11 +409,12 @@ Public Class FrmPrincipale
                 GestionBDDToolStripMenuItem.Enabled = True
                 BatchToolStripMenuItem.Enabled = True
                 For Each item As ToolStripItem In GestionBDDToolStripMenuItem.DropDownItems
-                    item.Visible = item Is SauvegarderToolStripMenuItem OrElse item Is RestaurerToolStripMenuItem OrElse item.Name = "viderTables"
+                    item.Visible = item Is SauvegarderToolStripMenuItem OrElse item Is RestaurerToolStripMenuItem OrElse item.Name = "viderTables" OrElse item Is ExportDesDonnéesToolStripMenuItem OrElse item Is ImportDesDonnéesToolStripMenuItem OrElse item.Name = "comptesUtilisateurs"
                 Next
                 For Each item As ToolStripItem In BatchToolStripMenuItem.DropDownItems
                     item.Visible = item Is BatchGénériqueToolStripMenuItem OrElse item.Name = "assistantBatch"
                 Next
+                AnalyseToolStripMenuItem.DropDownItems("histogrammes").Enabled = True
                 switchEnvironment.Enabled = True
                 Dim gmail As New ToolStripMenuItem("Extraire les pièces jointes Gmail…") With {.Name = "ExtraireGmailTest"}
                 AddHandler gmail.Click, AddressOf ExtraireGmail
@@ -552,11 +553,19 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub ConfigurerAdministration()
+        Dim histogrammes=AnalyseToolStripMenuItem.DropDownItems.Add("Histogrammes…")
+        histogrammes.Name="histogrammes"
+        AddHandler histogrammes.Click, AddressOf AfficherHistogrammes
+        Dim utilisateurs=GestionBDDToolStripMenuItem.DropDownItems.Add("Utilisateurs…")
+        utilisateurs.Name="comptesUtilisateurs"
+        AddHandler utilisateurs.Click, AddressOf ConsoleToolStripMenuItem_Click
+        ExportDesDonnéesToolStripMenuItem.Text="Exporter les données en JSON…"
+        ImportDesDonnéesToolStripMenuItem.Text="Importer les données depuis JSON…"
         BatchGénériqueToolStripMenuItem.Text = "Préparer un envoi de courriers…"
         Dim vider = GestionBDDToolStripMenuItem.DropDownItems.Add("Vider les tables…")
         vider.Name = "viderTables"
         AddHandler vider.Click, Sub() Administrer("Vider")
-        Dim assistant = BatchToolStripMenuItem.DropDownItems.Add("Créer un fichier de paramétrage…")
+        Dim assistant = BatchToolStripMenuItem.DropDownItems.Add("Créer ou reprendre un paramétrage…")
         assistant.Name = "assistantBatch"
         AddHandler assistant.Click, Sub()
             Using formulaire As New AssistantBatchCourrier()
@@ -605,19 +614,43 @@ Public Class FrmPrincipale
         End Try
     End Sub
 
-    Private Sub ConsoleToolStripMenuItem_Click(sender As Object, e As EventArgs)
-
-        If UtilisateurActif Is Nothing OrElse Not UtilisateurActif.EstAdmin Then
-            MessageBox.Show("Accès réservé aux administrateurs.")
-        End If
-
-        Dim frm As New FrmGestionUtilisateurs
-        frm.ShowDialog()
+    Private Sub AfficherHistogrammes(sender As Object,e As EventArgs)
+        Try
+            Using f As New FrmHistogramme()
+                f.Explorer(ConnexionActive())
+                f.ShowDialog(Me)
+            End Using
+        Catch ex As Exception
+            MessageBox.Show(Me,ex.Message,"Histogrammes")
+        End Try
     End Sub
 
-    Private Sub ChangeMdPToolStripMenuItem_Click(sender As Object, e As EventArgs)
-        Dim frm As New FrmChangePassword
-        frm.ShowDialog()
+    Private Sub ConsoleToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ConsoleToolStripMenuItem.Click
+        Try
+            Dim cs=ConnexionActive()
+            Using cn As New SqlConnection(cs), cmd=cn.CreateCommand()
+                cn.Open()
+                cmd.CommandText="SELECT IS_MEMBER('db_owner')"
+                If If(UtilisateurActif Is Nothing, Convert.ToInt32(cmd.ExecuteScalar())<>1, Not UtilisateurActif.EstAdmin()) Then Throw New UnauthorizedAccessException("Gestion réservée à un administrateur.")
+                cmd.CommandText="IF OBJECT_ID('dbo.Utilisateurs','U') IS NULL CREATE TABLE dbo.Utilisateurs(Id int IDENTITY PRIMARY KEY, NomUtilisateur nvarchar(100) NOT NULL UNIQUE, MotDePasse nvarchar(256) NOT NULL, Role nvarchar(20) NOT NULL, Actif bit NOT NULL);"
+                cmd.ExecuteNonQuery()
+            End Using
+            Using f As New FrmGestionUtilisateurs With {.Connexion=cs,.Text="Utilisateurs — " & New SqlConnectionStringBuilder(cs).InitialCatalog}
+                f.ShowDialog(Me)
+            End Using
+        Catch ex As Exception
+            MessageBox.Show(Me,ex.Message,"Utilisateurs")
+        End Try
+    End Sub
+
+    Private Sub ChangeMdPToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ChangeMdPToolStripMenuItem.Click
+        If UtilisateurActif Is Nothing Then
+            MessageBox.Show(Me,"La session actuelle utilise votre compte Windows.")
+            Return
+        End If
+        Using frm As New FrmChangePassword With {.Connexion=ConnexionActive()}
+            frm.ShowDialog(Me)
+        End Using
     End Sub
 
     Private Async Sub AnalyseDocumentsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles AnalyseDocumentsToolStripMenuItem.Click
@@ -645,18 +678,30 @@ Public Class FrmPrincipale
         Call Utilitaires.SauvegarderBaseVersDrive("Drive2C")
     End Sub
 
-    Private Sub ChargerFichierToolStripMenuItem_Click(sender As Object, e As EventArgs)
+    Private Sub ChargerFichierToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ChargerFichierToolStripMenuItem.Click
+        If _modeDemonstration OrElse _isolatedSqlTest Then Return
+        Try
         'Chargement de la base à partir du fichier Excel des entrées cinéma
         'Les fichiers annuels se trouvent dans G:\Mon Drive\AGUMAAA\Documents\Cinéma\Entrées
         Dim entreeCinema As New EntreeCinema
         entreeCinema.ImporterEntreesDepuisExcel()
+        Catch ex As Exception
+            MessageBox.Show(Me,ex.Message,"Cinéma")
+        End Try
     End Sub
 
-    Private Sub GénérerStatsToolStripMenuItem_Click(sender As Object, e As EventArgs)
+    Private Sub GénérerStatsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles GénérerStatsToolStripMenuItem.Click
+        If _modeDemonstration OrElse _isolatedSqlTest Then Return
+        Try
         frmStatsCinema.Show()
+        Catch ex As Exception
+            MessageBox.Show(Me,ex.Message,"Cinéma")
+        End Try
     End Sub
 
-    Private Async Sub GénérerProgrammeToolStripMenuItem_Click(sender As Object, e As EventArgs)
+    Private Async Sub GénérerProgrammeToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles GénérerProgrammeToolStripMenuItem.Click
+        If _modeDemonstration OrElse _isolatedSqlTest Then Return
+        Try
         ' Crée le programme du cinéma à partir d'un fichier fourni par Hélène
         Using ofd As New OpenFileDialog
             ofd.Title = "Sélectionnez le fichier du programme"
@@ -679,18 +724,33 @@ Public Class FrmPrincipale
                 MessageBox.Show("Opération annulée.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
             End If
         End Using
+        Catch ex As Exception
+            MessageBox.Show(Me,ex.Message,"Cinéma")
+        End Try
     End Sub
 
-    Private Sub ImporterExcelToolStripMenuItem_Click(sender As Object, e As EventArgs)
+    Private Sub ImporterExcelToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ImporterExcelToolStripMenuItem.Click
+        If _modeDemonstration OrElse _isolatedSqlTest Then Return
+        If MessageBox.Show(Me,"Importer les participants du marché de Noël dans la base de production ?","Marché de Noël",MessageBoxButtons.YesNo,MessageBoxIcon.Question,MessageBoxDefaultButton.Button2)<>DialogResult.Yes Then Return
+        Try
         GenereAttestationNonParticipation.ImporterParticipantsDepuisExcel()
         MsgBox("Import terminé. CR dans les logs")
+        Catch ex As Exception
+            MessageBox.Show(Me,ex.Message,"Marché de Noël")
+        End Try
     End Sub
 
-    Private Sub GénérerAttestationsToolStripMenuItem_Click(sender As Object, e As EventArgs)
+    Private Sub GénérerAttestationsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles GénérerAttestationsToolStripMenuItem.Click
+        If _modeDemonstration OrElse _isolatedSqlTest Then Return
+        If MessageBox.Show(Me,"Générer et envoyer les attestations aux participants en production ?","Marché de Noël",MessageBoxButtons.YesNo,MessageBoxIcon.Question,MessageBoxDefaultButton.Button2)<>DialogResult.Yes Then Return
+        Try
         ' Appel direct via la classe (plus besoin de Dim mdn As New...)
         GenereAttestationNonParticipation.GenererEtEnvoyerAttestations()
 
         MsgBox("Génération terminée. CR dans les logs")
+        Catch ex As Exception
+            MessageBox.Show(Me,ex.Message,"Marché de Noël")
+        End Try
     End Sub
 
     Protected Overridable Function DemanderEnvironnement() As String
@@ -750,7 +810,7 @@ Public Class FrmPrincipale
 
     Private Async Sub BatchGénériqueToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles BatchGénériqueToolStripMenuItem.Click
         Try
-            Using dlg As New OpenFileDialog With {.Title = "Ouvrir le paramétrage du batch", .Filter = "Paramétrage (*.json)|*.json"}
+            Using dlg As New OpenFileDialog With {.Title = "Ouvrir le paramétrage du batch", .InitialDirectory=System.IO.Path.Combine(AppContext.BaseDirectory,"Batchs"), .Filter = "Paramétrage (*.json)|*.json"}
                 If dlg.ShowDialog(Me) <> DialogResult.OK Then Return
                 Dim config = BatchMailConfig.Load(dlg.FileName)
                 Dim batch As New BatchMailSender()
@@ -774,8 +834,16 @@ Public Class FrmPrincipale
         End Try
     End Sub
 
-    Private Sub ListeUtilisateursToolStripMenuItem_Click(sender As Object, e As EventArgs)
-        AppelIReseau.TestIReseau()
+    Private Async Sub ListeUtilisateursToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ListeUtilisateursToolStripMenuItem.Click, LicencesToolStripMenuItem.Click, ReçusFiscauxToolStripMenuItem.Click
+        If _modeDemonstration OrElse _isolatedSqlTest Then Return
+        BatchToolStripMenuItem.Enabled=False
+        Try
+            Await AppelIReseau.Executer(sender Is LicencesToolStripMenuItem,sender Is ReçusFiscauxToolStripMenuItem)
+        Catch ex As Exception
+            MessageBox.Show(Me,ex.Message,"Gymnastique")
+        Finally
+            BatchToolStripMenuItem.Enabled=True
+        End Try
     End Sub
 
     Private Sub NouveauTiersToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles NouveauTiersToolStripMenuItem.Click
@@ -783,17 +851,32 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub ExportDesDonnéesToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ExportDesDonnéesToolStripMenuItem.Click
-        ' Appel de la procédure
-        '_ServiceExport.ExecuterExportSQL(LectureProprietes.GetVariable("dossierDestinationExportData"))
-        DatabaseAutomation.ExportDatabase()
+        Try
+            Dim cs=ConnexionActive()
+            Dim base=New SqlConnectionStringBuilder(cs).InitialCatalog
+            Using dlg As New SaveFileDialog With {.Filter="Données JSON|*.json",.FileName=base & "_" & Today.ToString("yyyyMMdd") & ".json"}
+                If dlg.ShowDialog(Me)<>DialogResult.OK Then Return
+                EchangeDonnees.Exporter(cs,dlg.FileName)
+            End Using
+            MessageBox.Show(Me,"Export terminé pour " & base)
+        Catch ex As Exception
+            MessageBox.Show(Me,ex.Message,"Export JSON")
+        End Try
     End Sub
 
     Private Sub ImportDesDonnéesToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ImportDesDonnéesToolStripMenuItem.Click
-        Dim confirm = MessageBox.Show("Attention : L'importation écrasera les données actuelles. Continuer ?",
-                                "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Warning)
-        If confirm = DialogResult.Yes Then
-            DatabaseAutomation.ImportDatabase()
-        End If
+        Try
+            Dim cs=ConnexionActive()
+            Dim base=New SqlConnectionStringBuilder(cs).InitialCatalog
+            Using dlg As New OpenFileDialog With {.Filter="Données JSON|*.json"}
+                If dlg.ShowDialog(Me)<>DialogResult.OK Then Return
+                If Microsoft.VisualBasic.Interaction.InputBox("Remplacer toutes les données métier de " & base & " par " & dlg.FileName & " ? Saisissez le nom de la base cible.","Import JSON")<>base Then Return
+                EchangeDonnees.Importer(cs,dlg.FileName)
+            End Using
+            MessageBox.Show(Me,"Import terminé dans " & base)
+        Catch ex As Exception
+            MessageBox.Show(Me,ex.Message,"Import JSON")
+        End Try
     End Sub
 
     Private Sub FichierToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles FichierToolStripMenuItem.Click

@@ -1,88 +1,60 @@
-﻿Imports System.Data.SqlClient
+Imports System.Data.SqlClient
 
 Public Class FrmGestionUtilisateurs
-    Private Shared Function CreateUtilisateurRepository() As UtilisateurRepository
-        Dim executor As ISqlExecutor = RepositoryFactory.CreateExecutor(Constantes.DataBases.Agumaaa)
+    Friend Property Connexion As String
 
-        Return New UtilisateurRepository(executor)
-    End Function
     Private Sub FrmGestionUtilisateurs_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        dgvUtilisateurs.ReadOnly = True
+        dgvUtilisateurs.AllowUserToAddRows = False
+        dgvUtilisateurs.MultiSelect = False
+        dgvUtilisateurs.SelectionMode = DataGridViewSelectionMode.FullRowSelect
+        btnSupprimer.Text = "Désactiver"
         ChargerUtilisateurs()
     End Sub
 
-    Private Sub ChargerUtilisateurs()
-        dgvUtilisateurs.Rows.Clear()
+    Private Sub ChargerUtilisateurs() Handles btnRecharger.Click
         Try
-            Using cn As New SqlConnection(LectureProprietes.connexionString(Constantes.DataBases.Agumaaa))
+            Using cn As New SqlConnection(Connexion), cmd = cn.CreateCommand()
                 cn.Open()
-
-                Dim cmd As New SqlCommand("SELECT Id, NomUtilisateur, Role, Actif FROM Utilisateurs ORDER BY NomUtilisateur", cn)
-                Using rdr = cmd.ExecuteReader()
-                    While rdr.Read()
-                        Dim unused1 = dgvUtilisateurs.Rows.Add(rdr.GetInt32(0),
-                                                 rdr.GetString(1),
-                                                 rdr.GetString(2),
-                                                 rdr.GetBoolean(3))
-                    End While
+                cmd.CommandText = "SELECT Id,NomUtilisateur,Role,Actif FROM dbo.Utilisateurs ORDER BY NomUtilisateur"
+                Using r = cmd.ExecuteReader()
+                    Dim table As New DataTable()
+                    table.Load(r)
+                    dgvUtilisateurs.DataSource = table
                 End Using
             End Using
         Catch ex As Exception
-            Dim unused = MessageBox.Show("Erreur lors du chargement : " & ex.Message)
+            MessageBox.Show(Me,ex.Message,Text)
         End Try
     End Sub
 
-    Private Sub btnRecharger_Click(sender As Object, e As EventArgs) Handles btnRecharger.Click
-        ChargerUtilisateurs()
+    Private Sub Ajouter() Handles btnAjouter.Click
+        Using f As New FrmEditUtilisateur With {.Connexion = Connexion}
+            If f.ShowDialog(Me) = DialogResult.OK Then ChargerUtilisateurs()
+        End Using
     End Sub
 
-    ' 🔹 Ajouter un utilisateur
-    Private Sub btnAjouter_Click(sender As Object, e As EventArgs) Handles btnAjouter.Click
-        Dim frm As New FrmGestionUtilisateurs()
-        If frm.ShowDialog() = DialogResult.OK Then
+    Private Sub Modifier() Handles btnModifier.Click
+        Dim ligne = TryCast(dgvUtilisateurs.CurrentRow?.DataBoundItem, DataRowView)
+        If ligne Is Nothing Then Return
+        Using f As New FrmEditUtilisateur(CInt(ligne("Id")),CStr(ligne("NomUtilisateur")),CStr(ligne("Role")),CBool(ligne("Actif"))) With {.Connexion=Connexion}
+            If f.ShowDialog(Me) = DialogResult.OK Then ChargerUtilisateurs()
+        End Using
+    End Sub
+
+    Private Sub Desactiver() Handles btnSupprimer.Click
+        Dim ligne = TryCast(dgvUtilisateurs.CurrentRow?.DataBoundItem, DataRowView)
+        If ligne Is Nothing OrElse Not CBool(ligne("Actif")) Then Return
+        If MessageBox.Show(Me,"Désactiver " & CStr(ligne("NomUtilisateur")) & " ?",Text,MessageBoxButtons.YesNo) <> DialogResult.Yes Then Return
+        Try
+            FrmEditUtilisateur.Enregistrer(Connexion,CInt(ligne("Id")),CStr(ligne("NomUtilisateur")),CStr(ligne("Role")),False,Nothing)
             ChargerUtilisateurs()
-        End If
+        Catch ex As Exception
+            MessageBox.Show(Me,ex.Message,Text)
+        End Try
     End Sub
 
-    ' 🔹 Modifier un utilisateur
-    Private Sub btnModifier_Click(sender As Object, e As EventArgs) Handles btnModifier.Click
-        Throw New NotImplementedException()
-        'If dgvUtilisateurs.SelectedRows.Count = 0 Then Return
-
-        'Dim Id = CInt(dgvUtilisateurs.SelectedRows(0).Cells("Id").Value)
-        'Dim nom = dgvUtilisateurs.SelectedRows(0).Cells("NomUtilisateur").Value.ToString()
-        'Dim role = dgvUtilisateurs.SelectedRows(0).Cells("Role").Value.ToString()
-        'Dim actif = CBool(dgvUtilisateurs.SelectedRows(0).Cells("Actif").Value)
-
-        'TODO : ne compile pas car FrmGestionUtilisateurs n'a pas de constructeur avec paramètres   
-        'Dim frm As New FrmGestionUtilisateurs(Id, nom, role, actif)
-        'If frm.ShowDialog() = DialogResult.OK Then
-        '    ChargerUtilisateurs()
-        'End If
-    End Sub
-
-    ' 🔹 Supprimer (désactiver) un utilisateur
-    Private Sub btnSupprimer_Click(sender As Object, e As EventArgs) Handles btnSupprimer.Click
-        If dgvUtilisateurs.SelectedRows.Count = 0 Then Return
-
-        Dim id = CInt(dgvUtilisateurs.SelectedRows(0).Cells("Id").Value)
-        Dim nom = dgvUtilisateurs.SelectedRows(0).Cells("NomUtilisateur").Value.ToString()
-
-        If MessageBox.Show($"Désactiver l'utilisateur {nom} ?", "Confirmation",
-                       MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.Yes Then
-            Try
-                Dim nb As Integer =
-                CreateUtilisateurRepository().MettreAJourActif(id, False)
-
-                Logger.INFO($"Utilisateur désactivé Id={id}, lignes={nb}")
-                ChargerUtilisateurs()
-
-            Catch ex As Exception
-                Dim unused = MessageBox.Show("Erreur lors de la suppression : " & ex.Message)
-            End Try
-        End If
-    End Sub
-
-    Private Sub btnFermer_Click(sender As Object, e As EventArgs) Handles btnFermer.Click
+    Private Sub Fermer() Handles btnFermer.Click
         Close()
     End Sub
 End Class
