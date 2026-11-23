@@ -8,7 +8,7 @@
         Try
             Return New FilmSeance With {
                 .Titre = tokens(0),
-                .DateDiffusion = Date.Parse(tokens(1)),
+                .DateDiffusion = Date.Parse(tokens(1),Globalization.CultureInfo.GetCultureInfo("fr-FR")),
                 .HeureDiffusion = TimeSpan.Parse(tokens(2).Replace("h", ":"))
             }
         Catch ex As Exception

@@ -6,7 +6,7 @@ if ($exe.Count -ne 1) { throw 'Binaire Release absent ou ambigu.' }
 $source = $exe[0].DirectoryName
 $stage = New-Item -Type Directory "$root/artifacts/payload-comptabilite"
 foreach ($f in Get-ChildItem $source -File -Recurse) {
-    if ($f.Extension -ine '.dll' -and $f.Name -notin @('gestionTresorerie.exe','gestionTresorerie.deps.json','gestionTresorerie.runtimeconfig.json','PromptGemini.txt')) { continue }
+    if ($f.Extension -ine '.dll' -and $f.Name -notin @('gestionTresorerie.exe','gestionTresorerie.deps.json','gestionTresorerie.runtimeconfig.json','PromptGemini.txt','logoAgumaaa.png','logoCinema.png','logoCinevasion.png','BatchMailConfig.json')) { continue }
     $dest = Join-Path $stage.FullName ([IO.Path]::GetRelativePath($source, $f.FullName))
     [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($dest)) | Out-Null
     Copy-Item -LiteralPath $f.FullName -Destination $dest
@@ -25,6 +25,9 @@ $shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut($link.FullName)
 if ($shortcut.Arguments -ne '--comptabilite') { throw 'Arguments incorrects.' }
 $installed = Join-Path (Split-Path $shortcut.TargetPath) 'gestionTresorerie.dll'
 if ((Get-FileHash $installed).Hash -ne (Get-FileHash "$source/gestionTresorerie.dll").Hash) { throw 'Le binaire installé diffère de Release.' }
+foreach ($asset in @('Resources/logoAgumaaa.png','Resources/logoCinema.png','Resources/logoCinevasion.png','Batchs/BatchMailConfig.json')) {
+    if (!(Test-Path (Join-Path (Split-Path $shortcut.TargetPath) $asset))) { throw "Ressource installée manquante : $asset" }
+}
 $app = Start-Process $shortcut.TargetPath -ArgumentList $shortcut.Arguments -PassThru
 try {
     $limit = (Get-Date).AddSeconds(50)

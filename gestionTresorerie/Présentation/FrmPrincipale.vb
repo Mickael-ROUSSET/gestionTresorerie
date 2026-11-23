@@ -625,6 +625,7 @@ Public Class FrmPrincipale
         AjouterFiche(cinema,"Films","Films")
         AjouterFiche(cinema,"Tarifs","Tarifs")
         AjouterFiche(cinema,"Séances","Seances")
+        AddHandler cinema.DropDownItems.Add("Générer le programme Word…").Click, AddressOf GénérerProgrammeToolStripMenuItem_Click
         AjouterFiche(fiches,"Participants au marché de Noël","ParticipantMdN")
         fiches.DropDownItems.Add(motDePasse)
         motDePasse.Visible=False
@@ -788,34 +789,10 @@ Public Class FrmPrincipale
         End Try
     End Sub
 
-    Private Async Sub GénérerProgrammeToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles GénérerProgrammeToolStripMenuItem.Click
-        If _modeDemonstration OrElse _isolatedSqlTest Then Return
-        Try
-        ' Crée le programme du cinéma à partir d'un fichier fourni par Hélène
-        Using ofd As New OpenFileDialog
-            ofd.Title = "Sélectionnez le fichier du programme"
-            ofd.Filter = "Fichiers TXT|*.txt|Fichiers CSV|*.csv|Tous les fichiers|*.*"
-
-            ' Si l'utilisateur choisit un fichier
-            If ofd.ShowDialog = DialogResult.OK Then
-                Dim sCheminFichier = ofd.FileName
-
-                Dim service As New ProgrammeCinemaCreator
-
-                ' On attend que la liste soit enrichie / chargée
-                Await service.ChargerProgramme(sCheminFichier)
-
-                Logger.INFO($"Programme {sCheminFichier} chargé et enrichi avec succès !")
-                MessageBox.Show($"Programme {sCheminFichier} chargé et enrichi avec succès !", "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information)
-            Else
-                ' L'utilisateur a annulé
-                Logger.INFO("Opération annulée.")
-                MessageBox.Show("Opération annulée.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
-            End If
+    Private Sub GénérerProgrammeToolStripMenuItem_Click(sender As Object,e As EventArgs) Handles GénérerProgrammeToolStripMenuItem.Click
+        Using fenetre As New FrmProgrammeCinema()
+            fenetre.ShowDialog(Me)
         End Using
-        Catch ex As Exception
-            MessageBox.Show(Me,ex.Message,"Cinéma")
-        End Try
     End Sub
 
     Private Sub ImporterExcelToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ImporterExcelToolStripMenuItem.Click

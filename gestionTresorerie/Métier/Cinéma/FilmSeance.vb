@@ -8,18 +8,20 @@ Public Class FilmSeance
     Public Property Synopsis As String
     Public Property DureeMinutes As Integer?
     Public Property Genre As String
+    Public Property Pays As String
     Public Property Realisateur As String
     Public Property Casting As List(Of String)
     Public Property UrlAffiche As String
     ''' <summary>
     ''' Transfère les données d'un objet de détails vers cette instance.
     ''' </summary>
-    Public Sub RemplirDetails(details As Object)
+    Public Sub RemplirDetails(details As FilmSeance)
         If details Is Nothing Then Return
 
         Me.Synopsis = details.Synopsis
-        Me.DureeMinutes = details.DureeMinutes.ToString()
+        Me.DureeMinutes = details.DureeMinutes
         Me.Genre = details.Genre
+        Me.Pays = details.Pays
         Me.Realisateur = details.Realisateur
         Me.Casting = details.Casting
         Me.UrlAffiche = details.UrlAffiche

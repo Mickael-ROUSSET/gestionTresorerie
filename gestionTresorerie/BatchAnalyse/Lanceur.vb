@@ -15,7 +15,7 @@ Public Class Lanceur
     Public Async Function LanceTrt() As Task
         Try
             ' 1. Préparation (Données Tiers et Confirmation Utilisateur)
-            VerifierOuGenererLstTiers()
+            Me.RepertoireSource=ConstruireCheminParDefaut()
 
             If Not DemanderConfirmationRepertoire() Then
                 Logger.INFO("Analyse annulée par l'utilisateur.")
@@ -23,11 +23,16 @@ Public Class Lanceur
             End If
 
             ' 2. Lancement du traitement
-            Dim repertoireSource = ConstruireCheminParDefaut()
+            Dim repertoireSource = Me.RepertoireSource
             Dim batch = New BatchAnalyse()
 
             Logger.INFO($"Démarrage de l'analyse dans : {repertoireSource}")
-            Await batch.DemarrerTraitement(repertoireSource)
+            Dim prets=Await batch.DemarrerTraitement(repertoireSource)
+            If prets.Count>0 AndAlso EnvironmentManager.CurrentEnvironment=EnvironnementType.PROD Then
+                Using revue As New FrmDocumentFilePreview(prets)
+                    revue.ShowDialog()
+                End Using
+            End If
 
         Catch ex As Exception
             Logger.ERR($"Erreur lors du traitement global : {ex.Message}")

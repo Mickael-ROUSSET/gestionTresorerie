@@ -95,7 +95,7 @@ Public Class SqlDocumentTestStoreTests
             Dim medicalId = store.SaveVerified(medical, Function(delta) ThrowUnexpectedReview())
             Using conn As New SqlConnection("Server=(LocalDB)\MSSQLLocalDB;Database=bddAgumaaaTest;Integrated Security=True")
                 conn.Open()
-                Dim reference = Guid.NewGuid().ToString("N").Substring(0, 12)
+                Dim reference = System.Security.Cryptography.RandomNumberGenerator.GetInt32(10000000).ToString("D7")
                 Dim classe = SqlTestDocumentEntry.Prepare(source, DocumentArchiveProposal.HashSource(source), root, True,
                     reference, "Association exemple", "04/04/2026", "16,50", chequeEmis:=False, issuer:="Personne fictive")
                 Using cat As New SqlCommand("INSERT dbo.Categorie(libelle,dateDebut,debit) OUTPUT inserted.Id VALUES('Classement fictif',GETDATE(),0)", conn)

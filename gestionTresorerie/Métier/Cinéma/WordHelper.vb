@@ -12,12 +12,18 @@ Public NotInheritable Class WordHelper
             Dim bytes() As Byte = RecupererBytesImage(pathOrUrl)
             If bytes Is Nothing Then Return
 
-            Dim imagePart = mainPart.AddImagePart(ImagePartType.Jpeg)
+            Dim png=bytes.Length>=8 AndAlso bytes(0)=137 AndAlso bytes(1)=80
+            Dim imagePart = mainPart.AddImagePart(If(png,ImagePartType.Png,ImagePartType.Jpeg))
             Using ms As New IO.MemoryStream(bytes)
                 imagePart.FeedData(ms)
             End Using
 
-            Dim drawing = CreerDrawing(mainPart.GetIdOfPart(imagePart), widthEmu, heightEmu)
+            Using flux As New IO.MemoryStream(bytes), image=System.Drawing.Image.FromStream(flux)
+                Dim facteur=System.Math.Min(widthEmu/CDbl(image.Width),heightEmu/CDbl(image.Height))
+                widthEmu=CLng(image.Width*facteur)
+                heightEmu=CLng(image.Height*facteur)
+            End Using
+            Dim drawing = CreerDrawing(mainPart.GetIdOfPart(imagePart), widthEmu, heightEmu, CUInt(mainPart.ImageParts.Count()))
 
             ' Paragraphe avec justification centrée
             Dim p = New Paragraph(
@@ -41,7 +47,7 @@ Public NotInheritable Class WordHelper
         Return Nothing
     End Function
 
-    Private Shared Function CreerDrawing(id As String, w As Long, h As Long) As DocumentFormat.OpenXml.Wordprocessing.Drawing
+    Private Shared Function CreerDrawing(id As String, w As Long, h As Long, numero As UInteger) As DocumentFormat.OpenXml.Wordprocessing.Drawing
         ' Construction de la structure XML complexe requise par Word
         Dim pic = New Drawing.Pictures.Picture(
             New Drawing.Pictures.NonVisualPictureProperties(
@@ -52,13 +58,13 @@ Public NotInheritable Class WordHelper
                 New Drawing.Blip() With {.Embed = id},
                 New Drawing.Stretch(New Drawing.FillRectangle())
             ),
-            New Drawing.Pictures.ShapeProperties()
+            New Drawing.Pictures.ShapeProperties(New Drawing.Transform2D(New Drawing.Offset With {.X=0,.Y=0},New Drawing.Extents With {.Cx=w,.Cy=h}),New Drawing.PresetGeometry(New Drawing.AdjustValueList()) With {.Preset=Drawing.ShapeTypeValues.Rectangle})
         )
 
         Return New DocumentFormat.OpenXml.Wordprocessing.Drawing(
             New Drawing.Wordprocessing.Inline(
                 New Drawing.Wordprocessing.Extent() With {.Cx = w, .Cy = h},
-                New Drawing.Wordprocessing.DocProperties() With {.Id = 1UI, .Name = "Picture"},
+                New Drawing.Wordprocessing.DocProperties() With {.Id = numero, .Name = "Picture" & numero},
                 New Drawing.Graphic(New Drawing.GraphicData(pic) With {.Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture"})
             )
         )
@@ -87,13 +93,14 @@ Public NotInheritable Class WordHelper
         ' 2. Définition des propriétés de style
         Dim rp As New RunProperties()
         rp.Append(New RunFonts() With {.Ascii = "Arial"})
-        rp.Append(New FontSize() With {.Val = fontSize})
+
 
         If bold Then
             rp.Append(New Bold())
         End If
 
         rp.Append(New Color() With {.Val = colorHex})
+        rp.Append(New FontSize() With {.Val = fontSize})
 
         ' 3. Assignation du style au texte
         run.RunProperties = rp

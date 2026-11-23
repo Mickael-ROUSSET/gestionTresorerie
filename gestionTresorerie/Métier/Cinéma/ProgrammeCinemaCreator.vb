@@ -4,11 +4,12 @@ Imports DocumentFormat.OpenXml
 Imports DocumentFormat.OpenXml.Wordprocessing
 
 Public Class ProgrammeCinemaCreator
-    Private ReadOnly _tmdb As TMDbService
-
-    Public Sub New()
-        _tmdb = New TMDbService(LectureProprietes.GetVariable("cleApiTmdb"))
-    End Sub
+    Private Shared ReadOnly France As New Globalization.CultureInfo("fr-FR")
+    Private Shared Function ServiceTmdb() As TMDbService
+        Dim cle=Environment.GetEnvironmentVariable("TMDB_API_KEY")
+        If String.IsNullOrWhiteSpace(cle) Then cle=LectureProprietes.GetVariable("cleApiTmdb")
+        Return If(String.IsNullOrWhiteSpace(cle),Nothing,New TMDbService(cle))
+    End Function
 
     Public Async Function GenererDepuisFichierAsync(cheminFichier As String) As Task
         If Not File.Exists(cheminFichier) Then Return
@@ -30,7 +31,7 @@ Public Class ProgrammeCinemaCreator
     ''' <summary>
     ''' Point d'entrée public pour générer le document Word.
     ''' </summary>
-    Public Async Function GenererDocxAsync(seances As List(Of FilmSeance), cheminSortie As String) As Task(Of Boolean)
+    Public Async Function GenererDocxAsync(seances As List(Of FilmSeance), cheminSortie As String, Optional tarifs As String = "Adulte 6 € / moins de 16 ans 5 €") As Task(Of Boolean)
         Try
             ' On utilise Task.Run pour ne pas figer l'interface pendant la création du XML lourd
             Return Await Task.Run(Function()
@@ -42,12 +43,13 @@ Public Class ProgrammeCinemaCreator
 
                                           ' 2. Configuration de la page (Paysage A4)
                                           Dim sectionProps = New SectionProperties(
-                    New PageSize() With {.Width = 16838, .Height = 11906, .Orient = PageOrientationValues.Landscape}
+                    New PageSize() With {.Width = 16838, .Height = 11906, .Orient = PageOrientationValues.Landscape},
+                    New PageMargin With {.Top=540,.Bottom=540,.Left=650UI,.Right=650UI}
                 )
-                                          body.Append(sectionProps)
+
 
                                           ' 3. Génération des pages (Appel des méthodes que nous avons créées)
-                                          CreerPage1(mainPart, body, seances)
+                                          CreerPage1(mainPart, body, seances,tarifs)
 
                                           ' Saut de page propre via le helper
                                           WordHelper.AjouterSautDePage(body)
@@ -55,6 +57,7 @@ Public Class ProgrammeCinemaCreator
                                           CreerPage2(mainPart, body, seances)
 
                                           ' 4. Finalisation
+                                          body.Append(sectionProps)
                                           mainPart.Document.Save()
                                       End Using
                                       Return True
@@ -65,8 +68,9 @@ Public Class ProgrammeCinemaCreator
             Return False
         End Try
     End Function
-    Private Async Function EnrichirListeAsync(seances As List(Of FilmSeance)) As Task
-        ' Utilisation d'un vrai parallélisme contrôlé
+    Friend Async Function EnrichirListeAsync(seances As List(Of FilmSeance)) As Task
+        Dim _tmdb=ServiceTmdb()
+        If _tmdb Is Nothing Then Return
         Dim tasks = seances.Select(Async Function(s)
                                        Dim id = Await _tmdb.SearchMovieIdByTitleAsync(s.Titre)
                                        If id.HasValue Then
@@ -76,22 +80,22 @@ Public Class ProgrammeCinemaCreator
                                    End Function)
         Await Task.WhenAll(tasks)
     End Function
-    Private Shared Sub AjouterContenuTarifs(tc As TableCell)
+    Private Shared Sub AjouterContenuTarifs(tc As TableCell, tarifs As String)
         ' Utilisation du helper pour un titre de section
-        WordHelper.AjouterParagrapheStyle(tc, "Tarifs : adulte 6€ / -16 ans : 5€", "40", True, "1F4E79")
+        WordHelper.AjouterParagrapheStyle(tc, "Tarifs : " & tarifs, "34", True, "CE1414")
 
         ' Ajout d'un espace vide (1 cm)
         tc.Append(New Paragraph(New Run(New Text(""))))
 
         ' Sous-titre Séances
-        WordHelper.AjouterParagrapheStyle(tc, "Séances :", "48", True, "1F4E79")
+        WordHelper.AjouterParagrapheStyle(tc, "Séances :", "48", True, "087731")
     End Sub
     ' ... Les méthodes CreerPage1 et CreerPage2 utilisent maintenant WordHelper ...
-    Private Shared Sub CreerPage1(mainPart As MainDocumentPart, body As Body, seances As List(Of FilmSeance))
+    Private Shared Sub CreerPage1(mainPart As MainDocumentPart, body As Body, seances As List(Of FilmSeance),tarifs As String)
         ' Création d'un tableau invisible pour simuler les deux colonnes
         Dim table = New Table()
         Dim grid = New TableGrid(
-            New GridColumn() With {.Width = "5000"},
+            New GridColumn() With {.Width = "7000"},
             New GridColumn() With {.Width = "5000"}
         )
         table.Append(grid)
@@ -100,7 +104,7 @@ Public Class ProgrammeCinemaCreator
 
         ' --- Colonne Gauche (Tarifs et Dates) ---
         Dim cellGauche = New TableCell()
-        AjouterContenuTarifs(cellGauche)
+        AjouterContenuTarifs(cellGauche,tarifs)
         AjouterListeSeancesPage1(cellGauche, seances)
         row.Append(cellGauche)
 
@@ -121,6 +125,7 @@ Public Class ProgrammeCinemaCreator
 
         ' Création de la table de rendu
         Dim table = New Table()
+        table.Append(New TableGrid(New GridColumn With {.Width="7300"},New GridColumn With {.Width="7300"}))
         Dim row = New TableRow()
 
         For Each col In colonnes
@@ -133,6 +138,7 @@ Public Class ProgrammeCinemaCreator
                 AjouterBlocFilmDetaille(mainPart, cell, film)
             Next
 
+            If Not col.Any() Then cell.Append(New Paragraph())
             row.Append(cell)
         Next
 
@@ -141,29 +147,31 @@ Public Class ProgrammeCinemaCreator
     End Sub
     Private Shared Sub AjouterEnteteProgrammation(mainPart As MainDocumentPart, tc As TableCell, seances As List(Of FilmSeance))
         ' 1. Logo Principal
-        Dim pathLogo = LectureProprietes.GetVariable("logoAgumaaa")
-        If IO.File.Exists(pathLogo) Then
-            WordHelper.AjouterImage(mainPart, tc, pathLogo, 2400000, 1200000)
-        End If
+        For Each logo In {"logoCinema","logoAgumaaa","logoCinevasion"}
+            Dim fichier=Path.Combine(AppContext.BaseDirectory,"Resources",logo & ".png")
+            If File.Exists(fichier) Then WordHelper.AjouterImage(mainPart,tc,fichier,1900000,850000)
+        Next
+        WordHelper.AjouterParagrapheStyle(tc,"Cinéma d’Allègre","38",True,"087731")
 
         ' 2. Titre "Programmation"
-        WordHelper.AjouterParagrapheStyle(tc, "Programmation", "56", True, "1F4E79")
+        WordHelper.AjouterParagrapheStyle(tc, "Programmation", "56", True, "087731")
 
         ' 3. Dates de validité
         If seances.Any() Then
             Dim debut = seances.Min(Function(f) f.DateDiffusion)
             Dim fin = seances.Max(Function(f) f.DateDiffusion)
-            WordHelper.AjouterParagrapheStyle(tc, $"Du {debut:dd MMMM} au {fin:dd MMMM}", "40", False)
+            WordHelper.AjouterParagrapheStyle(tc, "Du " & debut.ToString("dd MMMM",France) & " au " & fin.ToString("dd MMMM yyyy",France), "40", False)
         End If
+        WordHelper.AjouterParagrapheStyle(tc,"agumaaa.jimdofree.com   •   cinevasion43.wix.com/site","20",False)
     End Sub
     Private Shared Sub AjouterListeSeancesPage1(tc As TableCell, seances As List(Of FilmSeance))
         For Each s In seances
             ' Date et Heure
-            Dim dateTexte = $"{s.DateDiffusion:dddd dd MMMM} {s.HeureDiffusion:hh\:mm}"
+            Dim dateTexte = s.DateDiffusion.ToString("dddd dd MMMM",France) & " " & s.HeureDiffusion.ToString("hh\hmm")
             WordHelper.AjouterParagrapheStyle(tc, dateTexte, "28", True)
 
             ' Titre du film
-            WordHelper.AjouterParagrapheStyle(tc, s.Titre, "28", True, "1F4E79")
+            WordHelper.AjouterParagrapheStyle(tc, s.Titre, "28", True, "087731")
 
             ' Petit espace entre les films
             tc.Append(New Paragraph(New Run(New Text(""))))
@@ -172,18 +180,21 @@ Public Class ProgrammeCinemaCreator
     Private Shared Sub AjouterBlocFilmDetaille(mainPart As MainDocumentPart, cell As TableCell, film As FilmSeance)
         ' 1. Affiche
         If Not String.IsNullOrEmpty(film.UrlAffiche) Then
-            WordHelper.AjouterImage(mainPart, cell, film.UrlAffiche, 1800000, 2500000)
+            WordHelper.AjouterImage(mainPart, cell, film.UrlAffiche, 800000, 1150000)
         End If
 
         ' 2. Titre (Utilise le helper de style créé précédemment)
-        WordHelper.AjouterParagrapheStyle(cell, film.Titre, "32", True, "2E74B5")
+        WordHelper.AjouterParagrapheStyle(cell, film.Titre, "32", True, "087731")
 
         ' 3. Infos techniques
-        Dim infos = $"Genre: {film.Genre} | Durée: {film.DureeMinutes} min"
-        WordHelper.AjouterParagrapheStyle(cell, infos, "24", True)
-
-        ' 4. Synopsis
-        WordHelper.AjouterParagrapheStyle(cell, film.Synopsis, "20", False)
+        Dim infos As New List(Of String)
+        If Not String.IsNullOrWhiteSpace(film.Genre) Then infos.Add(film.Genre)
+        If Not String.IsNullOrWhiteSpace(film.Pays) Then infos.Add(film.Pays)
+        If film.DureeMinutes.HasValue Then infos.Add(film.DureeMinutes.Value.ToString() & " min")
+        If infos.Count>0 Then WordHelper.AjouterParagrapheStyle(cell,String.Join("  •  ",infos),"21",True)
+        If Not String.IsNullOrWhiteSpace(film.Realisateur) Then WordHelper.AjouterParagrapheStyle(cell,"Réalisation : " & film.Realisateur,"20")
+        If film.Casting IsNot Nothing AndAlso film.Casting.Count>0 Then WordHelper.AjouterParagrapheStyle(cell,"Avec " & String.Join(", ",film.Casting),"20")
+        If Not String.IsNullOrWhiteSpace(film.Synopsis) Then WordHelper.AjouterParagrapheStyle(cell,film.Synopsis,"20")
 
         ' 5. Espacement
         cell.Append(New Paragraph(New Run(New Text(""))))
