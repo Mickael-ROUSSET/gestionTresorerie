@@ -109,7 +109,7 @@ Public Class EmlToLocalDbArchiveTests
                                                     "simulation@example.invalid")
             Assert.AreEqual(1, files.Count)
             CollectionAssert.AreEqual(pdf, File.ReadAllBytes(files(0)))
-            Dim json = "{""type_document"":""Facture"",""donnees_extraites"":{""identite"":{""fournisseur_nom"":""Fictif""},""transaction"":{""montant_ttc"":""42.50"",""date_facture"":""2026-11-20"",""numero_facture"":""TEST-001""}}}"
+            Dim json = "{""type_document"":""Facture"",""donnees_extraites"":{""identite"":{""fournisseur_nom"":""Fictif""},""transaction"":{""montant_ttc"":""42.50"",""devise"":""EUR"",""date_facture"":""2026-11-20"",""numero_facture"":""TEST-001""}}}"
             Dim proposition = DocumentArchiveProposal.PrepareTest(
                 files(0), DocumentArchiveProposal.HashSource(files(0)), json, archive, Nothing)
             Assert.IsFalse(File.Exists(proposition.Destination), "L'extraction ne doit pas archiver.")
@@ -156,7 +156,7 @@ Public Class EmlToLocalDbArchiveTests
                                                     "simulation@example.invalid")
             Assert.AreEqual(1, files.Count)
             Assert.IsTrue(File.Exists(files(0)))
-            Dim json = "{""type_document"":""Facture"",""donnees_extraites"":{""identite"":{""fournisseur_nom"":""Fournisseur fictif""},""transaction"":{""montant_ttc"":""42.50"",""date_facture"":""2026-11-20"",""numero_facture"":""EML-LOCALDB-TEST""}}}"
+            Dim json = "{""type_document"":""Facture"",""donnees_extraites"":{""identite"":{""fournisseur_nom"":""Fournisseur fictif""},""transaction"":{""montant_ttc"":""42.50"",""devise"":""EUR"",""date_facture"":""2026-11-20"",""numero_facture"":""EML-LOCALDB-TEST""}}}"
             Dim proposition = DocumentArchiveProposal.PrepareTest(
                 files(0), DocumentArchiveProposal.HashSource(files(0)), json, archive, Nothing)
             Assert.IsFalse(File.Exists(proposition.Destination), "Extraire ne doit pas archiver.")
