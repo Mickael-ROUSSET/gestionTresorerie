@@ -80,7 +80,7 @@ Public Class AdministrationBatchTests
                 cn.Open()
                 cmd.CommandText="CREATE TABLE dbo.Tarifs(IdTarif int PRIMARY KEY, Montant decimal(5,2)); INSERT dbo.Tarifs VALUES(1,5.00);"
                 cmd.ExecuteNonQuery()
-                Dim lignes As New DataTable()
+                Dim lignes As New System.Data.DataTable()
                 Using da As New SqlDataAdapter("SELECT * FROM dbo.Tarifs",cn)
                     da.Fill(lignes)
                 End Using
