@@ -65,7 +65,8 @@ Public NotInheritable Class MailManager
         Dim host = LectureProprietes.GetVariable("SmtpServer")
         Dim port = CInt(LectureProprietes.GetVariable("SmtpPort"))
         Dim user = LectureProprietes.GetVariable("SmtpUsername")
-        Dim pass = LectureProprietes.GetVariable("SmtpPassword")
+        Dim pass = SecretGmail.Lire(user)
+        If String.IsNullOrEmpty(pass) Then pass = LectureProprietes.GetVariable("SmtpPassword")
 
         Using smtp As New SmtpClient(host, port)
             smtp.EnableSsl = True

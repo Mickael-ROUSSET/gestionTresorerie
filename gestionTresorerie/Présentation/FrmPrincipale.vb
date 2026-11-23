@@ -397,6 +397,7 @@ Public Class FrmPrincipale
             Dim switchEnvironment As New ToolStripMenuItem("Changer d’environnement au prochain démarrage…")
             AddHandler switchEnvironment.Click, AddressOf EnvironnementToolStripMenuItem_Click
             AnalyseToolStripMenuItem.DropDownItems.Add(switchEnvironment)
+            ConfigurerAdministration()
             If EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST Then
                 _isolatedSqlTest = True
                 InitialiserModeDemonstration()
@@ -405,6 +406,14 @@ Public Class FrmPrincipale
                 StatusLabelEnv.Items.Add(New ToolStripStatusLabel("TEST SQL — bddAgumaaaTest"))
                 DirectCast(Controls.Find("annonceDemonstration", True)(0), Label).Text =
                     "TEST SQL — Analyse > Espace TEST SQL pour initialiser la base et traiter des documents."
+                GestionBDDToolStripMenuItem.Enabled = True
+                BatchToolStripMenuItem.Enabled = True
+                For Each item As ToolStripItem In GestionBDDToolStripMenuItem.DropDownItems
+                    item.Visible = item Is SauvegarderToolStripMenuItem OrElse item Is RestaurerToolStripMenuItem OrElse item.Name = "viderTables"
+                Next
+                For Each item As ToolStripItem In BatchToolStripMenuItem.DropDownItems
+                    item.Visible = item Is BatchGénériqueToolStripMenuItem OrElse item.Name = "assistantBatch"
+                Next
                 switchEnvironment.Enabled = True
                 Dim gmail As New ToolStripMenuItem("Extraire les pièces jointes Gmail…") With {.Name = "ExtraireGmailTest"}
                 AddHandler gmail.Click, AddressOf ExtraireGmail
@@ -535,46 +544,61 @@ Public Class FrmPrincipale
         End Try
     End Sub
     Private Sub SauvegarderToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SauvegarderToolStripMenuItem.Click
-        Dim dbName As String = Constantes.DataBases.Agumaaa
-        Dim dossier As String = "D:\Sauvegardes"
-        Dim factory As IConnectionFactory = RepositoryFactory.CreateConnectionFactory(Constantes.DataBases.Agumaaa)
-        Dim sqlAdmin As New SqlAdminService(factory)
-        Dim maintenance As New DatabaseMaintenanceService(sqlAdmin)
-
-        Dim chemin = maintenance.Sauvegarder(dbName, dossier)
+        Administrer("Sauvegarder")
     End Sub
 
     Private Sub RestaurerToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RestaurerToolStripMenuItem.Click
-        Dim dossierSauvegarde As String = Constantes.Dossiers.Sauvegardes
+        Administrer("Restaurer")
+    End Sub
 
-        Dim ofd As New OpenFileDialog With {
-        .Filter = "Sauvegardes SQL (*.bak)|*.bak",
-        .InitialDirectory = dossierSauvegarde
-    }
+    Private Sub ConfigurerAdministration()
+        BatchGénériqueToolStripMenuItem.Text = "Préparer un envoi de courriers…"
+        Dim vider = GestionBDDToolStripMenuItem.DropDownItems.Add("Vider les tables…")
+        vider.Name = "viderTables"
+        AddHandler vider.Click, Sub() Administrer("Vider")
+        Dim assistant = BatchToolStripMenuItem.DropDownItems.Add("Créer un fichier de paramétrage…")
+        assistant.Name = "assistantBatch"
+        AddHandler assistant.Click, Sub()
+            Using formulaire As New AssistantBatchCourrier()
+                formulaire.ShowDialog(Me)
+            End Using
+        End Sub
+    End Sub
 
-        If ofd.ShowDialog() <> DialogResult.OK Then
-            Exit Sub
-        End If
+    Private Function ConnexionActive() As String
+        If _modeDemonstration Then Throw New InvalidOperationException("Opération indisponible en démonstration.")
+        If _isolatedSqlTest Then Return LocalDbCatalogs.ConnectionString("bddAgumaaaTest")
+        Return ConnectionStringProvider.GetConnectionString(Constantes.DataBases.Agumaaa)
+    End Function
 
+    Private Sub Administrer(operation As String)
         Try
-            Dim dbName As String = Constantes.DataBases.Agumaaa
-            Dim factory As IConnectionFactory = RepositoryFactory.CreateConnectionFactory(Constantes.DataBases.Agumaaa)
-            Dim sqlAdmin As New SqlAdminService(factory)
-
-            sqlAdmin.RestaurerBase(dbName, ofd.FileName)
-
-            MessageBox.Show("Restauration terminée avec succès.",
-                        "Restauration",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information)
-
+            Dim cs = ConnexionActive()
+            Dim cible As New SqlConnectionStringBuilder(cs)
+            Dim titre = operation & " — " & cible.DataSource & " / " & cible.InitialCatalog
+            Select Case operation
+                Case "Sauvegarder"
+                    Using dlg As New SaveFileDialog With {.Title = titre, .Filter = "Sauvegarde SQL (*.bak)|*.bak", .FileName = cible.InitialCatalog & "_" & Now.ToString("yyyyMMdd_HHmmss") & ".bak"}
+                        If dlg.ShowDialog(Me) <> DialogResult.OK Then Return
+                        Dim admin As New SqlAdminService(New AgumaaaConnectionFactory(cs))
+                        admin.SauvegarderBase(cible.InitialCatalog, dlg.FileName)
+                    End Using
+                Case "Restaurer"
+                    Using dlg As New OpenFileDialog With {.Title = titre, .Filter = "Sauvegarde SQL (*.bak)|*.bak"}
+                        If dlg.ShowDialog(Me) <> DialogResult.OK Then Return
+                        If MessageBox.Show(Me, "Remplacer le contenu de " & cible.InitialCatalog & " par " & dlg.FileName & " ?", titre, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then Return
+                        AdministrationBase.Restaurer(cs, dlg.FileName)
+                    End Using
+                Case "Vider"
+                    Dim tables = AdministrationBase.TablesMetier(cs)
+                    If tables.Count = 0 Then Throw New InvalidOperationException("Aucune table métier à vider.")
+                    Dim confirmation = Microsoft.VisualBasic.Interaction.InputBox("Toutes les lignes de ces tables seront supprimées :" & vbCrLf & String.Join(", ", tables) & vbCrLf & "Pour confirmer, saisissez le nom de la base : " & cible.InitialCatalog, titre)
+                    If Not String.Equals(confirmation, cible.InitialCatalog, StringComparison.Ordinal) Then Return
+                    AdministrationBase.Vider(cs, tables)
+            End Select
+            MessageBox.Show(Me, "Opération terminée sur " & cible.InitialCatalog & ".", titre)
         Catch ex As Exception
-            Logger.ERR("Erreur lors de la restauration : " & ex.Message)
-
-            MessageBox.Show("Erreur lors de la restauration : " & ex.Message,
-                        "Erreur",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error)
+            MessageBox.Show(Me, ex.Message, operation, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 
@@ -721,31 +745,31 @@ Public Class FrmPrincipale
         frmSaisie.Show()
     End Sub
 
-    Private Sub BatchGénériqueToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles BatchGénériqueToolStripMenuItem.Click
-        Dim config = BatchMailConfig.Load(selectionneJson)
-        Dim batch As New BatchMailSender()
-        Dim rapport = batch.RunBatch(config)
-
-        Logger.INFO(rapport.ToText())
-
+    Private Async Sub BatchGénériqueToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles BatchGénériqueToolStripMenuItem.Click
+        Try
+            Using dlg As New OpenFileDialog With {.Title = "Ouvrir le paramétrage du batch", .Filter = "Paramétrage (*.json)|*.json"}
+                If dlg.ShowDialog(Me) <> DialogResult.OK Then Return
+                Dim config = BatchMailConfig.Load(dlg.FileName)
+                Dim batch As New BatchMailSender()
+                Dim dt = batch.Destinataires(config, ConnexionActive())
+                Dim titre = If(_isolatedSqlTest, "TEST — Simulation", "PROD — Envoi de courriers")
+                Using revue As New Form With {.Text = titre & " — " & config.NomBatch, .Width = 800, .Height = 520, .StartPosition = FormStartPosition.CenterParent},
+                      grille As New DataGridView With {.Dock = DockStyle.Fill, .DataSource = dt, .ReadOnly = True, .AllowUserToAddRows = False},
+                      info As New Label With {.Dock = DockStyle.Top, .AutoSize = True, .Text = dt.Rows.Count & " destinataire(s) — " & config.SujetMail},
+                      action As New Button With {.Dock = DockStyle.Bottom, .Text = If(_isolatedSqlTest, "Fermer la simulation", "Confirmer l’envoi aux destinataires affichés"), .DialogResult = DialogResult.OK}
+                    revue.Controls.AddRange(New Control() {grille, info, action})
+                    If revue.ShowDialog(Me) <> DialogResult.OK OrElse _isolatedSqlTest OrElse dt.Rows.Count = 0 Then Return
+                End Using
+                BatchGénériqueToolStripMenuItem.Enabled = False
+                Dim rapport = Await System.Threading.Tasks.Task.Run(Function() batch.RunBatch(config, dt))
+                MessageBox.Show(Me, rapport.ToText(), "Rapport du batch")
+            End Using
+        Catch ex As Exception
+            MessageBox.Show(Me, ex.Message, "Batch de courriers")
+        Finally
+            If Not IsDisposed Then BatchGénériqueToolStripMenuItem.Enabled = True
+        End Try
     End Sub
-    Private Function selectionneJson() As String
-        Dim dlg As New OpenFileDialog With {
-            .Title = "Sélectionnez le fichier de configuration JSON",
-            .Filter = "Fichiers JSON (*.json)|*.json|Tous les fichiers|*.*",
-            .InitialDirectory = "G:\Mon Drive\AGUMAAA\Documents",
-            .Multiselect = False
-        }
-
-        If dlg.ShowDialog() = DialogResult.OK Then
-            Return dlg.FileName
-            Logger.INFO($"Fichier paramètre batch sélectionné : {dlg.FileName}")
-        Else
-            MessageBox.Show("Aucun fichier sélectionné.", "Annulé", MessageBoxButtons.OK, MessageBoxIcon.Information)
-            End
-        End If
-
-    End Function
 
     Private Sub ListeUtilisateursToolStripMenuItem_Click(sender As Object, e As EventArgs)
         AppelIReseau.TestIReseau()
