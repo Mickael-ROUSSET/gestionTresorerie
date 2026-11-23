@@ -33,7 +33,21 @@ Public Class BatchMailSender
         Return result
     End Function
 
-    Public Function RunBatch(config As BatchMailConfig) As BatchMailReport
+    Friend Function Destinataires(config As BatchMailConfig, cs As String) As DataTable
+        If Not File.Exists(config.CheminTemplateCorpsEmail) Then Throw New FileNotFoundException("Modèle de courrier introuvable.", config.CheminTemplateCorpsEmail)
+        For Each pj In config.CheminsPjRessource
+            If Not File.Exists(pj) Then Throw New FileNotFoundException("Pièce jointe introuvable.", pj)
+        Next
+        Dim repo As New BatchAnalyseRepository(New AgumaaaConnectionFactory(cs), RepositoryFactory.CreateSqlTextProvider())
+        If Not AssistantBatchCourrier.Requetes().Contains(config.NomRequeteSQL) Then Throw New ArgumentException("Choisissez une requête de lecture du catalogue.")
+        Dim dt = repo.ExtraireDataTable(config.NomRequeteSQL, config.ParametresRequeteSQL)
+        For Each col In config.RplctSujetMail.Values.Concat(config.RplctCorpsMail.Values).Concat(config.RplctPJ.Values).Append(config.ColonneEmail)
+            If Not dt.Columns.Contains(col) Then Throw New ArgumentException("Colonne absente de la requête : " & col)
+        Next
+        Return dt
+    End Function
+
+    Public Function RunBatch(config As BatchMailConfig, Optional destinataires As DataTable = Nothing) As BatchMailReport
         Dim report As New BatchMailReport With {
             .NomBatch = config.NomBatch,
             .Description = config.Description,
@@ -47,13 +61,14 @@ Public Class BatchMailSender
             Dim templateHtml As String = IO.File.ReadAllText(config.CheminTemplateCorpsEmail)
 
             ' Extraction destinataires
-            Dim dt = ExtractDestinataires(config.NomRequeteSQL, config.ParametresRequeteSQL)
+            Dim dt = If(destinataires, ExtractDestinataires(config.NomRequeteSQL, config.ParametresRequeteSQL))
             report.Total = dt.Rows.Count
 
             For Each dr As DataRow In dt.Rows
                 Dim mailDestinataire As String = dr(config.ColonneEmail).ToString().Trim()
                 If String.IsNullOrWhiteSpace(mailDestinataire) Then
-                    Logger.WARN("Aucun email pour : ")
+                    report.FailCount += 1
+                    report.Results.Add(New DestinataireResult With {.IsSuccess = False, .ErrorMessage = "Adresse électronique absente."})
                     Continue For
                 End If
                 Dim result As New DestinataireResult With {.Adresse = mailDestinataire}
@@ -61,7 +76,7 @@ Public Class BatchMailSender
                 Try
                     ' Sujet + corps
                     Dim sujet = ApplyReplacements(config.SujetMail, dr, config.RplctSujetMail)
-                    Dim corps = ApplyReplacements(templateHtml, dr, config.RplctSujetMail)
+                    Dim corps = ApplyReplacements(templateHtml, dr, config.RplctCorpsMail)
 
                     Dim piecesJointes As New List(Of String)
                     piecesJointes = generePJ(config, dr)
@@ -72,7 +87,7 @@ Public Class BatchMailSender
                     If mailer.EnvoyerEmail(mailDestinataire, sujet, corps, piecesJointes) Then
                         Logger.INFO($"E-mailDestinataire avec pièces jointes envoyé avec succès à {mailDestinataire}")
                     Else
-                        Logger.INFO($"Échec de l'envoi de l'e-mailDestinataire à {mailDestinataire}.")
+                        Throw New InvalidOperationException("Envoi SMTP refusé.")
                     End If
                     result.IsSuccess = True
                     report.SuccessCount += 1
@@ -93,29 +108,24 @@ Public Class BatchMailSender
                 IO.File.WriteAllText(config.CheminRapportTrt & ".txt", report.ToText())
                 IO.File.WriteAllText(config.CheminRapportTrt & ".json", report.ToJson())
             End If
-            envoieReport(report.ToString, config)
-            MsgBox($"BatchMailSender terminé pour {config.NomRequeteSQL}")
+
             Return report
 
         Catch ex As Exception
             Logger.ERR("BatchMailSender erreur : " & ex.Message)
-            Return report
+            Throw
         End Try
     End Function
-    Private Sub envoieReport(sRapport As String, config As BatchMailConfig)
-
-        Dim mailer As New MailManager()
-        Dim lstFic As List(Of String) = New List(Of String)
-        lstFic.Add(config.CheminRapportTrt & ".txt")
-        ' Liste des fichiers à joindre 
-        mailer.EnvoyerEmail("mickael_rousset@hotmail.com", "Rapport de batch générique", sRapport, lstFic)
-    End Sub
     Private Function generePJ(config As BatchMailConfig, dr As DataRow) As List(Of String)
         ' ------- Génération des pièces jointes -------
         Dim listePj As New List(Of String)
 
         For Each modelePJ In config.CheminsPjRessource
-            If Not File.Exists(modelePJ) Then Continue For ' Construire le dictionnaire réel à partir du DataRow
+            If Not File.Exists(modelePJ) Then Throw New FileNotFoundException("Pièce jointe introuvable.", modelePJ)
+            If Not String.Equals(Path.GetExtension(modelePJ), ".docx", StringComparison.OrdinalIgnoreCase) OrElse config.RplctPJ.Count = 0 Then
+                listePj.Add(modelePJ)
+                Continue For
+            End If
             Dim dicoRemplacementsPJ As New Dictionary(Of String, String)
 
             For Each kvp In config.RplctPJ
