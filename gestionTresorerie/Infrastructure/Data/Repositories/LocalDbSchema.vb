@@ -7,9 +7,12 @@ Friend NotInheritable Class LocalDbSchema
     Private Sub New()
     End Sub
 
-    Friend Shared Sub Apply(connection As SqlConnection, transaction As SqlTransaction, production As Boolean)
+    Friend Shared Sub Apply(connection As SqlConnection, transaction As SqlTransaction, production As Boolean, Optional allowDisposable As Boolean = False)
         Dim expected = If(production, "bddAgumaaa", "bddAgumaaaTest")
-        If Not String.Equals(connection.Database, expected, StringComparison.OrdinalIgnoreCase) Then
+        Dim isExpected = String.Equals(connection.Database, expected, StringComparison.OrdinalIgnoreCase)
+        Dim isDisposable = Not production AndAlso allowDisposable AndAlso
+            DisposableLocalDbTestCatalog.IsDisposableName(connection.Database)
+        If Not isExpected AndAlso Not isDisposable Then
             Throw New InvalidOperationException("Catalogue inattendu lors de l’initialisation du schéma.")
         End If
 
