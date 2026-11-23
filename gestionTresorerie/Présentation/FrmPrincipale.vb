@@ -400,6 +400,10 @@ Public Class FrmPrincipale
             ConfigurerAdministration()
             If EnvironmentManager.CurrentEnvironment = EnvironmentManager.EnvironnementType.TEST Then
                 _isolatedSqlTest = True
+                If Not OuvrirSession() Then
+                    Close()
+                    Return
+                End If
                 InitialiserModeDemonstration()
                 Text = "gestionTresorerie — TEST SQL"
                 StatusLabelEnv.Items.Clear()
@@ -419,9 +423,18 @@ Public Class FrmPrincipale
                 Dim gmail As New ToolStripMenuItem("Extraire les pièces jointes Gmail…") With {.Name = "ExtraireGmailTest"}
                 AddHandler gmail.Click, AddressOf ExtraireGmail
                 AnalyseToolStripMenuItem.DropDownItems.Add(gmail)
+                AfficherDroits()
                 Return
             End If
             Text = "gestionTresorerie — " & EnvironmentManager.GetEnvironmentLabel()
+            If Not _modeDemonstration Then
+                If Not OuvrirSession() Then
+                    Close()
+                    Return
+                End If
+                AfficherDroits()
+                If UtilisateurActif IsNot Nothing AndAlso Not UtilisateurActif.EstAdmin() Then Return
+            End If
             Logger.INFO("Environnement actif : " & EnvironmentManager.GetEnvironmentLabel())
             StatusLabelEnv.Text = "Environnement : " & EnvironmentManager.GetEnvironmentLabel
 
@@ -440,6 +453,7 @@ Public Class FrmPrincipale
             ' Gestion des erreurs
             MessageBox.Show($"Une erreur est survenue lors de l'initialisation : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Logger.ERR($"Une erreur est survenue lors de l'initialisation : {ex.Message}")
+            Close()
         End Try
     End Sub
     Private Sub initIndiceColDgv()
@@ -552,7 +566,69 @@ Public Class FrmPrincipale
         Administrer("Restaurer")
     End Sub
 
+    Private ReadOnly fiches As New ToolStripMenuItem("Fiches")
+    Private ReadOnly motDePasse As New ToolStripMenuItem("Modifier mon mot de passe…")
+
+    Private Function OuvrirSession() As Boolean
+        Try
+            Dim cs=If(EnvironmentManager.CurrentEnvironment=EnvironmentManager.EnvironnementType.DEV,ConnectionStringProvider.GetConnectionString(Constantes.DataBases.Agumaaa),ConnexionActive())
+            UtilisateurActif=Nothing
+            If Not LoginForm.ComptesConfigures(cs) Then Return True
+            Using fenetre As New LoginForm With {.Connexion=cs,.Text="Connexion — " & New SqlConnectionStringBuilder(cs).InitialCatalog}
+                If fenetre.ShowDialog(Me)<>DialogResult.OK Then Return False
+                UtilisateurActif=fenetre.Compte
+            End Using
+            motDePasse.Visible=True
+            Return True
+        Catch ex As Exception
+            MessageBox.Show(Me,ex.Message,"Ouverture de session")
+            Return False
+        End Try
+    End Function
+
+    Private Sub AfficherDroits()
+        fiches.Enabled=True
+        If UtilisateurActif Is Nothing Then Return
+        Text &= " — " & UtilisateurActif.NomUtilisateur & " (" & UtilisateurActif.Role & ")"
+        If UtilisateurActif.EstAdmin() Then Return
+        For Each menu As ToolStripItem In MenuStrip1.Items
+            menu.Enabled=menu Is fiches OrElse menu Is AnalyseToolStripMenuItem
+        Next
+        For Each action As ToolStripItem In AnalyseToolStripMenuItem.DropDownItems
+            action.Enabled=action.Name="histogrammes"
+        Next
+        dgvPrincipale.Enabled=False
+        For Each bouton In Controls.OfType(Of Button)()
+            bouton.Enabled=False
+        Next
+    End Sub
+
+    Private Sub AjouterFiche(parent As ToolStripMenuItem,titre As String,table As String)
+        Dim item=parent.DropDownItems.Add(titre)
+        AddHandler item.Click, Sub()
+            Try
+                Using f As New FrmFichesMetier(ConnexionActive(),table,titre,UtilisateurActif IsNot Nothing AndAlso UtilisateurActif.EstLecteur())
+                    f.ShowDialog(Me)
+                End Using
+            Catch ex As Exception
+                MessageBox.Show(Me,ex.Message,titre)
+            End Try
+        End Sub
+    End Sub
+
     Private Sub ConfigurerAdministration()
+        MenuStrip1.Items.Add(fiches)
+        AjouterFiche(fiches,"Tiers","Tiers")
+        AjouterFiche(fiches,"Coordonnées des tiers","Coordonnees")
+        Dim cinema As New ToolStripMenuItem("Cinéma")
+        fiches.DropDownItems.Add(cinema)
+        AjouterFiche(cinema,"Films","Films")
+        AjouterFiche(cinema,"Tarifs","Tarifs")
+        AjouterFiche(cinema,"Séances","Seances")
+        AjouterFiche(fiches,"Participants au marché de Noël","ParticipantMdN")
+        fiches.DropDownItems.Add(motDePasse)
+        motDePasse.Visible=False
+        AddHandler motDePasse.Click, AddressOf ChangeMdPToolStripMenuItem_Click
         Dim histogrammes=AnalyseToolStripMenuItem.DropDownItems.Add("Histogrammes…")
         histogrammes.Name="histogrammes"
         AddHandler histogrammes.Click, AddressOf AfficherHistogrammes
@@ -604,6 +680,19 @@ Public Class FrmPrincipale
                 Case "Vider"
                     Dim tables = AdministrationBase.TablesMetier(cs)
                     If tables.Count = 0 Then Throw New InvalidOperationException("Aucune table métier à vider.")
+                    Using choix As New Form With {.Text=titre,.Width=500,.Height=540,.StartPosition=FormStartPosition.CenterParent},
+                          liste As New CheckedListBox With {.Dock=DockStyle.Fill,.CheckOnClick=True},
+                          valider As New Button With {.Text="Continuer avec les tables cochées",.Dock=DockStyle.Bottom,.Height=42,.DialogResult=DialogResult.OK,.Enabled=False}
+                        liste.Items.AddRange(tables.ToArray())
+                        AddHandler liste.ItemCheck, Sub(o,args)
+                            valider.Enabled=liste.CheckedItems.Count + If(args.NewValue=CheckState.Checked,1,-1)>0
+                        End Sub
+                        choix.Controls.Add(liste)
+                        choix.Controls.Add(valider)
+                        If choix.ShowDialog(Me)<>DialogResult.OK Then Return
+                        tables=liste.CheckedItems.Cast(Of String)().ToList()
+                    End Using
+                    If tables.Count=0 Then Return
                     Dim confirmation = Microsoft.VisualBasic.Interaction.InputBox("Toutes les lignes de ces tables seront supprimées :" & vbCrLf & String.Join(", ", tables) & vbCrLf & "Pour confirmer, saisissez le nom de la base : " & cible.InitialCatalog, titre)
                     If Not String.Equals(confirmation, cible.InitialCatalog, StringComparison.Ordinal) Then Return
                     AdministrationBase.Vider(cs, tables)
