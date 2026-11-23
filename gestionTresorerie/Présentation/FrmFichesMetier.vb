@@ -27,6 +27,13 @@ Friend Class FrmFichesMetier
         Controls.Add(grille)
         Dim barre As New FlowLayoutPanel With {.Dock=DockStyle.Bottom,.AutoSize=True}
         Dim enregistrer As New Button With {.Text="Enregistrer les modifications",.AutoSize=True,.Enabled=Not lectureSeule}
+        Dim recherche As New TextBox With {.Width=240,.PlaceholderText="Rechercher dans les fiches…"}
+        barre.Controls.Add(recherche)
+        AddHandler recherche.TextChanged, Sub()
+            Dim motif=recherche.Text.Replace("'","''").Replace("[","[[]").Replace("*","[*]").Replace("%","[%]")
+            Dim champs=donnees.Columns.Cast(Of DataColumn)().Where(Function(col) col.DataType Is GetType(String)).Select(Function(col) "[" & col.ColumnName & "] LIKE '%" & motif & "%'").ToArray()
+            If champs.Length>0 Then source.Filter=If(motif.Length=0,"",String.Join(" OR ",champs))
+        End Sub
         barre.Controls.Add(enregistrer)
         Controls.Add(barre)
         AddHandler Load, Sub()

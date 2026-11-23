@@ -427,7 +427,7 @@ Public Class FrmPrincipale
                 Return
             End If
             Text = "gestionTresorerie — " & EnvironmentManager.GetEnvironmentLabel()
-            If EnvironmentManager.CurrentEnvironment=EnvironmentManager.EnvironnementType.PROD Then
+            If Not _modeDemonstration Then
                 If Not OuvrirSession() Then
                     Close()
                     Return
@@ -453,6 +453,7 @@ Public Class FrmPrincipale
             ' Gestion des erreurs
             MessageBox.Show($"Une erreur est survenue lors de l'initialisation : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Logger.ERR($"Une erreur est survenue lors de l'initialisation : {ex.Message}")
+            Close()
         End Try
     End Sub
     Private Sub initIndiceColDgv()
@@ -570,7 +571,7 @@ Public Class FrmPrincipale
 
     Private Function OuvrirSession() As Boolean
         Try
-            Dim cs=ConnexionActive()
+            Dim cs=If(EnvironmentManager.CurrentEnvironment=EnvironmentManager.EnvironnementType.DEV,ConnectionStringProvider.GetConnectionString(Constantes.DataBases.Agumaaa),ConnexionActive())
             UtilisateurActif=Nothing
             If Not LoginForm.ComptesConfigures(cs) Then Return True
             Using fenetre As New LoginForm With {.Connexion=cs,.Text="Connexion — " & New SqlConnectionStringBuilder(cs).InitialCatalog}

@@ -15,7 +15,11 @@ Public Class LoginForm
             If IsDBNull(cmd.ExecuteScalar()) Then Return False
             cn.ChangeDatabase(catalogue)
             cmd.CommandText="SELECT OBJECT_ID('dbo.Utilisateurs','U')"
-            If IsDBNull(cmd.ExecuteScalar()) Then Return False
+            If IsDBNull(cmd.ExecuteScalar()) Then
+                cmd.CommandText="SELECT IS_MEMBER('db_owner')"
+                If Convert.ToInt32(cmd.ExecuteScalar())<>1 Then Throw New UnauthorizedAccessException("L’administrateur SQL doit initialiser les comptes d’accès de cette base.")
+                Return False
+            End If
             cmd.CommandText="SELECT TOP(1) 1 FROM dbo.Utilisateurs"
             Return cmd.ExecuteScalar() IsNot Nothing
         End Using
