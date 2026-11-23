@@ -73,6 +73,25 @@ Public Class AdministrationBatchTests
                 Assert.IsTrue(FrmEditUtilisateur.Verifier("mot-de-passe-fictif",CStr(cmd.ExecuteScalar())))
                 Assert.ThrowsExactly(Of SqlException)(Sub() FrmEditUtilisateur.Enregistrer(cs,1,"Administrateur test","lecteur",True,Nothing))
             End Using
+            Assert.IsTrue(LoginForm.ComptesConfigures(cs))
+            Assert.IsNull(LoginForm.Authentifier(cs,"Administrateur test","incorrect"))
+            Assert.IsTrue(LoginForm.Authentifier(cs,"Administrateur test","mot-de-passe-fictif").EstAdmin())
+            Using cn As New SqlConnection(cs), cmd=cn.CreateCommand()
+                cn.Open()
+                cmd.CommandText="CREATE TABLE dbo.Tarifs(IdTarif int PRIMARY KEY, Montant decimal(5,2)); INSERT dbo.Tarifs VALUES(1,5.00);"
+                cmd.ExecuteNonQuery()
+                Dim lignes As New DataTable()
+                Using da As New SqlDataAdapter("SELECT * FROM dbo.Tarifs",cn)
+                    da.Fill(lignes)
+                End Using
+                lignes.Rows(0)("Montant")=6.5D
+                FrmFichesMetier.Sauver(cs,"Tarifs",lignes)
+                cmd.CommandText="SELECT Montant FROM dbo.Tarifs"
+                Assert.AreEqual(6.5D,CDec(cmd.ExecuteScalar()))
+                AdministrationBase.Vider(cs,New List(Of String) From {"Tarifs"})
+                cmd.CommandText="SELECT COUNT(*) FROM dbo.Documents"
+                Assert.AreEqual(1,CInt(cmd.ExecuteScalar()))
+            End Using
             Dim admin As New SqlAdminService(New AgumaaaConnectionFactory(cs))
             admin.SauvegarderBase(base,sauvegarde)
             AdministrationBase.Vider(cs,AdministrationBase.TablesMetier(cs))

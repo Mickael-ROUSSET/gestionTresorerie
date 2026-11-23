@@ -41,7 +41,8 @@ Public Class FrmEditUtilisateur
             cn.Open()
             Using tx=cn.BeginTransaction(IsolationLevel.Serializable), cmd=cn.CreateCommand()
                 cmd.Transaction=tx
-                cmd.CommandText="IF EXISTS(SELECT 1 FROM dbo.Utilisateurs WHERE NomUtilisateur=@nom AND (@id IS NULL OR Id<>@id)) THROW 51070,N'Nom déjà utilisé.',1; " &
+                cmd.CommandText="IF NOT EXISTS(SELECT 1 FROM dbo.Utilisateurs) AND (@role<>'admin' OR @actif=0) THROW 51073,N'Le premier compte doit être un administrateur actif.',1; " &
+                    "IF EXISTS(SELECT 1 FROM dbo.Utilisateurs WHERE NomUtilisateur=@nom AND (@id IS NULL OR Id<>@id)) THROW 51070,N'Nom déjà utilisé.',1; " &
                     "IF @id IS NULL INSERT dbo.Utilisateurs(NomUtilisateur,Role,Actif,MotDePasse) VALUES(@nom,@role,@actif,@pwd) ELSE BEGIN " &
                     "IF EXISTS(SELECT 1 FROM dbo.Utilisateurs WHERE Id=@id AND Role='admin' AND Actif=1) AND (@role<>'admin' OR @actif=0) AND NOT EXISTS(SELECT 1 FROM dbo.Utilisateurs WHERE Id<>@id AND Role='admin' AND Actif=1) THROW 51071,N'Dernier administrateur actif.',1; " &
                     "UPDATE dbo.Utilisateurs SET NomUtilisateur=@nom,Role=@role,Actif=@actif,MotDePasse=COALESCE(@pwd,MotDePasse) WHERE Id=@id; IF @@ROWCOUNT<>1 THROW 51072,N'Utilisateur introuvable.',1; END;"
