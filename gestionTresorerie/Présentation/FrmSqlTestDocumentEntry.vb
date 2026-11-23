@@ -43,7 +43,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
     Private ReadOnly _nature As New ComboBox With {.Dock = DockStyle.Fill, .DropDownStyle = ComboBoxStyle.DropDownList}
     Private ReadOnly _sousNature As New ComboBox With {.Dock = DockStyle.Fill, .DropDownStyle = ComboBoxStyle.DropDownList}
     Private debitMouvement As Boolean?
-    Private ReadOnly _eventName As New ComboBox With {.Dock = DockStyle.Fill, .MaxLength = 100}
+    Private ReadOnly _eventName As New ComboBox With {.Name = "activiteDocument", .Dock = DockStyle.Fill, .MaxLength = 100}
     Private ReadOnly _attach As New Button With {.AutoSize = True, .Text = "Rattacher à un mouvement…"}
     Private _movement As Integer?
     Private _ready As Boolean
@@ -160,14 +160,15 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         AddHandler _issuer.TextChanged, AddressOf UpdateChequeDirection
         AddHandler _nature.SelectionChangeCommitted, Sub() choixManuel = True
         AddHandler _sousNature.SelectionChangeCommitted, Sub() choixManuel = True
-        For Each champ As Control In New Control() {_date, _amount, _issuer, _eventName}
+        For Each champ As Control In New Control() {_date, _amount, _issuer, _party, _eventName}
             AddHandler champ.Validated, Sub() ProposerClassement()
         Next
         FillFields(suggested)
         AddHandler _kind.SelectedIndexChanged,
             Sub()
                 _nature.Text = ""
-                _eventName.Text = ""
+                choixManuel = False
+                _eventName.Text = ActiviteParDefaut("")
                 _number.Clear()
                 _party.Clear()
                 _issuer.Clear()
@@ -337,7 +338,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         UpdateKind(Nothing, EventArgs.Empty)
         Dim classification = TryCast(suggested?("classement_comptable"), JObject)
         Dim suggestionNature = If(classification?("nature")?.Type = JTokenType.String, classification("nature").ToString(), "")
-        _eventName.Text = If(classification?("evenement")?.Type = JTokenType.String, classification("evenement").ToString(), "")
+        _eventName.Text = ActiviteParDefaut(If(classification?("evenement")?.Type = JTokenType.String, classification("evenement").ToString(), ""))
         If detectedType = "QuestionnaireMedical" Then _nature.Text = ""
         Dim fields = suggested?("donnees_extraites")
         Dim identity = fields?("identite")
@@ -371,11 +372,23 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
         ProposerClassement()
     End Sub
 
+    Private Function ActiviteParDefaut(suggestion As String) As String
+        Return If(SelectedKind = TypeDocument.FormulaireAdhesion, "Gym " & Today.Year.ToString(), suggestion)
+    End Function
+
     Private indiceNature As String = ""
     Private choixManuel As Boolean
 
     Private Sub ProposerClassement()
         If choixManuel OrElse Not catalogue.Columns.Contains("cat") Then Return
+        If SelectedKind = TypeDocument.Cheque Then
+            Dim cible = SuggestionsClassement.PaiementCinevasion(catalogue, _party.Text, _direction.SelectedIndex = 0)
+            If cible IsNot Nothing Then
+                _nature.SelectedValue = cible("cat")
+                _sousNature.SelectedValue = cible("sousCat")
+                Return
+            End If
+        End If
         Dim suggestionNature = indiceNature
         _nature.SelectedIndex = -1
         If suggestionNature <> "" AndAlso SelectedKind <> TypeDocument.QuestionnaireMedical Then

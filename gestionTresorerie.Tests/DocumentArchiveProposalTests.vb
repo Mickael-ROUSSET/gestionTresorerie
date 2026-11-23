@@ -7,6 +7,30 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 
 <TestClass>
 Public Class DocumentArchiveProposalTests
+    <TestMethod>
+    Public Sub CinevasionEmisRetientLePaiementMensuelAuDebit()
+        Dim catalogue As New System.Data.DataTable()
+        For Each colonne In {"debit", "sousCat"}
+            catalogue.Columns.Add(colonne, GetType(Integer))
+        Next
+        catalogue.Columns.Add("categorie")
+        catalogue.Columns.Add("sousCategorie")
+        catalogue.Rows.Add(0, 12, "Cotisations et licence versees", "Cinévasion, paiement mensuel")
+        catalogue.Rows.Add(1, 15, "Cotisations et licence versées", "Cinévasion, cotisation annuelle")
+        Dim attendu = catalogue.Rows.Add(1, 20, "Cotisations et licence versees", "Cinévasion, paiement mensuel ")
+        Assert.AreSame(attendu, SuggestionsClassement.PaiementCinevasion(catalogue, " CINÉVASION ", True))
+        Assert.AreSame(attendu, SuggestionsClassement.PaiementCinevasion(catalogue, "CINEVASION", True))
+        Assert.IsNull(SuggestionsClassement.PaiementCinevasion(catalogue, "CINEVASION", False))
+    End Sub
+
+    <STATestMethod>
+    Public Sub BulletinProposeGymAnneeCouranteMalgreUneDateHistorique()
+        Dim resultat = Newtonsoft.Json.Linq.JObject.Parse("{'type_document':'FormulaireAdhesion','classement_comptable':{'evenement':'Autre'},'donnees_extraites':{'identite':{},'transaction':{'date_document':'2020-02-12'}}}")
+        Using fiche As New FrmSqlTestDocumentEntry("C:\fictif\scan.pdf", New String("A"c, 64), "Z:\absent", resultat, "")
+            Assert.AreEqual("Gym " & Today.Year.ToString(), fiche.Controls.Find("activiteDocument", True).Single().Text)
+        End Using
+    End Sub
+
     <STATestMethod>
     Public Sub AnalyseIncompleteProposeUnNomSansLecteurArchive()
         Dim resultat = Newtonsoft.Json.Linq.JObject.Parse("{'type_document':'Cheque','donnees_extraites':{'identite':{'emetteur_du_cheque':'Personne Exemple'},'transaction':{}}}")

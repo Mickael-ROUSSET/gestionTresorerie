@@ -38,6 +38,19 @@ Friend Module SuggestionsClassement
         Return False
     End Function
 
+    Private Function CleLibelle(valeur As String) As String
+        Dim texte = If(valeur, "").Normalize(NormalizationForm.FormD).ToLowerInvariant()
+        Return Regex.Replace(texte, "[^\p{L}\p{N}]", "")
+    End Function
+
+    Friend Function PaiementCinevasion(catalogue As DataTable, beneficiaire As String, emis As Boolean) As DataRow
+        If Not emis OrElse CleLibelle(beneficiaire) <> "cinevasion" Then Return Nothing
+        Dim lignes = catalogue.AsEnumerable().Where(Function(r) CInt(r("debit")) = 1 AndAlso
+            CleLibelle(Convert.ToString(r("categorie"))) = "cotisationsetlicenceversees" AndAlso
+            Not r.IsNull("sousCat") AndAlso CleLibelle(Convert.ToString(r("sousCategorie"))) = "cinevasionpaiementmensuel").Take(2).ToArray()
+        Return If(lignes.Length = 1, lignes(0), Nothing)
+    End Function
+
     Private Function Mots(libelle As String) As String()
         Dim simple = Regex.Replace(If(libelle, "").Normalize(NormalizationForm.FormD), "\p{M}", "").ToLowerInvariant()
         simple = Regex.Replace(simple, "\bgym(?:nastique)?\b", "gym")
