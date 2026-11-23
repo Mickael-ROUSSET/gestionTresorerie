@@ -8,6 +8,29 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
 <TestClass>
 Public Class DocumentArchiveProposalTests
     <TestMethod>
+    Public Sub TarifDuClasseurDependDeLaSaisonEtConserveLeNumeroPartiel()
+        Dim racine = Directory.CreateTempSubdirectory().FullName
+        Try
+            Dim dossier = Directory.CreateDirectory(Path.Combine(racine, "2027-2028")).FullName
+            Using livre As New NPOI.HSSF.UserModel.HSSFWorkbook()
+                Dim feuille = livre.CreateSheet("Param")
+                feuille.CreateRow(7).CreateCell(1).SetCellValue(167.5)
+                Dim plage = livre.CreateName()
+                plage.NameName = "COTISATION_GYM_DOUCE"
+                plage.RefersToFormula = "Param!$B$8"
+                Using flux = File.Create(Path.Combine(dossier, "InscriptionGym2027-2028.xls"))
+                    livre.Write(flux)
+                End Using
+            End Using
+            Assert.IsTrue(SuggestionsClassement.EstCotisation(167.5D, New Date(2028, 2, 1), racine))
+            Assert.IsFalse(SuggestionsClassement.EstCotisation(155D, New Date(2028, 2, 1), racine))
+            Assert.AreEqual("CHQ_Gym_Personne_Exemple.pdf", DocumentArchiveProposal.NomCheque("", "Gym", "Personne Exemple", ".pdf"))
+        Finally
+            Directory.Delete(racine, True)
+        End Try
+    End Sub
+
+    <TestMethod>
     Public Sub NomCheque_UtiliseActiviteNumeroEtTiers()
         Assert.AreEqual("CHQ_Gym_0012345_Anne_Exemple.pdf", DocumentArchiveProposal.NomCheque("24 0012345 D", "Revenus de la gymnastique", "Anne Exemple", ".pdf"))
     End Sub
