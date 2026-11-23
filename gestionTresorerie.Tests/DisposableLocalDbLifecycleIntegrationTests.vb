@@ -29,7 +29,7 @@ Public Class DisposableLocalDbLifecycleIntegrationTests
                 connection.Open()
                 Assert.AreEqual(catalogName, connection.Database)
                 Using transaction = connection.BeginTransaction()
-                    LocalDbSchema.Apply(connection, transaction, production:=False)
+                    LocalDbSchema.Apply(connection, transaction, production:=False, allowDisposable:=True)
                     transaction.Commit()
                 End Using
                 Using command = connection.CreateCommand()
