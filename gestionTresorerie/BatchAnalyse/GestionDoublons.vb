@@ -7,6 +7,35 @@ Imports System.Threading
 ''' </summary>
 Public NotInheritable Class GestionDoublons
 
+    Friend Class Inventaire
+        Friend ReadOnly Fichiers As New List(Of String)
+        Friend ReadOnly Erreurs As New List(Of String)
+        Friend Doublons As Integer
+
+        Friend Function Bilan() As String
+            Dim texte=Fichiers.Count & " document(s) distinct(s), " & Doublons & " copie(s) écartée(s)."
+            If Erreurs.Count>0 Then texte &= vbCrLf & "Fichiers illisibles : " & String.Join(", ",Erreurs)
+            Return texte
+        End Function
+    End Class
+
+    Friend Shared Function Inventorier(chemins As IEnumerable(Of String)) As Inventaire
+        Dim resultat As New Inventaire
+        Dim empreintes As New HashSet(Of String)(StringComparer.Ordinal)
+        For Each chemin In chemins.OrderBy(Function(c) c,StringComparer.OrdinalIgnoreCase)
+            Try
+                If empreintes.Add(DocumentArchiveProposal.HashSource(chemin)) Then
+                    resultat.Fichiers.Add(chemin)
+                Else
+                    resultat.Doublons+=1
+                End If
+            Catch ex As Exception When TypeOf ex Is IOException OrElse TypeOf ex Is UnauthorizedAccessException
+                resultat.Erreurs.Add(Path.GetFileName(chemin) & " (" & ex.Message & ")")
+            End Try
+        Next
+        Return resultat
+    End Function
+
     ' --- Constantes de configuration ---
     Private Const NomDossierDoublons As String = "Doublons"
 
