@@ -6,30 +6,62 @@ Imports Newtonsoft.Json.Linq
 Public Class TMDbService
     Private Shared ReadOnly _http As New HttpClient()
     Private ReadOnly _apiKey As String
+    Private ReadOnly client As HttpClient
 
     Public Sub New(apiKey As String)
-        _apiKey = apiKey
+        Me.New(apiKey,_http)
     End Sub
 
+    Friend Sub New(apiKey As String,http As HttpClient)
+        _apiKey=apiKey.Trim()
+        client=http
+    End Sub
+
+    Private Async Function Lire(route As String) As Task(Of JObject)
+        Dim cleV3=System.Text.RegularExpressions.Regex.IsMatch(_apiKey,"^[0-9a-fA-F]{32}$")
+        Dim url="https://api.themoviedb.org/3/" & route
+        If cleV3 Then url &= "&api_key=" & Uri.EscapeDataString(_apiKey)
+        Using requete As New HttpRequestMessage(HttpMethod.Get,url)
+            If Not cleV3 Then requete.Headers.Authorization=New System.Net.Http.Headers.AuthenticationHeaderValue("Bearer",_apiKey)
+            Using reponse=Await client.SendAsync(requete)
+                If Not reponse.IsSuccessStatusCode Then
+                    Select Case CInt(reponse.StatusCode)
+                        Case 401,403
+                            Throw New InvalidOperationException("TMDb refuse la clé ou le jeton. Vérifiez les identifiants TMDb dans CinemaAGUMAAA ou les variables Windows.")
+                        Case 429
+                            Throw New InvalidOperationException("TMDb limite temporairement les recherches. Réessayez dans un instant.")
+                        Case Else
+                            Throw New InvalidOperationException("TMDb indisponible (HTTP " & CInt(reponse.StatusCode) & ").")
+                    End Select
+                End If
+                Return JObject.Parse(Await reponse.Content.ReadAsStringAsync())
+            End Using
+        End Using
+    End Function
+
+    Private Async Function Chercher(titre As String) As Task(Of JToken)
+        Dim obj=Await Lire("search/movie?language=fr-FR&query=" & Uri.EscapeDataString(titre.Trim()))
+        Dim films=TryCast(obj("results"),JArray)
+        If films Is Nothing Then Throw New InvalidOperationException("Réponse de recherche TMDb incomplète.")
+        Return If(films.FirstOrDefault(Function(f) String.Equals(CStr(f("title")),titre.Trim(),StringComparison.OrdinalIgnoreCase) OrElse String.Equals(CStr(f("original_title")),titre.Trim(),StringComparison.OrdinalIgnoreCase)),films.FirstOrDefault())
+    End Function
+
     Public Async Function SearchMovieIdByTitleAsync(titre As String) As Task(Of Integer?)
-        Try
-            Dim url = $"https://api.themoviedb.org/3/search/movie?api_key={_apiKey}&query={Uri.EscapeDataString(titre)}&language=fr-FR"
-            Dim json = Await _http.GetStringAsync(url)
-            Dim obj = JObject.Parse(json)
-            Dim first = obj("results")?.FirstOrDefault()
-            If first Is Nothing Then Return Nothing
-            Return CInt(first("id"))
-        Catch ex As Exception
-            Logger.ERR($"TMDb SearchMovieIdByTitleAsync('{titre}') : {ex.Message}")
-            Return Nothing
-        End Try
+        Dim resultat=Await Chercher(titre)
+        If resultat Is Nothing Then Return Nothing
+        Return CInt(resultat("id"))
+    End Function
+
+    Friend Async Function FicheAsync(titre As String) As Task(Of FilmSeance)
+        Dim resultat=Await Chercher(titre)
+        If resultat Is Nothing Then Return Nothing
+        Dim film=Await GetMovieDetailsAsync(CInt(resultat("id")))
+        If String.IsNullOrWhiteSpace(film.Synopsis) Then film.Synopsis=CStr(resultat("overview"))
+        Return film
     End Function
 
     Public Async Function GetMovieDetailsAsync(idTmdb As Integer) As Task(Of FilmSeance)
-        Try
-            Dim url = $"https://api.themoviedb.org/3/movie/{idTmdb}?api_key={_apiKey}&language=fr-FR&append_to_response=credits"
-            Dim json = Await _http.GetStringAsync(url)
-            Dim d = JObject.Parse(json)
+            Dim d=Await Lire("movie/" & idTmdb & "?language=fr-FR&append_to_response=credits")
 
             Dim film As New FilmSeance With {
                 .Titre = If(d("title")?.ToString(), String.Empty),
@@ -59,10 +91,6 @@ Public Class TMDbService
             film.Casting = castList
 
             Return film
-        Catch ex As Exception
-            Logger.ERR($"TMDb GetMovieDetailsAsync({idTmdb}) : {ex.Message}")
-            Return Nothing
-        End Try
     End Function
 
     ' Télécharge l'affiche

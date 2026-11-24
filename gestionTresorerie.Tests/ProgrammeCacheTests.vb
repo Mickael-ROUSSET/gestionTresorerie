@@ -7,6 +7,37 @@ Imports gestionTresorerie
 
 <TestClass>
 Public Class ProgrammeCacheTests
+    Private Class ReponseTmdb
+        Inherits System.Net.Http.HttpMessageHandler
+        Friend Refus As Boolean
+        Protected Overrides Function SendAsync(req As System.Net.Http.HttpRequestMessage,annulation As System.Threading.CancellationToken) As Task(Of System.Net.Http.HttpResponseMessage)
+            Assert.AreEqual("Bearer",req.Headers.Authorization.Scheme)
+            Assert.IsFalse(req.RequestUri.Query.Contains("api_key"))
+            Dim recherche=req.RequestUri.AbsolutePath.EndsWith("/search/movie")
+            Dim json=If(recherche,"{'results':[{'id':1,'title':'Autre film'},{'id':8290,'title':'La Grande Vadrouille','overview':'Synopsis français de test'}]}","{'title':'La Grande Vadrouille','overview':''}")
+            If Not recherche Then Assert.IsTrue(req.RequestUri.AbsolutePath.EndsWith("/8290"))
+            Return Task.FromResult(New System.Net.Http.HttpResponseMessage(If(Refus,System.Net.HttpStatusCode.Unauthorized,System.Net.HttpStatusCode.OK)) With {.Content=New System.Net.Http.StringContent(json)})
+        End Function
+    End Class
+
+    <TestMethod>
+    Public Async Function RetrouveLaGrandeVadrouilleEtDistingueUnRefusTmdb() As Task
+        Dim serveur As New ReponseTmdb()
+        Using http As New System.Net.Http.HttpClient(serveur)
+            Dim service As New TMDbService("jeton-fictif",http)
+            Dim fiche=Await service.FicheAsync("la grande vadrouille")
+            Assert.AreEqual("Synopsis français de test",fiche.Synopsis)
+            serveur.Refus=True
+            Dim refuse As Boolean
+            Try
+                Await service.FicheAsync("la grande vadrouille")
+            Catch ex As InvalidOperationException
+                refuse=ex.Message.Contains("TMDb refuse")
+            End Try
+            Assert.IsTrue(refuse)
+        End Using
+    End Function
+
     <TestMethod>
     Public Sub ProgrammePublicNeDivulguePasDeCheminLocal()
         Dim film As New FilmSeance With {.Titre="Film fictif",.DateDiffusion=New Date(2026,12,11),.HeureDiffusion=New TimeSpan(20,30,0),.UrlAffiche="C:\prive\affiche.jpg"}
