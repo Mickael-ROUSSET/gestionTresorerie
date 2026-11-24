@@ -4,9 +4,7 @@ Imports System.IO
 Friend Class FrmProgrammeCinema
     Inherits Form
     Private ReadOnly grille As New DataGridView With {.Dock=DockStyle.Fill,.AllowUserToAddRows=True,.AllowUserToDeleteRows=True}
-    Private ReadOnly tarifs As New TextBox With {.Text="Adulte 6 € / moins de 16 ans 5 €",.Width=230}
     Private ReadOnly generer As New Button With {.Text="Générer le programme Word…",.AutoSize=True}
-    Private ReadOnly enrichir As New CheckBox With {.Text="Compléter les fiches avec TMDb",.Checked=True,.AutoSize=True}
     Private occupe As Boolean
     Private Shared ReadOnly france As New CultureInfo("fr-FR")
 
@@ -15,15 +13,15 @@ Friend Class FrmProgrammeCinema
         Width=980
         Height=480
         StartPosition=FormStartPosition.CenterParent
-        For Each titre In {"Film","Date (jj/mm/aaaa)","Heure (20h30)","Genre","Synopsis"}
+        For Each titre In {"Film","Date (jj/mm/aaaa)","Heure (20h30)"}
             grille.Columns.Add("col" & grille.Columns.Count,titre)
         Next
         grille.Columns(0).Width=205
-        grille.Columns(4).AutoSizeMode=DataGridViewAutoSizeColumnMode.Fill
+        grille.Columns(0).AutoSizeMode=DataGridViewAutoSizeColumnMode.Fill
         Controls.Add(grille)
         Dim barre As New FlowLayoutPanel With {.Dock=DockStyle.Bottom,.AutoSize=True}
         Dim importer As New Button With {.Text="Importer un fichier de séances…",.AutoSize=True}
-        barre.Controls.AddRange(New Control(){New Label With {.Text="Tarifs",.AutoSize=True},tarifs,enrichir,importer,generer})
+        barre.Controls.AddRange(New Control(){importer,generer})
         Controls.Add(barre)
         AddHandler importer.Click,Sub()
             Using dlg As New OpenFileDialog With {.Filter="Séances (titre;date;heure)|*.txt;*.csv"}
@@ -56,7 +54,7 @@ Friend Class FrmProgrammeCinema
                 Dim jour As Date, heure As DateTime
                 If titre="" OrElse Not Date.TryParseExact(Convert.ToString(ligne.Cells(1).Value),{"d/M/yyyy","yyyy-MM-dd"},france,DateTimeStyles.None,jour) OrElse
                     Not DateTime.TryParseExact(Convert.ToString(ligne.Cells(2).Value).Trim().ToLowerInvariant().Replace("h",":"),{"H:mm","HH:mm"},france,DateTimeStyles.None,heure) Then Throw New ArgumentException("Vérifiez le titre, la date et l’heure de la ligne " & (ligne.Index+1))
-                films.Add(New FilmSeance With {.Titre=titre,.DateDiffusion=jour,.HeureDiffusion=heure.TimeOfDay,.Genre=Convert.ToString(ligne.Cells(3).Value),.Synopsis=Convert.ToString(ligne.Cells(4).Value)})
+                films.Add(New FilmSeance With {.Titre=titre,.DateDiffusion=jour,.HeureDiffusion=heure.TimeOfDay})
             Next
             If films.Count=0 Then Throw New ArgumentException("Ajoutez au moins une séance.")
             films=films.OrderBy(Function(f) f.DateDiffusion+f.HeureDiffusion).ToList()
@@ -67,25 +65,16 @@ Friend Class FrmProgrammeCinema
                 UseWaitCursor=True
                 Dim service As New ProgrammeCinemaCreator
                 Dim avertissement=""
-                If enrichir.Checked Then
-                    Dim recherches=films.Select(Function(f) New FilmSeance With {.Titre=f.Titre}).ToList()
-                    Try
-                        Await service.EnrichirListeAsync(recherches)
-                        For i=0 To films.Count-1
-                            Dim genre=films(i).Genre, synopsis=films(i).Synopsis
-                            films(i).RemplirDetails(recherches(i))
-                            If genre<>"" Then films(i).Genre=genre
-                            If synopsis<>"" Then films(i).Synopsis=synopsis
-                        Next
-                    Catch ex As Exception
-                        avertissement=vbCrLf & "Enrichissement TMDb indisponible."
-                    End Try
-                End If
+                Try
+                    Await service.EnrichirListeAsync(films)
+                Catch ex As Exception
+                    avertissement=vbCrLf & "Enrichissement TMDb indisponible."
+                End Try
                 temp=Path.Combine(Path.GetDirectoryName(dlg.FileName),Guid.NewGuid().ToString("N") & ".docx")
-                If Not Await service.GenererDocxAsync(films,temp,tarifs.Text) Then Throw New IOException("La création du document Word a échoué.")
+                If Not Await service.GenererDocxAsync(films,temp) Then Throw New IOException("La création du document Word a échoué.")
                 File.Move(temp,dlg.FileName,True)
                 Dim incomplets=films.Where(Function(f) String.IsNullOrWhiteSpace(f.Synopsis)).Select(Function(f) f.Titre).Distinct().ToArray()
-                If incomplets.Length>0 Then avertissement &= vbCrLf & "Synopsis à compléter : " & String.Join(", ",incomplets)
+                If incomplets.Length>0 Then avertissement &= vbCrLf & "Synopsis indisponible pour : " & String.Join(", ",incomplets)
                 MessageBox.Show(Me,"Programme enregistré dans " & dlg.FileName & avertissement,Text)
             End Using
         Catch ex As Exception

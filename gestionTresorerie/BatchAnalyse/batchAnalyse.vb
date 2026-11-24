@@ -30,8 +30,9 @@ Public Class BatchAnalyse
             Dim extensions As String() = {"*.jpg", "*.jpeg", "*.pdf","*.png"}
             Dim tousLesFichiers = extensions.SelectMany(Function(ext) Directory.GetFiles(repertoireSource, ext, SearchOption.AllDirectories))
 
-            Logger.INFO($"Nb fichiers à traiter : {tousLesFichiers.Count}")
-            For Each fichier In tousLesFichiers
+            Dim lot=Await Task.Run(Function() GestionDoublons.Inventorier(tousLesFichiers))
+            Logger.INFO(lot.Bilan())
+            For Each fichier In lot.Fichiers
                 Dim avant=nombreTraitementOK
                 Await TraiterFichierUnique(fichier).ConfigureAwait(False)
                 If nombreTraitementOK>avant Then prets.Add(fichier)
@@ -39,7 +40,7 @@ Public Class BatchAnalyse
             Next
 
             GenererCompteRendu()
-            MsgBox(prets.Count & " document(s) prêt(s) pour validation, " & nombreTraitementKO & " échec(s).")
+            MsgBox(lot.Bilan() & vbCrLf & prets.Count & " document(s) prêt(s) pour validation, " & nombreTraitementKO & " échec(s).")
         Catch ex As Exception
             Logger.ERR($"Erreur fatale boucle principale : {ex.Message}")
         End Try

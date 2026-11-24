@@ -201,14 +201,17 @@ Public Class FrmPrincipale
         End Try
     End Sub
 
-    Private Sub OpenScanFolder(sender As Object, e As EventArgs)
+    Private Async Sub OpenScanFolder(sender As Object, e As EventArgs)
         Using picker As New FolderBrowserDialog With {.Description = "Choisir le dossier dont les PDF et images seront analysés avec ChatGPT en TEST (sans les sous-dossiers).", .UseDescriptionForTitle = True, .ShowNewFolderButton = False}
             If picker.ShowDialog(Me) <> DialogResult.OK Then Return
             Try
-                Dim paths = IO.Directory.EnumerateFiles(picker.SelectedPath).Where(AddressOf DocumentFilePreview.Supports).
-                    OrderBy(Function(value) value, StringComparer.OrdinalIgnoreCase).ToArray()
+                Dim dossier=picker.SelectedPath
+                Dim lot=Await Task.Run(Function() GestionDoublons.Inventorier(IO.Directory.EnumerateFiles(dossier).Where(AddressOf DocumentFilePreview.Supports)))
+                If IsDisposed Then Return
+                Dim paths=lot.Fichiers.ToArray()
+                If lot.Doublons>0 OrElse lot.Erreurs.Count>0 Then MessageBox.Show(Me,lot.Bilan(),"Dédoublonnage du dossier")
                 If paths.Length = 0 Then
-                    MessageBox.Show(Me, "Ce dossier ne contient aucun PDF ni scan pris en charge.")
+                    If lot.Erreurs.Count=0 Then MessageBox.Show(Me, "Ce dossier ne contient aucun PDF ni scan pris en charge.")
                     Return
                 End If
                 Using window As New FrmDocumentFilePreview(paths, CreateSqlTestWorkspace(), New SqlDocumentTestStore(), initializeSqlTestOnSave:=True)

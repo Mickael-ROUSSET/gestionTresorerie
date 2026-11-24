@@ -7,6 +7,33 @@ Imports gestionTresorerie
 
 <TestClass>
 Public Class ProgrammeCacheTests
+    <STATestMethod>
+    Public Sub ProgrammeDemandeTroisColonnes()
+        Using f As New FrmProgrammeCinema()
+            Dim grille=f.Controls.OfType(Of System.Windows.Forms.DataGridView)().Single()
+            CollectionAssert.AreEqual({"Film","Date (jj/mm/aaaa)","Heure (20h30)"},grille.Columns.Cast(Of System.Windows.Forms.DataGridViewColumn)().Select(Function(c) c.HeaderText).ToArray())
+        End Using
+    End Sub
+
+    <TestMethod>
+    Public Sub InventaireConserveLesFichiersDistinctsAvantAnalyse()
+        Dim dossier=Directory.CreateTempSubdirectory().FullName
+        Try
+            Dim a=Path.Combine(dossier,"a.pdf"), copie=Path.Combine(dossier,"copie.pdf")
+            Dim autre=Path.Combine(Directory.CreateDirectory(Path.Combine(dossier,"sous")).FullName,"a.pdf")
+            File.WriteAllText(a,"même contenu")
+            File.Copy(a,copie)
+            File.WriteAllText(autre,"autre contenu")
+            Dim lot=GestionDoublons.Inventorier({copie,autre,a,Path.Combine(dossier,"absent.pdf")})
+            CollectionAssert.AreEqual({a,autre},lot.Fichiers.ToArray())
+            Assert.AreEqual(1,lot.Doublons)
+            Assert.AreEqual(1,lot.Erreurs.Count)
+            Assert.IsTrue(File.Exists(copie))
+        Finally
+            Directory.Delete(dossier,True)
+        End Try
+    End Sub
+
     <TestMethod>
     Public Async Function ReprendLeResultatEtRepareUneEntreeIllisible() As Task
         Dim dossier=Directory.CreateTempSubdirectory().FullName
