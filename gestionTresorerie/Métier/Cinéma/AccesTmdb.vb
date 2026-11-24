@@ -40,16 +40,22 @@ Friend Module AccesTmdb
         Return Nothing
     End Function
 
-    Friend Function Lire() As String
+    Friend Function LireEnvironnement(lireVariable As Func(Of String,EnvironmentVariableTarget,String)) As String
         For Each nom In {"TMDB_READ_ACCESS_TOKEN","TMDB_API_KEY","cleApiTmdb","jetonApiTmdb"}
-            For Each cible In {EnvironmentVariableTarget.Process,EnvironmentVariableTarget.User}
-                Dim valeur=Environment.GetEnvironmentVariable(nom,cible)
+            For Each cible In {EnvironmentVariableTarget.User,EnvironmentVariableTarget.Machine,EnvironmentVariableTarget.Process}
+                Dim valeur=lireVariable(nom,cible)
                 If Not String.IsNullOrWhiteSpace(valeur) Then Return valeur.Trim()
             Next
         Next
+        Return Nothing
+    End Function
+
+    Friend Function Lire() As String
+        Dim cle=LireEnvironnement(AddressOf Environment.GetEnvironmentVariable)
+        If cle IsNot Nothing Then Return cle
         For Each valeur In {LireJetonCinema(),GlobalSettings.GCleTmdb,My.Settings.jetonApiTmdb,My.Settings.cleApiTmdb}
             If Not String.IsNullOrWhiteSpace(valeur) Then Return valeur.Trim()
         Next
-        Throw New InvalidOperationException("Accès TMDb absent. Enregistrez le jeton TMDb dans l’outil CinemaAGUMAAA ou renseignez TMDB_READ_ACCESS_TOKEN dans votre compte Windows.")
+        Throw New InvalidOperationException("Accès TMDb absent. Enregistrez le jeton TMDb dans l’outil CinemaAGUMAAA ou définissez cleApiTmdb dans les variables utilisateur ou système Windows.")
     End Function
 End Module

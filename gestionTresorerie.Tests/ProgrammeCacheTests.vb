@@ -7,6 +7,23 @@ Imports gestionTresorerie
 
 <TestClass>
 Public Class ProgrammeCacheTests
+    <TestMethod>
+    Public Sub LitLaCleTmdbSystemeMemeSiLeProcessusAUneAncienneValeur()
+        Dim cle = AccesTmdb.LireEnvironnement(
+            Function(nom, cible)
+                If nom <> "cleApiTmdb" Then Return Nothing
+                Select Case cible
+                    Case EnvironmentVariableTarget.Machine
+                        Return " cle-fictive-systeme "
+                    Case EnvironmentVariableTarget.Process
+                        Return "ancienne-cle-fictive"
+                    Case Else
+                        Return Nothing
+                End Select
+            End Function)
+        Assert.AreEqual("cle-fictive-systeme", cle)
+    End Sub
+
     Private Class ReponseTmdb
         Inherits System.Net.Http.HttpMessageHandler
         Friend Refus As Boolean
