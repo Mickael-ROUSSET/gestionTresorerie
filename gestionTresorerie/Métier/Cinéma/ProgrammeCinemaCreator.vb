@@ -6,9 +6,7 @@ Imports DocumentFormat.OpenXml.Wordprocessing
 Public Class ProgrammeCinemaCreator
     Private Shared ReadOnly France As New Globalization.CultureInfo("fr-FR")
     Private Shared Function ServiceTmdb() As TMDbService
-        Dim cle=Environment.GetEnvironmentVariable("TMDB_API_KEY")
-        If String.IsNullOrWhiteSpace(cle) Then cle=LectureProprietes.GetVariable("cleApiTmdb")
-        Return If(String.IsNullOrWhiteSpace(cle),Nothing,New TMDbService(cle))
+        Return New TMDbService(AccesTmdb.Lire())
     End Function
 
     Public Async Function GenererDepuisFichierAsync(cheminFichier As String) As Task
@@ -70,15 +68,12 @@ Public Class ProgrammeCinemaCreator
     End Function
     Friend Async Function EnrichirListeAsync(seances As List(Of FilmSeance)) As Task
         Dim _tmdb=ServiceTmdb()
-        If _tmdb Is Nothing Then Return
-        Dim tasks = seances.Select(Async Function(s)
-                                       Dim id = Await _tmdb.SearchMovieIdByTitleAsync(s.Titre)
-                                       If id.HasValue Then
-                                           Dim details = Await _tmdb.GetMovieDetailsAsync(id.Value)
-                                           s.RemplirDetails(details) ' Extension ou méthode interne à FilmSeance
-                                       End If
-                                   End Function)
-        Await Task.WhenAll(tasks)
+        For Each groupe In seances.GroupBy(Function(s) s.Titre.Trim(),StringComparer.OrdinalIgnoreCase)
+            Dim details=Await _tmdb.FicheAsync(groupe.Key)
+            For Each seance In groupe
+                seance.RemplirDetails(details)
+            Next
+        Next
     End Function
     Private Shared Sub AjouterContenuTarifs(tc As TableCell, tarifs As String)
         ' Utilisation du helper pour un titre de section

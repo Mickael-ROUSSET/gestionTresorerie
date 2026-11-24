@@ -71,7 +71,7 @@ Friend Class FrmProgrammeCinema
                 Try
                     Await service.EnrichirListeAsync(films)
                 Catch ex As Exception
-                    avertissement=vbCrLf & "Enrichissement TMDb indisponible."
+                    If MessageBox.Show(Me,ex.Message & vbCrLf & "Continuer avec les notices déjà disponibles ?","Recherche TMDb",MessageBoxButtons.YesNo,MessageBoxIcon.Warning,MessageBoxDefaultButton.Button2)<>DialogResult.Yes Then Return
                 End Try
                 If sender Is publier Then
                     Await PublicationCinema.Publier(films,Me)
