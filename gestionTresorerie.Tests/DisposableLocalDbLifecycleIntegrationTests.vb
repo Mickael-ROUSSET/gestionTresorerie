@@ -28,7 +28,7 @@ Public Class DisposableLocalDbLifecycleIntegrationTests
             Assert.AreEqual(catalogName, builder.InitialCatalog)
 
             Using connection = SqlDocumentTestStore.OpenDisposable(catalog)
-                connection.Open()
+                Assert.AreEqual(System.Data.ConnectionState.Open, connection.State)
                 Assert.AreEqual(catalogName, connection.Database)
                 Using transaction = connection.BeginTransaction()
                     For Each options In {(True, True), (False, False)}
