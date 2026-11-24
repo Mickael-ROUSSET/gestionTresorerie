@@ -793,7 +793,7 @@ Public Class FrmPrincipale
     End Sub
 
     Private Sub GénérerProgrammeToolStripMenuItem_Click(sender As Object,e As EventArgs) Handles GénérerProgrammeToolStripMenuItem.Click
-        Using fenetre As New FrmProgrammeCinema()
+        Using fenetre As New FrmProgrammeCinema(Not _modeDemonstration AndAlso EnvironmentManager.CurrentEnvironment=EnvironnementType.PROD AndAlso (UtilisateurActif Is Nothing OrElse Not UtilisateurActif.EstLecteur()))
             fenetre.ShowDialog(Me)
         End Using
     End Sub

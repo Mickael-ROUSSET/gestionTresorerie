@@ -7,6 +7,16 @@ Imports gestionTresorerie
 
 <TestClass>
 Public Class ProgrammeCacheTests
+    <TestMethod>
+    Public Sub ProgrammePublicNeDivulguePasDeCheminLocal()
+        Dim film As New FilmSeance With {.Titre="Film fictif",.DateDiffusion=New Date(2026,12,11),.HeureDiffusion=New TimeSpan(20,30,0),.UrlAffiche="C:\prive\affiche.jpg"}
+        Dim obj=JObject.Parse(PublicationCinema.Programme({film}))
+        Dim seance=obj("seances")(0)
+        Assert.AreEqual("20:30",seance("heure").ToString())
+        Assert.AreEqual("2026-12-11",seance("date").ToString())
+        Assert.IsNull(seance("affiche"))
+    End Sub
+
     <STATestMethod>
     Public Sub ProgrammeDemandeTroisColonnes()
         Using f As New FrmProgrammeCinema()
