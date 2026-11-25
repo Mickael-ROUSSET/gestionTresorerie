@@ -5,15 +5,19 @@ Imports Newtonsoft.Json.Linq
 
 Public Class TMDbService
     Private Shared ReadOnly _http As New HttpClient()
+    Private ReadOnly origine As String
     Private ReadOnly _apiKey As String
     Private ReadOnly client As HttpClient
 
-    Public Sub New(apiKey As String)
-        Me.New(apiKey,_http)
+    Public Sub New(apiKey As String, Optional source As String="configuration TMDb")
+        Me.New(apiKey,_http,source)
     End Sub
 
-    Friend Sub New(apiKey As String,http As HttpClient)
-        _apiKey=apiKey.Trim()
+    Friend Sub New(apiKey As String,http As HttpClient, Optional source As String="configuration TMDb")
+        Dim valeur=apiKey.Trim().Trim(""""c,"'"c).Trim()
+        If valeur.StartsWith("Bearer ",StringComparison.OrdinalIgnoreCase) Then valeur=valeur.Substring(7).Trim()
+        _apiKey=valeur
+        origine=source
         client=http
     End Sub
 
@@ -27,7 +31,15 @@ Public Class TMDbService
                 If Not reponse.IsSuccessStatusCode Then
                     Select Case CInt(reponse.StatusCode)
                         Case 401,403
-                            Throw New InvalidOperationException("TMDb refuse la clé ou le jeton. Vérifiez les identifiants TMDb dans CinemaAGUMAAA ou les variables Windows.")
+                            Dim code As Integer
+                            Dim corps=Await reponse.Content.ReadAsStringAsync()
+                            Try
+                                Integer.TryParse(JObject.Parse(corps)("status_code")?.ToString(),code)
+                            Catch ex As Newtonsoft.Json.JsonException
+                                ' Certains intermédiaires renvoient une réponse sans JSON.
+                            End Try
+                            Dim motif=If(code=7,"Clé invalide.",If(code=10,"Clé suspendue.","Accès refusé."))
+                            Throw New InvalidOperationException("TMDb refuse l’accès. " & motif & vbCrLf & "Identifiant utilisé : " & origine & vbCrLf & "HTTP " & CInt(reponse.StatusCode) & If(code>0," · TMDb " & code,""))
                         Case 429
                             Throw New InvalidOperationException("TMDb limite temporairement les recherches. Réessayez dans un instant.")
                         Case Else
