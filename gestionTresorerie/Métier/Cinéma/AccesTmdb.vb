@@ -40,22 +40,33 @@ Friend Module AccesTmdb
         Return Nothing
     End Function
 
-    Friend Function LireEnvironnement(lireVariable As Func(Of String,EnvironmentVariableTarget,String)) As String
+    Friend Function LireEnvironnement(lireVariable As Func(Of String,EnvironmentVariableTarget,String), ByRef source As String) As String
+        Dim systeme=lireVariable("cleApiTmdb",EnvironmentVariableTarget.Machine)
+        If Not String.IsNullOrWhiteSpace(systeme) Then
+            source="cleApiTmdb (Système Windows)"
+            Return systeme.Trim()
+        End If
         For Each nom In {"TMDB_READ_ACCESS_TOKEN","TMDB_API_KEY","cleApiTmdb","jetonApiTmdb"}
             For Each cible In {EnvironmentVariableTarget.User,EnvironmentVariableTarget.Machine,EnvironmentVariableTarget.Process}
                 Dim valeur=lireVariable(nom,cible)
-                If Not String.IsNullOrWhiteSpace(valeur) Then Return valeur.Trim()
+                If Not String.IsNullOrWhiteSpace(valeur) Then
+                    source=nom & " (" & cible.ToString() & ")"
+                    Return valeur.Trim()
+                End If
             Next
         Next
         Return Nothing
     End Function
 
-    Friend Function Lire() As String
-        Dim cle=LireEnvironnement(AddressOf Environment.GetEnvironmentVariable)
+    Friend Function Lire(ByRef source As String) As String
+        Dim cle=LireEnvironnement(AddressOf Environment.GetEnvironmentVariable,source)
         If cle IsNot Nothing Then Return cle
-        For Each valeur In {LireJetonCinema(),GlobalSettings.GCleTmdb,My.Settings.jetonApiTmdb,My.Settings.cleApiTmdb}
-            If Not String.IsNullOrWhiteSpace(valeur) Then Return valeur.Trim()
+        For Each entree In {("CinemaAGUMAAA",LireJetonCinema()),("Configuration AGUMAAA",GlobalSettings.GCleTmdb),("Paramètres jetonApiTmdb",My.Settings.jetonApiTmdb),("Paramètres cleApiTmdb",My.Settings.cleApiTmdb)}
+            If Not String.IsNullOrWhiteSpace(entree.Item2) Then
+                source=entree.Item1
+                Return entree.Item2.Trim()
+            End If
         Next
-        Throw New InvalidOperationException("Accès TMDb absent. Enregistrez le jeton TMDb dans l’outil CinemaAGUMAAA ou définissez cleApiTmdb dans les variables utilisateur ou système Windows.")
+        Throw New InvalidOperationException("Accès TMDb absent. Définissez cleApiTmdb dans les variables système Windows.")
     End Function
 End Module

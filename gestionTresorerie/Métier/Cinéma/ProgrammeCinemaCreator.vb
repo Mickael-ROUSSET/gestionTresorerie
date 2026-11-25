@@ -6,7 +6,9 @@ Imports DocumentFormat.OpenXml.Wordprocessing
 Public Class ProgrammeCinemaCreator
     Private Shared ReadOnly France As New Globalization.CultureInfo("fr-FR")
     Private Shared Function ServiceTmdb() As TMDbService
-        Return New TMDbService(AccesTmdb.Lire())
+        Dim source As String=Nothing
+        Dim cle=AccesTmdb.Lire(source)
+        Return New TMDbService(cle,source)
     End Function
 
     Public Async Function GenererDepuisFichierAsync(cheminFichier As String) As Task

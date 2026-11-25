@@ -9,8 +9,10 @@ Imports gestionTresorerie
 Public Class ProgrammeCacheTests
     <TestMethod>
     Public Sub LitLaCleTmdbSystemeMemeSiLeProcessusAUneAncienneValeur()
+        Dim source As String=Nothing
         Dim cle = AccesTmdb.LireEnvironnement(
             Function(nom, cible)
+                If nom="TMDB_READ_ACCESS_TOKEN" Then Return "autre-jeton-fictif"
                 If nom <> "cleApiTmdb" Then Return Nothing
                 Select Case cible
                     Case EnvironmentVariableTarget.Machine
@@ -20,7 +22,8 @@ Public Class ProgrammeCacheTests
                     Case Else
                         Return Nothing
                 End Select
-            End Function)
+            End Function,source)
+        Assert.AreEqual("cleApiTmdb (Système Windows)",source)
         Assert.AreEqual("cle-fictive-systeme", cle)
     End Sub
 
@@ -33,7 +36,7 @@ Public Class ProgrammeCacheTests
             Dim recherche=req.RequestUri.AbsolutePath.EndsWith("/search/movie")
             Dim json=If(recherche,"{'results':[{'id':1,'title':'Autre film'},{'id':8290,'title':'La Grande Vadrouille','overview':'Synopsis français de test'}]}","{'title':'La Grande Vadrouille','overview':''}")
             If Not recherche Then Assert.IsTrue(req.RequestUri.AbsolutePath.EndsWith("/8290"))
-            Return Task.FromResult(New System.Net.Http.HttpResponseMessage(If(Refus,System.Net.HttpStatusCode.Unauthorized,System.Net.HttpStatusCode.OK)) With {.Content=New System.Net.Http.StringContent(json)})
+            Return Task.FromResult(New System.Net.Http.HttpResponseMessage(If(Refus,System.Net.HttpStatusCode.Unauthorized,System.Net.HttpStatusCode.OK)) With {.Content=New System.Net.Http.StringContent(If(Refus,"{'status_code':7}",json))})
         End Function
     End Class
 
@@ -49,7 +52,7 @@ Public Class ProgrammeCacheTests
             Try
                 Await service.FicheAsync("la grande vadrouille")
             Catch ex As InvalidOperationException
-                refuse=ex.Message.Contains("TMDb refuse")
+                refuse=ex.Message.Contains("HTTP 401") AndAlso ex.Message.Contains("TMDb 7") AndAlso Not ex.Message.Contains("jeton-fictif")
             End Try
             Assert.IsTrue(refuse)
         End Using
