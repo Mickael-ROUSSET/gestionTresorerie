@@ -42,9 +42,16 @@ Public Class ProgrammeCinemaCreator
                                           Dim body = mainPart.Document.AppendChild(New Body())
 
                                           ' 2. Configuration de la page (Paysage A4)
+                                          Dim pied = mainPart.AddNewPart(Of FooterPart)()
+                                          pied.Footer = New Footer()
+                                          WordHelper.AjouterParagrapheStyle(pied.Footer, "Imprimé par nos soins sur papier recyclé, ne pas jeter sur la voie publique.", "16")
+                                          WordHelper.AjouterParagrapheStyle(pied.Footer, "agumaaa.jimdofree.com   •   cinevasion43.wix.com/site", "16")
+                                          pied.Footer.Save()
                                           Dim sectionProps = New SectionProperties(
+                    New FooterReference With {.Type=HeaderFooterValues.First, .Id=mainPart.GetIdOfPart(pied)},
                     New PageSize() With {.Width = 16838, .Height = 11906, .Orient = PageOrientationValues.Landscape},
-                    New PageMargin With {.Top=540,.Bottom=540,.Left=650UI,.Right=650UI}
+                    New PageMargin With {.Top=540,.Bottom=980,.Left=650UI,.Right=650UI,.Footer=300UI},
+                    New TitlePage()
                 )
 
 
@@ -91,9 +98,10 @@ Public Class ProgrammeCinemaCreator
     Private Shared Sub CreerPage1(mainPart As MainDocumentPart, body As Body, seances As List(Of FilmSeance),tarifs As String)
         ' Création d'un tableau invisible pour simuler les deux colonnes
         Dim table = New Table()
+        table.Append(New TableProperties(New TableLayout With {.Type=TableLayoutValues.Fixed}))
         Dim grid = New TableGrid(
-            New GridColumn() With {.Width = "7000"},
-            New GridColumn() With {.Width = "5000"}
+            New GridColumn() With {.Width = "7769"},
+            New GridColumn() With {.Width = "7769"}
         )
         table.Append(grid)
 
@@ -103,6 +111,7 @@ Public Class ProgrammeCinemaCreator
         Dim cellGauche = New TableCell()
         AjouterContenuTarifs(cellGauche,tarifs)
         AjouterListeSeancesPage1(cellGauche, seances)
+        WordHelper.AjouterParagrapheStyle(cellGauche, PublicationCinema.Adresse, "18", False, "334D58")
         row.Append(cellGauche)
 
         ' --- Colonne Droite (Logos et Titre) ---
@@ -144,7 +153,7 @@ Public Class ProgrammeCinemaCreator
     End Sub
     Private Shared Sub AjouterEnteteProgrammation(mainPart As MainDocumentPart, tc As TableCell, seances As List(Of FilmSeance))
         ' 1. Logo Principal
-        For Each logo In {"logoCinema","logoAgumaaa","logoCinevasion"}
+        For Each logo In {"logoAgumaaa","logoCinema","logoCinevasion"}
             Dim fichier=Path.Combine(AppContext.BaseDirectory,"Resources",logo & ".png")
             If File.Exists(fichier) Then WordHelper.AjouterImage(mainPart,tc,fichier,1900000,850000)
         Next
@@ -159,7 +168,6 @@ Public Class ProgrammeCinemaCreator
             Dim fin = seances.Max(Function(f) f.DateDiffusion)
             WordHelper.AjouterParagrapheStyle(tc, "Du " & debut.ToString("dd MMMM",France) & " au " & fin.ToString("dd MMMM yyyy",France), "40", False)
         End If
-        WordHelper.AjouterParagrapheStyle(tc,"agumaaa.jimdofree.com   •   cinevasion43.wix.com/site","20",False)
     End Sub
     Private Shared Sub AjouterListeSeancesPage1(tc As TableCell, seances As List(Of FilmSeance))
         For Each s In seances
@@ -184,13 +192,14 @@ Public Class ProgrammeCinemaCreator
         WordHelper.AjouterParagrapheStyle(cell, film.Titre, "32", True, "087731")
 
         ' 3. Infos techniques
-        Dim infos As New List(Of String)
-        If Not String.IsNullOrWhiteSpace(film.Genre) Then infos.Add(film.Genre)
-        If Not String.IsNullOrWhiteSpace(film.Pays) Then infos.Add(film.Pays)
-        If film.DureeMinutes.HasValue Then infos.Add(film.DureeMinutes.Value.ToString() & " min")
-        If infos.Count>0 Then WordHelper.AjouterParagrapheStyle(cell,String.Join("  •  ",infos),"21",True)
-        If Not String.IsNullOrWhiteSpace(film.Realisateur) Then WordHelper.AjouterParagrapheStyle(cell,"Réalisation : " & film.Realisateur,"20")
-        If film.Casting IsNot Nothing AndAlso film.Casting.Count>0 Then WordHelper.AjouterParagrapheStyle(cell,"Avec " & String.Join(", ",film.Casting),"20")
+        Const couleurFiche As String = "953A21"
+        Dim horaire = film.DateDiffusion.ToString("dddd dd MMMM", France) & " " & film.HeureDiffusion.ToString("hh\hmm")
+        WordHelper.AjouterParagrapheStyle(cell, horaire, "22", True)
+        If Not String.IsNullOrWhiteSpace(film.Genre) Then WordHelper.AjouterParagrapheStyle(cell, "Genre : " & film.Genre, "22", False, couleurFiche)
+        If Not String.IsNullOrWhiteSpace(film.Realisateur) Then WordHelper.AjouterParagrapheStyle(cell, "Réalisation : " & film.Realisateur, "22", False, couleurFiche)
+        If film.Casting IsNot Nothing AndAlso film.Casting.Count > 0 Then WordHelper.AjouterParagrapheStyle(cell, "Avec : " & String.Join(", ", film.Casting), "22", False, couleurFiche)
+        If Not String.IsNullOrWhiteSpace(film.Pays) Then WordHelper.AjouterParagrapheStyle(cell, "Pays : " & film.Pays, "22", False, couleurFiche)
+        If film.DureeMinutes.HasValue Then WordHelper.AjouterParagrapheStyle(cell, "Durée : " & film.DureeMinutes.Value.ToString() & " min", "22", False, couleurFiche)
         If Not String.IsNullOrWhiteSpace(film.Synopsis) Then WordHelper.AjouterParagrapheStyle(cell,film.Synopsis,"20")
 
         ' 5. Espacement
