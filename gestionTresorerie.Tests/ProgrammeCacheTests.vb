@@ -124,7 +124,7 @@ Public Class ProgrammeCacheTests
         Dim dossier=Directory.CreateTempSubdirectory().FullName
         Try
             Dim sortie=Path.Combine(dossier,"programme.docx")
-            Dim films As New List(Of FilmSeance) From {New FilmSeance With {.Titre="Film fictif",.DateDiffusion=New Date(2026,12,18),.HeureDiffusion=New TimeSpan(20,30,0),.Synopsis="Synopsis fictif"}}
+            Dim films As New List(Of FilmSeance) From {New FilmSeance With {.Titre="Film fictif",.DateDiffusion=New Date(2026,12,18),.HeureDiffusion=New TimeSpan(20,30,0),.Synopsis="Synopsis fictif",.Genre="Drame",.Pays="France",.DureeMinutes=100,.Realisateur="Réalisatrice fictive",.Casting=New List(Of String) From {"Acteur fictif"}}}
             Assert.IsTrue(Await New ProgrammeCinemaCreator().GenererDocxAsync(films,sortie,"Adulte 7 €"))
             Using doc=WordprocessingDocument.Open(sortie,False)
                 Dim corps=doc.MainDocumentPart.Document.Body
@@ -132,6 +132,17 @@ Public Class ProgrammeCacheTests
                     StringAssert.Contains(corps.InnerText,valeur)
                 Next
                 Assert.IsInstanceOfType(Of SectionProperties)(corps.LastChild)
+                Dim section = DirectCast(corps.LastChild, SectionProperties)
+                Assert.IsNotNull(section.GetFirstChild(Of TitlePage)())
+                Dim reference = section.Elements(Of FooterReference)().Single()
+                Assert.AreEqual(HeaderFooterValues.First, reference.Type.Value)
+                Dim pied = DirectCast(doc.MainDocumentPart.GetPartById(reference.Id.Value), FooterPart)
+                StringAssert.Contains(pied.Footer.InnerText, "ne pas jeter sur la voie publique")
+                Assert.IsFalse(corps.InnerText.Contains("ne pas jeter sur la voie publique"))
+                For Each valeur In {"Genre : Drame", "Réalisation : Réalisatrice fictive", "Avec : Acteur fictif", "Pays : France", "Durée : 100 min"}
+                    Dim ligne = corps.Descendants(Of Run)().Single(Function(r) r.InnerText = valeur)
+                    Assert.AreEqual("953A21", ligne.RunProperties.Color.Val.Value)
+                Next
                 Assert.AreEqual(3,doc.MainDocumentPart.ImageParts.Count())
             End Using
         Finally
