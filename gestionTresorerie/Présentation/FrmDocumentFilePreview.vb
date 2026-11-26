@@ -287,20 +287,24 @@ Friend NotInheritable Class FrmDocumentFilePreview
             If decision <> DialogResult.OK Then Return
             Dim proposal = editor.Proposal
             ValidateTestDestination(proposal.Destination)
-            Dim approve As Func(Of String, Boolean?) =
-                Function(changes)
-                    Dim choice As DialogResult = CType(Invoke(New Func(Of DialogResult)(
-                        Function() MessageBox.Show(Me, changes & vbCrLf & vbCrLf &
-                            "Oui : appliquer ces modifications. Non : conserver la fiche existante. Annuler : abandonner le classement.",
-                            "Vérifier les modifications du tiers", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question,
-                            MessageBoxDefaultButton.Button3))), DialogResult)
-                    If choice = DialogResult.Cancel Then Return Nothing
-                    Return choice = DialogResult.Yes
-                End Function
-            Dim id = Await Task.Run(Function()
-                _sqlTest.Initialize()
-                Return _sqlTest.SaveVerified(proposal, approve)
-            End Function)
+            Await Task.Run(Sub() _sqlTest.Initialize())
+            Dim revue As RevueTiers = Nothing
+            Dim lu As Newtonsoft.Json.Linq.JObject = Nothing
+            If TypeOf proposal.Document Is Facture OrElse proposal.Document.CategorieDoc="FormulaireAdhesion" Then
+                lu=RevueTiers.Extraire(proposal.Document,suggested)
+                Dim table=Await Task.Run(Function()
+                    Using cn=SqlDocumentTestStore.OpenTest()
+                        Return RevueTiers.Lire(cn)
+                    End Using
+                End Function)
+                Dim inscription=If(proposal.Document.CategorieDoc="FormulaireAdhesion",
+                    TryCast(suggested?("participation"),Newtonsoft.Json.Linq.JObject),Nothing)
+                Using fiche As New FrmRevueTiers(table,lu,inscription,"Tiers et coordonnées — " & Path.GetFileName(source))
+                    If fiche.ShowDialog(Me)<>DialogResult.OK Then Return
+                    revue=fiche.Decision
+                End Using
+            End If
+            Dim id=Await Task.Run(Function() _sqlTest.SaveReviewed(proposal,Nothing,revue,lu))
             If id.HasValue Then
                 MessageBox.Show(Me, "Document n° " & id.Value & " enregistré dans bddAgumaaaTest.dbo.Documents." &
                     vbCrLf & vbCrLf & "Copie vérifiée :" & vbCrLf & proposal.Destination, "Classement terminé")

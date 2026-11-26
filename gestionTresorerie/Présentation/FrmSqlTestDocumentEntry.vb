@@ -355,7 +355,7 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             _date.Text = If(transaction?("date_facture")?.ToString(), "")
             _amount.Text = If(transaction?("montant_ttc")?.ToString(), "")
         Else
-            _party.Text = If(identity?("nom")?.ToString(), If(identity?("nom_complet")?.ToString(), ""))
+            _party.Text = If(identity?("nom")?.ToString(), If(identity?("raisonSociale")?.ToString(), If(identity?("nom_complet")?.ToString(), "")))
             If detectedType = "QuestionnaireMedical" Then _birth.Text = If(identity?("date_naissance")?.ToString(), "")
             _firstName.Text = If(identity?("prenom")?.ToString(), "")
             _address.Text = If(identity?("adresse")?.ToString(), "")
@@ -527,7 +527,6 @@ Friend NotInheritable Class FrmSqlTestDocumentEntry
             If kind = TypeDocument.QuestionnaireMedical Then identity("date_naissance") = _birth.Text.Trim()
             If kind = TypeDocument.FormulaireAdhesion Then
                 If _party.Text.Trim().Length > 50 OrElse _firstName.Text.Trim().Length > 50 OrElse _address.Text.Trim().Length > 100 Then Throw New ArgumentException("Limites de la fiche tiers : 50 caractères pour le nom et le prénom, 100 pour la rue.")
-                If String.IsNullOrWhiteSpace(_firstName.Text) Then Throw New ArgumentException("Renseignez le prénom pour identifier le tiers.")
                 For Each pair In _extra
                     identity(pair.Key) = pair.Value.Text.Trim()
                 Next

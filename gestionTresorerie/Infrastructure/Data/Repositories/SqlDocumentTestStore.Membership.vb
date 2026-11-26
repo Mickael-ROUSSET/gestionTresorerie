@@ -71,12 +71,17 @@ Partial Public NotInheritable Class SqlDocumentTestStore
     End Function
 
     Public Function SaveVerified(proposal As DocumentArchiveProposal, approve As Func(Of String, Boolean?)) As Integer?
+        Return SaveReviewed(proposal, approve, Nothing, Nothing)
+    End Function
+
+    Friend Function SaveReviewed(proposal As DocumentArchiveProposal, approve As Func(Of String, Boolean?), revue As RevueTiers, lu As JObject) As Integer?
+        Dim tiersValide As Integer?
         Dim member = proposal.Document.CategorieDoc = "FormulaireAdhesion"
         Dim fields As JObject = Nothing
         Dim snapshot As JObject = Nothing
         Dim apply As Boolean = False
         Using connection = OpenTest()
-            If member Then
+            If member AndAlso revue Is Nothing Then
                 fields = JObject.Parse(proposal.Document.metaDonnees)
                 If String.IsNullOrWhiteSpace(fields.Value(Of String)("nom")) OrElse String.IsNullOrWhiteSpace(fields.Value(Of String)("prenom")) Then Throw New ArgumentException("Nom et prénom requis.")
                 snapshot = ReadMember(connection, Nothing, fields)
@@ -91,10 +96,17 @@ Partial Public NotInheritable Class SqlDocumentTestStore
                 Using guard As New SqlCommand(GuardSql & MigrationGuardSql, connection, tx)
                     guard.ExecuteNonQuery()
                 End Using
-                If member Then
+                If member OrElse revue IsNot Nothing Then
                     Using triggers As New SqlCommand("IF EXISTS(SELECT 1 FROM sys.triggers WHERE is_disabled=0 AND parent_id IN (OBJECT_ID('dbo.Tiers'),OBJECT_ID('dbo.Coordonnees'))) THROW 51008,N'Déclencheur inattendu sur les fiches tiers TEST.',1;", connection, tx)
                         triggers.ExecuteNonQuery()
                     End Using
+                End If
+                If revue IsNot Nothing Then
+                    tiersValide = revue.Enregistrer(connection,tx,lu)
+                    Dim meta = JObject.Parse(proposal.Document.metaDonnees)
+                    meta("idTiers")=tiersValide.Value
+                    proposal.Document.metaDonnees=meta.ToString(Newtonsoft.Json.Formatting.None)
+                ElseIf member Then
                     Dim current = ReadMember(connection, tx, fields)
                     If Not JToken.DeepEquals(current, snapshot) Then Throw New InvalidOperationException("La fiche tiers a changé. Rouvrez le document pour vérifier les nouvelles valeurs.")
                     fields("idTiers") = WriteMember(connection, tx, current, fields, apply)
@@ -103,7 +115,7 @@ Partial Public NotInheritable Class SqlDocumentTestStore
                 Dim docId As Integer
                 proposal.Confirm(Sub(doc)
                     Using cmd As New SqlCommand(DocumentRepository.ArchiveInsertSql &
-                        If(member OrElse doc.CategorieDoc = "QuestionnaireMedical",
+                        If(member OrElse revue IsNot Nothing OrElse doc.CategorieDoc = "QuestionnaireMedical",
                            " UPDATE dbo.Documents SET dateModif=GETDATE(), metaDonnees=@metaDonnees WHERE cheminDoc=@cheminDoc AND (metaDonnees IS NULL OR metaDonnees COLLATE Latin1_General_100_BIN2 <> @metaDonnees);", "") &
                         " SELECT idDoc FROM dbo.Documents WHERE cheminDoc=@cheminDoc;", connection, tx)
                         cmd.Parameters.AddRange(DocumentRepository.InsertionParameters(doc).ToArray())
@@ -111,8 +123,9 @@ Partial Public NotInheritable Class SqlDocumentTestStore
                         If docId <= 0 Then Throw New InvalidOperationException("Écriture du document non confirmée.")
                     End Using
                 End Sub)
+                If revue IsNot Nothing Then revue.Rattacher(connection,tx,docId,tiersValide.Value)
                 If Not proposal.MouvementChoisi.HasValue AndAlso proposal.IdCategorie.HasValue Then
-                    EnregistrerMouvement(connection, tx, proposal, docId)
+                    EnregistrerMouvement(connection, tx, proposal, docId, tiersValide)
                 End If
                 If proposal.MouvementChoisi.HasValue Then
                     Using cmd As New SqlCommand("IF NOT EXISTS(SELECT 1 FROM dbo.Mouvements WHERE Id=@mvt) THROW 51030,N'Mouvement introuvable.',1; UPDATE dbo.Documents SET idMvtDoc=@mvt,dateModif=GETDATE() WHERE idDoc=@doc AND (idMvtDoc IS NULL OR idMvtDoc=0 OR idMvtDoc=@mvt); IF @@ROWCOUNT<>1 THROW 51031,N'Ce document est déjà rattaché à un autre mouvement.',1;", connection, tx)
@@ -136,7 +149,7 @@ Partial Public NotInheritable Class SqlDocumentTestStore
             End Using
         End Using
     End Function
-    Private Shared Sub EnregistrerMouvement(cn As SqlConnection, tx As SqlTransaction, p As DocumentArchiveProposal, idDoc As Integer)
+    Private Shared Sub EnregistrerMouvement(cn As SqlConnection, tx As SqlTransaction, p As DocumentArchiveProposal, idDoc As Integer, tiersValide As Integer?)
         Dim cheque = TryCast(p.Document, Cheque)
         Dim facture = TryCast(p.Document, Facture)
         If cheque Is Nothing AndAlso facture Is Nothing Then Return
@@ -159,7 +172,7 @@ Partial Public NotInheritable Class SqlDocumentTestStore
             "IF NOT EXISTS(SELECT 1 FROM dbo.Categorie WHERE Id=@cat AND debit=1-CONVERT(int,@credit)) OR (@sous IS NOT NULL AND NOT EXISTS(SELECT 1 FROM dbo.SousCategorie WHERE Id=@sous AND idCategorie=@cat)) THROW 51143,N'Classement incompatible avec le sens du mouvement.',1; " &
             "IF EXISTS(SELECT 1 FROM dbo.Mouvements WITH(UPDLOCK,HOLDLOCK) WHERE typeMouvement=@type AND reference=@ref AND montant=@montant AND sens=@credit AND dateMvt=@date AND note=@tiers) THROW 51144,N'Un mouvement correspondant existe déjà. Rattachez-le au document.',1; " &
             "DECLARE @t int=(SELECT CASE WHEN COUNT(*)=1 THEN MIN(Id) ELSE 0 END FROM dbo.Tiers WHERE NULLIF(@tiers,'') IN (raisonSociale,TRIM(CONCAT(prenom,' ',nom)),TRIM(CONCAT(nom,' ',prenom)))); " &
-            "INSERT dbo.Mouvements(categorie,sousCategorie,montant,sens,tiers,note,dateMvt,dateCreation,etat,modifiable,evenement,typeMouvement,reference,typeReference,idDoc) VALUES(@cat,@sous,@montant,@credit,@t,@tiers,@date,GETDATE(),0,1,@event,@type,@ref,@type,@doc); " &
+            "INSERT dbo.Mouvements(categorie,sousCategorie,montant,sens,tiers,note,dateMvt,dateCreation,etat,modifiable,evenement,typeMouvement,reference,typeReference,idDoc) VALUES(@cat,@sous,@montant,@credit,COALESCE(@tiersValide,@t),@tiers,@date,GETDATE(),0,1,@event,@type,@ref,@type,@doc); " &
             "UPDATE dbo.Documents SET idMvtDoc=CONVERT(int,SCOPE_IDENTITY()),dateModif=GETDATE() WHERE idDoc=@doc;"
         Using cmd As New SqlCommand(sql, cn, tx)
             cmd.Parameters.AddWithValue("@doc", idDoc)
