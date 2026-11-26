@@ -52,7 +52,7 @@ jobs:
           AGUMAAA_RUN_LOCALDB_INTEGRATION: '1'
         run: |
           sqllocaldb start MSSQLLocalDB
-          dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Release --no-build --filter "FullyQualifiedName~RevueTiersTests.DeuxCoursEtDeuxJustificatifs" --logger "trx;LogFileName=participations.trx"
+          dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Release --no-build --property:Platform="Any CPU" --filter "FullyQualifiedName~RevueTiersTests&TestCategory=LocalDbIntegration" --logger "trx;LogFileName=participations.trx"
       - name: Publier les résultats
         if: always()
         uses: actions/upload-artifact@v4

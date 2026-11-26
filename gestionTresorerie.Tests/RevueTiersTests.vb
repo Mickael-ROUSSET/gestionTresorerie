@@ -26,6 +26,22 @@ Public Class RevueTiersTests
         Assert.AreEqual("Martin",resultat.Value(Of String)("nom"))
         Assert.AreEqual("client@example.invalid",resultat.Value(Of String)("mail"))
     End Sub
+    <STATestMethod, TestCategory("LocalDbIntegration")>
+    Public Sub OuvreLesTroisVuesDepuisLaFenetreDesParticipants()
+        If Environment.GetEnvironmentVariable("AGUMAAA_RUN_LOCALDB_INTEGRATION")<>"1" Then Assert.Inconclusive()
+        Dim store As New SqlDocumentTestStore()
+        store.Initialize()
+        Using cn=SqlDocumentTestStore.OpenTest(), fenetre As New FrmParticipants(cn,True)
+            fenetre.Show()
+            Dim vue=fenetre.Controls.OfType(Of System.Windows.Forms.TableLayoutPanel)().Single().Controls.OfType(Of System.Windows.Forms.FlowLayoutPanel)().First().Controls.OfType(Of System.Windows.Forms.ComboBox)().First()
+            For Each libelle In {"Synthèse des tiers","Par activité","Par année"}
+                vue.SelectedItem=libelle
+                Assert.AreEqual(libelle,vue.Text)
+            Next
+            fenetre.Close()
+        End Using
+    End Sub
+
     <TestMethod, TestCategory("LocalDbIntegration")>
     Public Sub DeuxCoursEtDeuxJustificatifsComptentUneSeulePersonneParAnnee()
         If Environment.GetEnvironmentVariable("AGUMAAA_RUN_LOCALDB_INTEGRATION")<>"1" Then Assert.Inconclusive()
