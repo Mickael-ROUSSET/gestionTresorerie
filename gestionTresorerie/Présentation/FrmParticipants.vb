@@ -89,7 +89,7 @@ Friend Class FrmParticipants
                     ' Les anciennes pièces sans métadonnées restent saisissables.
                 End Try
                 Dim id=If(IsDBNull(doc("TiersId")),0,Convert.ToInt32(doc("TiersId")))
-                Using f As New FrmRevueTiers(coord,lu,Nothing,"Vérifier l’inscription — " & doc("cheminDoc").ToString(),id)
+                Using f As New FrmRevueTiers(coord,lu,Nothing,"Vérifier l’inscription — " & doc("cheminDoc").ToString(),id,piece:=doc("cheminDoc").ToString())
                     If f.ShowDialog(Me)<>DialogResult.OK OrElse String.IsNullOrWhiteSpace(f.Decision.Activite) Then Return
                     Using tx=connexion.BeginTransaction(IsolationLevel.Serializable)
                         If id=0 Then id=f.Decision.Enregistrer(connexion,tx,lu)
@@ -222,7 +222,7 @@ Friend Class FrmParticipants
             MessageBox.Show(Me,"Pièce inaccessible ou format non pris en charge.")
             Return
         End If
-        Using fenetre As New FrmDocumentFilePreview({chemin})
+        Using fenetre As New FrmDocumentFilePreview({chemin},consultation:=True)
             fenetre.ShowDialog(Me)
         End Using
     End Sub

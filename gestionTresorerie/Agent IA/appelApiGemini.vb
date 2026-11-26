@@ -6,7 +6,7 @@ Imports Newtonsoft.Json
 Public Class GeminiAnalyzer
 
     Public Shared Async Function AnalyserDocument(apiKey As String, cheminFichier As String,
-                                                        Optional rapportDetaille As Boolean = True) As Task(Of String)
+                                                        Optional rapportDetaille As Boolean = True, Optional avecTiers As Boolean=False) As Task(Of String)
         ' 1. Construction de l'URL par concaténation simple (SANS $)  chr(58=) = 2 points
         Dim url As String = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash" & Chr(58) & "generateContent?key=" & apiKey
 
@@ -26,6 +26,10 @@ Public Class GeminiAnalyzer
             ' "gestionTresorerie.PromptGemini.txt" est le nom interne (compilé)
             ' "PromptGemini.txt" est le nom du fichier qui doit être dans votre dossier bin\Debug
             Dim prompt As String = LirePromptOptimise("gestionTresorerie.PromptGemini.txt", "PromptGemini.txt")
+
+            If avecTiers Then
+                prompt &= vbLf & "Pour un chèque, conserve le schéma précédent. Pour une facture ou une inscription, applique les règles ci-dessous." & vbLf & ChatGptDocumentReader.Prompt
+            End If
 
             '' 2. Construction requête : utiliser un dictionnaire au lieu d'un objet anonyme (plus stable pour la sérialisation)
             'Dim parts As New List(Of Object)()

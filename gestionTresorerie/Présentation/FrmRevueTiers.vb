@@ -11,18 +11,21 @@ Friend Class FrmRevueTiers
     Private ReadOnly role As New ComboBox With {.Width=125}
     Private ReadOnly debut,fin As New DateTimePicker With {.Width=110,.Format=DateTimePickerFormat.Short,.ShowCheckBox=True}
     Private ReadOnly lignes As New List(Of DataRow)
+    Private ReadOnly inscriptions As DataTable
+    Private ReadOnly existante As New ComboBox With {.Width=275,.DropDownStyle=ComboBoxStyle.DropDownList}
     Private ReadOnly lu As JObject
     Friend ReadOnly Property Decision As New RevueTiers()
 
-    Friend Sub New(table As DataTable, champsLus As JObject, inscription As JObject, titre As String, Optional tiersFixe As Integer=0)
+    Friend Sub New(table As DataTable, champsLus As JObject, inscription As JObject, titre As String, Optional tiersFixe As Integer=0, Optional piece As String=Nothing, Optional participations As DataTable=Nothing)
         lu=champsLus
+        inscriptions=participations
         Text=titre
         Width=920
         Height=640
         StartPosition=FormStartPosition.CenterParent
         Dim layout As New TableLayoutPanel With {.Dock=DockStyle.Fill,.RowCount=5,.ColumnCount=1,.Padding=New Padding(8)}
         Controls.Add(layout)
-        For Each hauteur In {28,36,0,82,42}
+        For Each hauteur In {28,36,0,96,42}
             layout.RowStyles.Add(If(hauteur=0,New RowStyle(SizeType.Percent,100),New RowStyle(SizeType.Absolute,hauteur)))
         Next
         layout.Controls.Add(New Label With {.Text="Sélectionnez le tiers et son adresse, ou créez une fiche.",.AutoSize=True})
@@ -53,6 +56,18 @@ Friend Class FrmRevueTiers
         End If
         Dim saisie As New FlowLayoutPanel With {.Dock=DockStyle.Fill}
         layout.Controls.Add(saisie)
+        saisie.Controls.Add(New Label With {.Text="Rattacher à une inscription existante",.AutoSize=True})
+        saisie.Controls.Add(existante)
+        saisie.SetFlowBreak(existante,True)
+        AddHandler existante.SelectedIndexChanged,Sub()
+            If Not existante.Focused Then Return
+            Dim row=TryCast(existante.SelectedItem,DataRowView)
+            If row Is Nothing Then Return
+            activite.Text=row("Activite").ToString()
+            annee.Text=row("Annee").ToString()
+            role.Text=row("RoleCours").ToString()
+        End Sub
+        existante.SelectedIndex=-1
         activite.Items.AddRange(New Object() {"Gym","Marché de Noël"})
         role.Items.AddRange(New Object() {"Gym douce","Gym tonique","Exposant"})
         For Each pair In New Dictionary(Of String,Control) From {{"Activité (facultative)",activite},{"Année de début",annee},{"Cours / rôle",role},{"Début",debut},{"Fin",fin}}
@@ -77,6 +92,15 @@ Friend Class FrmRevueTiers
         End Sub
         garder.Visible=tiersFixe=0
         actions.Controls.AddRange({ok,annuler,garder})
+        If Not String.IsNullOrWhiteSpace(piece) AndAlso IO.File.Exists(piece) AndAlso DocumentFilePreview.Supports(piece) Then
+            Dim ouvrir As New Button With {.Text="Voir le document",.AutoSize=True}
+            AddHandler ouvrir.Click,Sub()
+                Using apercu As New FrmDocumentFilePreview({piece},consultation:=True)
+                    apercu.ShowDialog(Me)
+                End Using
+            End Sub
+            actions.Controls.Add(ouvrir)
+        End If
         CancelButton=annuler
         layout.Controls.Add(actions)
     End Sub
@@ -84,6 +108,15 @@ Friend Class FrmRevueTiers
     Private Sub AfficherChamps()
         grille.Rows.Clear()
         Decision.Avant=lignes(choix.SelectedIndex)
+        activite.Text=""
+        annee.Clear()
+        role.Text=""
+        existante.DataSource=Nothing
+        If inscriptions IsNot Nothing AndAlso Decision.Avant IsNot Nothing Then
+            existante.DisplayMember="libelle"
+            existante.DataSource=New DataView(inscriptions,"tiersId=" & Decision.Avant("tiersId").ToString(),"Annee DESC",DataViewRowState.CurrentRows)
+            existante.SelectedIndex=-1
+        End If
         For i=0 To RevueTiers.Champs.Length-1
             Dim k=RevueTiers.Champs(i)
             Dim avant=If(Decision.Avant Is Nothing,"",Decision.Avant(k).ToString())
