@@ -9,16 +9,18 @@ Friend Class FrmParticipants
     Private ReadOnly mode,annee,activite,role As New ComboBox With {.DropDownStyle=ComboBoxStyle.DropDownList,.Width=150}
     Private ReadOnly liste,details,documents As New DataGridView With {.Dock=DockStyle.Fill,.ReadOnly=True,.AllowUserToAddRows=False,.AllowUserToDeleteRows=False,.MultiSelect=False,.SelectionMode=DataGridViewSelectionMode.FullRowSelect,.AutoSizeColumnsMode=DataGridViewAutoSizeColumnsMode.DisplayedCells}
     Private ReadOnly total As New Label With {.AutoSize=True,.Margin=New Padding(8)}
-    Private ReadOnly coord,participations,pieces As DataTable
+    Private ReadOnly connexion As SqlConnection
+    Private coord As DataTable
+    Private participations,pieces As DataTable
     Private chargement As Boolean
 
-    Friend Sub New(cn As SqlConnection)
+    Friend Sub New(cn As SqlConnection, lectureSeule As Boolean)
+        connexion=cn
         Text="Tiers et participants — " & cn.Database
         Width=1080
         Height=710
         coord=RevueTiers.Lire(cn)
-        participations=Charger(cn,"SELECT * FROM dbo.VueParticipantsActivite ORDER BY Annee DESC,Activite,RoleCours")
-        pieces=Charger(cn,"SELECT dt.TiersId,d.idDoc,d.dateDoc,d.categorieDoc,d.cheminDoc,v.Activite,v.Annee,v.RoleCours FROM dbo.DocumentTiers dt JOIN dbo.Documents d ON d.idDoc=dt.DocumentId LEFT JOIN dbo.JustificatifParticipation j ON j.DocumentId=d.idDoc LEFT JOIN dbo.VueParticipantsActivite v ON v.ParticipationId=j.ParticipationId ORDER BY d.dateDoc DESC")
+        ChargerInscriptions()
         Dim layout As New TableLayoutPanel With {.Dock=DockStyle.Fill,.RowCount=4,.ColumnCount=1}
         layout.RowStyles.Add(New RowStyle(SizeType.Absolute,78))
         For Each poids In {50,25,25}
@@ -32,11 +34,23 @@ Friend Class FrmParticipants
             filtres.Controls.Add(pair.Value)
         Next
         filtres.Controls.Add(total)
+        If Not lectureSeule Then
+            Dim ajouter As New Button With {.Text="Ajouter une participation…",.AutoSize=True}
+            AddHandler ajouter.Click,AddressOf AjouterParticipation
+            filtres.Controls.Add(ajouter)
+        End If
+        If Not lectureSeule Then
+            Dim verifier As New Button With {.Text="Bulletins à vérifier…",.AutoSize=True}
+            AddHandler verifier.Click,AddressOf VerifierBulletins
+            filtres.Controls.Add(verifier)
+        End If
         layout.Controls.Add(liste)
         Dim onglets As New TabControl With {.Dock=DockStyle.Fill}
-        Dim adresses=onglets.TabPages.Add("Identité et coordonnées")
+        Dim adresses As New TabPage("Identité et coordonnées")
+        onglets.TabPages.Add(adresses)
         adresses.Controls.Add(details)
-        Dim historique=onglets.TabPages.Add("Historique des participations")
+        Dim historique As New TabPage("Historique des participations")
+        onglets.TabPages.Add(historique)
         historique.Controls.Add(grilleHistorique)
         layout.Controls.Add(onglets)
         Dim justificatifs As New GroupBox With {.Text="Documents du tiers · double-cliquez pour ouvrir",.Dock=DockStyle.Fill}
@@ -45,13 +59,90 @@ Friend Class FrmParticipants
         mode.Items.AddRange(New Object() {"Synthèse des tiers","Par activité","Par année"})
         annee.Items.AddRange(participations.AsEnumerable().Select(Function(r) CInt(r("Annee")).ToString()).Distinct().ToArray())
         If annee.Items.Count>0 Then annee.SelectedIndex=0
-        AddHandler annee.SelectedIndexChanged,Sub() ActualiserFiltres()
-        AddHandler mode.SelectedIndexChanged,Sub() ActualiserFiltres()
+        AddHandler annee.SelectedIndexChanged,Sub()
+            If Not chargement Then ActualiserFiltres()
+        End Sub
+        AddHandler mode.SelectedIndexChanged,Sub()
+            If Not chargement Then ActualiserFiltres()
+        End Sub
         AddHandler activite.SelectedIndexChanged,Sub() ActualiserRoles()
         AddHandler role.SelectedIndexChanged,Sub() ActualiserListe()
         AddHandler liste.SelectionChanged,Sub() ActualiserDetail()
         AddHandler documents.CellDoubleClick,AddressOf OuvrirPiece
         mode.SelectedIndex=0
+    End Sub
+
+    Private Sub VerifierBulletins(sender As Object,e As EventArgs)
+        Try
+            Using dossiers=Charger(connexion,"SELECT v.DocumentId,v.dateDoc,v.cheminDoc,v.TiersId,d.metaDonnees FROM dbo.VueInscriptionsAVerifier v JOIN dbo.Documents d ON d.idDoc=v.DocumentId ORDER BY v.dateDoc DESC"),
+                  fenetre As New Form With {.Text="Bulletins dont la participation reste à vérifier",.Width=850,.Height=420,.StartPosition=FormStartPosition.CenterParent},
+                  grille As New DataGridView With {.Dock=DockStyle.Fill,.DataSource=dossiers,.ReadOnly=True,.AllowUserToAddRows=False,.SelectionMode=DataGridViewSelectionMode.FullRowSelect},
+                  valider As New Button With {.Dock=DockStyle.Bottom,.Text="Examiner le bulletin sélectionné",.DialogResult=DialogResult.OK}
+                fenetre.Controls.Add(grille)
+                fenetre.Controls.Add(valider)
+                If fenetre.ShowDialog(Me)<>DialogResult.OK OrElse grille.CurrentRow Is Nothing Then Return
+                Dim doc=DirectCast(grille.CurrentRow.DataBoundItem,DataRowView)
+                Dim lu As New Newtonsoft.Json.Linq.JObject()
+                Try
+                    lu=Newtonsoft.Json.Linq.JObject.Parse(doc("metaDonnees").ToString())
+                Catch ex As Newtonsoft.Json.JsonException
+                    ' Les anciennes pièces sans métadonnées restent saisissables.
+                End Try
+                Dim id=If(IsDBNull(doc("TiersId")),0,Convert.ToInt32(doc("TiersId")))
+                Using f As New FrmRevueTiers(coord,lu,Nothing,"Vérifier l’inscription — " & doc("cheminDoc").ToString(),id)
+                    If f.ShowDialog(Me)<>DialogResult.OK OrElse String.IsNullOrWhiteSpace(f.Decision.Activite) Then Return
+                    Using tx=connexion.BeginTransaction(IsolationLevel.Serializable)
+                        If id=0 Then id=f.Decision.Enregistrer(connexion,tx,lu)
+                        f.Decision.Rattacher(connexion,tx,CInt(doc("DocumentId")),id)
+                        tx.Commit()
+                    End Using
+                End Using
+            End Using
+            Recharger()
+        Catch ex As Exception
+            MessageBox.Show(Me,ex.Message,Text)
+        End Try
+    End Sub
+
+    Private Sub ChargerInscriptions()
+        participations=Charger(connexion,"SELECT * FROM dbo.VueParticipantsActivite ORDER BY Annee DESC,Activite,RoleCours")
+        pieces=Charger(connexion,"SELECT dt.TiersId,d.idDoc,d.dateDoc,d.categorieDoc,d.cheminDoc,v.Activite,v.Annee,v.RoleCours FROM dbo.DocumentTiers dt JOIN dbo.Documents d ON d.idDoc=dt.DocumentId LEFT JOIN dbo.JustificatifParticipation j ON j.DocumentId=d.idDoc LEFT JOIN dbo.VueParticipantsActivite v ON v.ParticipationId=j.ParticipationId ORDER BY d.dateDoc DESC")
+    End Sub
+
+    Private Sub Recharger()
+        coord=RevueTiers.Lire(connexion)
+        ChargerInscriptions()
+        Dim avant=annee.Text
+        chargement=True
+        annee.Items.Clear()
+        annee.Items.AddRange(participations.AsEnumerable().Select(Function(r) r("Annee").ToString()).Distinct().ToArray())
+        If annee.Items.Contains(avant) Then
+            annee.SelectedItem=avant
+        ElseIf annee.Items.Count>0 Then
+            annee.SelectedIndex=0
+        End If
+        chargement=False
+        ActualiserFiltres()
+    End Sub
+
+    Private Sub AjouterParticipation(sender As Object,e As EventArgs)
+        Dim selected=TryCast(liste.CurrentRow?.DataBoundItem,DataRowView)
+        If selected Is Nothing Then Return
+        Dim id=CInt(selected("Id"))
+        Dim rows=coord.AsEnumerable().Where(Function(r) CInt(r("tiersId"))=id).CopyToDataTable()
+        Using f As New FrmRevueTiers(rows,New Newtonsoft.Json.Linq.JObject(),Nothing,"Ajouter une participation",id)
+            If f.ShowDialog(Me)<>DialogResult.OK Then Return
+            If String.IsNullOrWhiteSpace(f.Decision.Activite) Then Return
+            Try
+                Using tx=connexion.BeginTransaction(IsolationLevel.Serializable)
+                    f.Decision.Rattacher(connexion,tx,0,id)
+                    tx.Commit()
+                End Using
+                Recharger()
+            Catch ex As Exception
+                MessageBox.Show(Me,ex.Message,Text)
+            End Try
+        End Using
     End Sub
 
     Private ReadOnly grilleHistorique As New DataGridView With {.Dock=DockStyle.Fill,.ReadOnly=True,.AllowUserToAddRows=False,.AutoSizeColumnsMode=DataGridViewAutoSizeColumnsMode.DisplayedCells}

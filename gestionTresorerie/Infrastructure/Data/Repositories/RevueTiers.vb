@@ -107,7 +107,7 @@ Friend Class RevueTiers
         Using cmd As New SqlCommand("IF EXISTS(SELECT 1 FROM dbo.DocumentTiers WHERE DocumentId=@doc AND TiersId<>@tiers) THROW 51200,N'Document déjà lié à un autre tiers.',1; IF NOT EXISTS(SELECT 1 FROM dbo.DocumentTiers WHERE DocumentId=@doc) INSERT dbo.DocumentTiers VALUES(@doc,@tiers);",cn,tx)
             cmd.Parameters.AddWithValue("@doc",docId)
             cmd.Parameters.AddWithValue("@tiers",tiersId)
-            cmd.ExecuteNonQuery()
+            If docId>0 Then cmd.ExecuteNonQuery()
             If String.IsNullOrWhiteSpace(Activite) Then Return
             cmd.Parameters.AddWithValue("@activite",Activite)
             cmd.Parameters.AddWithValue("@annee",Annee)
@@ -122,7 +122,7 @@ Friend Class RevueTiers
                 "UPDATE dbo.EditionActivite SET Debut=COALESCE(Debut,@debut),Fin=COALESCE(Fin,@fin) WHERE Id=@e; END; " &
                 "DECLARE @p int=(SELECT Id FROM dbo.Participation WHERE TiersId=@tiers AND EditionId=@e AND RoleCours=@role); " &
                 "IF @p IS NULL BEGIN INSERT dbo.Participation VALUES(@tiers,@e,@role); SET @p=SCOPE_IDENTITY(); END; " &
-                "IF NOT EXISTS(SELECT 1 FROM dbo.JustificatifParticipation WHERE DocumentId=@doc AND ParticipationId=@p) INSERT dbo.JustificatifParticipation VALUES(@doc,@p,@tiers);"
+                "IF @doc>0 AND NOT EXISTS(SELECT 1 FROM dbo.JustificatifParticipation WHERE DocumentId=@doc AND ParticipationId=@p) INSERT dbo.JustificatifParticipation VALUES(@doc,@p,@tiers);"
             cmd.ExecuteNonQuery()
         End Using
     End Sub

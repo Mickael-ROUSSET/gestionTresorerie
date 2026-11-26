@@ -623,7 +623,7 @@ Public Class FrmPrincipale
         MenuStrip1.Items.Add(fiches)
         AddHandler fiches.DropDownItems.Add("Synthèse des tiers et participants…").Click, Sub()
             Try
-                Using cn=ParametresComptables.Ouvrir(_isolatedSqlTest), fenetre As New FrmParticipants(cn)
+                Using cn=ParametresComptables.Ouvrir(_isolatedSqlTest), fenetre As New FrmParticipants(cn,UtilisateurActif Is Nothing OrElse UtilisateurActif.EstLecteur())
                     fenetre.ShowDialog(Me)
                 End Using
             Catch ex As Exception

@@ -74,13 +74,14 @@ Partial Public NotInheritable Class SqlDocumentTestStore
         Return SaveReviewed(proposal, approve, Nothing, Nothing)
     End Function
 
-    Friend Function SaveReviewed(proposal As DocumentArchiveProposal, approve As Func(Of String, Boolean?), revue As RevueTiers, lu As JObject) As Integer?
+    Friend Function SaveReviewed(proposal As DocumentArchiveProposal, approve As Func(Of String, Boolean?), revue As RevueTiers, lu As JObject, Optional production As Boolean=False) As Integer?
         Dim tiersValide As Integer?
         Dim member = proposal.Document.CategorieDoc = "FormulaireAdhesion"
         Dim fields As JObject = Nothing
         Dim snapshot As JObject = Nothing
         Dim apply As Boolean = False
-        Using connection = OpenTest()
+        If production AndAlso (revue Is Nothing OrElse proposal.IdCategorie.HasValue OrElse proposal.MouvementChoisi.HasValue OrElse Not String.IsNullOrEmpty(proposal.EvenementComptable) OrElse Not String.IsNullOrEmpty(proposal.NatureComptable)) Then Throw New InvalidOperationException("Proposition de classement PROD incompatible.")
+        Using connection = If(production,ParametresComptables.Ouvrir(False),OpenTest())
             If member AndAlso revue Is Nothing Then
                 fields = JObject.Parse(proposal.Document.metaDonnees)
                 If String.IsNullOrWhiteSpace(fields.Value(Of String)("nom")) OrElse String.IsNullOrWhiteSpace(fields.Value(Of String)("prenom")) Then Throw New ArgumentException("Nom et prénom requis.")
@@ -93,11 +94,11 @@ Partial Public NotInheritable Class SqlDocumentTestStore
                 End If
             End If
             Using tx = connection.BeginTransaction(IsolationLevel.Serializable)
-                Using guard As New SqlCommand(GuardSql & MigrationGuardSql, connection, tx)
+                Using guard As New SqlCommand(If(production,"IF DB_NAME()<>N'bddAgumaaa' THROW 51202,N'Catalogue PROD inattendu.',1;",GuardSql & MigrationGuardSql), connection, tx)
                     guard.ExecuteNonQuery()
                 End Using
                 If member OrElse revue IsNot Nothing Then
-                    Using triggers As New SqlCommand("IF EXISTS(SELECT 1 FROM sys.triggers WHERE is_disabled=0 AND parent_id IN (OBJECT_ID('dbo.Tiers'),OBJECT_ID('dbo.Coordonnees'))) THROW 51008,N'Déclencheur inattendu sur les fiches tiers TEST.',1;", connection, tx)
+                    Using triggers As New SqlCommand("IF EXISTS(SELECT 1 FROM sys.triggers WHERE is_disabled=0 AND parent_id IN (OBJECT_ID('dbo.Tiers'),OBJECT_ID('dbo.Coordonnees'))) THROW 51008,N'Déclencheur inattendu sur les fiches tiers.',1;", connection, tx)
                         triggers.ExecuteNonQuery()
                     End Using
                 End If

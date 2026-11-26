@@ -43,3 +43,28 @@ CREATE OR ALTER VIEW dbo.VueInscriptionsAVerifier AS
 SELECT d.idDoc AS DocumentId,d.dateDoc,d.cheminDoc,dt.TiersId
 FROM dbo.Documents d LEFT JOIN dbo.DocumentTiers dt ON dt.DocumentId=d.idDoc
 WHERE d.categorieDoc=N'FormulaireAdhesion' AND NOT EXISTS(SELECT 1 FROM dbo.JustificatifParticipation j WHERE j.DocumentId=d.idDoc);
+GO
+-- Reprise uniquement des éditions et cours explicitement identifiés sur la pièce.
+DECLARE @hist TABLE(DocumentId int PRIMARY KEY,TiersId int,Activite nvarchar(100),Annee int,RoleCours nvarchar(100));
+INSERT @hist
+SELECT dt.DocumentId,dt.TiersId,LTRIM(RTRIM(s.Activite)),s.Annee,LTRIM(RTRIM(s.RoleCours))
+FROM dbo.DocumentTiers dt JOIN dbo.Documents d ON d.idDoc=dt.DocumentId
+CROSS APPLY(SELECT CASE WHEN ISJSON(d.metaDonnees)=1 THEN d.metaDonnees ELSE N'{}' END AS meta) m
+CROSS APPLY(SELECT JSON_VALUE(m.meta,'$.participation.activite') AS Activite,
+ TRY_CONVERT(int,JSON_VALUE(m.meta,'$.participation.annee')) AS Annee,
+ JSON_VALUE(m.meta,'$.participation.cours_role') AS RoleCours) s
+WHERE d.categorieDoc=N'FormulaireAdhesion' AND s.Annee BETWEEN 1900 AND 9999
+ AND LEN(TRIM(s.Activite)) BETWEEN 1 AND 100 AND LEN(TRIM(s.RoleCours)) BETWEEN 1 AND 100
+ AND NOT EXISTS(SELECT 1 FROM dbo.JustificatifParticipation j WHERE j.DocumentId=dt.DocumentId);
+INSERT dbo.ActiviteAssociation(Libelle)
+SELECT DISTINCT h.Activite FROM @hist h WHERE NOT EXISTS(SELECT 1 FROM dbo.ActiviteAssociation a WHERE a.Libelle=h.Activite);
+INSERT dbo.EditionActivite(ActiviteId,Annee)
+SELECT DISTINCT a.Id,h.Annee FROM @hist h JOIN dbo.ActiviteAssociation a ON a.Libelle=h.Activite
+WHERE NOT EXISTS(SELECT 1 FROM dbo.EditionActivite e WHERE e.ActiviteId=a.Id AND e.Annee=h.Annee);
+INSERT dbo.Participation(TiersId,EditionId,RoleCours)
+SELECT DISTINCT h.TiersId,e.Id,h.RoleCours FROM @hist h JOIN dbo.ActiviteAssociation a ON a.Libelle=h.Activite
+JOIN dbo.EditionActivite e ON e.ActiviteId=a.Id AND e.Annee=h.Annee
+WHERE NOT EXISTS(SELECT 1 FROM dbo.Participation p WHERE p.TiersId=h.TiersId AND p.EditionId=e.Id AND p.RoleCours=h.RoleCours);
+INSERT dbo.JustificatifParticipation(DocumentId,ParticipationId,TiersId)
+SELECT h.DocumentId,v.ParticipationId,h.TiersId FROM @hist h JOIN dbo.VueParticipantsActivite v
+ ON v.TiersId=h.TiersId AND v.Activite=h.Activite AND v.Annee=h.Annee AND v.RoleCours=h.RoleCours;

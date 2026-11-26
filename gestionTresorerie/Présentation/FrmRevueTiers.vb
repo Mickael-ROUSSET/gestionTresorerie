@@ -14,7 +14,7 @@ Friend Class FrmRevueTiers
     Private ReadOnly lu As JObject
     Friend ReadOnly Property Decision As New RevueTiers()
 
-    Friend Sub New(table As DataTable, champsLus As JObject, inscription As JObject, titre As String)
+    Friend Sub New(table As DataTable, champsLus As JObject, inscription As JObject, titre As String, Optional tiersFixe As Integer=0)
         lu=champsLus
         Text=titre
         Width=920
@@ -44,7 +44,13 @@ Friend Class FrmRevueTiers
             choix.Items.Add("#" & r("tiersId").ToString() & "  " & String.Join(" · ", {"raisonSociale","nom","prenom","adresse","ville","mail","telephone"}.Select(Function(k) r(k).ToString()).Where(Function(v) v<>"")))
         Next
         AddHandler choix.SelectedIndexChanged,Sub() AfficherChamps()
-        If candidats.Count<=1 Then choix.SelectedIndex=candidats.Count
+        If tiersFixe>0 Then
+            choix.SelectedIndex=lignes.FindIndex(Function(r) r IsNot Nothing AndAlso CInt(r("tiersId"))=tiersFixe)
+            choix.Enabled=False
+            grille.ReadOnly=True
+        ElseIf candidats.Count<=1 Then
+            choix.SelectedIndex=candidats.Count
+        End If
         Dim saisie As New FlowLayoutPanel With {.Dock=DockStyle.Fill}
         layout.Controls.Add(saisie)
         activite.Items.AddRange(New Object() {"Gym","Marché de Noël"})
@@ -69,6 +75,7 @@ Friend Class FrmRevueTiers
                 r.Cells(3).Value=r.Cells(1).Value
             Next
         End Sub
+        garder.Visible=tiersFixe=0
         actions.Controls.AddRange({ok,annuler,garder})
         CancelButton=annuler
         layout.Controls.Add(actions)

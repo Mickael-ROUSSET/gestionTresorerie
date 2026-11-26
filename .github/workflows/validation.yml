@@ -46,6 +46,13 @@ jobs:
       - name: Exécuter les tests
         timeout-minutes: 5
         run: dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Release --no-build --property:Platform="Any CPU" --filter "TestCategory!=LocalDbIntegration" --logger "trx;LogFileName=results.trx" --blame-hang --blame-hang-timeout 60s --blame-hang-dump-type none
+      - name: Vérifier les participations et justificatifs sur LocalDB
+        shell: pwsh
+        env:
+          AGUMAAA_RUN_LOCALDB_INTEGRATION: '1'
+        run: |
+          sqllocaldb start MSSQLLocalDB
+          dotnet test gestionTresorerie.Tests/gestionTresorerie.Tests.vbproj --configuration Release --no-build --filter "FullyQualifiedName~RevueTiersTests.DeuxCoursEtDeuxJustificatifs" --logger "trx;LogFileName=participations.trx"
       - name: Publier les résultats
         if: always()
         uses: actions/upload-artifact@v4
