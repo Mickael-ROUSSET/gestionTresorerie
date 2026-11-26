@@ -47,6 +47,13 @@ Friend NotInheritable Class LocalDbSchema
                 command.CommandText = "IF OBJECT_ID('dbo.ReleveJustificatifsTest','U') IS NULL CREATE TABLE dbo.ReleveJustificatifsTest(empreinte char(64) NOT NULL,operation int NOT NULL,idDoc int NOT NULL, dateOperation date NOT NULL, montantSigne decimal(19,2) NOT NULL,libelle nvarchar(max) NOT NULL, PRIMARY KEY(empreinte,operation,idDoc));"
                 command.ExecuteNonQuery()
             End If
+            Using stream = GetType(LocalDbSchema).Assembly.GetManifestResourceStream("gestionTresorerie.Schema.Participations.sql"),
+                  reader As New StreamReader(stream)
+                For Each batch In System.Text.RegularExpressions.Regex.Split(reader.ReadToEnd(), "(?m)^GO\s*$")
+                    command.CommandText = batch
+                    command.ExecuteNonQuery()
+                Next
+            End Using
         End Using
     End Sub
 End Class

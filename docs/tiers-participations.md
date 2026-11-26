@@ -1,0 +1,7 @@
+# Tiers et participations
+
+Depuis **Fiches → Synthèse des tiers et participants**, choisissez la synthèse, une activité et son édition, ou une année. L’année désigne le début de la saison. La sélection d’une ligne affiche toutes les coordonnées du tiers, ses inscriptions et ses pièces. Un double-clic ouvre le justificatif disponible sur le poste. Les lecteurs consultent les listes. Les utilisateurs habilités peuvent ajouter une participation ou examiner les bulletins historiques sans édition.
+
+Lors du classement d’une facture ou d’un bulletin, vérifiez le tiers, l’adresse et la colonne **Valeur à retenir**. Le bouton **Conserver la fiche existante** rattache le document sans modifier les coordonnées. Sur une facture, l’activité reste facultative. Pour rattacher un second justificatif, choisissez le même tiers, la même activité, l’année et le même cours ou rôle. Une édition peut regrouper plusieurs cours. L’effectif compte chaque tiers une fois.
+
+Le script SQL additif `gestionTresorerie/Resources/Schema/002-participations.sql` est appliqué par l’initialisation SQL TEST. Pour une base PROD déjà structurée, son application relève de la procédure de migration validée par l’administrateur, sur le catalogue explicitement sélectionné et dans une transaction. L’année de signature ne suffit pas à établir une saison d’inscription. La reprise conserve le lien historique avec un tiers identifié et inscrit automatiquement les bulletins dont l’activité, le cours et l’année sont explicites dans les métadonnées.

@@ -621,6 +621,15 @@ Public Class FrmPrincipale
 
     Private Sub ConfigurerAdministration()
         MenuStrip1.Items.Add(fiches)
+        AddHandler fiches.DropDownItems.Add("Synthèse des tiers et participants…").Click, Sub()
+            Try
+                Using cn=ParametresComptables.Ouvrir(_isolatedSqlTest), fenetre As New FrmParticipants(cn,UtilisateurActif Is Nothing OrElse UtilisateurActif.EstLecteur())
+                    fenetre.ShowDialog(Me)
+                End Using
+            Catch ex As Exception
+                MessageBox.Show(Me,ex.Message,"Consultation des tiers")
+            End Try
+        End Sub
         AjouterFiche(fiches,"Tiers","Tiers")
         AjouterFiche(fiches,"Coordonnées des tiers","Coordonnees")
         Dim cinema As New ToolStripMenuItem("Cinéma")

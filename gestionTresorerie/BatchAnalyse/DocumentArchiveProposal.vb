@@ -150,7 +150,7 @@ Public NotInheritable Class DocumentArchiveProposal
     Public Shared Function PrepareAdministrativeTest(source As String, hash As String, root As String, kind As TypeDocument,
                                                      party As String, dateText As String, reference As String,
                                                      amountText As String, Optional firstName As String = "",
-                                                     Optional address As String = "", Optional archiveOnDrive As Boolean = False, Optional identity As JObject = Nothing) As DocumentArchiveProposal
+                                                     Optional address As String = "", Optional archiveOnDrive As Boolean = False, Optional identity As JObject = Nothing, Optional archiveRelativeRoot As String = Nothing) As DocumentArchiveProposal
         If Not DocumentFilePreview.Supports(source) Then Throw New ArgumentException("Format de fichier non pris en charge.")
         If Not Path.IsPathFullyQualified(root) OrElse Not Directory.Exists(root) Then
             Throw New IOException("Le dossier d’archivage TEST est inaccessible. Vérifiez le lecteur et le chemin : " & root)
@@ -240,7 +240,7 @@ Public NotInheritable Class DocumentArchiveProposal
         ' Un nom neutre évite d’exposer l’identité d’un adhérent dans les noms de fichiers.
         Dim fileName = filenamePrefix & "_" & documentDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) &
             "_" & hash.Substring(0, 16) & Path.GetExtension(source)
-        Return BuildProposal(source, root, hash, document, If(archiveOnDrive, "TEST", OfflineTestWorkspace.DocumentArchiveTestSetting("repRacineComptabilité")),
+        Return BuildProposal(source, root, hash, document, If(archiveRelativeRoot, If(archiveOnDrive, "TEST", OfflineTestWorkspace.DocumentArchiveTestSetting("repRacineComptabilité"))),
             Path.Combine(folder, documentDate.ToString("yyyy", CultureInfo.InvariantCulture)), fileName, summary)
     End Function
 

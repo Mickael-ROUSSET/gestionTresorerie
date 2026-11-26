@@ -3,6 +3,8 @@ Option Strict On
 Imports System.Drawing
 Imports System.IO
 Imports System.Windows.Forms
+Imports Newtonsoft.Json.Linq
+Imports gestionTresorerie.Agumaaa
 
 Friend NotInheritable Class FrmDocumentFilePreview
     Inherits Form
@@ -25,10 +27,13 @@ Friend NotInheritable Class FrmDocumentFilePreview
     Private ReadOnly _pathTip As New ToolTip()
     Private _pdfSource As String
     Private _pending As Boolean
+    Private ReadOnly _consultation As Boolean
 
     Public Sub New(paths As IEnumerable(Of String), Optional testWorkspace As OfflineTestWorkspace = Nothing,
                    Optional sqlTest As SqlDocumentTestStore = Nothing, Optional sqlExample As Boolean = False,
-                   Optional initializeSqlTestOnSave As Boolean = False)
+                   Optional initializeSqlTestOnSave As Boolean = False, Optional consultation As Boolean=False)
+        _consultation=consultation
+        _analyse.Visible=Not consultation
         If sqlTest IsNot Nothing AndAlso testWorkspace Is Nothing Then
             Throw New ArgumentNullException(NameOf(testWorkspace))
         End If
@@ -171,7 +176,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
 
     Private Async Sub AnalyseSelection(sender As Object, e As EventArgs)
         Dim source = TryCast(_files.SelectedItem, FileInfo)?.FullName
-        If source Is Nothing OrElse _pending Then Return
+        If _consultation OrElse source Is Nothing OrElse _pending Then Return
         Dim fictif = _testWorkspace IsNot Nothing
         Dim local = IsPdf(source) AndAlso (fictif OrElse Not RealArchiveEnabled())
         If Not fictif AndAlso Not local Then
@@ -215,7 +220,7 @@ Friend NotInheritable Class FrmDocumentFilePreview
                             If MessageBox.Show(Me,"Envoyer ce document à Gemini pour l’analyser ?","Analyse du document",MessageBoxButtons.YesNo,MessageBoxIcon.Question,MessageBoxDefaultButton.Button2)<>DialogResult.Yes Then Throw New OperationCanceledException()
                             Dim key=GlobalSettings.GeminiKey
                             If String.IsNullOrWhiteSpace(key) Then Throw New InvalidOperationException("La clé Gemini existante n’est pas configurée.")
-                            Dim brut=Await GeminiAnalyzer.AnalyserDocument(key,source,rapportDetaille:=False)
+                            Dim brut=Await GeminiAnalyzer.AnalyserDocument(key,source,rapportDetaille:=False,avecTiers:=True)
                             Return Newtonsoft.Json.Linq.JObject.Parse(brut)
                         End Function,AddressOf CacheAnalyse.VerifierGemini)
                     json=resultat.ToString()
@@ -225,7 +230,24 @@ Friend NotInheritable Class FrmDocumentFilePreview
                 End If
             End Using
 
-            Dim proposition = DocumentArchiveProposal.Prepare(source, hash, json, root, settings)
+            Dim analyse=JObject.Parse(json)
+            Dim proposition As DocumentArchiveProposal
+            If Not fictif AndAlso analyse.Value(Of String)("type_document")="FormulaireAdhesion" Then
+                Dim personne=TryCast(analyse("donnees_extraites")?("identite"),JObject)
+                Dim nom=If(personne?("nom")?.ToString(),If(personne?("raisonSociale")?.ToString(),personne?("nom_complet")?.ToString()))
+                Dim dateLue=analyse("donnees_extraites")?("transaction")?("date_document")?.ToString()
+                If String.IsNullOrWhiteSpace(dateLue) Then dateLue=Today.ToString("yyyy-MM-dd")
+                proposition=DocumentArchiveProposal.PrepareAdministrativeTest(source,hash,root,TypeDocument.FormulaireAdhesion,
+                    If(nom,""),dateLue,"","",If(personne?("prenom")?.ToString(),""),If(personne?("adresse")?.ToString(),""),identity:=personne,archiveRelativeRoot:=settings("repRacineComptabilité"))
+            Else
+                proposition=DocumentArchiveProposal.Prepare(source,hash,json,root,settings)
+            End If
+            If Not fictif AndAlso (TypeOf proposition.Document Is Facture OrElse proposition.Document.CategorieDoc="FormulaireAdhesion") Then
+                If MessageBox.Show(Me,proposition.Summary & vbCrLf & proposition.Destination & vbCrLf & "Vérifier le tiers et classer en PROD ?", "Archivage en production",MessageBoxButtons.YesNo,MessageBoxIcon.Question,MessageBoxDefaultButton.Button2)<>DialogResult.Yes Then Return
+                Dim id=Await ValiderTiers(proposition,analyse,source,True)
+                If id.HasValue Then MessageBox.Show(Me,"Document enregistré en PROD sous le numéro " & id.Value.ToString() & ".")
+                Return
+            End If
             Await ConfirmProposal(proposition, save, fictif)
         Catch ex As OperationCanceledException
             Return
@@ -287,25 +309,39 @@ Friend NotInheritable Class FrmDocumentFilePreview
             If decision <> DialogResult.OK Then Return
             Dim proposal = editor.Proposal
             ValidateTestDestination(proposal.Destination)
-            Dim approve As Func(Of String, Boolean?) =
-                Function(changes)
-                    Dim choice As DialogResult = CType(Invoke(New Func(Of DialogResult)(
-                        Function() MessageBox.Show(Me, changes & vbCrLf & vbCrLf &
-                            "Oui : appliquer ces modifications. Non : conserver la fiche existante. Annuler : abandonner le classement.",
-                            "Vérifier les modifications du tiers", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question,
-                            MessageBoxDefaultButton.Button3))), DialogResult)
-                    If choice = DialogResult.Cancel Then Return Nothing
-                    Return choice = DialogResult.Yes
-                End Function
-            Dim id = Await Task.Run(Function()
-                _sqlTest.Initialize()
-                Return _sqlTest.SaveVerified(proposal, approve)
-            End Function)
+            Await Task.Run(Sub() _sqlTest.Initialize())
+            Dim id=Await ValiderTiers(proposal,suggested,source,False)
             If id.HasValue Then
                 MessageBox.Show(Me, "Document n° " & id.Value & " enregistré dans bddAgumaaaTest.dbo.Documents." &
                     vbCrLf & vbCrLf & "Copie vérifiée :" & vbCrLf & proposal.Destination, "Classement terminé")
             End If
         End Using
+    End Function
+
+    Private Async Function ValiderTiers(proposal As DocumentArchiveProposal,analyse As JObject,source As String,production As Boolean) As Task(Of Integer?)
+        Dim revue As RevueTiers = Nothing
+        Dim lu As Newtonsoft.Json.Linq.JObject = Nothing
+        If TypeOf proposal.Document Is Facture OrElse proposal.Document.CategorieDoc="FormulaireAdhesion" Then
+            lu=RevueTiers.Extraire(proposal.Document,analyse)
+            Dim donnees=Await Task.Run(Function()
+                Using cn=If(production,ParametresComptables.Ouvrir(False),SqlDocumentTestStore.OpenTest())
+                    Dim tiers=RevueTiers.Lire(cn)
+                    Using cmd As New Data.SqlClient.SqlCommand("SELECT *,CONCAT(Activite,N' · ',Annee,N' · ',RoleCours) AS libelle FROM dbo.VueParticipantsActivite",cn), reader=cmd.ExecuteReader()
+                        Dim inscriptions As New Data.DataTable()
+                        inscriptions.Load(reader)
+                        Return (tiers,inscriptions)
+                    End Using
+                End Using
+            End Function)
+            Dim inscription=If(proposal.Document.CategorieDoc="FormulaireAdhesion",
+                TryCast(analyse?("participation"),Newtonsoft.Json.Linq.JObject),Nothing)
+            Using fiche As New FrmRevueTiers(donnees.tiers,lu,inscription,"Tiers et coordonnées — " & Path.GetFileName(source),piece:=source,participations:=donnees.inscriptions)
+                If fiche.ShowDialog(Me)<>DialogResult.OK Then Return Nothing
+                revue=fiche.Decision
+            End Using
+        End If
+        Dim store=If(_sqlTest,New SqlDocumentTestStore())
+        Return Await Task.Run(Function() store.SaveReviewed(proposal,Nothing,revue,lu,production))
     End Function
 
     Private Async Function AnalysePdfLocal(source As String) As Task

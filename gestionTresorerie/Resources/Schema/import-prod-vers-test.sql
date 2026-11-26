@@ -15,6 +15,9 @@ INSERT @tables (name) VALUES
 (N'Films'), (N'ParticipantMdN'), (N'ReglesAffectationReleve'), (N'Seances'), (N'SousCategorie'),
 (N'Tarifs'), (N'Type'), (N'TypeDoc'), (N'TypeMouvement'), (N'Mouvements'), (N'Documents');
 
+IF OBJECT_ID(N'bddAgumaaa.dbo.ActiviteAssociation',N'U') IS NOT NULL
+    INSERT @tables(name) VALUES (N'ActiviteAssociation'),(N'EditionActivite'),(N'Participation'),(N'DocumentTiers'),(N'JustificatifParticipation');
+
 DECLARE @i int = 1, @name sysname, @target nvarchar(300), @source nvarchar(300),
         @targetId int, @sourceId int, @sql nvarchar(max), @cols nvarchar(max),
         @hasIdentity bit, @hasRows bit, @lock int;
